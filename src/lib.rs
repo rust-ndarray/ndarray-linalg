@@ -15,6 +15,7 @@ pub trait Matrix: Sized {
 pub trait SquareMatrix: Matrix {
     // fn qr(self) -> (Self, Self);
     // fn lu(self) -> (Self, Self);
+    // fn eig(self) -> (Self::Vector, Self);
     /// eigenvalue decomposition for Hermite matrix
     fn eigh(self) -> (Self::Vector, Self);
 }
@@ -63,7 +64,9 @@ impl Eigh for f32 {
     }
 }
 
-impl<A: Eigh + Clone + Zero> SquareMatrix for Array<A, (Ix, Ix)> {
+impl<A> SquareMatrix for Array<A, (Ix, Ix)>
+    where A: Eigh + Clone + Zero
+{
     fn eigh(self) -> (Self::Vector, Self) {
         let rows = self.rows();
         let cols = self.cols();

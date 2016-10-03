@@ -13,14 +13,15 @@ pub trait Matrix: Sized {
 pub trait SquareMatrix: Matrix {
     // fn qr(self) -> (Self, Self);
     // fn lu(self) -> (Self, Self);
-    fn eig(self) -> (Self::Vector, Self);
+    /// eigenvalue decomposition for Hermite matrix
+    fn eigh(self) -> (Self::Vector, Self);
 }
 
 impl Matrix for Array<f64, (Ix, Ix)> {
     type Vector = Array<f64, Ix>;
 }
 
-fn eigs_(n: usize, mut a: Vec<f64>) -> (Vec<f64>, Vec<f64>) {
+fn eigh_(n: usize, mut a: Vec<f64>) -> (Vec<f64>, Vec<f64>) {
     let mut w = vec![0.0; n as usize];
     let mut work = vec![0.0; 4 * n as usize];
     let lwork = 4 * n;
@@ -39,11 +40,11 @@ fn eigs_(n: usize, mut a: Vec<f64>) -> (Vec<f64>, Vec<f64>) {
 }
 
 impl SquareMatrix for Array<f64, (Ix, Ix)> {
-    fn eig(self) -> (Self::Vector, Self) {
+    fn eigh(self) -> (Self::Vector, Self) {
         let rows = self.rows();
         let cols = self.cols();
         assert_eq!(rows, cols);
-        let (e, vecs) = eigs_(rows, self.into_raw_vec());
+        let (e, vecs) = eigh_(rows, self.into_raw_vec());
         let ea = Array::from_vec(e);
         let va = Array::from_vec(vecs).into_shape((rows, cols)).unwrap();
         (ea, va)

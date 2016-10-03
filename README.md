@@ -7,7 +7,7 @@ Examples
 
 ```rust
 let a = arr2(&[[3.0, 1.0, 1.0], [1.0, 3.0, 1.0], [1.0, 1.0, 3.0]]);
-let (e, vecs) = a.eig();  // eigenvalue and eigenvectors
+let (e, vecs) = a.eigh();  // eigenvalue and eigenvectors (for Hermite matrix)
 ```
 
 See complete example at [src/main.rs](src/main.rs).

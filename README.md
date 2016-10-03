@@ -15,14 +15,13 @@ See complete example at [src/main.rs](src/main.rs).
 Progress
 ---------
 - LAPACK bindings using [stainless-steel/lapack](https://github.com/stainless-steel/lapack) (for small matrix):
-  - [ ] LU factorization
-  - [ ] QR factorization
-  - [ ] singular-value decomposition (SVD)
-  - [ ] inverse matrix
-  - [ ] eigenvalue analysis
+  - [ ] lu: LU factorization
+  - [ ] qr: QR factorization
+  - [ ] svd: singular-value decomposition (SVD)
+  - [ ] inv: inverse matrix
+  - [x] eigh: eigenvalue analysis for Hermite matrix
+  - [ ] eig: eigenvalue analysis for general matrix
 - Iterating methods (for large matrix):
   - [ ] SOR
   - [ ] BiCGSTAB
   - [ ] GMRES
-
-Nothing has been done!!

@@ -1,6 +1,6 @@
-ndarray-linalg
+[WIP] ndarray-linalg
 ===============
-[WIP] Linear algebra package for rust-ndarray
+Linear algebra package for [rust-ndarray](https://github.com/bluss/rust-ndarray)
 
 Progress
 ---------

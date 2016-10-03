@@ -4,7 +4,7 @@ Linear algebra package for [rust-ndarray](https://github.com/bluss/rust-ndarray)
 
 Progress
 ---------
-- LAPACK bindings (for small matrix):
+- LAPACK bindings using [stainless-steel/lapack](https://github.com/stainless-steel/lapack) (for small matrix):
   - [ ] LU factorization
   - [ ] QR factorization
   - [ ] singular-value decomposition (SVD)

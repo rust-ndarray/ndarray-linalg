@@ -1,2 +1,18 @@
-# ndarray-linalg
-[WIP] LAPACK binding for rust-ndarray
+ndarray-linalg
+===============
+[WIP] Linear algebra package for rust-ndarray
+
+Progress
+---------
+- LAPACK bindings (for small matrix):
+  - [ ] LU factorization
+  - [ ] QR factorization
+  - [ ] singular-value decomposition (SVD)
+  - [ ] inverse matrix
+  - [ ] eigenvalue analysis
+- Iterating methods (for large matrix):
+  - [ ] SOR
+  - [ ] BiCGSTAB
+  - [ ] GMRES
+
+Nothing has been done!!

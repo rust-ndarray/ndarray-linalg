@@ -3,6 +3,7 @@ extern crate ndarray;
 extern crate lapack;
 
 use ndarray::prelude::*;
+use ndarray::LinalgScalar;
 use lapack::fortran::*;
 
 pub trait Matrix: Sized {
@@ -46,12 +47,8 @@ impl Eigh for f32 {
     }
 }
 
-fn fill_lower<A>(mut a: &mut Array<A, (Ix, Ix)>) {
-    //
-}
-
 impl<A> SquareMatrix for Array<A, (Ix, Ix)>
-    where A: Eigh
+    where A: Eigh + LinalgScalar
 {
     fn eigh(self) -> Option<(Self::Vector, Self)> {
         let rows = self.rows();
@@ -67,8 +64,7 @@ impl<A> SquareMatrix for Array<A, (Ix, Ix)>
         };
 
         let ea = Array::from_vec(w);
-        let mut va = Array::from_vec(a).into_shape((rows, cols)).unwrap();
-        fill_lower(&mut va);
+        let va = Array::from_vec(a).into_shape((rows, cols)).unwrap().reversed_axes();
         Some((ea, va))
     }
 }

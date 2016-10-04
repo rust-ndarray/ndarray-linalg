@@ -1,10 +1,10 @@
 
 extern crate ndarray;
-extern crate lapack;
+pub mod lapack_binding;
 
 use ndarray::prelude::*;
 use ndarray::LinalgScalar;
-use lapack::fortran::*;
+use lapack_binding::Eigh;
 
 pub trait Matrix: Sized {
     type Vector;
@@ -21,30 +21,6 @@ pub trait SquareMatrix: Matrix {
 
 impl<A> Matrix for Array<A, (Ix, Ix)> {
     type Vector = Array<A, Ix>;
-}
-
-pub trait Eigh: Sized {
-    fn syev(i32, &mut [Self]) -> Option<Vec<Self>>;
-}
-
-impl Eigh for f64 {
-    fn syev(n: i32, a: &mut [Self]) -> Option<Vec<Self>> {
-        let mut w = vec![0.0; n as usize];
-        let mut work = vec![0.0; 4 * n as usize];
-        let mut info = 0;
-        dsyev(b'V', b'U', n, a, n, &mut w, &mut work, 4 * n, &mut info);
-        if info == 0 { Some(w) } else { None }
-    }
-}
-
-impl Eigh for f32 {
-    fn syev(n: i32, a: &mut [Self]) -> Option<Vec<Self>> {
-        let mut w = vec![0.0; n as usize];
-        let mut work = vec![0.0; 4 * n as usize];
-        let mut info = 0;
-        ssyev(b'V', b'U', n, a, n, &mut w, &mut work, 4 * n, &mut info);
-        if info == 0 { Some(w) } else { None }
-    }
 }
 
 impl<A> SquareMatrix for Array<A, (Ix, Ix)>

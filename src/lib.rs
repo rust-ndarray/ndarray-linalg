@@ -1,13 +1,19 @@
 
 extern crate ndarray;
-extern crate lapack;
+pub mod lapack_binding;
 
 use ndarray::prelude::*;
 use ndarray::LinalgScalar;
-use lapack::fortran::*;
+use lapack_binding::Eigh;
 
 pub trait Matrix: Sized {
     type Vector;
+    /// number of rows and cols
+    fn size(&self) -> (usize, usize);
+    fn is_square(&self) -> bool {
+        let (rows, cols) = self.size();
+        rows == cols
+    }
     // fn svd(self) -> (Self, Self::Vector, Self);
 }
 
@@ -21,29 +27,8 @@ pub trait SquareMatrix: Matrix {
 
 impl<A> Matrix for Array<A, (Ix, Ix)> {
     type Vector = Array<A, Ix>;
-}
-
-pub trait Eigh: Sized {
-    fn syev(i32, &mut [Self]) -> Option<Vec<Self>>;
-}
-
-impl Eigh for f64 {
-    fn syev(n: i32, a: &mut [Self]) -> Option<Vec<Self>> {
-        let mut w = vec![0.0; n as usize];
-        let mut work = vec![0.0; 4 * n as usize];
-        let mut info = 0;
-        dsyev(b'V', b'U', n, a, n, &mut w, &mut work, 4 * n, &mut info);
-        if info == 0 { Some(w) } else { None }
-    }
-}
-
-impl Eigh for f32 {
-    fn syev(n: i32, a: &mut [Self]) -> Option<Vec<Self>> {
-        let mut w = vec![0.0; n as usize];
-        let mut work = vec![0.0; 4 * n as usize];
-        let mut info = 0;
-        ssyev(b'V', b'U', n, a, n, &mut w, &mut work, 4 * n, &mut info);
-        if info == 0 { Some(w) } else { None }
+    fn size(&self) -> (usize, usize) {
+        (self.rows(), self.cols())
     }
 }
 
@@ -51,18 +36,15 @@ impl<A> SquareMatrix for Array<A, (Ix, Ix)>
     where A: Eigh + LinalgScalar
 {
     fn eigh(self) -> Option<(Self::Vector, Self)> {
-        let rows = self.rows();
-        let cols = self.cols();
-        if rows != cols {
+        if !self.is_square() {
             return None;
         }
-
+        let (rows, cols) = self.size();
         let mut a = self.into_raw_vec();
         let w = match Eigh::syev(rows as i32, &mut a) {
             Some(w) => w,
             None => return None,
         };
-
         let ea = Array::from_vec(w);
         let va = Array::from_vec(a).into_shape((rows, cols)).unwrap().reversed_axes();
         Some((ea, va))

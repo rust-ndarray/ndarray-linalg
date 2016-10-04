@@ -5,15 +5,32 @@ pub mod lapack_binding;
 use ndarray::prelude::*;
 use ndarray::LinalgScalar;
 use lapack_binding::Eigh;
+use std::error;
+use std::fmt;
+
+#[derive(Debug)]
+struct NotSquareError {
+    rows: usize,
+    cols: usize,
+}
+
+impl fmt::Display for NotSquareError {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "Not square: rows({}) != cols({})", self.rows, self.cols)
+    }
+}
+
+impl error::Error for NotSquareError {
+    fn description(&self) -> &str {
+        "Matrix is not square"
+    }
+}
+
 
 pub trait Matrix: Sized {
     type Vector;
     /// number of rows and cols
     fn size(&self) -> (usize, usize);
-    fn is_square(&self) -> bool {
-        let (rows, cols) = self.size();
-        rows == cols
-    }
     // fn svd(self) -> (Self, Self::Vector, Self);
 }
 
@@ -23,6 +40,17 @@ pub trait SquareMatrix: Matrix {
     // fn eig(self) -> (Self::Vector, Self);
     /// eigenvalue decomposition for Hermite matrix
     fn eigh(self) -> Option<(Self::Vector, Self)>;
+    fn check_square(&self) -> Result<(), NotSquareError> {
+        let (rows, cols) = self.size();
+        if rows == cols {
+            Ok(())
+        } else {
+            Err(NotSquareError {
+                rows: rows,
+                cols: cols,
+            })
+        }
+    }
 }
 
 impl<A> Matrix for Array<A, (Ix, Ix)> {

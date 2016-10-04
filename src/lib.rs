@@ -14,9 +14,24 @@ pub struct NotSquareError {
     cols: usize,
 }
 
+#[derive(Debug)]
+pub enum LinalgError {
+    NotSquare(NotSquareError),
+    Lapack(lapack_binding::LapackError),
+}
+
 impl fmt::Display for NotSquareError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "Not square: rows({}) != cols({})", self.rows, self.cols)
+    }
+}
+
+impl fmt::Display for LinalgError {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match *self {
+            LinalgError::NotSquare(ref err) => err.fmt(f),
+            LinalgError::Lapack(ref err) => err.fmt(f),
+        }
     }
 }
 
@@ -26,10 +41,13 @@ impl error::Error for NotSquareError {
     }
 }
 
-#[derive(Debug)]
-pub enum LinalgError {
-    NotSquare(NotSquareError),
-    Lapack(lapack_binding::LapackError),
+impl error::Error for LinalgError {
+    fn description(&self) -> &str {
+        match *self {
+            LinalgError::NotSquare(ref err) => err.description(),
+            LinalgError::Lapack(ref err) => err.description(),
+        }
+    }
 }
 
 pub trait Matrix: Sized {

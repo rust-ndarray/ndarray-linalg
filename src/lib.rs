@@ -1,11 +1,9 @@
 
-extern crate num_traits;
 extern crate ndarray;
 extern crate lapack;
 
 use ndarray::prelude::*;
 use lapack::fortran::*;
-use num_traits::Zero;
 
 pub trait Matrix: Sized {
     type Vector;
@@ -48,8 +46,12 @@ impl Eigh for f32 {
     }
 }
 
+fn fill_lower<A>(mut a: &mut Array<A, (Ix, Ix)>) {
+    //
+}
+
 impl<A> SquareMatrix for Array<A, (Ix, Ix)>
-    where A: Eigh + Clone + Zero
+    where A: Eigh
 {
     fn eigh(self) -> Option<(Self::Vector, Self)> {
         let rows = self.rows();
@@ -65,7 +67,8 @@ impl<A> SquareMatrix for Array<A, (Ix, Ix)>
         };
 
         let ea = Array::from_vec(w);
-        let va = Array::from_vec(a).into_shape((rows, cols)).unwrap();
+        let mut va = Array::from_vec(a).into_shape((rows, cols)).unwrap();
+        fill_lower(&mut va);
         Some((ea, va))
     }
 }

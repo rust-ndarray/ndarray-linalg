@@ -2,7 +2,9 @@
 extern crate lapack;
 use self::lapack::fortran::*;
 
+/// wrapper for *syev functions in LAPACK
 pub trait Eigh: Sized {
+    /// execute *syev subroutine
     fn syev(i32, &mut [Self]) -> Option<Vec<Self>>;
 }
 

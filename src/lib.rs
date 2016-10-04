@@ -8,6 +8,12 @@ use lapack_binding::Eigh;
 
 pub trait Matrix: Sized {
     type Vector;
+    /// number of rows and cols
+    fn size(&self) -> (usize, usize);
+    fn is_square(&self) -> bool {
+        let (rows, cols) = self.size();
+        rows == cols
+    }
     // fn svd(self) -> (Self, Self::Vector, Self);
 }
 
@@ -21,17 +27,19 @@ pub trait SquareMatrix: Matrix {
 
 impl<A> Matrix for Array<A, (Ix, Ix)> {
     type Vector = Array<A, Ix>;
+    fn size(&self) -> (usize, usize) {
+        (self.rows(), self.cols())
+    }
 }
 
 impl<A> SquareMatrix for Array<A, (Ix, Ix)>
     where A: Eigh + LinalgScalar
 {
     fn eigh(self) -> Option<(Self::Vector, Self)> {
-        let rows = self.rows();
-        let cols = self.cols();
-        if rows != cols {
+        if !self.is_square() {
             return None;
         }
+        let (rows, cols) = self.size();
 
         let mut a = self.into_raw_vec();
         let w = match Eigh::syev(rows as i32, &mut a) {

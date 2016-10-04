@@ -6,7 +6,7 @@ use std::error;
 use std::fmt;
 
 #[derive(Debug)]
-struct LapackError {
+pub struct LapackError {
     return_code: i32,
 }
 

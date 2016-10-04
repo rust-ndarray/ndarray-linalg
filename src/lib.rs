@@ -9,7 +9,7 @@ use std::error;
 use std::fmt;
 
 #[derive(Debug)]
-struct NotSquareError {
+pub struct NotSquareError {
     rows: usize,
     cols: usize,
 }
@@ -26,6 +26,11 @@ impl error::Error for NotSquareError {
     }
 }
 
+#[derive(Debug)]
+pub enum LinalgError {
+    NotSquare(NotSquareError),
+    Lapack(lapack_binding::LapackError),
+}
 
 pub trait Matrix: Sized {
     type Vector;
@@ -39,7 +44,7 @@ pub trait SquareMatrix: Matrix {
     // fn lu(self) -> (Self, Self);
     // fn eig(self) -> (Self::Vector, Self);
     /// eigenvalue decomposition for Hermite matrix
-    fn eigh(self) -> Option<(Self::Vector, Self)>;
+    fn eigh(self) -> Result<(Self::Vector, Self), LinalgError>;
     fn check_square(&self) -> Result<(), NotSquareError> {
         let (rows, cols) = self.size();
         if rows == cols {
@@ -63,18 +68,15 @@ impl<A> Matrix for Array<A, (Ix, Ix)> {
 impl<A> SquareMatrix for Array<A, (Ix, Ix)>
     where A: Eigh + LinalgScalar
 {
-    fn eigh(self) -> Option<(Self::Vector, Self)> {
-        if !self.is_square() {
-            return None;
-        }
+    fn eigh(self) -> Result<(Self::Vector, Self), LinalgError> {
         let (rows, cols) = self.size();
         let mut a = self.into_raw_vec();
         let w = match Eigh::syev(rows as i32, &mut a) {
-            Some(w) => w,
-            None => return None,
+            Ok(w) => w,
+            Err(err) => return Err(LinalgError::Lapack(err)),
         };
         let ea = Array::from_vec(w);
         let va = Array::from_vec(a).into_shape((rows, cols)).unwrap().reversed_axes();
-        Some((ea, va))
+        Ok((ea, va))
     }
 }

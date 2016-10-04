@@ -1,0 +1,4 @@
+[submodule "target/doc"]
+	path = target/doc
+	url = git@github.com:termoshtt/ndarray-linalg
+	branch = gh-pages

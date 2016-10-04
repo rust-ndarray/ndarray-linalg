@@ -1,9 +1,0 @@
-language: rust
-rust:
-  - stable
-  - beta
-  - nightly
-sudo: false
-script:
-  - rustc --version
-  - cargo run --release

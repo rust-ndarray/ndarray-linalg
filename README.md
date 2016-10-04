@@ -1,4 +1,4 @@
-WIP: ndarray-linalg [![Build Status](https://travis-ci.org/termoshtt/ndarray-linalg.svg?branch=master)](https://travis-ci.org/termoshtt/ndarray-linalg)
+WIP: ndarray-linalg [![Build Status](https://travis-ci.org/termoshtt/ndarray-linalg.svg?branch=master)](https://travis-ci.org/termoshtt/ndarray-linalg) [![Document](https://img.shields.io/badge/document-0.1-blue.svg)](https://termoshtt.github.io/ndarray-linalg/ndarray_linalg/index.html)
 ===============
 Linear algebra package for [rust-ndarray](https://github.com/bluss/rust-ndarray)
 

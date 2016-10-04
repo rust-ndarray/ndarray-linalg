@@ -10,7 +10,7 @@ let a = arr2(&[[3.0, 1.0, 1.0], [1.0, 3.0, 1.0], [1.0, 1.0, 3.0]]);
 let (e, vecs) = a.eigh().unwrap();  // eigenvalue and eigenvectors (for Hermite matrix)
 ```
 
-See complete example at [src/main.rs](src/main.rs).
+See complete example at [src/bin/main.rs](src/bin/main.rs).
 
 Progress
 ---------

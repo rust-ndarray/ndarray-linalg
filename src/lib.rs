@@ -57,7 +57,6 @@ impl<A> SquareMatrix for Array<A, (Ix, Ix)>
         if rows != cols {
             return None;
         }
-        assert_eq!(rows, cols);
 
         let mut a = self.into_raw_vec();
         let w = match Eigh::syev(rows as i32, &mut a) {

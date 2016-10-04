@@ -27,7 +27,7 @@ pub trait Eigh: Sized {
 }
 
 impl Eigh for f64 {
-    fn syev(n: i32, a: &mut [f64]) -> Option<Vec<f64>> {
+    fn syev(n: i32, a: &mut [Self]) -> Option<Vec<Self>> {
         let mut w = vec![0.0; n as usize];
         let mut work = vec![0.0; 4 * n as usize];
         let mut info = 0;
@@ -37,7 +37,7 @@ impl Eigh for f64 {
 }
 
 impl Eigh for f32 {
-    fn syev(n: i32, a: &mut [f32]) -> Option<Vec<f32>> {
+    fn syev(n: i32, a: &mut [Self]) -> Option<Vec<Self>> {
         let mut w = vec![0.0; n as usize];
         let mut work = vec![0.0; 4 * n as usize];
         let mut info = 0;

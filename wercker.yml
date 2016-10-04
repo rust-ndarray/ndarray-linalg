@@ -1,0 +1,7 @@
+box: termoshtt/rust:latest
+build:
+  steps:
+    - script:
+        name: cargo
+        code: |
+          cargo build

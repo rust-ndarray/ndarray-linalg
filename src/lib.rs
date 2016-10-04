@@ -1,11 +1,10 @@
 
-extern crate num_traits;
 extern crate ndarray;
 extern crate lapack;
 
 use ndarray::prelude::*;
+use ndarray::LinalgScalar;
 use lapack::fortran::*;
-use num_traits::Zero;
 
 pub trait Matrix: Sized {
     type Vector;
@@ -29,7 +28,7 @@ pub trait Eigh: Sized {
 }
 
 impl Eigh for f64 {
-    fn syev(n: i32, a: &mut [f64]) -> Option<Vec<f64>> {
+    fn syev(n: i32, a: &mut [Self]) -> Option<Vec<Self>> {
         let mut w = vec![0.0; n as usize];
         let mut work = vec![0.0; 4 * n as usize];
         let mut info = 0;
@@ -39,7 +38,7 @@ impl Eigh for f64 {
 }
 
 impl Eigh for f32 {
-    fn syev(n: i32, a: &mut [f32]) -> Option<Vec<f32>> {
+    fn syev(n: i32, a: &mut [Self]) -> Option<Vec<Self>> {
         let mut w = vec![0.0; n as usize];
         let mut work = vec![0.0; 4 * n as usize];
         let mut info = 0;
@@ -49,7 +48,7 @@ impl Eigh for f32 {
 }
 
 impl<A> SquareMatrix for Array<A, (Ix, Ix)>
-    where A: Eigh + Clone + Zero
+    where A: Eigh + LinalgScalar
 {
     fn eigh(self) -> Option<(Self::Vector, Self)> {
         let rows = self.rows();
@@ -65,7 +64,7 @@ impl<A> SquareMatrix for Array<A, (Ix, Ix)>
         };
 
         let ea = Array::from_vec(w);
-        let va = Array::from_vec(a).into_shape((rows, cols)).unwrap();
+        let va = Array::from_vec(a).into_shape((rows, cols)).unwrap().reversed_axes();
         Some((ea, va))
     }
 }

@@ -69,12 +69,10 @@ impl<A> SquareMatrix for Array<A, (Ix, Ix)>
     where A: Eigh + LinalgScalar
 {
     fn eigh(self) -> Result<(Self::Vector, Self), LinalgError> {
+        try!(self.check_square().map_err(LinalgError::NotSquare));
         let (rows, cols) = self.size();
         let mut a = self.into_raw_vec();
-        let w = match Eigh::syev(rows as i32, &mut a) {
-            Ok(w) => w,
-            Err(err) => return Err(LinalgError::Lapack(err)),
-        };
+        let w = try!(Eigh::syev(rows as i32, &mut a).map_err(LinalgError::Lapack));
         let ea = Array::from_vec(w);
         let va = Array::from_vec(a).into_shape((rows, cols)).unwrap().reversed_axes();
         Ok((ea, va))

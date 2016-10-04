@@ -5,7 +5,7 @@ use self::lapack::fortran::*;
 /// wrapper for *syev functions in LAPACK
 pub trait Eigh: Sized {
     /// execute *syev subroutine
-    fn syev(i32, &mut [Self]) -> Option<Vec<Self>>;
+    fn syev(row_size: i32, matrix: &mut [Self]) -> Option<Vec<Self>>;
 }
 
 impl Eigh for f64 {

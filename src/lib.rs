@@ -40,13 +40,11 @@ impl<A> SquareMatrix for Array<A, (Ix, Ix)>
             return None;
         }
         let (rows, cols) = self.size();
-
         let mut a = self.into_raw_vec();
         let w = match Eigh::syev(rows as i32, &mut a) {
             Some(w) => w,
             None => return None,
         };
-
         let ea = Array::from_vec(w);
         let va = Array::from_vec(a).into_shape((rows, cols)).unwrap().reversed_axes();
         Some((ea, va))

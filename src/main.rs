@@ -7,7 +7,7 @@ use linalg::SquareMatrix;
 
 fn main() {
     let a = arr2(&[[3.0, 1.0, 1.0], [1.0, 3.0, 1.0], [1.0, 1.0, 3.0]]);
-    let (e, vecs) = a.eigh();
+    let (e, vecs) = a.eigh().unwrap();
     println!("eigenvalues = {:?}", e);
     println!("eigenvectors = \n{:?}", vecs);
 }

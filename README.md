@@ -17,6 +17,7 @@ Progress
 - LAPACK bindings using [stainless-steel/lapack](https://github.com/stainless-steel/lapack) (for small matrix):
   - [ ] lu: LU factorization
   - [ ] qr: QR factorization
+  - [ ] cholesky: Cholesky decomposition
   - [ ] svd: singular-value decomposition (SVD)
   - [ ] inv: inverse matrix
   - [x] eigh: eigenvalue analysis for Hermite matrix

@@ -1,66 +1,13 @@
 
 extern crate ndarray;
+
 pub mod lapack_binding;
+pub mod error;
 
 use ndarray::prelude::*;
 use ndarray::LinalgScalar;
 use lapack_binding::Eigh;
-use std::error;
-use std::fmt;
-
-#[derive(Debug)]
-pub struct NotSquareError {
-    rows: usize,
-    cols: usize,
-}
-
-#[derive(Debug)]
-pub enum LinalgError {
-    NotSquare(NotSquareError),
-    Lapack(lapack_binding::LapackError),
-}
-
-impl fmt::Display for NotSquareError {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "Not square: rows({}) != cols({})", self.rows, self.cols)
-    }
-}
-
-impl fmt::Display for LinalgError {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        match *self {
-            LinalgError::NotSquare(ref err) => err.fmt(f),
-            LinalgError::Lapack(ref err) => err.fmt(f),
-        }
-    }
-}
-
-impl error::Error for NotSquareError {
-    fn description(&self) -> &str {
-        "Matrix is not square"
-    }
-}
-
-impl error::Error for LinalgError {
-    fn description(&self) -> &str {
-        match *self {
-            LinalgError::NotSquare(ref err) => err.description(),
-            LinalgError::Lapack(ref err) => err.description(),
-        }
-    }
-}
-
-impl From<NotSquareError> for LinalgError {
-    fn from(err: NotSquareError) -> LinalgError {
-        LinalgError::NotSquare(err)
-    }
-}
-
-impl From<lapack_binding::LapackError> for LinalgError {
-    fn from(err: lapack_binding::LapackError) -> LinalgError {
-        LinalgError::Lapack(err)
-    }
-}
+use error::{LinalgError, NotSquareError};
 
 pub trait Matrix: Sized {
     type Vector;

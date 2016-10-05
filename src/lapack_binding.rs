@@ -10,6 +10,12 @@ pub struct LapackError {
     return_code: i32,
 }
 
+impl From<i32> for LapackError {
+    fn from(code: i32) -> LapackError {
+        LapackError { return_code: code }
+    }
+}
+
 impl fmt::Display for LapackError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "LAPACK: return_code = {}", self.return_code)

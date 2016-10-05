@@ -50,6 +50,18 @@ impl error::Error for LinalgError {
     }
 }
 
+impl From<NotSquareError> for LinalgError {
+    fn from(err: NotSquareError) -> LinalgError {
+        LinalgError::NotSquare(err)
+    }
+}
+
+impl From<lapack_binding::LapackError> for LinalgError {
+    fn from(err: lapack_binding::LapackError) -> LinalgError {
+        LinalgError::Lapack(err)
+    }
+}
+
 pub trait Matrix: Sized {
     type Vector;
     /// number of rows and cols
@@ -87,10 +99,10 @@ impl<A> SquareMatrix for Array<A, (Ix, Ix)>
     where A: Eigh + LinalgScalar
 {
     fn eigh(self) -> Result<(Self::Vector, Self), LinalgError> {
-        try!(self.check_square().map_err(LinalgError::NotSquare));
+        try!(self.check_square());
         let (rows, cols) = self.size();
         let mut a = self.into_raw_vec();
-        let w = try!(Eigh::syev(rows as i32, &mut a).map_err(LinalgError::Lapack));
+        let w = try!(Eigh::syev(rows as i32, &mut a));
         let ea = Array::from_vec(w);
         let va = Array::from_vec(a).into_shape((rows, cols)).unwrap().reversed_axes();
         Ok((ea, va))

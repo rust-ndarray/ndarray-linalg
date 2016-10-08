@@ -133,3 +133,12 @@ impl LapackScalar for f32 {
         slange(norm, m, n, a, lda, work)
     }
 }
+
+/// QR factorization
+///
+/// Using [LAPACK subroutines for factorizations](http://www.netlib.org/lapack/lug/node44.html)
+pub trait QR: Sized {
+    ///  - [dgeqp3](http://www.netlib.org/lapack/lapack-3.1.1/html/dgeqp3.f.html) for f64
+    ///  - [sgeqp3](http://www.netlib.org/lapack/lapack-3.1.1/html/sgeqp3.f.html) for f32
+    fn qr(rows: i32, cols: i32, matrix: &mut [Self]) -> Result<Vec<Self>, LapackError>;
+}

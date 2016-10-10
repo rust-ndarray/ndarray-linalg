@@ -1,6 +1,7 @@
 
 extern crate lapack;
 
+use std::cmp;
 use self::lapack::fortran::*;
 use error::LapackError;
 use ndarray::LinalgScalar;
@@ -138,7 +139,33 @@ impl LapackScalar for f32 {
 ///
 /// Using [LAPACK subroutines for factorizations](http://www.netlib.org/lapack/lug/node44.html)
 pub trait QR: Sized {
-    ///  - [dgeqp3](http://www.netlib.org/lapack/lapack-3.1.1/html/dgeqp3.f.html) for f64
-    ///  - [sgeqp3](http://www.netlib.org/lapack/lapack-3.1.1/html/sgeqp3.f.html) for f32
-    fn qr(rows: i32, cols: i32, matrix: &mut [Self]) -> Result<Vec<Self>, LapackError>;
+    ///  - [dorgqr](http://www.netlib.org/lapack/lapack-3.1.1/html/dorgqr.f.html) for f64
+    fn qr(rows: usize,
+          cols: usize,
+          matrix: Vec<Self>)
+          -> Result<(Vec<Self>, Vec<Self>), LapackError>;
+}
+
+impl QR for f64 {
+    fn qr(m: usize, n: usize, mut a: Vec<Self>) -> Result<(Vec<Self>, Vec<Self>), LapackError> {
+        let m = m as i32;
+        let n = n as i32;
+        let k = cmp::min(m, n);
+        let lda = m;
+        let lwork = 4 * n;
+        let mut tau = vec![0.0; k as usize];
+        let mut work = vec![0.0; lwork as usize];
+        let mut info = 0;
+        dgeqrf(m, n, &mut a, lda, &mut tau, &mut work, lwork, &mut info);
+        if info != 0 {
+            return Err(From::from(info));
+        }
+        let r = a.clone();
+        dorgqr(m, n, k, &mut a, lda, &mut tau, &mut work, lwork, &mut info);
+        if info == 0 {
+            Ok((a, r))
+        } else {
+            Err(From::from(info))
+        }
+    }
 }

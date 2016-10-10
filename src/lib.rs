@@ -35,7 +35,6 @@ pub trait Matrix: Sized {
 }
 
 pub trait SquareMatrix: Matrix {
-    // fn qr(self) -> (Self, Self);
     // fn lu(self) -> (Self, Self);
     // fn eig(self) -> (Self::Vector, Self);
     /// eigenvalue decomposition for Hermite matrix

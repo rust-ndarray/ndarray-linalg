@@ -91,8 +91,12 @@ impl<A: LapackScalar + Float> SquareMatrix for Array<A, (Ix, Ix)> {
     fn qr(self) -> Result<(Self, Self), LinalgError> {
         let (m, n) = self.size();
         let (mut q, r) = try!(QR::qr(m, n, self.into_raw_vec()));
-        q.truncate(m * m);
-        let qm = Array::from_vec(q).into_shape((m, m)).unwrap().reversed_axes();
+        let qm = if n > m {
+            q.truncate(m * m);
+            Array::from_vec(q).into_shape((m, m)).unwrap().reversed_axes()
+        } else {
+            Array::from_vec(q).into_shape((n, m)).unwrap().reversed_axes()
+        };
         let rm = Array::from_vec(r).into_shape((n, m)).unwrap().reversed_axes();
         Ok((qm, rm))
     }

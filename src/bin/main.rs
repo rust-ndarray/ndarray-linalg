@@ -3,13 +3,12 @@ extern crate ndarray;
 extern crate ndarray_linalg as linalg;
 
 use ndarray::prelude::*;
-use linalg::SquareMatrix;
+use linalg::Matrix;
 
 fn main() {
-    let a = arr2(&[[3.0, 1.0, 1.0], [1.0, 3.0, 1.0], [1.0, 1.0, 3.0]]);
-    let (e, vecs) = a.clone().eigh().unwrap();
-    println!("eigenvalues = \n{:?}", e);
-    println!("V = \n{:?}", vecs);
-    let av = a.dot(&vecs);
-    println!("AV = \n{:?}", av);
+    let a = arr2(&[[3.0, 1.0, 1.0, 1.0], [1.0, 3.0, 1.0, 1.0], [1.0, 1.0, 3.0, 1.0]]);
+    println!("a = \n{:?}", &a);
+    let (q, r) = a.clone().qr().unwrap();
+    println!("Q = \n{:?}", &q);
+    println!("R = \n{:?}", &r);
 }

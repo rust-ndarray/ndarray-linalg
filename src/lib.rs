@@ -26,11 +26,12 @@ impl<A: Float + LinalgScalar> Vector for Array<A, Ix> {
 pub trait Matrix: Sized {
     type Scalar;
     type Vector;
-    /// number of rows and cols
+    /// number of (rows, cols)
     fn size(&self) -> (usize, usize);
     fn norm_1(&self) -> Self::Scalar;
     fn norm_i(&self) -> Self::Scalar;
     fn norm_f(&self) -> Self::Scalar;
+    fn qr(self) -> Result<(Self, Self), LinalgError>;
     // fn svd(self) -> (Self, Self::Vector, Self);
 }
 
@@ -87,6 +88,14 @@ impl<A: LapackScalar> Matrix for Array<A, (Ix, Ix)> {
 }
 
 impl<A: LapackScalar + Float> SquareMatrix for Array<A, (Ix, Ix)> {
+    fn qr(self) -> Result<(Self, Self), LinalgError> {
+        let (m, n) = self.size();
+        let (mut q, r) = try!(QR::qr(m, n, self.into_raw_vec()));
+        q.truncate(m * m);
+        let qm = Array::from_vec(q).into_shape((m, m)).unwrap().reversed_axes();
+        let rm = Array::from_vec(r).into_shape((n, m)).unwrap().reversed_axes();
+        Ok((qm, rm))
+    }
     fn eigh(self) -> Result<(Self::Vector, Self), LinalgError> {
         try!(self.check_square());
         let (rows, cols) = self.size();

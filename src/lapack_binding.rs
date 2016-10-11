@@ -161,7 +161,7 @@ impl QR for f64 {
             return Err(From::from(info));
         }
         let r = a.clone();
-        dorgqr(m, n, k, &mut a, lda, &mut tau, &mut work, lwork, &mut info);
+        dorgqr(m, k, k, &mut a, lda, &mut tau, &mut work, lwork, &mut info);
         if info == 0 {
             Ok((a, r))
         } else {

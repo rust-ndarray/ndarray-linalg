@@ -156,7 +156,16 @@ impl QR for f64 {
         let mut tau = vec![0.0; k as usize];
         let mut work = vec![0.0; lwork as usize];
         let mut info = 0;
-        dgeqrf(m, n, &mut a, lda, &mut tau, &mut work, lwork, &mut info);
+        let mut jpvt = vec![0; n as usize];
+        dgeqp3(m,
+               n,
+               &mut a,
+               lda,
+               &mut jpvt,
+               &mut tau,
+               &mut work,
+               lwork,
+               &mut info);
         if info != 0 {
             return Err(From::from(info));
         }

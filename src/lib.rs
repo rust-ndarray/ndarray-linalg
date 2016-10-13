@@ -14,7 +14,7 @@ pub trait Matrix: Sized {
     /// number of rows and cols
     fn size(&self) -> (usize, usize);
     // fn svd(self) -> (Self, Self::Vector, Self);
-    // fn norm1(&self) -> Scalar;
+    fn norm1(&self) -> Self::Scalar;
     // fn norm2(&self) -> Scalar;
     // fn normI(&self) -> Scalar;
     // fn normF(&self) -> Scalar;
@@ -39,11 +39,15 @@ pub trait SquareMatrix: Matrix {
     }
 }
 
-impl<A> Matrix for Array<A, (Ix, Ix)> {
+impl<A: LapackScalar> Matrix for Array<A, (Ix, Ix)> {
     type Scalar = A;
     type Vector = Array<A, Ix>;
     fn size(&self) -> (usize, usize) {
         (self.rows(), self.cols())
+    }
+    fn norm1(&self) -> Self::Scalar {
+        let (m, n) = self.size();
+        LapackScalar::norm1(m, n, self.clone().into_raw_vec())
     }
 }
 

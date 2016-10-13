@@ -3,14 +3,15 @@ extern crate lapack;
 
 use self::lapack::fortran::*;
 use error::LapackError;
+use ndarray::LinalgScalar;
 
 /// Eigenvalue decomposition for Hermite matrix
-pub trait Eigh: Sized {
+pub trait LapackScalar: LinalgScalar {
     /// execute *syev subroutine
     fn eigh(row_size: usize, matrix: Vec<Self>) -> Result<(Vec<Self>, Vec<Self>), LapackError>;
 }
 
-impl Eigh for f64 {
+impl LapackScalar for f64 {
     fn eigh(n: usize, mut a: Vec<Self>) -> Result<(Vec<Self>, Vec<Self>), LapackError> {
         let mut w = vec![0.0; n ];
         let mut work = vec![0.0; 4 * n ];
@@ -32,7 +33,7 @@ impl Eigh for f64 {
     }
 }
 
-impl Eigh for f32 {
+impl LapackScalar for f32 {
     fn eigh(n: usize, mut a: Vec<Self>) -> Result<(Vec<Self>, Vec<Self>), LapackError> {
         let mut w = vec![0.0; n];
         let mut work = vec![0.0; 4 * n];

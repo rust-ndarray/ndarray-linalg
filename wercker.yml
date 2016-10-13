@@ -2,6 +2,12 @@ box: termoshtt/rust:latest
 build:
   steps:
     - script:
-        name: cargo
+        name: cargo build
         code: |
           cargo build
+test:
+  steps:
+    - script:
+        name: cargo test
+        code: |
+          cargo test

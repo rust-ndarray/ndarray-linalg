@@ -12,6 +12,7 @@ fn test_square() {
     let (q, r) = a.clone().qr().unwrap();
     println!("Q = \n{:?}", &q);
     println!("R = \n{:?}", &r);
+    println!("QR = \n{:?}", &q.dot(&r));
 }
 
 fn test_3x4() {
@@ -21,6 +22,7 @@ fn test_3x4() {
     let (q, r) = a.clone().qr().unwrap();
     println!("Q = \n{:?}", &q);
     println!("R = \n{:?}", &r);
+    println!("QR = \n{:?}", &q.dot(&r));
 }
 
 fn test_4x3() {
@@ -30,6 +32,7 @@ fn test_4x3() {
     let (q, r) = a.clone().qr().unwrap();
     println!("Q = \n{:?}", &q);
     println!("R = \n{:?}", &r);
+    println!("QR = \n{:?}", &q.dot(&r));
 }
 
 fn main() {

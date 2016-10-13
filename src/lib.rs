@@ -48,8 +48,7 @@ impl<A> SquareMatrix for Array<A, (Ix, Ix)>
     fn eigh(self) -> Result<(Self::Vector, Self), LinalgError> {
         try!(self.check_square());
         let (rows, cols) = self.size();
-        let mut a = self.into_raw_vec();
-        let w = try!(Eigh::syev(rows as i32, &mut a));
+        let (w, a) = try!(Eigh::eigh(rows, self.into_raw_vec()));
         let ea = Array::from_vec(w);
         let va = Array::from_vec(a).into_shape((rows, cols)).unwrap().reversed_axes();
         Ok((ea, va))

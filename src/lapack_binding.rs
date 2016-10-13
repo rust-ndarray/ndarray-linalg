@@ -4,36 +4,52 @@ extern crate lapack;
 use self::lapack::fortran::*;
 use error::LapackError;
 
-/// wrapper for *syev functions in LAPACK
+/// Eigenvalue decomposition for Hermite matrix
 pub trait Eigh: Sized {
     /// execute *syev subroutine
-    fn syev(row_size: i32, matrix: &mut [Self]) -> Result<Vec<Self>, LapackError>;
+    fn eigh(row_size: usize, matrix: Vec<Self>) -> Result<(Vec<Self>, Vec<Self>), LapackError>;
 }
 
 impl Eigh for f64 {
-    fn syev(n: i32, a: &mut [Self]) -> Result<Vec<Self>, LapackError> {
-        let mut w = vec![0.0; n as usize];
-        let mut work = vec![0.0; 4 * n as usize];
+    fn eigh(n: usize, mut a: Vec<Self>) -> Result<(Vec<Self>, Vec<Self>), LapackError> {
+        let mut w = vec![0.0; n ];
+        let mut work = vec![0.0; 4 * n ];
         let mut info = 0;
-        dsyev(b'V', b'U', n, a, n, &mut w, &mut work, 4 * n, &mut info);
+        dsyev(b'V',
+              b'U',
+              n as i32,
+              &mut a,
+              n as i32,
+              &mut w,
+              &mut work,
+              4 * n as i32,
+              &mut info);
         if info == 0 {
-            Ok(w)
+            Ok((w, a))
         } else {
-            Err(LapackError { return_code: info })
+            Err(From::from(info))
         }
     }
 }
 
 impl Eigh for f32 {
-    fn syev(n: i32, a: &mut [Self]) -> Result<Vec<Self>, LapackError> {
-        let mut w = vec![0.0; n as usize];
-        let mut work = vec![0.0; 4 * n as usize];
+    fn eigh(n: usize, mut a: Vec<Self>) -> Result<(Vec<Self>, Vec<Self>), LapackError> {
+        let mut w = vec![0.0; n];
+        let mut work = vec![0.0; 4 * n];
         let mut info = 0;
-        ssyev(b'V', b'U', n, a, n, &mut w, &mut work, 4 * n, &mut info);
+        ssyev(b'V',
+              b'U',
+              n as i32,
+              &mut a,
+              n as i32,
+              &mut w,
+              &mut work,
+              4 * n as i32,
+              &mut info);
         if info == 0 {
-            Ok(w)
+            Ok((w, a))
         } else {
-            Err(LapackError { return_code: info })
+            Err(From::from(info))
         }
     }
 }

@@ -1,12 +1,20 @@
 
 extern crate ndarray;
+extern crate num_traits;
 
 pub mod lapack_binding;
 pub mod error;
 
 use ndarray::prelude::*;
+use ndarray::LinalgScalar;
+use num_traits::float::Float;
 use lapack_binding::LapackScalar;
 use error::{LinalgError, NotSquareError};
+
+pub fn norm<A: Float + LinalgScalar>(v: &Array<A, Ix>) -> A {
+    let n2 = &v.dot(&v);
+    n2.sqrt()
+}
 
 pub trait Matrix: Sized {
     type Scalar;

@@ -9,6 +9,7 @@ use ndarray::LinalgScalar;
 pub trait LapackScalar: LinalgScalar {
     /// execute *syev subroutine
     fn eigh(row_size: usize, matrix: Vec<Self>) -> Result<(Vec<Self>, Vec<Self>), LapackError>;
+    fn inv(size: usize, matrix: Vec<Self>) -> Result<Vec<Self>, LapackError>;
     fn norm_1(rows: usize, cols: usize, matrix: Vec<Self>) -> Self;
     fn norm_i(rows: usize, cols: usize, matrix: Vec<Self>) -> Self;
     fn norm_f(rows: usize, cols: usize, matrix: Vec<Self>) -> Self;
@@ -34,7 +35,24 @@ impl LapackScalar for f64 {
             Err(From::from(info))
         }
     }
-
+    fn inv(size: usize, mut a: Vec<Self>) -> Result<Vec<Self>, LapackError> {
+        let n = size as i32;
+        let lda = n;
+        let mut ipiv = vec![0; size];
+        let mut info = 0;
+        dgetrf(n, n, &mut a, lda, &mut ipiv, &mut info);
+        if info != 0 {
+            return Err(From::from(info));
+        }
+        let lwork = n;
+        let mut work = vec![0.0; size];
+        dgetri(n, &mut a, lda, &mut ipiv, &mut work, lwork, &mut info);
+        if info == 0 {
+            Ok(a)
+        } else {
+            Err(From::from(info))
+        }
+    }
     fn norm_1(m: usize, n: usize, mut a: Vec<Self>) -> Self {
         let mut work = Vec::<Self>::new();
         dlange(b'o', m as i32, n as i32, &mut a, m as i32, &mut work)
@@ -68,6 +86,10 @@ impl LapackScalar for f32 {
         } else {
             Err(From::from(info))
         }
+    }
+    fn inv(size: usize, matrix: Vec<Self>) -> Result<Vec<Self>, LapackError> {
+        panic!("Not implemented.");
+        Ok(matrix)
     }
     fn norm_1(m: usize, n: usize, mut a: Vec<Self>) -> Self {
         let mut work = Vec::<Self>::new();

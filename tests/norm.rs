@@ -4,7 +4,7 @@ extern crate ndarray_linalg as linalg;
 extern crate num_traits;
 
 use ndarray::prelude::*;
-use linalg::Matrix;
+use linalg::{Matrix, Vector};
 use num_traits::float::Float;
 
 fn assert_almost_eq(a: f64, b: f64) {
@@ -12,6 +12,12 @@ fn assert_almost_eq(a: f64, b: f64) {
     if rel_dev > 1.0e-7 {
         panic!("a={:?}, b={:?} are not almost equal", a, b);
     }
+}
+
+#[test]
+fn vector_norm() {
+    let a = Array::range(1., 10., 1.);
+    assert_almost_eq(a.norm(), 285.0.sqrt());
 }
 
 #[test]

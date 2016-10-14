@@ -6,3 +6,4 @@ authors = ["Toshiki Teramura <toshiki.teramura@gmail.com>"]
 [dependencies]
 ndarray = "*"
 lapack = "*"
+num-traits = "*"

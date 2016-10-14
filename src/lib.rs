@@ -54,11 +54,21 @@ impl<A: LapackScalar> Matrix for Array<A, (Ix, Ix)> {
     }
     fn norm_1(&self) -> Self::Scalar {
         let (m, n) = self.size();
-        LapackScalar::norm_1(m, n, self.clone().into_raw_vec())
+        let strides = self.strides();
+        if strides[0] > strides[1] {
+            LapackScalar::norm_i(n, m, self.clone().into_raw_vec())
+        } else {
+            LapackScalar::norm_1(m, n, self.clone().into_raw_vec())
+        }
     }
     fn norm_i(&self) -> Self::Scalar {
         let (m, n) = self.size();
-        LapackScalar::norm_i(m, n, self.clone().into_raw_vec())
+        let strides = self.strides();
+        if strides[0] > strides[1] {
+            LapackScalar::norm_1(n, m, self.clone().into_raw_vec())
+        } else {
+            LapackScalar::norm_i(m, n, self.clone().into_raw_vec())
+        }
     }
     fn norm_f(&self) -> Self::Scalar {
         let (m, n) = self.size();

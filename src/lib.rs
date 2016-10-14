@@ -6,7 +6,7 @@ pub mod lapack_binding;
 pub mod error;
 
 use ndarray::prelude::*;
-use ndarray::{LinalgScalar, DataOwned};
+use ndarray::LinalgScalar;
 use num_traits::float::Float;
 use lapack_binding::LapackScalar;
 use error::{LinalgError, NotSquareError};
@@ -21,14 +21,6 @@ impl<A: Float + LinalgScalar> Vector for Array<A, Ix> {
     fn norm(&self) -> Self::Scalar {
         self.dot(&self).sqrt()
     }
-}
-
-pub fn norm<S, A>(v: &ArrayBase<S, Ix>) -> A
-    where S: DataOwned<Elem = A>,
-          A: Float + LinalgScalar
-{
-    let n2 = &v.dot(&v);
-    n2.sqrt()
 }
 
 pub trait Matrix: Sized {

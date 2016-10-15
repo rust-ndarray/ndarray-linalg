@@ -40,6 +40,8 @@ pub trait SquareMatrix: Matrix {
     // fn eig(self) -> (Self::Vector, Self);
     /// eigenvalue decomposition for Hermite matrix
     fn eigh(self) -> Result<(Self::Vector, Self), LinalgError>;
+    /// inverse of matrix
+    fn inv(self) -> Result<Self, LinalgError>;
     fn check_square(&self) -> Result<(), NotSquareError> {
         let (rows, cols) = self.size();
         if rows == cols {
@@ -91,5 +93,12 @@ impl<A: LapackScalar> SquareMatrix for Array<A, (Ix, Ix)> {
         let ea = Array::from_vec(w);
         let va = Array::from_vec(a).into_shape((rows, cols)).unwrap().reversed_axes();
         Ok((ea, va))
+    }
+    fn inv(self) -> Result<Self, LinalgError> {
+        try!(self.check_square());
+        let (n, _) = self.size();
+        let a = try!(LapackScalar::inv(n, self.into_raw_vec()));
+        let m = Array::from_vec(a).into_shape((n, n)).unwrap();
+        Ok(m)
     }
 }

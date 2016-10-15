@@ -7,3 +7,7 @@ authors = ["Toshiki Teramura <toshiki.teramura@gmail.com>"]
 ndarray = "*"
 lapack = "*"
 num-traits = "*"
+
+[dev-dependencies]
+rand = "*"
+ndarray-rand = "*"

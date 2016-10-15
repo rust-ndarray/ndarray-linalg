@@ -25,3 +25,11 @@ fn inv_random() {
     let id = Array::eye(3);
     all_close(ai.dot(&a), id);
 }
+
+#[test]
+#[should_panic]
+fn inv_error() {
+    // do not have inverse
+    let a = Array::range(1., 10., 1.).into_shape((3, 3)).unwrap();
+    let _ = a.clone().inv().unwrap();
+}

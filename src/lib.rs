@@ -97,8 +97,13 @@ impl<A: LapackScalar> SquareMatrix for Array<A, (Ix, Ix)> {
     fn inv(self) -> Result<Self, LinalgError> {
         try!(self.check_square());
         let (n, _) = self.size();
+        let is_fortran_align = self.strides()[0] > self.strides()[1];
         let a = try!(LapackScalar::inv(n, self.into_raw_vec()));
         let m = Array::from_vec(a).into_shape((n, n)).unwrap();
-        Ok(m)
+        if is_fortran_align {
+            Ok(m)
+        } else {
+            Ok(m.reversed_axes())
+        }
     }
 }

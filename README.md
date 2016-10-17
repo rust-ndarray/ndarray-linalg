@@ -14,4 +14,4 @@ See complete example at [src/bin/main.rs](src/bin/main.rs).
 
 Progress
 ---------
-See #6
+Only a few algorithms are implemented. See [#6](issues/6).

@@ -27,6 +27,15 @@ fn inv_random() {
 }
 
 #[test]
+fn inv_random_t() {
+    let r_dist = Range::new(0., 1.);
+    let a = Array::<f64, _>::random((3, 3), r_dist).reversed_axes();
+    let ai = a.clone().inv().unwrap();
+    let id = Array::eye(3);
+    all_close(ai.dot(&a), id);
+}
+
+#[test]
 #[should_panic]
 fn inv_error() {
     // do not have inverse

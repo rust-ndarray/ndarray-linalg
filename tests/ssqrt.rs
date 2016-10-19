@@ -18,11 +18,19 @@ fn all_close(a: &Array<f64, (Ix, Ix)>, b: &Array<f64, (Ix, Ix)>) {
 }
 
 #[test]
-fn ssqrt_random() {
+fn ssqrt_symmetric_random() {
     let r_dist = Range::new(0., 1.);
     let mut a = Array::<f64, _>::random((3, 3), r_dist);
     a = a.dot(&a.t());
     let ar = a.clone().ssqrt().unwrap();
     all_close(&ar.clone().reversed_axes(), &ar);
+}
+
+#[test]
+fn ssqrt_sqrt_random() {
+    let r_dist = Range::new(0., 1.);
+    let mut a = Array::<f64, _>::random((3, 3), r_dist);
+    a = a.dot(&a.t());
+    let ar = a.clone().ssqrt().unwrap();
     all_close(&ar.dot(&ar), &a);
 }

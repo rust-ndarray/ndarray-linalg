@@ -114,10 +114,10 @@ impl<A: LapackScalar + Float> SquareMatrix for Array<A, (Ix, Ix)> {
         let mut res = Array::zeros((n, n));
         for i in 0..n {
             for j in 0..n {
-                res[(i, j)] = e[i].sqrt() * v[(i, j)];
+                res[(i, j)] = e[i].sqrt() * v[(j, i)];
             }
         }
-        Ok(res.reversed_axes().dot(&v))
+        Ok(v.dot(&res))
     }
     fn trace(&self) -> Result<Self::Scalar, LinalgError> {
         try!(self.check_square());

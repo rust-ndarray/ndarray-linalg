@@ -43,6 +43,7 @@ pub trait SquareMatrix: Matrix {
     /// inverse of matrix
     fn inv(self) -> Result<Self, LinalgError>;
     fn trace(&self) -> Result<Self::Scalar, LinalgError>;
+    fn ssqrt(self) -> Result<Self, LinalgError>;
     fn check_square(&self) -> Result<(), NotSquareError> {
         let (rows, cols) = self.size();
         if rows == cols {
@@ -86,7 +87,7 @@ impl<A: LapackScalar> Matrix for Array<A, (Ix, Ix)> {
     }
 }
 
-impl<A: LapackScalar> SquareMatrix for Array<A, (Ix, Ix)> {
+impl<A: LapackScalar + Float> SquareMatrix for Array<A, (Ix, Ix)> {
     fn eigh(self) -> Result<(Self::Vector, Self), LinalgError> {
         try!(self.check_square());
         let (rows, cols) = self.size();
@@ -106,6 +107,17 @@ impl<A: LapackScalar> SquareMatrix for Array<A, (Ix, Ix)> {
         } else {
             Ok(m.reversed_axes())
         }
+    }
+    fn ssqrt(self) -> Result<Self, LinalgError> {
+        let (n, _) = self.size();
+        let (e, v) = try!(self.eigh());
+        let mut res = Array::zeros((n, n));
+        for i in 0..n {
+            for j in 0..n {
+                res[(i, j)] = e[i].sqrt() * v[(i, j)];
+            }
+        }
+        Ok(res.reversed_axes().dot(&v))
     }
     fn trace(&self) -> Result<Self::Scalar, LinalgError> {
         try!(self.check_square());

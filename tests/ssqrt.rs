@@ -27,10 +27,28 @@ fn ssqrt_symmetric_random() {
 }
 
 #[test]
+fn ssqrt_symmetric_random_t() {
+    let r_dist = Range::new(0., 1.);
+    let mut a = Array::<f64, _>::random((3, 3), r_dist);
+    a = a.dot(&a.t()).reversed_axes();
+    let ar = a.clone().ssqrt().unwrap();
+    all_close(&ar.clone().reversed_axes(), &ar);
+}
+
+#[test]
 fn ssqrt_sqrt_random() {
     let r_dist = Range::new(0., 1.);
     let mut a = Array::<f64, _>::random((3, 3), r_dist);
     a = a.dot(&a.t());
+    let ar = a.clone().ssqrt().unwrap();
+    all_close(&ar.dot(&ar), &a);
+}
+
+#[test]
+fn ssqrt_sqrt_random_t() {
+    let r_dist = Range::new(0., 1.);
+    let mut a = Array::<f64, _>::random((3, 3), r_dist);
+    a = a.dot(&a.t()).reversed_axes();
     let ar = a.clone().ssqrt().unwrap();
     all_close(&ar.dot(&ar), &a);
 }

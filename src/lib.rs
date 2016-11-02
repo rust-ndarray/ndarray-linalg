@@ -85,12 +85,9 @@ impl<A: LapackScalar> Matrix for Array<A, (Ix, Ix)> {
         let (m, n) = self.size();
         LapackScalar::norm_f(m, n, self.clone().into_raw_vec())
     }
-}
-
-impl<A: LapackScalar + Float> SquareMatrix for Array<A, (Ix, Ix)> {
     fn qr(self) -> Result<(Self, Self), LinalgError> {
         let (m, n) = self.size();
-        let (mut q, mut r) = try!(QR::qr(m, n, self.into_raw_vec()));
+        let (mut q, mut r) = try!(LapackScalar::qr(m, n, self.into_raw_vec()));
         let qm = if n > m {
             q.truncate(m * m);
             Array::from_vec(q).into_shape((m, m)).unwrap().reversed_axes()
@@ -105,6 +102,9 @@ impl<A: LapackScalar + Float> SquareMatrix for Array<A, (Ix, Ix)> {
         };
         Ok((qm, rm))
     }
+}
+
+impl<A: LapackScalar + Float> SquareMatrix for Array<A, (Ix, Ix)> {
     fn eigh(self) -> Result<(Self::Vector, Self), LinalgError> {
         try!(self.check_square());
         let (rows, cols) = self.size();

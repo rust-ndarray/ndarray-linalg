@@ -26,16 +26,16 @@ impl<A: Float + LinalgScalar> Vector for Array<A, Ix> {
 pub trait Matrix: Sized {
     type Scalar;
     type Vector;
-    /// number of rows and cols
+    /// number of (rows, cols)
     fn size(&self) -> (usize, usize);
     fn norm_1(&self) -> Self::Scalar;
     fn norm_i(&self) -> Self::Scalar;
     fn norm_f(&self) -> Self::Scalar;
+    fn qr(self) -> Result<(Self, Self), LinalgError>;
     // fn svd(self) -> (Self, Self::Vector, Self);
 }
 
 pub trait SquareMatrix: Matrix {
-    // fn qr(self) -> (Self, Self);
     // fn lu(self) -> (Self, Self);
     // fn eig(self) -> (Self::Vector, Self);
     /// eigenvalue decomposition for Hermite matrix
@@ -84,6 +84,29 @@ impl<A: LapackScalar> Matrix for Array<A, (Ix, Ix)> {
     fn norm_f(&self) -> Self::Scalar {
         let (m, n) = self.size();
         LapackScalar::norm_f(m, n, self.clone().into_raw_vec())
+    }
+    fn qr(self) -> Result<(Self, Self), LinalgError> {
+        let (m, n) = self.size();
+        let (mut q, mut r) = try!(LapackScalar::qr(m, n, self.into_raw_vec()));
+        let qm = if n > m {
+            q.truncate(m * m);
+            Array::from_vec(q).into_shape((m, m)).unwrap().reversed_axes()
+        } else {
+            Array::from_vec(q).into_shape((n, m)).unwrap().reversed_axes()
+        };
+        let mut rm = if n < m {
+            r.truncate(n * n);
+            Array::from_vec(r).into_shape((n, n)).unwrap().reversed_axes()
+        } else {
+            Array::from_vec(r).into_shape((n, m)).unwrap().reversed_axes()
+        };
+
+        for ((i, j), val) in rm.indexed_iter_mut() {
+            if i > j {
+                *val = A::zero();
+            }
+        }
+        Ok((qm, rm))
     }
 }
 

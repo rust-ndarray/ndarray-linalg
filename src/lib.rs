@@ -94,12 +94,18 @@ impl<A: LapackScalar> Matrix for Array<A, (Ix, Ix)> {
         } else {
             Array::from_vec(q).into_shape((n, m)).unwrap().reversed_axes()
         };
-        let rm = if n < m {
+        let mut rm = if n < m {
             r.truncate(n * n);
             Array::from_vec(r).into_shape((n, n)).unwrap().reversed_axes()
         } else {
             Array::from_vec(r).into_shape((n, m)).unwrap().reversed_axes()
         };
+
+        for ((i, j), val) in rm.indexed_iter_mut() {
+            if i > j {
+                *val = A::zero();
+            }
+        }
         Ok((qm, rm))
     }
 }

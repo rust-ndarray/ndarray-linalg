@@ -3,10 +3,10 @@ extern crate ndarray;
 extern crate ndarray_linalg as linalg;
 
 use ndarray::prelude::*;
-use linalg::SquareMatrix;
+use linalg::square_matrix::SquareMatrix;
 
 fn main() {
-    let a = arr2(&[[3.0, 1.0, 1.0], [1.0, 3.0, 1.0], [1.0, 1.0, 3.0]]);
+    let a: Array<f64, _> = arr2(&[[3.0, 1.0, 1.0], [1.0, 3.0, 1.0], [1.0, 1.0, 3.0]]);
     let (e, vecs) = a.clone().eigh().unwrap();
     println!("eigenvalues = \n{:?}", e);
     println!("V = \n{:?}", vecs);

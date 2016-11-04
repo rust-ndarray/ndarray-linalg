@@ -1,9 +1,9 @@
 
 extern crate ndarray;
-extern crate ndarray_linalg as linalg;
+extern crate ndarray_linalg;
 
 use ndarray::prelude::*;
-use linalg::square_matrix::SquareMatrix;
+use ndarray_linalg::prelude::*;
 
 fn main() {
     let a = arr2(&[[3.0, 1.0, 1.0], [1.0, 3.0, 1.0], [1.0, 1.0, 3.0]]);

@@ -2,6 +2,7 @@
 extern crate ndarray;
 extern crate num_traits;
 
+pub mod prelude;
 pub mod binding;
 pub mod scalar;
 pub mod error;

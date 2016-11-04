@@ -2,10 +2,10 @@
 extern crate rand;
 extern crate ndarray;
 extern crate ndarray_rand;
-extern crate ndarray_linalg as linalg;
+extern crate ndarray_linalg;
 
 use ndarray::prelude::*;
-use linalg::SquareMatrix;
+use ndarray_linalg::prelude::*;
 use rand::distributions::*;
 use ndarray_rand::RandomExt;
 

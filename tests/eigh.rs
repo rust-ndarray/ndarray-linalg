@@ -1,9 +1,9 @@
 
 extern crate ndarray;
-extern crate ndarray_linalg as linalg;
+extern crate ndarray_linalg;
 
 use ndarray::prelude::*;
-use linalg::SquareMatrix;
+use ndarray_linalg::prelude::*;
 
 fn assert_almost_eq(a: f64, b: f64) {
     let rel_dev = (a - b).abs() / (a.abs() + b.abs());

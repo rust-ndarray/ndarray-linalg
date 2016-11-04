@@ -1,10 +1,10 @@
 
 extern crate ndarray;
-extern crate ndarray_linalg as linalg;
+extern crate ndarray_linalg;
 extern crate num_traits;
 
 use ndarray::prelude::*;
-use linalg::{Matrix, Vector};
+use ndarray_linalg::prelude::*;
 use num_traits::float::Float;
 
 fn assert_almost_eq(a: f64, b: f64) {

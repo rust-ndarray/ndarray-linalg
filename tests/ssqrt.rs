@@ -2,11 +2,11 @@
 extern crate rand;
 extern crate ndarray;
 extern crate ndarray_rand;
-extern crate ndarray_linalg as linalg;
+extern crate ndarray_linalg;
 
-use ndarray::prelude::*;
-use linalg::SquareMatrix;
 use rand::distributions::*;
+use ndarray::prelude::*;
+use ndarray_linalg::prelude::*;
 use ndarray_rand::RandomExt;
 
 fn all_close(a: &Array<f64, (Ix, Ix)>, b: &Array<f64, (Ix, Ix)>) {

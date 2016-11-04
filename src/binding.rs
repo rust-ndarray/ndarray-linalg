@@ -22,6 +22,20 @@ pub trait LapackBinding: Sized {
               lwork: i32,
               info: &mut i32);
     fn _lange(norm: u8, m: i32, n: i32, a: &Vec<Self>, lda: i32, work: &mut Vec<Self>) -> Self;
+    fn _gesvd(jobu: u8,
+              jobvt: u8,
+              m: i32,
+              n: i32,
+              a: &mut [Self],
+              lda: i32,
+              s: &mut [Self],
+              u: &mut [Self],
+              ldu: i32,
+              vt: &mut [Self],
+              ldvt: i32,
+              work: &mut [Self],
+              lwork: i32,
+              info: &mut i32);
 }
 
 impl LapackBinding for f64 {
@@ -51,6 +65,35 @@ impl LapackBinding for f64 {
     fn _lange(norm: u8, m: i32, n: i32, a: &Vec<Self>, lda: i32, work: &mut Vec<Self>) -> Self {
         dlange(norm, m, n, a, lda, work)
     }
+    fn _gesvd(jobu: u8,
+              jobvt: u8,
+              m: i32,
+              n: i32,
+              a: &mut [Self],
+              lda: i32,
+              s: &mut [Self],
+              u: &mut [Self],
+              ldu: i32,
+              vt: &mut [Self],
+              ldvt: i32,
+              work: &mut [Self],
+              lwork: i32,
+              info: &mut i32) {
+        dgesvd(jobu,
+               jobvt,
+               m,
+               n,
+               a,
+               lda,
+               s,
+               u,
+               ldu,
+               vt,
+               ldvt,
+               work,
+               lwork,
+               info);
+    }
 }
 
 impl LapackBinding for f32 {
@@ -79,5 +122,34 @@ impl LapackBinding for f32 {
     }
     fn _lange(norm: u8, m: i32, n: i32, a: &Vec<Self>, lda: i32, work: &mut Vec<Self>) -> Self {
         slange(norm, m, n, a, lda, work)
+    }
+    fn _gesvd(jobu: u8,
+              jobvt: u8,
+              m: i32,
+              n: i32,
+              a: &mut [Self],
+              lda: i32,
+              s: &mut [Self],
+              u: &mut [Self],
+              ldu: i32,
+              vt: &mut [Self],
+              ldvt: i32,
+              work: &mut [Self],
+              lwork: i32,
+              info: &mut i32) {
+        sgesvd(jobu,
+               jobvt,
+               m,
+               n,
+               a,
+               lda,
+               s,
+               u,
+               ldu,
+               vt,
+               ldvt,
+               work,
+               lwork,
+               info);
     }
 }

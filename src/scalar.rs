@@ -1,5 +1,6 @@
 
 use std::cmp::min;
+use std::fmt::Debug;
 use ndarray::LinalgScalar;
 use num_traits::float::Float;
 
@@ -21,7 +22,7 @@ impl MyFloat for f32 {
     }
 }
 
-pub trait LapackScalar: MyFloat + LinalgScalar + binding::LapackBinding {
+pub trait LapackScalar: Debug + MyFloat + LinalgScalar + binding::LapackBinding {
     fn eigh(n: usize, mut a: Vec<Self>) -> Result<(Vec<Self>, Vec<Self>), LapackError> {
         let mut w = vec![Self::zero(); n];
         let mut work = vec![Self::zero(); 4 * n];

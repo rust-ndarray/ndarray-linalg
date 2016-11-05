@@ -1,8 +1,8 @@
 
 use ndarray::prelude::*;
 
-use scalar::LapackScalar;
 use error::LapackError;
+use scalar::LapackScalar;
 
 pub trait Matrix: Sized {
     type Scalar;
@@ -44,18 +44,22 @@ impl<A: LapackScalar> Matrix for Array<A, (Ix, Ix)> {
         LapackScalar::norm_f(m, n, self.clone().into_raw_vec())
     }
     fn svd(self) -> Result<(Self, Self::Vector, Self), LapackError> {
-        let (m, n) = self.size();
         let strides = self.strides();
+        let (m, n) = if strides[0] > strides[1] {
+            self.size()
+        } else {
+            let (n, m) = self.size();
+            (m, n)
+        };
         let (u, s, vt) = try!(LapackScalar::svd(m, n, self.clone().into_raw_vec()));
-        let l = s.len();
         let sv = Array::from_vec(s);
         if strides[0] > strides[1] {
-            let ua = Array::from_vec(u).into_shape((m, l)).unwrap();
-            let va = Array::from_vec(vt).into_shape((l, n)).unwrap();
+            let ua = Array::from_vec(u).into_shape((n, n)).unwrap();
+            let va = Array::from_vec(vt).into_shape((m, m)).unwrap();
             Ok((va, sv, ua))
         } else {
-            let ua = Array::from_vec(u).into_shape((m, l)).unwrap().reversed_axes();
-            let va = Array::from_vec(vt).into_shape((l, n)).unwrap().reversed_axes();
+            let ua = Array::from_vec(u).into_shape((n, n)).unwrap().reversed_axes();
+            let va = Array::from_vec(vt).into_shape((m, m)).unwrap().reversed_axes();
             Ok((ua, sv, va))
         }
     }

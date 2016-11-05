@@ -6,7 +6,22 @@ use num_traits::float::Float;
 use error::LapackError;
 use binding;
 
-pub trait LapackScalar: LinalgScalar + binding::LapackBinding {
+pub trait MyFloat: Float {
+    fn to_int(self) -> i32;
+}
+
+impl MyFloat for f64 {
+    fn to_int(self) -> i32 {
+        self as i32
+    }
+}
+impl MyFloat for f32 {
+    fn to_int(self) -> i32 {
+        self as i32
+    }
+}
+
+pub trait LapackScalar: MyFloat + LinalgScalar + binding::LapackBinding {
     fn eigh(n: usize, mut a: Vec<Self>) -> Result<(Vec<Self>, Vec<Self>), LapackError> {
         let mut w = vec![Self::zero(); n];
         let mut work = vec![Self::zero(); 4 * n];
@@ -86,7 +101,7 @@ pub trait LapackScalar: LinalgScalar + binding::LapackBinding {
                      &mut work,
                      lwork,
                      &mut info); // calc optimal work
-        let lwork = min(lwmax as i32, work[0] as i32);
+        let lwork = min(lwmax as i32, work[0].to_int());
         Self::_gesvd('A' as u8,
                      'A' as u8,
                      m,
@@ -100,13 +115,12 @@ pub trait LapackScalar: LinalgScalar + binding::LapackBinding {
                      ldvt,
                      &mut work,
                      lwork,
-                     &mut info); // calc optimal work
+                     &mut info);
         if info == 0 {
             Ok((u, s, vt))
         } else {
             Err(From::from(info))
         }
-
     }
 }
 

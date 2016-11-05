@@ -7,22 +7,23 @@ use num_traits::float::Float;
 use error::LapackError;
 use binding;
 
-pub trait MyFloat: Float {
+pub trait TruncatableFloat: Float {
     fn to_int(self) -> i32;
 }
 
-impl MyFloat for f64 {
+impl TruncatableFloat for f64 {
     fn to_int(self) -> i32 {
         self as i32
     }
 }
-impl MyFloat for f32 {
+impl TruncatableFloat for f32 {
     fn to_int(self) -> i32 {
         self as i32
     }
 }
 
-pub trait LapackScalar: Debug + MyFloat + LinalgScalar + binding::LapackBinding {
+pub trait LapackScalar
+    : Debug + TruncatableFloat + LinalgScalar + binding::LapackBinding {
     fn eigh(n: usize, mut a: Vec<Self>) -> Result<(Vec<Self>, Vec<Self>), LapackError> {
         let mut w = vec![Self::zero(); n];
         let mut work = vec![Self::zero(); 4 * n];

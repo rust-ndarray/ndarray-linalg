@@ -1,10 +1,14 @@
 
 use ndarray::prelude::*;
+use ndarray::LinalgScalar;
 use num_traits::float::Float;
 
 use matrix::Matrix;
-use scalar::LapackScalar;
 use error::{LinalgError, NotSquareError};
+use eigh::ImplEigh;
+use svd::ImplSVD;
+use norm::ImplNorm;
+use solve::ImplSolve;
 
 pub trait SquareMatrix: Matrix {
     // fn qr(self) -> (Self, Self);
@@ -29,11 +33,11 @@ pub trait SquareMatrix: Matrix {
     }
 }
 
-impl<A: LapackScalar + Float> SquareMatrix for Array<A, (Ix, Ix)> {
+impl<A: ImplSVD + ImplNorm + ImplSolve +  ImplEigh + LinalgScalar + Float> SquareMatrix for Array<A, (Ix, Ix)> {
     fn eigh(self) -> Result<(Self::Vector, Self), LinalgError> {
         try!(self.check_square());
         let (rows, cols) = self.size();
-        let (w, a) = try!(LapackScalar::eigh(rows, self.into_raw_vec()));
+        let (w, a) = try!(ImplEigh::eigh(rows, self.into_raw_vec()));
         let ea = Array::from_vec(w);
         let va = Array::from_vec(a).into_shape((rows, cols)).unwrap().reversed_axes();
         Ok((ea, va))
@@ -42,7 +46,7 @@ impl<A: LapackScalar + Float> SquareMatrix for Array<A, (Ix, Ix)> {
         try!(self.check_square());
         let (n, _) = self.size();
         let is_fortran_align = self.strides()[0] > self.strides()[1];
-        let a = try!(LapackScalar::inv(n, self.into_raw_vec()));
+        let a = try!(ImplSolve::inv(n, self.into_raw_vec()));
         let m = Array::from_vec(a).into_shape((n, n)).unwrap();
         if is_fortran_align {
             Ok(m)

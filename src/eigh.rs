@@ -11,8 +11,8 @@ pub trait ImplEigh: Sized {
 }
 
 macro_rules! impl_eigh {
-    ($float:ty, $syev:path) => {
-impl ImplEigh for $float {
+    ($scalar:ty, $syev:path) => {
+impl ImplEigh for $scalar {
     fn eigh(n: usize, mut a: Vec<Self>) -> Result<(Vec<Self>, Vec<Self>), LapackError> {
         let mut w = vec![Self::zero(); n];
         let mut work = vec![Self::zero(); 4 * n];

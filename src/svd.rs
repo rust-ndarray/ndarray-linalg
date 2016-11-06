@@ -14,8 +14,8 @@ pub trait ImplSVD: Sized {
 }
 
 macro_rules! impl_svd {
-    ($float:ty, $gesvd:path) => {
-impl ImplSVD for $float {
+    ($scalar:ty, $gesvd:path) => {
+impl ImplSVD for $scalar {
     fn svd(n: usize,
            m: usize,
            mut a: Vec<Self>)

@@ -11,8 +11,8 @@ pub trait ImplSolve: Sized {
 }
 
 macro_rules! impl_solve {
-    ($float:ty, $getrf:path, $getri:path) => {
-impl ImplSolve for $float {
+    ($scalar:ty, $getrf:path, $getri:path) => {
+impl ImplSolve for $scalar {
     fn inv(size: usize, mut a: Vec<Self>) -> Result<Vec<Self>, LapackError> {
         let n = size as i32;
         let lda = n;

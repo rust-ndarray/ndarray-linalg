@@ -11,8 +11,8 @@ pub trait ImplNorm: Sized {
 }
 
 macro_rules! impl_norm {
-    ($float:ty, $lange:path) => {
-impl ImplNorm for $float {
+    ($scalar:ty, $lange:path) => {
+impl ImplNorm for $scalar {
     fn norm_1(m: usize, n: usize, mut a: Vec<Self>) -> Self {
         let mut work = Vec::<Self>::new();
         $lange(b'o', m as i32, n as i32, &mut a, m as i32, &mut work)

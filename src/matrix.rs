@@ -1,8 +1,10 @@
 
 use ndarray::prelude::*;
+use ndarray::LinalgScalar;
 
 use error::LapackError;
-use scalar::LapackScalar;
+use svd::ImplSVD;
+use norm::ImplNorm;
 
 pub trait Matrix: Sized {
     type Scalar;
@@ -15,7 +17,9 @@ pub trait Matrix: Sized {
     fn svd(self) -> Result<(Self, Self::Vector, Self), LapackError>;
 }
 
-impl<A: LapackScalar> Matrix for Array<A, (Ix, Ix)> {
+impl<A> Matrix for Array<A, (Ix, Ix)>
+    where A: ImplSVD + ImplNorm + LinalgScalar
+{
     type Scalar = A;
     type Vector = Array<A, Ix>;
     fn size(&self) -> (usize, usize) {
@@ -25,23 +29,23 @@ impl<A: LapackScalar> Matrix for Array<A, (Ix, Ix)> {
         let (m, n) = self.size();
         let strides = self.strides();
         if strides[0] > strides[1] {
-            LapackScalar::norm_i(n, m, self.clone().into_raw_vec())
+            ImplNorm::norm_i(n, m, self.clone().into_raw_vec())
         } else {
-            LapackScalar::norm_1(m, n, self.clone().into_raw_vec())
+            ImplNorm::norm_1(m, n, self.clone().into_raw_vec())
         }
     }
     fn norm_i(&self) -> Self::Scalar {
         let (m, n) = self.size();
         let strides = self.strides();
         if strides[0] > strides[1] {
-            LapackScalar::norm_1(n, m, self.clone().into_raw_vec())
+            ImplNorm::norm_1(n, m, self.clone().into_raw_vec())
         } else {
-            LapackScalar::norm_i(m, n, self.clone().into_raw_vec())
+            ImplNorm::norm_i(m, n, self.clone().into_raw_vec())
         }
     }
     fn norm_f(&self) -> Self::Scalar {
         let (m, n) = self.size();
-        LapackScalar::norm_f(m, n, self.clone().into_raw_vec())
+        ImplNorm::norm_f(m, n, self.clone().into_raw_vec())
     }
     fn svd(self) -> Result<(Self, Self::Vector, Self), LapackError> {
         let strides = self.strides();
@@ -51,7 +55,7 @@ impl<A: LapackScalar> Matrix for Array<A, (Ix, Ix)> {
             let (n, m) = self.size();
             (m, n)
         };
-        let (u, s, vt) = try!(LapackScalar::svd(m, n, self.clone().into_raw_vec()));
+        let (u, s, vt) = try!(ImplSVD::svd(m, n, self.clone().into_raw_vec()));
         let sv = Array::from_vec(s);
         if strides[0] > strides[1] {
             let ua = Array::from_vec(u).into_shape((n, n)).unwrap();

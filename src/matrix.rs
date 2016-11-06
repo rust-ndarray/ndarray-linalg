@@ -5,7 +5,6 @@ use ndarray::LinalgScalar;
 use error::LapackError;
 use svd::ImplSVD;
 use norm::ImplNorm;
-use solve::ImplSolve;
 
 pub trait Matrix: Sized {
     type Scalar;
@@ -18,7 +17,9 @@ pub trait Matrix: Sized {
     fn svd(self) -> Result<(Self, Self::Vector, Self), LapackError>;
 }
 
-impl<A: ImplSVD + ImplNorm + ImplSolve + LinalgScalar> Matrix for Array<A, (Ix, Ix)> {
+impl<A> Matrix for Array<A, (Ix, Ix)>
+    where A: ImplSVD + ImplNorm + LinalgScalar
+{
     type Scalar = A;
     type Vector = Array<A, Ix>;
     fn size(&self) -> (usize, usize) {

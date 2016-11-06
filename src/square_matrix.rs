@@ -33,7 +33,9 @@ pub trait SquareMatrix: Matrix {
     }
 }
 
-impl<A: ImplSVD + ImplNorm + ImplSolve +  ImplEigh + LinalgScalar + Float> SquareMatrix for Array<A, (Ix, Ix)> {
+impl<A> SquareMatrix for Array<A, (Ix, Ix)>
+    where A: ImplSVD + ImplNorm + ImplSolve + ImplEigh + LinalgScalar + Float
+{
     fn eigh(self) -> Result<(Self::Vector, Self), LinalgError> {
         try!(self.check_square());
         let (rows, cols) = self.size();

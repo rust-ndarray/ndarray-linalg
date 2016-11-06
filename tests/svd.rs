@@ -86,7 +86,9 @@ fn svd_3x4_t() {
     }
     all_close(u.dot(&sm).dot(&vt), a);
 }
+
 #[test]
+#[ignore]
 fn svd_large() {
     let n = 2480;
     let m = 4280;

@@ -1,5 +1,4 @@
 
-use std::cmp::min;
 use std::fmt::Debug;
 use ndarray::LinalgScalar;
 use num_traits::float::Float;
@@ -83,12 +82,12 @@ pub trait LapackScalar
         let lda = m;
         let ldu = m;
         let ldvt = n;
-        let lwmax = 1000; // XXX
         let lwork = -1;
+        let lw_default = 1000;
         let mut u = vec![Self::zero(); (ldu * m) as usize];
         let mut vt = vec![Self::zero(); (ldvt * n) as usize];
         let mut s = vec![Self::zero(); n as usize];
-        let mut work = vec![Self::zero(); lwmax];
+        let mut work = vec![Self::zero(); lw_default];
         Self::_gesvd('A' as u8,
                      'A' as u8,
                      m,
@@ -103,7 +102,10 @@ pub trait LapackScalar
                      &mut work,
                      lwork,
                      &mut info); // calc optimal work
-        let lwork = min(lwmax as i32, work[0].to_int());
+        let lwork = work[0].to_int();
+        if lwork > lw_default as i32 {
+            work = vec![Self::zero(); lwork as usize];
+        }
         Self::_gesvd('A' as u8,
                      'A' as u8,
                      m,

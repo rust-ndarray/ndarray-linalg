@@ -4,6 +4,7 @@ extern crate ndarray;
 extern crate ndarray_rand;
 extern crate ndarray_linalg;
 
+use std::cmp::min;
 use ndarray::prelude::*;
 use ndarray_linalg::prelude::*;
 use rand::distributions::*;
@@ -81,6 +82,19 @@ fn svd_3x4_t() {
     let (u, s, vt) = a.clone().svd().unwrap();
     let mut sm = Array::zeros((3, 4));
     for i in 0..3 {
+        sm[(i, i)] = s[i];
+    }
+    all_close(u.dot(&sm).dot(&vt), a);
+}
+#[test]
+fn svd_large() {
+    let n = 2480;
+    let m = 4280;
+    let r_dist = Range::new(0., 1.);
+    let a = Array::<f64, _>::random((n, m), r_dist);
+    let (u, s, vt) = a.clone().svd().unwrap();
+    let mut sm = Array::zeros((n, m));
+    for i in 0..min(n, m) {
         sm[(i, i)] = s[i];
     }
     all_close(u.dot(&sm).dot(&vt), a);

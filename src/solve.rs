@@ -1,5 +1,4 @@
 
-
 extern crate lapack;
 
 use self::lapack::fortran::*;

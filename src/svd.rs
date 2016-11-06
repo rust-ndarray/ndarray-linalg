@@ -13,7 +13,9 @@ pub trait ImplSVD: Sized {
            -> Result<(Vec<Self>, Vec<Self>, Vec<Self>), LapackError>;
 }
 
-impl ImplSVD for f64 {
+macro_rules! impl_svd {
+    ($float:ty, $gesvd:path) => {
+impl ImplSVD for $float {
     fn svd(n: usize,
            m: usize,
            mut a: Vec<Self>)
@@ -30,7 +32,7 @@ impl ImplSVD for f64 {
         let mut vt = vec![Self::zero(); (ldvt * n) as usize];
         let mut s = vec![Self::zero(); n as usize];
         let mut work = vec![Self::zero(); lw_default];
-        dgesvd('A' as u8,
+        $gesvd('A' as u8,
                'A' as u8,
                m,
                n,
@@ -48,7 +50,7 @@ impl ImplSVD for f64 {
         if lwork > lw_default as i32 {
             work = vec![Self::zero(); lwork as usize];
         }
-        dgesvd('A' as u8,
+        $gesvd('A' as u8,
                'A' as u8,
                m,
                n,
@@ -69,3 +71,7 @@ impl ImplSVD for f64 {
         }
     }
 }
+}} // end macro_rules
+
+impl_svd!(f64, dgesvd);
+impl_svd!(f32, sgesvd);

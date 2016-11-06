@@ -10,12 +10,14 @@ pub trait ImplEigh: Sized {
     fn eigh(n: usize, mut a: Vec<Self>) -> Result<(Vec<Self>, Vec<Self>), LapackError>;
 }
 
-impl ImplEigh for f64 {
+macro_rules! impl_eigh {
+    ($float:ty, $syev:path) => {
+impl ImplEigh for $float {
     fn eigh(n: usize, mut a: Vec<Self>) -> Result<(Vec<Self>, Vec<Self>), LapackError> {
         let mut w = vec![Self::zero(); n];
         let mut work = vec![Self::zero(); 4 * n];
         let mut info = 0;
-        dsyev(b'V',
+        $syev(b'V',
               b'U',
               n as i32,
               &mut a,
@@ -31,3 +33,7 @@ impl ImplEigh for f64 {
         }
     }
 }
+}} // end macro_rules
+
+impl_eigh!(f64, dsyev);
+impl_eigh!(f32, ssyev);

@@ -1,41 +1,38 @@
 
-use std::fmt::Debug;
+extern crate lapack;
+
+use self::lapack::fortran::*;
 use ndarray::LinalgScalar;
-use num_traits::float::Float;
+use num_traits::Zero;
 
 use error::LapackError;
-use binding;
 
-pub trait TruncatableFloat: Float {
-    fn to_int(self) -> i32;
+pub trait LapackScalar: LinalgScalar {
+    fn eigh(n: usize, mut a: Vec<Self>) -> Result<(Vec<Self>, Vec<Self>), LapackError>;
+    fn inv(size: usize, mut a: Vec<Self>) -> Result<Vec<Self>, LapackError>;
+    fn norm_1(m: usize, n: usize, mut a: Vec<Self>) -> Self;
+    fn norm_i(m: usize, n: usize, mut a: Vec<Self>) -> Self;
+    fn norm_f(m: usize, n: usize, mut a: Vec<Self>) -> Self;
+    fn svd(n: usize,
+           m: usize,
+           mut a: Vec<Self>)
+           -> Result<(Vec<Self>, Vec<Self>, Vec<Self>), LapackError>;
 }
 
-impl TruncatableFloat for f64 {
-    fn to_int(self) -> i32 {
-        self as i32
-    }
-}
-impl TruncatableFloat for f32 {
-    fn to_int(self) -> i32 {
-        self as i32
-    }
-}
-
-pub trait LapackScalar
-    : Debug + TruncatableFloat + LinalgScalar + binding::LapackBinding {
+impl LapackScalar for f64 {
     fn eigh(n: usize, mut a: Vec<Self>) -> Result<(Vec<Self>, Vec<Self>), LapackError> {
         let mut w = vec![Self::zero(); n];
         let mut work = vec![Self::zero(); 4 * n];
         let mut info = 0;
-        Self::_syev(b'V',
-                    b'U',
-                    n as i32,
-                    &mut a,
-                    n as i32,
-                    &mut w,
-                    &mut work,
-                    4 * n as i32,
-                    &mut info);
+        dsyev(b'V',
+              b'U',
+              n as i32,
+              &mut a,
+              n as i32,
+              &mut w,
+              &mut work,
+              4 * n as i32,
+              &mut info);
         if info == 0 {
             Ok((w, a))
         } else {
@@ -47,13 +44,13 @@ pub trait LapackScalar
         let lda = n;
         let mut ipiv = vec![0; size];
         let mut info = 0;
-        Self::_getrf(n, n, &mut a, lda, &mut ipiv, &mut info);
+        dgetrf(n, n, &mut a, lda, &mut ipiv, &mut info);
         if info != 0 {
             return Err(From::from(info));
         }
         let lwork = n;
         let mut work = vec![Self::zero(); size];
-        Self::_getri(n, &mut a, lda, &mut ipiv, &mut work, lwork, &mut info);
+        dgetri(n, &mut a, lda, &mut ipiv, &mut work, lwork, &mut info);
         if info == 0 {
             Ok(a)
         } else {
@@ -62,15 +59,15 @@ pub trait LapackScalar
     }
     fn norm_1(m: usize, n: usize, mut a: Vec<Self>) -> Self {
         let mut work = Vec::<Self>::new();
-        Self::_lange(b'o', m as i32, n as i32, &mut a, m as i32, &mut work)
+        dlange(b'o', m as i32, n as i32, &mut a, m as i32, &mut work)
     }
     fn norm_i(m: usize, n: usize, mut a: Vec<Self>) -> Self {
         let mut work = vec![Self::zero(); m];
-        Self::_lange(b'i', m as i32, n as i32, &mut a, m as i32, &mut work)
+        dlange(b'i', m as i32, n as i32, &mut a, m as i32, &mut work)
     }
     fn norm_f(m: usize, n: usize, mut a: Vec<Self>) -> Self {
         let mut work = Vec::<Self>::new();
-        Self::_lange(b'f', m as i32, n as i32, &mut a, m as i32, &mut work)
+        dlange(b'f', m as i32, n as i32, &mut a, m as i32, &mut work)
     }
     fn svd(n: usize,
            m: usize,
@@ -88,38 +85,38 @@ pub trait LapackScalar
         let mut vt = vec![Self::zero(); (ldvt * n) as usize];
         let mut s = vec![Self::zero(); n as usize];
         let mut work = vec![Self::zero(); lw_default];
-        Self::_gesvd('A' as u8,
-                     'A' as u8,
-                     m,
-                     n,
-                     &mut a,
-                     lda,
-                     &mut s,
-                     &mut u,
-                     ldu,
-                     &mut vt,
-                     ldvt,
-                     &mut work,
-                     lwork,
-                     &mut info); // calc optimal work
-        let lwork = work[0].to_int();
+        dgesvd('A' as u8,
+               'A' as u8,
+               m,
+               n,
+               &mut a,
+               lda,
+               &mut s,
+               &mut u,
+               ldu,
+               &mut vt,
+               ldvt,
+               &mut work,
+               lwork,
+               &mut info); // calc optimal work
+        let lwork = work[0] as i32;
         if lwork > lw_default as i32 {
             work = vec![Self::zero(); lwork as usize];
         }
-        Self::_gesvd('A' as u8,
-                     'A' as u8,
-                     m,
-                     n,
-                     &mut a,
-                     lda,
-                     &mut s,
-                     &mut u,
-                     ldu,
-                     &mut vt,
-                     ldvt,
-                     &mut work,
-                     lwork,
-                     &mut info);
+        dgesvd('A' as u8,
+               'A' as u8,
+               m,
+               n,
+               &mut a,
+               lda,
+               &mut s,
+               &mut u,
+               ldu,
+               &mut vt,
+               ldvt,
+               &mut work,
+               lwork,
+               &mut info);
         if info == 0 {
             Ok((u, s, vt))
         } else {
@@ -127,6 +124,3 @@ pub trait LapackScalar
         }
     }
 }
-
-impl LapackScalar for f64 {}
-impl LapackScalar for f32 {}

@@ -6,7 +6,8 @@ pub mod prelude;
 pub mod error;
 pub mod vector;
 pub mod matrix;
-pub mod square_matrix;
+pub mod square;
+pub mod hermite;
 
 pub mod svd;
 pub mod eigh;

@@ -11,9 +11,11 @@ use svd::ImplSVD;
 use norm::ImplNorm;
 use solve::ImplSolve;
 
+/// Methods for Hermite matrix
 pub trait HermiteMatrix: SquareMatrix + Matrix {
-    /// eigenvalue decomposition for Hermite matrix
+    /// eigenvalue decomposition
     fn eigh(self) -> Result<(Self::Vector, Self), LinalgError>;
+    /// symmetric square root of Hermite matrix
     fn ssqrt(self) -> Result<Self, LinalgError>;
 }
 

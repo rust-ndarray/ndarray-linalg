@@ -9,13 +9,19 @@ use svd::ImplSVD;
 use norm::ImplNorm;
 use solve::ImplSolve;
 
+/// Methods for square matrices
+///
+/// This trait defines method for square matrices,
+/// but does not assure that the matrix is square.
+/// If not square, `NotSquareError` will be thrown.
 pub trait SquareMatrix: Matrix {
-    // fn qr(self) -> (Self, Self);
     // fn lu(self) -> (Self, Self);
     // fn eig(self) -> (Self::Vector, Self);
-    /// inverse of matrix
+    /// inverse matrix
     fn inv(self) -> Result<Self, LinalgError>;
+    /// trace of matrix
     fn trace(&self) -> Result<Self::Scalar, LinalgError>;
+    /// test matrix is square
     fn check_square(&self) -> Result<(), NotSquareError> {
         let (rows, cols) = self.size();
         if rows == cols {

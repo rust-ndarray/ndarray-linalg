@@ -1,5 +1,6 @@
 //! Define trait for general matrix
 
+use std::cmp::min;
 use ndarray::prelude::*;
 use ndarray::LinalgScalar;
 
@@ -77,9 +78,16 @@ impl<A> Matrix for Array<A, (Ix, Ix)>
     }
     fn qr(self) -> Result<(Self, Self), LapackError> {
         let (n, m) = self.size();
-        let (q, r) = try!(ImplQR::qr(m, n, self.clone().into_raw_vec()));
-        let qa = Array::from_vec(q).into_shape((m, n)).unwrap();
-        let ra = Array::from_vec(r).into_shape((n, n)).unwrap();
+        let k = min(n, m);
+        println!("n = {:?}", n);
+        println!("m = {:?}", m);
+        let (mut q, mut r) = try!(ImplQR::qr(m, n, self.clone().into_raw_vec()));
+        println!("q.len = {:?}", q.len());
+        println!("r.len = {:?}", r.len());
+        q.truncate(n * k);
+        r.truncate(m * k);
+        let qa = Array::from_vec(q).into_shape((n, k)).unwrap();
+        let ra = Array::from_vec(r).into_shape((k, m)).unwrap();
         Ok((qa, ra))
     }
 }

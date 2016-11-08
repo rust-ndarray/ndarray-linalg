@@ -3,8 +3,10 @@ use ndarray::prelude::*;
 use ndarray::LinalgScalar;
 use num_traits::float::Float;
 
+/// Methods for vectors
 pub trait Vector {
     type Scalar;
+    /// L-2 norm
     fn norm(&self) -> Self::Scalar;
 }
 

@@ -6,15 +6,21 @@ use error::LapackError;
 use svd::ImplSVD;
 use norm::ImplNorm;
 
+/// Methods for general matrices
 pub trait Matrix: Sized {
     type Scalar;
     type Vector;
-    /// number of rows and cols
+    /// number of (rows, columns)
     fn size(&self) -> (usize, usize);
+    /// Operator norm for L-1 norm
     fn norm_1(&self) -> Self::Scalar;
+    /// Operator norm for L-inf norm
     fn norm_i(&self) -> Self::Scalar;
+    /// Frobenius norm
     fn norm_f(&self) -> Self::Scalar;
+    /// singular-value decomposition (SVD)
     fn svd(self) -> Result<(Self, Self::Vector, Self), LapackError>;
+    // fn qr(self) -> (Self, Self);
 }
 
 impl<A> Matrix for Array<A, (Ix, Ix)>

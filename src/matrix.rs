@@ -4,6 +4,7 @@ use ndarray::prelude::*;
 use ndarray::LinalgScalar;
 
 use error::LapackError;
+use qr::ImplQR;
 use svd::ImplSVD;
 use norm::ImplNorm;
 
@@ -21,11 +22,11 @@ pub trait Matrix: Sized {
     fn norm_f(&self) -> Self::Scalar;
     /// singular-value decomposition (SVD)
     fn svd(self) -> Result<(Self, Self::Vector, Self), LapackError>;
-    // fn qr(self) -> (Self, Self);
+    fn qr(self) -> Result<(Self, Self), LapackError>;
 }
 
 impl<A> Matrix for Array<A, (Ix, Ix)>
-    where A: ImplSVD + ImplNorm + LinalgScalar
+    where A: ImplQR + ImplSVD + ImplNorm + LinalgScalar
 {
     type Scalar = A;
     type Vector = Array<A, Ix>;
@@ -73,5 +74,12 @@ impl<A> Matrix for Array<A, (Ix, Ix)>
             let va = Array::from_vec(vt).into_shape((m, m)).unwrap().reversed_axes();
             Ok((ua, sv, va))
         }
+    }
+    fn qr(self) -> Result<(Self, Self), LapackError> {
+        let (n, m) = self.size();
+        let (q, r) = try!(ImplQR::qr(m, n, self.clone().into_raw_vec()));
+        let qa = Array::from_vec(q).into_shape((m, n)).unwrap();
+        let ra = Array::from_vec(r).into_shape((n, n)).unwrap();
+        Ok((qa, ra))
     }
 }

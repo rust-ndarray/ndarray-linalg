@@ -6,6 +6,7 @@ use num_traits::float::Float;
 
 use matrix::Matrix;
 use error::{LinalgError, NotSquareError};
+use qr::ImplQR;
 use svd::ImplSVD;
 use norm::ImplNorm;
 use solve::ImplSolve;
@@ -37,7 +38,7 @@ pub trait SquareMatrix: Matrix {
 }
 
 impl<A> SquareMatrix for Array<A, (Ix, Ix)>
-    where A: ImplSVD + ImplNorm + ImplSolve + LinalgScalar + Float
+    where A: ImplQR + ImplNorm + ImplSVD + ImplSolve + LinalgScalar + Float
 {
     fn inv(self) -> Result<Self, LinalgError> {
         try!(self.check_square());

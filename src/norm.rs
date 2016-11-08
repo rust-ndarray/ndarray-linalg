@@ -1,3 +1,4 @@
+//! Implement Norms for matrices
 
 extern crate lapack;
 

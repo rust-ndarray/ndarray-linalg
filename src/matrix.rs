@@ -1,3 +1,4 @@
+//! Define trait for general matrix
 
 use ndarray::prelude::*;
 use ndarray::LinalgScalar;

@@ -1,3 +1,4 @@
+//! Implement eigenvalue decomposition of Hermite matrix
 
 extern crate lapack;
 

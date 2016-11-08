@@ -1,3 +1,4 @@
+//! Implement SVD
 
 extern crate lapack;
 

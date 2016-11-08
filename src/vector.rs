@@ -1,3 +1,4 @@
+//! Define trait for vectors
 
 use ndarray::prelude::*;
 use ndarray::LinalgScalar;

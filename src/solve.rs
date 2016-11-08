@@ -1,3 +1,4 @@
+//! Implement linear solver and inverse matrix
 
 extern crate lapack;
 

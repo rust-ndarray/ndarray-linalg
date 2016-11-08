@@ -1,3 +1,4 @@
+//! Define trait for Hermite matrices
 
 use ndarray::prelude::*;
 use ndarray::LinalgScalar;

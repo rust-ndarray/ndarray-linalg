@@ -79,8 +79,8 @@ impl<A> Matrix for Array<A, (Ix, Ix)>
     fn qr(self) -> Result<(Self, Self), LapackError> {
         let (n, m) = self.size();
         let strides = self.strides();
-        println!("n = {:?}", n);
-        println!("m = {:?}", m);
+        println!("n:shape = {:?}", n);
+        println!("m:shape = {:?}", m);
         let k = min(n, m);
         println!("strides = {:?}", strides);
         let (q, r) = if strides[0] < strides[1] {

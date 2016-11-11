@@ -2,6 +2,7 @@
 
 use std::cmp::min;
 use std::fmt::Debug;
+use num_complex::Complex;
 use ndarray::prelude::*;
 use ndarray::LinalgScalar;
 use lapack::c::Layout;
@@ -14,7 +15,13 @@ use solve::ImplSolve;
 
 /// Methods for general matrices
 pub trait Matrix: Sized {
+    /// Corresponding real type
+    type Real;
+    /// Corresponding complex type
+    type Complex;
+    /// Scalar type
     type Scalar;
+    /// Corresponding one-dimensional vector
     type Vector;
     type Permutator;
     /// number of (rows, columns)
@@ -22,11 +29,11 @@ pub trait Matrix: Sized {
     /// Layout (C/Fortran) of matrix
     fn layout(&self) -> Layout;
     /// Operator norm for L-1 norm
-    fn norm_1(&self) -> Self::Scalar;
+    fn norm_1(&self) -> Self::Real;
     /// Operator norm for L-inf norm
-    fn norm_i(&self) -> Self::Scalar;
+    fn norm_i(&self) -> Self::Real;
     /// Frobenius norm
-    fn norm_f(&self) -> Self::Scalar;
+    fn norm_f(&self) -> Self::Real;
     /// singular-value decomposition (SVD)
     fn svd(self) -> Result<(Self, Self::Vector, Self), LapackError>;
     /// QR decomposition
@@ -45,6 +52,8 @@ pub trait Matrix: Sized {
 impl<A> Matrix for Array<A, (Ix, Ix)>
     where A: ImplQR + ImplSVD + ImplNorm + ImplSolve + LinalgScalar + Debug
 {
+    type Real = A;
+    type Complex = Complex<A>;
     type Scalar = A;
     type Vector = Array<A, Ix>;
     type Permutator = Vec<i32>;
@@ -60,7 +69,7 @@ impl<A> Matrix for Array<A, (Ix, Ix)>
             Layout::RowMajor
         }
     }
-    fn norm_1(&self) -> Self::Scalar {
+    fn norm_1(&self) -> Self::Real {
         let (m, n) = self.size();
         let strides = self.strides();
         if strides[0] > strides[1] {
@@ -69,7 +78,7 @@ impl<A> Matrix for Array<A, (Ix, Ix)>
             ImplNorm::norm_1(m, n, self.clone().into_raw_vec())
         }
     }
-    fn norm_i(&self) -> Self::Scalar {
+    fn norm_i(&self) -> Self::Real {
         let (m, n) = self.size();
         let strides = self.strides();
         if strides[0] > strides[1] {
@@ -78,7 +87,7 @@ impl<A> Matrix for Array<A, (Ix, Ix)>
             ImplNorm::norm_i(m, n, self.clone().into_raw_vec())
         }
     }
-    fn norm_f(&self) -> Self::Scalar {
+    fn norm_f(&self) -> Self::Real {
         let (m, n) = self.size();
         ImplNorm::norm_f(m, n, self.clone().into_raw_vec())
     }

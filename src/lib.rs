@@ -24,10 +24,11 @@
 //! - [symmetric square root](hermite/trait.HermiteMatrix.html#tymethod.ssqrt)
 //! - [WIP] Cholesky factorization
 
-extern crate lapack;
-extern crate num_traits;
 #[macro_use(s)]
 extern crate ndarray;
+extern crate lapack;
+extern crate num_complex;
+extern crate num_traits;
 
 pub mod prelude;
 pub mod error;

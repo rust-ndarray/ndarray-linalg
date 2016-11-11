@@ -78,16 +78,32 @@ impl<A> Matrix for Array<A, (Ix, Ix)>
     }
     fn qr(self) -> Result<(Self, Self), LapackError> {
         let (n, m) = self.size();
+        let strides = self.strides();
         let k = min(n, m);
         println!("n = {:?}", n);
         println!("m = {:?}", m);
-        let (mut q, mut r) = try!(ImplQR::qr(m, n, self.clone().into_raw_vec()));
+        println!("strides = {:?}", strides);
+        let (mut q, mut r) = if strides[0] < strides[1] {
+            try!(ImplQR::qr(m, n, self.clone().into_raw_vec()))
+        } else {
+            try!(ImplQR::lq(m, n, self.clone().into_raw_vec()))
+        };
         println!("q.len = {:?}", q.len());
         println!("r.len = {:?}", r.len());
         q.truncate(n * k);
         r.truncate(m * k);
-        let qa = Array::from_vec(q).into_shape((n, k)).unwrap();
-        let ra = Array::from_vec(r).into_shape((k, m)).unwrap();
+        let (qa, mut ra) = if strides[0] < strides[1] {
+            (Array::from_vec(q).into_shape((n, k)).unwrap().reversed_axes(),
+             Array::from_vec(r).into_shape((k, m)).unwrap().reversed_axes())
+        } else {
+            (Array::from_vec(q).into_shape((n, k)).unwrap(),
+             Array::from_vec(r).into_shape((k, m)).unwrap())
+        };
+        for ((i, j), val) in ra.indexed_iter_mut() {
+            if i > j {
+                *val = A::zero();
+            }
+        }
         Ok((qa, ra))
     }
 }

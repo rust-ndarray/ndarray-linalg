@@ -10,6 +10,7 @@ use error::LapackError;
 
 pub trait ImplQR: Sized {
     fn qr(n: usize, m: usize, mut a: Vec<Self>) -> Result<(Vec<Self>, Vec<Self>), LapackError>;
+    fn lq(n: usize, m: usize, mut a: Vec<Self>) -> Result<(Vec<Self>, Vec<Self>), LapackError>;
 }
 
 impl ImplQR for f64 {
@@ -22,17 +23,21 @@ impl ImplQR for f64 {
         let lw_default = 1000;
         let mut tau = vec![Self::zero(); k as usize];
         let mut work = vec![Self::zero(); lw_default];
+        println!("a = \n{:?}", &a);
         // estimate lwork
         dgeqrf(m, n, &mut a, lda, &mut tau, &mut work, -1, &mut info);
         let lwork_r = work[0] as i32;
         if lwork_r > lw_default as i32 {
             work = vec![Self::zero(); lwork_r as usize];
         }
+        println!("lwork_r = {:?}", lwork_r);
+        println!("a(estimated) = \n{:?}", &a);
         // calc R
         dgeqrf(m, n, &mut a, lda, &mut tau, &mut work, lwork_r, &mut info);
         if info != 0 {
             return Err(From::from(info));
         }
+        println!("r = \n{:?}", &a);
         let r = a.clone();
         // re-estimate lwork
         dorgqr(m, n, k, &mut a, lda, &mut tau, &mut work, -1, &mut info);
@@ -40,8 +45,57 @@ impl ImplQR for f64 {
         if lwork_q > lwork_r {
             work = vec![Self::zero(); lwork_q as usize];
         }
+        println!("lwork_q = {:?}", lwork_q);
         // calc Q
         dorgqr(m,
+               n,
+               k,
+               &mut a,
+               lda,
+               &mut tau,
+               &mut work,
+               lwork_q,
+               &mut info);
+        if info == 0 {
+            Ok((a, r))
+        } else {
+            Err(From::from(info))
+        }
+    }
+    fn lq(n: usize, m: usize, mut a: Vec<Self>) -> Result<(Vec<Self>, Vec<Self>), LapackError> {
+        let mut info = 0;
+        let n = n as i32;
+        let m = m as i32;
+        let k = min(m, n);
+        let lda = m;
+        let lw_default = 1000;
+        let mut tau = vec![Self::zero(); k as usize];
+        let mut work = vec![Self::zero(); lw_default];
+        println!("a = \n{:?}", &a);
+        // estimate lwork
+        dgelqf(m, n, &mut a, lda, &mut tau, &mut work, -1, &mut info);
+        let lwork_r = work[0] as i32;
+        if lwork_r > lw_default as i32 {
+            work = vec![Self::zero(); lwork_r as usize];
+        }
+        println!("lwork_r = {:?}", lwork_r);
+        println!("a(estimated) = \n{:?}", &a);
+        // calc R
+        dgelqf(m, n, &mut a, lda, &mut tau, &mut work, lwork_r, &mut info);
+        if info != 0 {
+            return Err(From::from(info));
+        }
+        println!("r = \n{:?}", &a);
+        let r = a.clone();
+        // re-estimate lwork
+        dorglq(m, n, k, &mut a, lda, &mut tau, &mut work, -1, &mut info);
+        let lwork_q = work[0] as i32;
+        if lwork_q > lwork_r {
+            work = vec![Self::zero(); lwork_q as usize];
+        }
+        println!("lwork_q = {:?}", lwork_q);
+        // calc Q
+        dorglq(m,
                n,
                k,
                &mut a,

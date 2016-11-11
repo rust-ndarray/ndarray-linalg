@@ -86,15 +86,15 @@ impl<A> Matrix for Array<A, (Ix, Ix)>
         let (mut q, mut r) = if strides[0] < strides[1] {
             try!(ImplQR::qr(m, n, self.clone().into_raw_vec()))
         } else {
-            try!(ImplQR::lq(m, n, self.clone().into_raw_vec()))
+            try!(ImplQR::lq(n, m, self.clone().into_raw_vec()))
         };
         println!("q.len = {:?}", q.len());
         println!("r.len = {:?}", r.len());
         q.truncate(n * k);
         r.truncate(m * k);
         let (qa, mut ra) = if strides[0] < strides[1] {
-            (Array::from_vec(q).into_shape((n, k)).unwrap().reversed_axes(),
-             Array::from_vec(r).into_shape((k, m)).unwrap().reversed_axes())
+            (Array::from_vec(q).into_shape((k, n)).unwrap().reversed_axes(),
+             Array::from_vec(r).into_shape((m, k)).unwrap().reversed_axes())
         } else {
             (Array::from_vec(q).into_shape((n, k)).unwrap(),
              Array::from_vec(r).into_shape((k, m)).unwrap())

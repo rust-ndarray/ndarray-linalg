@@ -10,10 +10,10 @@ keywords = ["ndarray", "lapack", "matrix"]
 license = "MIT"
 
 [dependencies]
-ndarray = "*"
-lapack = "*"
-num-traits = "*"
+ndarray = "0.6.8"
+lapack = "0.11.0"
+num-traits = "0.1.36"
 
 [dev-dependencies]
-rand = "*"
-ndarray-rand = "*"
+rand = "0.3.14"
+ndarray-rand = "0.2.0"

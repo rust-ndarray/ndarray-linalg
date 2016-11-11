@@ -33,16 +33,16 @@ fn $qr(n: usize, m: usize, mut a: Vec<Self>) -> Result<(Vec<Self>, Vec<Self>), L
         work = vec![Self::zero(); lwork_r as usize];
     }
     println!("lwork_r = {:?}", lwork_r);
-    println!("a(estimated) = \n{:?}", &a);
     // calc R
     $geqrf(m, n, &mut a, lda, &mut tau, &mut work, lwork_r, &mut info);
     if info != 0 {
         return Err(From::from(info));
     }
     println!("r = \n{:?}", &a);
+    println!("tau = \n{:?}", &tau);
     let r = a.clone();
     // re-estimate lwork
-    $orgqr(k, k, k, &mut a, lda, &mut tau, &mut work, -1, &mut info);
+    $orgqr(k, k, k, &mut a, k, &mut tau, &mut work, -1, &mut info);
     let lwork_q = work[0] as i32;
     if lwork_q > lwork_r {
         work = vec![Self::zero(); lwork_q as usize];
@@ -56,7 +56,7 @@ fn $qr(n: usize, m: usize, mut a: Vec<Self>) -> Result<(Vec<Self>, Vec<Self>), L
            k,
            k,
            &mut a,
-           lda,
+           k,
            &mut tau,
            &mut work,
            lwork_q,

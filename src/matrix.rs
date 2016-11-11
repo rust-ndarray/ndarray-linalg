@@ -84,8 +84,10 @@ impl<A> Matrix for Array<A, (Ix, Ix)>
         println!("m = {:?}", m);
         println!("strides = {:?}", strides);
         let (mut q, mut r) = if strides[0] < strides[1] {
+            println!("use QR");
             try!(ImplQR::qr(m, n, self.clone().into_raw_vec()))
         } else {
+            println!("use LQ");
             try!(ImplQR::lq(n, m, self.clone().into_raw_vec()))
         };
         println!("q.len = {:?}", q.len());

@@ -1,10 +1,10 @@
 [package]
 name = "ndarray-linalg"
-version = "0.1.0"
+version = "0.1.1"
 authors = ["Toshiki Teramura <toshiki.teramura@gmail.com>"]
 
 description = "Linear algebra package for rust-ndarray using LAPACK"
-documentation = "https://termoshtt.github.io/ndarray-linalg/ndarray_linalg/index.html"
+documentation = "https://docs.rs/ndarray-linalg/"
 repository = "https://github.com/termoshtt/ndarray-linalg"
 keywords = ["ndarray", "lapack", "matrix"]
 license = "MIT"

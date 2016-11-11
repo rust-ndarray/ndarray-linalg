@@ -1,7 +1,6 @@
 //! Define trait for Hermite matrices
 
-use ndarray::prelude::*;
-use ndarray::LinalgScalar;
+use ndarray::{Ix2, Array, LinalgScalar};
 use num_traits::float::Float;
 
 use matrix::Matrix;
@@ -21,7 +20,7 @@ pub trait HermiteMatrix: SquareMatrix + Matrix {
     fn ssqrt(self) -> Result<Self, LinalgError>;
 }
 
-impl<A> HermiteMatrix for Array<A, (Ix, Ix)>
+impl<A> HermiteMatrix for Array<A, Ix2>
     where A: ImplQR + ImplSVD + ImplNorm + ImplSolve + ImplEigh + LinalgScalar + Float
 {
     fn eigh(self) -> Result<(Self::Vector, Self), LinalgError> {

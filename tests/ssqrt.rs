@@ -9,7 +9,7 @@ use ndarray::prelude::*;
 use ndarray_linalg::prelude::*;
 use ndarray_rand::RandomExt;
 
-fn all_close(a: &Array<f64, (Ix, Ix)>, b: &Array<f64, (Ix, Ix)>) {
+fn all_close(a: &Array<f64, Ix2>, b: &Array<f64, Ix2>) {
     if !a.all_close(b, 1.0e-7) {
         panic!("\nTwo matrices are not equal:\na = \n{:?}\nb = \n{:?}\n",
                a,

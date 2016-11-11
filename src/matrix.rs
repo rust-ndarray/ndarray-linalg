@@ -1,8 +1,7 @@
 //! Define trait for general matrix
 
 use std::cmp::min;
-use ndarray::prelude::*;
-use ndarray::LinalgScalar;
+use ndarray::{Ix1, Ix2, Array, Axis, LinalgScalar};
 
 use error::LapackError;
 use qr::ImplQR;
@@ -27,11 +26,11 @@ pub trait Matrix: Sized {
     fn qr(self) -> Result<(Self, Self), LapackError>;
 }
 
-impl<A> Matrix for Array<A, (Ix, Ix)>
+impl<A> Matrix for Array<A, Ix2>
     where A: ImplQR + ImplSVD + ImplNorm + LinalgScalar
 {
     type Scalar = A;
-    type Vector = Array<A, Ix>;
+    type Vector = Array<A, Ix1>;
     fn size(&self) -> (usize, usize) {
         (self.rows(), self.cols())
     }

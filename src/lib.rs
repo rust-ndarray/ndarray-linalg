@@ -1,4 +1,5 @@
 
+#[macro_use(s)]
 extern crate ndarray;
 extern crate num_traits;
 

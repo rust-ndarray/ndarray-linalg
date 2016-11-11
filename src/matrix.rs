@@ -79,11 +79,11 @@ impl<A> Matrix for Array<A, (Ix, Ix)>
     fn qr(self) -> Result<(Self, Self), LapackError> {
         let (n, m) = self.size();
         let strides = self.strides();
-        let k = min(n, m);
         println!("n = {:?}", n);
         println!("m = {:?}", m);
+        let k = min(n, m);
         println!("strides = {:?}", strides);
-        let (mut q, mut r) = if strides[0] < strides[1] {
+        let (q, r) = if strides[0] < strides[1] {
             println!("use QR");
             try!(ImplQR::qr(m, n, self.clone().into_raw_vec()))
         } else {
@@ -92,20 +92,30 @@ impl<A> Matrix for Array<A, (Ix, Ix)>
         };
         println!("q.len = {:?}", q.len());
         println!("r.len = {:?}", r.len());
-        q.truncate(n * k);
-        r.truncate(m * k);
-        let (qa, mut ra) = if strides[0] < strides[1] {
-            (Array::from_vec(q).into_shape((k, n)).unwrap().reversed_axes(),
-             Array::from_vec(r).into_shape((m, k)).unwrap().reversed_axes())
+        let (qa, ra) = if strides[0] < strides[1] {
+            (Array::from_vec(q).into_shape((m, n)).unwrap().reversed_axes(),
+             Array::from_vec(r).into_shape((m, n)).unwrap().reversed_axes())
         } else {
-            (Array::from_vec(q).into_shape((n, k)).unwrap(),
-             Array::from_vec(r).into_shape((k, m)).unwrap())
+            (Array::from_vec(q).into_shape((n, m)).unwrap(),
+             Array::from_vec(r).into_shape((n, m)).unwrap())
         };
-        for ((i, j), val) in ra.indexed_iter_mut() {
+        let qm = if m > k {
+            let (qsl, _) = qa.view().split_at(Axis(1), k);
+            qsl.to_owned()
+        } else {
+            qa
+        };
+        let mut rm = if n > k {
+            let (rsl, _) = ra.view().split_at(Axis(0), k);
+            rsl.to_owned()
+        } else {
+            ra
+        };
+        for ((i, j), val) in rm.indexed_iter_mut() {
             if i > j {
                 *val = A::zero();
             }
         }
-        Ok((qa, ra))
+        Ok((qm, rm))
     }
 }

@@ -114,6 +114,18 @@ fn qr_3x4_upper_t() {
 }
 
 #[test]
+fn qr_3x4() {
+    let r_dist = Range::new(0., 1.);
+    let a = Array::<f64, _>::random((3, 4), r_dist);
+    let (q, r) = a.clone().qr().unwrap();
+    println!("a = \n{:?}", &a);
+    println!("q = \n{:?}", &q);
+    println!("r = \n{:?}", &r);
+    all_close(q.dot(&q.t()), Array::eye(3));
+    all_close(q.dot(&r), a);
+}
+
+#[test]
 fn qr_3x4_t() {
     let r_dist = Range::new(0., 1.);
     let a = Array::<f64, _>::random((4, 3), r_dist).reversed_axes();
@@ -122,6 +134,23 @@ fn qr_3x4_t() {
     println!("q = \n{:?}", &q);
     println!("r = \n{:?}", &r);
     all_close(q.dot(&q.t()), Array::eye(3));
+    all_close(q.dot(&r), a);
+}
+
+#[test]
+fn qr_4x3_upper() {
+    let r_dist = Range::new(0., 1.);
+    let mut a = Array::<f64, _>::random((4, 3), r_dist);
+    for ((i, j), val) in a.indexed_iter_mut() {
+        if i > j {
+            *val = 0.0;
+        }
+    }
+    let (q, r) = a.clone().qr().unwrap();
+    println!("a = \n{:?}", &a);
+    println!("q = \n{:?}", &q);
+    println!("r = \n{:?}", &r);
+    all_close(q.t().dot(&q), Array::eye(3));
     all_close(q.dot(&r), a);
 }
 
@@ -138,7 +167,30 @@ fn qr_4x3_upper_t() {
     println!("a = \n{:?}", &a);
     println!("q = \n{:?}", &q);
     println!("r = \n{:?}", &r);
-    all_close(q.clone(), Array::eye(3));
-    all_close(q.dot(&q.t()), Array::eye(3));
+    all_close(q.t().dot(&q), Array::eye(3));
+    all_close(q.dot(&r), a);
+}
+
+#[test]
+fn qr_4x3() {
+    let r_dist = Range::new(0., 1.);
+    let a = Array::<f64, _>::random((4, 3), r_dist);
+    let (q, r) = a.clone().qr().unwrap();
+    println!("a = \n{:?}", &a);
+    println!("q = \n{:?}", &q);
+    println!("r = \n{:?}", &r);
+    all_close(q.t().dot(&q), Array::eye(3));
+    all_close(q.dot(&r), a);
+}
+
+#[test]
+fn qr_4x3_t() {
+    let r_dist = Range::new(0., 1.);
+    let a = Array::<f64, _>::random((3, 4), r_dist).reversed_axes();
+    let (q, r) = a.clone().qr().unwrap();
+    println!("a = \n{:?}", &a);
+    println!("q = \n{:?}", &q);
+    println!("r = \n{:?}", &r);
+    all_close(q.t().dot(&q), Array::eye(3));
     all_close(q.dot(&r), a);
 }

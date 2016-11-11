@@ -9,6 +9,7 @@ pub mod matrix;
 pub mod square;
 pub mod hermite;
 
+pub mod qr;
 pub mod svd;
 pub mod eigh;
 pub mod norm;

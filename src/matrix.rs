@@ -1,9 +1,11 @@
 //! Define trait for general matrix
 
+use std::cmp::min;
 use ndarray::prelude::*;
 use ndarray::LinalgScalar;
 
 use error::LapackError;
+use qr::ImplQR;
 use svd::ImplSVD;
 use norm::ImplNorm;
 
@@ -21,11 +23,11 @@ pub trait Matrix: Sized {
     fn norm_f(&self) -> Self::Scalar;
     /// singular-value decomposition (SVD)
     fn svd(self) -> Result<(Self, Self::Vector, Self), LapackError>;
-    // fn qr(self) -> (Self, Self);
+    fn qr(self) -> Result<(Self, Self), LapackError>;
 }
 
 impl<A> Matrix for Array<A, (Ix, Ix)>
-    where A: ImplSVD + ImplNorm + LinalgScalar
+    where A: ImplQR + ImplSVD + ImplNorm + LinalgScalar
 {
     type Scalar = A;
     type Vector = Array<A, Ix>;
@@ -73,5 +75,40 @@ impl<A> Matrix for Array<A, (Ix, Ix)>
             let va = Array::from_vec(vt).into_shape((m, m)).unwrap().reversed_axes();
             Ok((ua, sv, va))
         }
+    }
+    fn qr(self) -> Result<(Self, Self), LapackError> {
+        let (n, m) = self.size();
+        let strides = self.strides();
+        let k = min(n, m);
+        let (q, r) = if strides[0] < strides[1] {
+            try!(ImplQR::qr(m, n, self.clone().into_raw_vec()))
+        } else {
+            try!(ImplQR::lq(n, m, self.clone().into_raw_vec()))
+        };
+        let (qa, ra) = if strides[0] < strides[1] {
+            (Array::from_vec(q).into_shape((m, n)).unwrap().reversed_axes(),
+             Array::from_vec(r).into_shape((m, n)).unwrap().reversed_axes())
+        } else {
+            (Array::from_vec(q).into_shape((n, m)).unwrap(),
+             Array::from_vec(r).into_shape((n, m)).unwrap())
+        };
+        let qm = if m > k {
+            let (qsl, _) = qa.view().split_at(Axis(1), k);
+            qsl.to_owned()
+        } else {
+            qa
+        };
+        let mut rm = if n > k {
+            let (rsl, _) = ra.view().split_at(Axis(0), k);
+            rsl.to_owned()
+        } else {
+            ra
+        };
+        for ((i, j), val) in rm.indexed_iter_mut() {
+            if i > j {
+                *val = A::zero();
+            }
+        }
+        Ok((qm, rm))
     }
 }

@@ -8,6 +8,7 @@ use matrix::Matrix;
 use square::SquareMatrix;
 use error::LinalgError;
 use eigh::ImplEigh;
+use qr::ImplQR;
 use svd::ImplSVD;
 use norm::ImplNorm;
 use solve::ImplSolve;
@@ -21,7 +22,7 @@ pub trait HermiteMatrix: SquareMatrix + Matrix {
 }
 
 impl<A> HermiteMatrix for Array<A, (Ix, Ix)>
-    where A: ImplSVD + ImplNorm + ImplSolve + ImplEigh + LinalgScalar + Float
+    where A: ImplQR + ImplSVD + ImplNorm + ImplSolve + ImplEigh + LinalgScalar + Float
 {
     fn eigh(self) -> Result<(Self::Vector, Self), LinalgError> {
         try!(self.check_square());

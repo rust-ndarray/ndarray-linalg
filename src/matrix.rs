@@ -23,6 +23,7 @@ pub trait Matrix: Sized {
     fn norm_f(&self) -> Self::Scalar;
     /// singular-value decomposition (SVD)
     fn svd(self) -> Result<(Self, Self::Vector, Self), LapackError>;
+    /// QR decomposition
     fn qr(self) -> Result<(Self, Self), LapackError>;
 }
 

@@ -26,4 +26,4 @@ See complete example at [src/bin/main.rs](src/bin/main.rs).
 
 Progress: WIP
 ---------
-Only a few algorithms are implemented. See [#6](https://github.com/termoshtt/ndarray-linalg/issues/6).
+Some algorithms have not been implemented yet. See [#6](https://github.com/termoshtt/ndarray-linalg/issues/6).

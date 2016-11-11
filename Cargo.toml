@@ -3,6 +3,12 @@ name = "ndarray-linalg"
 version = "0.1.0"
 authors = ["Toshiki Teramura <toshiki.teramura@gmail.com>"]
 
+description = "Linear algebra package for rust-ndarray using LAPACK"
+documentation = "https://termoshtt.github.io/ndarray-linalg/ndarray_linalg/index.html"
+repository = "https://github.com/termoshtt/ndarray-linalg"
+keywords = ["ndarray", "lapack", "matrix"]
+license = "MIT"
+
 [dependencies]
 ndarray = "*"
 lapack = "*"

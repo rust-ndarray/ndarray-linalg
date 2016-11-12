@@ -24,6 +24,7 @@
 //! - [symmetric square root](hermite/trait.HermiteMatrix.html#tymethod.ssqrt)
 //! - [WIP] Cholesky factorization
 
+extern crate lapack;
 extern crate ndarray;
 extern crate num_traits;
 

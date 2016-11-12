@@ -1,8 +1,6 @@
 //! Implement SVD
 
-extern crate lapack;
-
-use self::lapack::fortran::*;
+use lapack::fortran::*;
 use num_traits::Zero;
 
 use error::LapackError;

@@ -1,9 +1,7 @@
 //! Implement QR decomposition
 
-extern crate lapack;
-
 use std::cmp::min;
-use self::lapack::fortran::*;
+use lapack::fortran::*;
 use num_traits::Zero;
 
 use error::LapackError;

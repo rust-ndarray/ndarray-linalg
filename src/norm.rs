@@ -1,8 +1,6 @@
 //! Implement Norms for matrices
 
-extern crate lapack;
-
-use self::lapack::fortran::*;
+use lapack::fortran::*;
 use num_traits::Zero;
 
 pub trait ImplNorm: Sized {

@@ -9,6 +9,7 @@ use lapack::c::Layout;
 use matrix::Matrix;
 use square::SquareMatrix;
 use error::LinalgError;
+use eig::ImplEig;
 use eigh::ImplEigh;
 use qr::ImplQR;
 use svd::ImplSVD;
@@ -27,7 +28,7 @@ pub trait HermiteMatrix: SquareMatrix + Matrix {
 }
 
 impl<A> HermiteMatrix for Array<A, (Ix, Ix)>
-    where A: ImplQR + ImplSVD + ImplNorm + ImplSolve + ImplEigh + ImplCholesky + LinalgScalar + Float + Debug
+    where A: ImplEig + ImplQR + ImplSVD + ImplNorm + ImplSolve + ImplEigh + LinalgScalar + Float + Debug
 {
     fn eigh(self) -> Result<(Self::Vector, Self), LinalgError> {
         try!(self.check_square());

@@ -39,6 +39,7 @@ pub mod hermite;
 
 pub mod qr;
 pub mod svd;
+pub mod eig;
 pub mod eigh;
 pub mod norm;
 pub mod solve;

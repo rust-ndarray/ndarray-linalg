@@ -8,6 +8,7 @@ use num_traits::float::Float;
 use matrix::Matrix;
 use error::{LinalgError, NotSquareError};
 use qr::ImplQR;
+use eig::ImplEig;
 use svd::ImplSVD;
 use norm::ImplNorm;
 use solve::ImplSolve;
@@ -18,7 +19,7 @@ use solve::ImplSolve;
 /// but does not assure that the matrix is square.
 /// If not square, `NotSquareError` will be thrown.
 pub trait SquareMatrix: Matrix {
-    // fn eig(self) -> (Self::Vector, Self);
+    fn eig(self) -> Result<(Vec<Self::Complex>, Self), LinalgError>;
     /// inverse matrix
     fn inv(self) -> Result<Self, LinalgError>;
     /// trace of matrix
@@ -38,8 +39,15 @@ pub trait SquareMatrix: Matrix {
 }
 
 impl<A> SquareMatrix for Array<A, (Ix, Ix)>
-    where A: ImplQR + ImplNorm + ImplSVD + ImplSolve + LinalgScalar + Float + Debug
+    where A: ImplEig + ImplQR + ImplNorm + ImplSVD + ImplSolve + LinalgScalar + Float + Debug
 {
+    fn eig(self) -> Result<(Vec<Self::Complex>, Self), LinalgError> {
+        try!(self.check_square());
+        let (n, _) = self.size();
+        let (w, vr) = try!(ImplEig::eig(n, self.into_raw_vec()));
+        let vm = Array::from_vec(vr).into_shape((n, n)).unwrap();
+        Ok((w, vm))
+    }
     fn inv(self) -> Result<Self, LinalgError> {
         try!(self.check_square());
         let (n, _) = self.size();

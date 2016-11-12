@@ -1,6 +1,6 @@
 [package]
 name = "ndarray-linalg"
-version = "0.1.1"
+version = "0.1.2"
 authors = ["Toshiki Teramura <toshiki.teramura@gmail.com>"]
 
 description = "Linear algebra package for rust-ndarray using LAPACK"
@@ -10,14 +10,13 @@ keywords = ["ndarray", "lapack", "matrix"]
 license = "MIT"
 
 [dependencies]
-lapack = "^0.11"
-num-traits = "^0.1"
+lapack = "0.11.1"
+num-traits = "0.1.36"
 
 [dependencies.ndarray]
-version = "^0.6.8"
+version = "0.6.9"
 features = ["blas"]
 
 [dev-dependencies]
-rand = "^0.3"
-ndarray-rand = "^0.2"
-
+rand = "0.3.14"
+ndarray-rand = "0.2.0"

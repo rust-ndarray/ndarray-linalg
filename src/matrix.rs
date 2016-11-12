@@ -24,6 +24,15 @@ pub trait Matrix: Sized {
     /// Corresponding one-dimensional vector
     type Vector;
     type Permutator;
+    /// Corresponding real one-dimensional vector
+    type RealVector;
+    /// Corresponding complex one-dimensional vector
+    type ComplexVector;
+    /// Corresponding real matrix
+    type RealMatrix;
+    /// Corresponding complex matrix
+    type ComplexMatrix;
+
     /// number of (rows, columns)
     fn size(&self) -> (usize, usize);
     /// Layout (C/Fortran) of matrix
@@ -55,8 +64,14 @@ impl<A> Matrix for Array<A, (Ix, Ix)>
     type Real = A;
     type Complex = Complex<A>;
     type Scalar = A;
+
+    type RealVector = Array<A, Ix>;
+    type ComplexVector = Array<Self::Complex, Ix>;
     type Vector = Array<A, Ix>;
     type Permutator = Vec<i32>;
+
+    type RealMatrix = Array<A, (Ix, Ix)>;
+    type ComplexMatrix = Array<Self::Complex, (Ix, Ix)>;
 
     fn size(&self) -> (usize, usize) {
         (self.rows(), self.cols())

@@ -11,6 +11,22 @@ use rand::distributions::*;
 use ndarray_rand::RandomExt;
 use num_complex::Complex;
 
+type c64 = Complex<f64>;
+
+fn dot(a: Array<c64, (Ix, Ix)>, b: Array<f64, (Ix, Ix)>) {
+    let (n, l) = a.size();
+    let (_, m) = b.size();
+    let mut c = Array::<c64, _>::zeros((n, m));
+    for i in 0..n {
+        for j in 0..m {
+            for k in 0..l {
+                c[(i, j)] = c[(i, j)] + a[(i, k)] * b[(k, j)];
+            }
+        }
+    }
+    c
+}
+
 #[test]
 fn eig_random() {
     let r_dist = Range::new(0., 1.);

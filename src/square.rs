@@ -72,7 +72,7 @@ impl<A> SquareMatrix for Array<A, (Ix, Ix)>
             .zip(wi.into_iter())
             .map(|(r, i)| Complex::new(r, i))
             .collect();
-        Ok((w, v))
+        Ok((w, v.reversed_axes()))
     }
     fn inv(self) -> Result<Self, LinalgError> {
         try!(self.check_square());

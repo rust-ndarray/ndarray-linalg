@@ -31,6 +31,8 @@ pub trait Matrix: Sized {
     fn lu(self) -> Result<(Self::Permutator, Self, Self), LapackError>;
     /// permutate matrix
     fn permutate_column(self, p: &Self::Permutator) -> Self;
+    /// permutate matrix
+    fn permutate_row(self, p: &Self::Permutator) -> Self;
 }
 
 impl<A> Matrix for Array<A, (Ix, Ix)>
@@ -123,33 +125,62 @@ impl<A> Matrix for Array<A, (Ix, Ix)>
     fn lu(self) -> Result<(Self::Permutator, Self, Self), LapackError> {
         let (n, m) = self.size();
         let strides = self.strides();
-        let (p, mut lm) = if strides[0] < strides[1] {
+        if strides[0] < strides[1] {
+            println!("Fortran align");
             let (p, l) = try!(ImplSolve::lu(m, n, self.clone().into_raw_vec()));
-            let lm = Array::from_vec(l).into_shape((m, n)).unwrap().reversed_axes();
-            (p, lm)
+            let mut lm = Array::from_vec(l).into_shape((m, n)).unwrap();
+            let mut um = Array::zeros((n, m));
+            for ((i, j), val) in um.indexed_iter_mut() {
+                if i < j {
+                    *val = lm[(i, j)];
+                } else if i == j {
+                    *val = A::one();
+                }
+            }
+            for ((i, j), val) in lm.indexed_iter_mut() {
+                if i < j {
+                    *val = A::zero();
+                }
+            }
+            Ok((p, um.reversed_axes(), lm.reversed_axes()))
         } else {
+            println!("C align");
             let (p, l) = try!(ImplSolve::lu(n, m, self.clone().into_raw_vec()));
-            let lm = Array::from_vec(l).into_shape((n, m)).unwrap();
-            (p, lm)
-        };
-        let mut um = Array::zeros((n, m));
-        for ((i, j), val) in um.indexed_iter_mut() {
-            if i > j {
-                *val = lm[(i, j)];
-            } else if i == j {
-                *val = A::one();
+            let mut lm = Array::from_vec(l).into_shape((n, m)).unwrap().reversed_axes();
+            let mut um = Array::zeros((n, m));
+            for ((i, j), val) in um.indexed_iter_mut() {
+                if i < j {
+                    *val = lm[(i, j)];
+                } else if i == j {
+                    *val = A::one();
+                }
             }
-        }
-        for ((i, j), val) in lm.indexed_iter_mut() {
-            if i > j {
-                *val = A::zero();
+            for ((i, j), val) in lm.indexed_iter_mut() {
+                if i < j {
+                    *val = A::zero();
+                }
             }
+            Ok((p, um.reversed_axes(), lm.reversed_axes()))
         }
-        Ok((p, lm, um))
     }
     fn permutate_column(self, p: &Self::Permutator) -> Self {
         let (n, m) = self.size();
-        let pd = ImplSolve::permutate_column(n, m, self.into_raw_vec(), p);
-        Array::from_vec(pd).into_shape((m, n)).unwrap().reversed_axes()
+        let strides = self.strides();
+        if strides[0] < strides[1] {
+            let pd = ImplSolve::permutate_column(n, m, self.clone().into_raw_vec(), p);
+            Array::from_vec(pd).into_shape((m, n)).unwrap().reversed_axes()
+        } else {
+            panic!("Not implemented!");
+        }
+    }
+    fn permutate_row(self, p: &Self::Permutator) -> Self {
+        let (n, m) = self.size();
+        let strides = self.strides();
+        if strides[0] < strides[1] {
+            panic!("Not implemented!");
+        } else {
+            let pd = ImplSolve::permutate_column(m, n, self.clone().into_raw_vec(), p);
+            Array::from_vec(pd).into_shape((n, m)).unwrap()
+        }
     }
 }

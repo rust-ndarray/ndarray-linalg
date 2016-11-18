@@ -108,6 +108,7 @@ fn lu_square_lower_t() {
     println!("P = \n{:?}", &p);
     println!("L = \n{:?}", &l);
     println!("U = \n{:?}", &u);
+    println!("LU = \n{:?}", l.dot(&u));
     all_close(l.dot(&u).permutate_column(&p), a);
 }
 

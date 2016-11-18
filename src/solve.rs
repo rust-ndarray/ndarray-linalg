@@ -51,7 +51,7 @@ impl ImplSolve for $scalar {
         let n = n as i32;
         let m = m as i32;
         let k = p.len() as i32;
-        $laswp(n, &mut a, m, 1, k, p, 1);
+        $laswp(n, &mut a, m, 1, k, p, -1);
         a
     }
 }

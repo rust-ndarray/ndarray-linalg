@@ -8,11 +8,13 @@ use error::LapackError;
 use qr::ImplQR;
 use svd::ImplSVD;
 use norm::ImplNorm;
+use solve::ImplSolve;
 
 /// Methods for general matrices
 pub trait Matrix: Sized {
     type Scalar;
     type Vector;
+    type Permutator;
     /// number of (rows, columns)
     fn size(&self) -> (usize, usize);
     /// Operator norm for L-1 norm
@@ -25,13 +27,17 @@ pub trait Matrix: Sized {
     fn svd(self) -> Result<(Self, Self::Vector, Self), LapackError>;
     /// QR decomposition
     fn qr(self) -> Result<(Self, Self), LapackError>;
+    /// LU decomposition
+    fn lu(self) -> Result<(Self::Permutator, Self, Self), LapackError>;
 }
 
 impl<A> Matrix for Array<A, (Ix, Ix)>
-    where A: ImplQR + ImplSVD + ImplNorm + LinalgScalar
+    where A: ImplQR + ImplSVD + ImplNorm + ImplSolve + LinalgScalar
 {
     type Scalar = A;
     type Vector = Array<A, Ix>;
+    type Permutator = Array<i32, (Ix, Ix)>;
+
     fn size(&self) -> (usize, usize) {
         (self.rows(), self.cols())
     }
@@ -111,5 +117,40 @@ impl<A> Matrix for Array<A, (Ix, Ix)>
             }
         }
         Ok((qm, rm))
+    }
+    fn lu(self) -> Result<(Self::Permutator, Self, Self), LapackError> {
+        let (n, m) = self.size();
+        let strides = self.strides();
+        let (p, mut lm) = if strides[0] < strides[1] {
+            let (p, l) = try!(ImplSolve::lu(m, n, self.clone().into_raw_vec()));
+            let lm = Array::from_vec(l).into_shape((m, n)).unwrap().reversed_axes();
+            (p, lm)
+        } else {
+            let (p, l) = try!(ImplSolve::lu(n, m, self.clone().into_raw_vec()));
+            let lm = Array::from_vec(l).into_shape((n, m)).unwrap();
+            (p, lm)
+        };
+        println!("p = {:?}", &p);
+        let mut um = Array::zeros((n, m));
+        let mut pm = Array::eye(n);
+        for (i, j_) in p.into_iter().enumerate() {
+            let j = j_ - 1;
+            if i == j {
+                continue;
+            }
+        }
+        for ((i, j), val) in um.indexed_iter_mut() {
+            if i > j {
+                *val = lm[(i, j)];
+            } else if i == j {
+                *val = A::one();
+            }
+        }
+        for ((i, j), val) in lm.indexed_iter_mut() {
+            if i > j {
+                *val = A::zero();
+            }
+        }
+        Ok((pm, lm, um))
     }
 }

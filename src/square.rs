@@ -17,7 +17,6 @@ use solve::ImplSolve;
 /// but does not assure that the matrix is square.
 /// If not square, `NotSquareError` will be thrown.
 pub trait SquareMatrix: Matrix {
-    // fn lu(self) -> (Self, Self);
     // fn eig(self) -> (Self::Vector, Self);
     /// inverse matrix
     fn inv(self) -> Result<Self, LinalgError>;

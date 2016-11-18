@@ -18,6 +18,39 @@ fn all_close(a: Array<f64, (Ix, Ix)>, b: Array<f64, (Ix, Ix)>) {
 }
 
 #[test]
+fn permutate_t() {
+    let a = Array::<f64, _>::range(1., 10., 1.).into_shape((3, 3)).unwrap().reversed_axes();
+    println!("a= \n{:?}", &a);
+    let pa = a.permutate_column(&vec![2, 2, 3]);
+    println!("permutated = \n{:?}", &pa);
+    panic!("Manual KILL!!");
+}
+
+#[test]
+fn permutate_3x4_t() {
+    let r_dist = Range::new(0., 1.);
+    let a = Array::<f64, _>::random((4, 3), r_dist).reversed_axes();
+    println!("a= \n{:?}", &a);
+    let p = vec![1, 3, 3];
+    println!("permutation = \n{:?}", &p);
+    let pa = a.permutate_column(&p);
+    println!("permutated = \n{:?}", &pa);
+    panic!("Manual KILL!!");
+}
+
+#[test]
+fn permutate_4x3_t() {
+    let r_dist = Range::new(0., 1.);
+    let a = Array::<f64, _>::random((3, 4), r_dist).reversed_axes();
+    println!("a= \n{:?}", &a);
+    let p = vec![4, 2, 3, 4];
+    println!("permutation = \n{:?}", &p);
+    let pa = a.permutate_column(&p);
+    println!("permutated = \n{:?}", &pa);
+    panic!("Manual KILL!!");
+}
+
+#[test]
 fn lu_square_upper() {
     let r_dist = Range::new(0., 1.);
     let mut a = Array::<f64, _>::random((3, 3), r_dist);

@@ -7,12 +7,13 @@ use num_traits::Zero;
 use error::LapackError;
 
 pub trait ImplSolve: Sized {
-    fn inv(size: usize, mut a: Vec<Self>) -> Result<Vec<Self>, LapackError>;
-    fn lu(m: usize, n: usize, mut a: Vec<Self>) -> Result<(Vec<i32>, Vec<Self>), LapackError>;
+    fn inv(size: usize, a: Vec<Self>) -> Result<Vec<Self>, LapackError>;
+    fn lu(m: usize, n: usize, a: Vec<Self>) -> Result<(Vec<i32>, Vec<Self>), LapackError>;
+    fn permutate_column(m: usize, n: usize, a: Vec<Self>, p: &Vec<i32>) -> Vec<Self>;
 }
 
 macro_rules! impl_solve {
-    ($scalar:ty, $getrf:path, $getri:path) => {
+    ($scalar:ty, $getrf:path, $getri:path, $laswp:path) => {
 impl ImplSolve for $scalar {
     fn inv(size: usize, mut a: Vec<Self>) -> Result<Vec<Self>, LapackError> {
         let n = size as i32;
@@ -46,8 +47,15 @@ impl ImplSolve for $scalar {
             Err(From::from(info))
         }
     }
+    fn permutate_column(m: usize, n: usize, mut a: Vec<Self>, p: &Vec<i32>) -> Vec<Self> {
+        let n = n as i32;
+        let m = m as i32;
+        let k = p.len() as i32;
+        $laswp(n, &mut a, m, 1, k, p, 1);
+        a
+    }
 }
 }} // end macro_rules
 
-impl_solve!(f64, dgetrf, dgetri);
-impl_solve!(f32, sgetrf, sgetri);
+impl_solve!(f64, dgetrf, dgetri, dlaswp);
+impl_solve!(f32, sgetrf, sgetri, slaswp);

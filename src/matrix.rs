@@ -29,6 +29,8 @@ pub trait Matrix: Sized {
     fn qr(self) -> Result<(Self, Self), LapackError>;
     /// LU decomposition
     fn lu(self) -> Result<(Self::Permutator, Self, Self), LapackError>;
+    /// permutate matrix
+    fn permutate_column(self, p: &Self::Permutator) -> Self;
 }
 
 impl<A> Matrix for Array<A, (Ix, Ix)>
@@ -36,7 +38,7 @@ impl<A> Matrix for Array<A, (Ix, Ix)>
 {
     type Scalar = A;
     type Vector = Array<A, Ix>;
-    type Permutator = Array<i32, (Ix, Ix)>;
+    type Permutator = Vec<i32>;
 
     fn size(&self) -> (usize, usize) {
         (self.rows(), self.cols())
@@ -130,15 +132,7 @@ impl<A> Matrix for Array<A, (Ix, Ix)>
             let lm = Array::from_vec(l).into_shape((n, m)).unwrap();
             (p, lm)
         };
-        println!("p = {:?}", &p);
         let mut um = Array::zeros((n, m));
-        let mut pm = Array::eye(n);
-        for (i, j_) in p.into_iter().enumerate() {
-            let j = j_ - 1;
-            if i == j {
-                continue;
-            }
-        }
         for ((i, j), val) in um.indexed_iter_mut() {
             if i > j {
                 *val = lm[(i, j)];
@@ -151,6 +145,11 @@ impl<A> Matrix for Array<A, (Ix, Ix)>
                 *val = A::zero();
             }
         }
-        Ok((pm, lm, um))
+        Ok((p, lm, um))
+    }
+    fn permutate_column(self, p: &Self::Permutator) -> Self {
+        let (n, m) = self.size();
+        let pd = ImplSolve::permutate_column(n, m, self.into_raw_vec(), p);
+        Array::from_vec(pd).into_shape((m, n)).unwrap().reversed_axes()
     }
 }

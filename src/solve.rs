@@ -12,12 +12,6 @@ pub trait ImplSolve: Sized {
           n: usize,
           a: Vec<Self>)
           -> Result<(Vec<i32>, Vec<Self>), LapackError>;
-    fn permutate_column(layout: Layout,
-                        m: usize,
-                        n: usize,
-                        a: Vec<Self>,
-                        p: &Vec<i32>)
-                        -> Vec<Self>;
 }
 
 macro_rules! impl_solve {
@@ -50,13 +44,6 @@ impl ImplSolve for $scalar {
         } else {
             Err(From::from(info))
         }
-    }
-    fn permutate_column(layout: Layout, m: usize, n: usize, mut a: Vec<Self>, p: &Vec<i32>) -> Vec<Self> {
-        let n = n as i32;
-        let m = m as i32;
-        let k = p.len() as i32;
-        $laswp(layout, n, &mut a, m, 1, k, p, -1);
-        a
     }
 }
 }} // end macro_rules

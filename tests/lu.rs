@@ -21,7 +21,7 @@ fn permutate() {
     let a = arr2(&[[1., 2., 3.], [4., 5., 6.], [7., 8., 9.]]);
     println!("a= \n{:?}", &a);
     let p = vec![2, 2, 3]; // replace 1-2
-    let pa = a.permutate_column(&p);
+    let pa = a.permutated(&p);
     println!("permutated = \n{:?}", &pa);
     all_close(pa, arr2(&[[4., 5., 6.], [1., 2., 3.], [7., 8., 9.]]))
 }
@@ -31,7 +31,7 @@ fn permutate_t() {
     let a = arr2(&[[1., 4., 7.], [2., 5., 8.], [3., 6., 9.]]).reversed_axes();
     println!("a= \n{:?}", &a);
     let p = vec![2, 2, 3]; // replace 1-2
-    let pa = a.permutate_column(&p);
+    let pa = a.permutated(&p);
     println!("permutated = \n{:?}", &pa);
     all_close(pa, arr2(&[[4., 5., 6.], [1., 2., 3.], [7., 8., 9.]]))
 }
@@ -42,7 +42,7 @@ fn permutate_3x4() {
     println!("a= \n{:?}", &a);
     let p = vec![1, 3, 3]; // replace 2-3
     println!("permutation = \n{:?}", &p);
-    let pa = a.permutate_column(&p);
+    let pa = a.permutated(&p);
     println!("permutated = \n{:?}", &pa);
     all_close(pa,
               arr2(&[[1., 4., 7., 10.], [3., 6., 9., 12.], [2., 5., 8., 11.]]));
@@ -54,7 +54,7 @@ fn permutate_3x4_t() {
     println!("a= \n{:?}", &a);
     let p = vec![1, 3, 3]; // replace 2-3
     println!("permutation = \n{:?}", &p);
-    let pa = a.permutate_column(&p);
+    let pa = a.permutated(&p);
     println!("permutated = \n{:?}", &pa);
     all_close(pa,
               arr2(&[[1., 2., 3., 4.], [9., 10., 11., 12.], [5., 6., 7., 8.]]));
@@ -66,7 +66,7 @@ fn permutate_4x3() {
     println!("a= \n{:?}", &a);
     let p = vec![4, 2, 3, 4]; // replace 1-4
     println!("permutation = \n{:?}", &p);
-    let pa = a.permutate_column(&p);
+    let pa = a.permutated(&p);
     println!("permutated = \n{:?}", &pa);
     all_close(pa,
               arr2(&[[4., 8., 12.], [2., 6., 10.], [3., 7., 11.], [1., 5., 9.]]))
@@ -78,7 +78,7 @@ fn permutate_4x3_t() {
     println!("a= \n{:?}", &a);
     let p = vec![4, 2, 3, 4]; // replace 1-4
     println!("permutation = \n{:?}", &p);
-    let pa = a.permutate_column(&p);
+    let pa = a.permutated(&p);
     println!("permutated = \n{:?}", &pa);
     all_close(pa,
               arr2(&[[10., 11., 12.], [4., 5., 6.], [7., 8., 9.], [1., 2., 3.]]))
@@ -98,7 +98,7 @@ fn lu_square_upper() {
     println!("P = \n{:?}", &p);
     println!("L = \n{:?}", &l);
     println!("U = \n{:?}", &u);
-    all_close(l.dot(&u).permutate_column(&p), a);
+    all_close(l.dot(&u).permutated(&p), a);
 }
 
 #[test]
@@ -115,7 +115,7 @@ fn lu_square_upper_t() {
     println!("P = \n{:?}", &p);
     println!("L = \n{:?}", &l);
     println!("U = \n{:?}", &u);
-    all_close(l.dot(&u).permutate_column(&p), a);
+    all_close(l.dot(&u).permutated(&p), a);
 }
 
 #[test]
@@ -133,7 +133,7 @@ fn lu_square_lower() {
     println!("L = \n{:?}", &l);
     println!("U = \n{:?}", &u);
     println!("LU = \n{:?}", l.dot(&u));
-    all_close(l.dot(&u).permutate_column(&p), a);
+    all_close(l.dot(&u).permutated(&p), a);
 }
 
 #[test]
@@ -151,7 +151,7 @@ fn lu_square_lower_t() {
     println!("L = \n{:?}", &l);
     println!("U = \n{:?}", &u);
     println!("LU = \n{:?}", l.dot(&u));
-    all_close(l.dot(&u).permutate_column(&p), a);
+    all_close(l.dot(&u).permutated(&p), a);
 }
 
 #[test]
@@ -164,7 +164,7 @@ fn lu_square() {
     println!("L = \n{:?}", &l);
     println!("U = \n{:?}", &u);
     println!("LU = \n{:?}", l.dot(&u));
-    all_close(l.dot(&u).permutate_column(&p), a);
+    all_close(l.dot(&u).permutated(&p), a);
 }
 
 #[test]
@@ -176,7 +176,7 @@ fn lu_square_t() {
     println!("P = \n{:?}", &p);
     println!("L = \n{:?}", &l);
     println!("U = \n{:?}", &u);
-    all_close(l.dot(&u).permutate_column(&p), a);
+    all_close(l.dot(&u).permutated(&p), a);
 }
 
 // #[test]
@@ -189,7 +189,7 @@ fn lu_square_t() {
 //     println!("L = \n{:?}", &l);
 //     println!("U = \n{:?}", &u);
 //     println!("LU = \n{:?}", l.dot(&u));
-//     all_close(l.dot(&u).permutate_column(&p), a);
+//     all_close(l.dot(&u).permutated(&p), a);
 // }
 //
 // #[test]
@@ -201,7 +201,7 @@ fn lu_square_t() {
 //     println!("P = \n{:?}", &p);
 //     println!("L = \n{:?}", &l);
 //     println!("U = \n{:?}", &u);
-//     all_close(l.dot(&u).permutate_column(&p), a);
+//     all_close(l.dot(&u).permutated(&p), a);
 // }
 
 // #[test]
@@ -219,7 +219,7 @@ fn lu_square_t() {
 //     println!("L = \n{:?}", &l);
 //     println!("U = \n{:?}", &u);
 //     println!("LU = \n{:?}", l.dot(&u));
-//     all_close(l.dot(&u).permutate_column(&p), a);
+//     all_close(l.dot(&u).permutated(&p), a);
 // }
 //
 // #[test]
@@ -237,7 +237,7 @@ fn lu_square_t() {
 //     println!("L = \n{:?}", &l);
 //     println!("U = \n{:?}", &u);
 //     println!("LU = \n{:?}", l.dot(&u));
-//     all_close(l.dot(&u).permutate_column(&p), a);
+//     all_close(l.dot(&u).permutated(&p), a);
 // }
 
 #[test]
@@ -255,7 +255,7 @@ fn lu_4x3_upper_t() {
     println!("L = \n{:?}", &l);
     println!("U = \n{:?}", &u);
     println!("LU = \n{:?}", l.dot(&u));
-    all_close(l.dot(&u).permutate_column(&p), a);
+    all_close(l.dot(&u).permutated(&p), a);
 }
 
 // #[test]
@@ -268,7 +268,7 @@ fn lu_4x3_upper_t() {
 //     println!("L = \n{:?}", &l);
 //     println!("U = \n{:?}", &u);
 //     println!("LU = \n{:?}", l.dot(&u));
-//     all_close(l.dot(&u).permutate_column(&p), a);
+//     all_close(l.dot(&u).permutated(&p), a);
 // }
 //
 // #[test]
@@ -280,5 +280,5 @@ fn lu_4x3_upper_t() {
 //     println!("P = \n{:?}", &p);
 //     println!("L = \n{:?}", &l);
 //     println!("U = \n{:?}", &u);
-//     all_close(l.dot(&u).permutate_column(&p), a);
+//     all_close(l.dot(&u).permutated(&p), a);
 // }

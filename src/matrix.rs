@@ -33,10 +33,13 @@ pub trait Matrix: Sized {
     fn qr(self) -> Result<(Self, Self), LapackError>;
     /// LU decomposition
     fn lu(self) -> Result<(Self::Permutator, Self, Self), LapackError>;
-    /// permutate matrix
-    fn permutate_column(self, p: &Self::Permutator) -> Self;
-    /// permutate matrix
-    fn permutate_row(self, p: &Self::Permutator) -> Self;
+    /// permutate matrix (inplace)
+    fn permutate(&mut self, p: &Self::Permutator);
+    /// permutate matrix (outplace)
+    fn permutated(mut self, p: &Self::Permutator) -> Self {
+        self.permutate(p);
+        self
+    }
 }
 
 impl<A> Matrix for Array<A, (Ix, Ix)>
@@ -186,17 +189,16 @@ impl<A> Matrix for Array<A, (Ix, Ix)>
             }
         }
     }
-    fn permutate_column(self, p: &Self::Permutator) -> Self {
-        let (n, m) = self.size();
-        let pd = ImplSolve::permutate_column(self.layout(), n, m, self.clone().into_raw_vec(), p);
-        match self.layout() {
-            Layout::ColumnMajor => Array::from_vec(pd).into_shape((m, n)).unwrap().reversed_axes(),
-            Layout::RowMajor => Array::from_vec(pd).into_shape((m, n)).unwrap(),
+    fn permutate(&mut self, ipiv: &Self::Permutator) {
+        let (_, m) = self.size();
+        for (i, j_) in ipiv.iter().enumerate().rev() {
+            let j = (j_ - 1) as usize;
+            if i == j {
+                continue;
+            }
+            for k in 0..m {
+                self.swap((i, k), (j, k));
+            }
         }
-    }
-    fn permutate_row(self, p: &Self::Permutator) -> Self {
-        let (n, m) = self.size();
-        let pd = ImplSolve::permutate_column(self.layout(), m, n, self.clone().into_raw_vec(), p);
-        Array::from_vec(pd).into_shape((n, m)).unwrap()
     }
 }

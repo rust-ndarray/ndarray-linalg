@@ -138,19 +138,38 @@ impl<A> Matrix for Array<A, (Ix, Ix)>
         let (p, l) = try!(ImplSolve::lu(self.layout(), n, m, self.clone().into_raw_vec()));
         let mut lm = Array::from_vec(l).into_shape((m, n)).unwrap();
         let mut um = Array::zeros((n, m));
-        for ((i, j), val) in um.indexed_iter_mut() {
-            if i < j {
-                *val = lm[(i, j)];
-            } else if i == j {
-                *val = A::one();
+        match self.layout() {
+            Layout::ColumnMajor => {
+                for ((i, j), val) in um.indexed_iter_mut() {
+                    if i < j {
+                        *val = lm[(i, j)];
+                    } else if i == j {
+                        *val = A::one();
+                    }
+                }
+                for ((i, j), val) in lm.indexed_iter_mut() {
+                    if i < j {
+                        *val = A::zero();
+                    }
+                }
+                Ok((p, um.reversed_axes(), lm.reversed_axes()))
+            }
+            Layout::RowMajor => {
+                for ((i, j), val) in um.indexed_iter_mut() {
+                    if i > j {
+                        *val = lm[(i, j)];
+                    } else if i == j {
+                        *val = A::one();
+                    }
+                }
+                for ((i, j), val) in lm.indexed_iter_mut() {
+                    if i > j {
+                        *val = A::zero();
+                    }
+                }
+                Ok((p, lm, um))
             }
         }
-        for ((i, j), val) in lm.indexed_iter_mut() {
-            if i < j {
-                *val = A::zero();
-            }
-        }
-        Ok((p, um.reversed_axes(), lm.reversed_axes()))
     }
     fn permutate_column(self, p: &Self::Permutator) -> Self {
         let (n, m) = self.size();

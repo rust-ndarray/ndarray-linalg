@@ -95,6 +95,24 @@ fn lu_square_upper_t() {
 }
 
 #[test]
+fn lu_square_lower() {
+    let r_dist = Range::new(0., 1.);
+    let mut a = Array::<f64, _>::random((3, 3), r_dist);
+    for ((i, j), val) in a.indexed_iter_mut() {
+        if i < j {
+            *val = 0.0;
+        }
+    }
+    println!("a = \n{:?}", &a);
+    let (p, l, u) = a.clone().lu().unwrap();
+    println!("P = \n{:?}", &p);
+    println!("L = \n{:?}", &l);
+    println!("U = \n{:?}", &u);
+    println!("LU = \n{:?}", l.dot(&u));
+    all_close(l.dot(&u).permutate_column(&p), a);
+}
+
+#[test]
 fn lu_square_lower_t() {
     let r_dist = Range::new(0., 1.);
     let mut a = Array::<f64, _>::random((3, 3), r_dist).reversed_axes();
@@ -112,6 +130,18 @@ fn lu_square_lower_t() {
     all_close(l.dot(&u).permutate_column(&p), a);
 }
 
+#[test]
+fn lu_square() {
+    let r_dist = Range::new(0., 1.);
+    let a = Array::<f64, _>::random((3, 3), r_dist);
+    println!("a = \n{:?}", &a);
+    let (p, l, u) = a.clone().lu().unwrap();
+    println!("P = \n{:?}", &p);
+    println!("L = \n{:?}", &l);
+    println!("U = \n{:?}", &u);
+    println!("LU = \n{:?}", l.dot(&u));
+    all_close(l.dot(&u).permutate_column(&p), a);
+}
 
 #[test]
 fn lu_square_t() {

@@ -141,53 +141,39 @@ impl<A> Matrix for Array<A, (Ix, Ix)>
         let (n, m) = self.size();
         println!("n={}, m={}", n, m);
         let k = min(n, m);
-        let (p, l) = ImplSolve::lu(self.layout(), n, m, self.clone().into_raw_vec())?;
-        match self.layout() {
+        let (p, mut a) = match self.layout() {
             Layout::ColumnMajor => {
                 println!("ColumnMajor");
-                let mut a = Array::from_vec(l).into_shape((m, n)).unwrap().reversed_axes();
-                println!("a (after LU) = \n{:?}", &a);
-                let mut lm = Array::zeros((n, k));
-                for ((i, j), val) in lm.indexed_iter_mut() {
-                    if i > j {
-                        *val = a[(i, j)];
-                    } else if i == j {
-                        *val = A::one();
-                    }
-                }
-                for ((i, j), val) in a.indexed_iter_mut() {
-                    if i > j {
-                        *val = A::zero();
-                    }
-                }
-                let am = if n > k {
-                    a.slice(s![0..k as isize, ..]).to_owned()
-                } else {
-                    a
-                };
-                println!("am = \n{:?}", am);
-                Ok((p, lm, am))
+                let (p, l) = ImplSolve::lu(self.layout(), n, m, self.clone().into_raw_vec())?;
+                (p, Array::from_vec(l).into_shape((m, n)).unwrap().reversed_axes())
             }
             Layout::RowMajor => {
                 println!("RowMajor");
-                let mut lm = Array::from_vec(l).into_shape((m, n)).unwrap();
-                println!("a (after LU) = \n{:?}", &lm);
-                let mut um = Array::zeros((n, m));
-                for ((i, j), val) in um.indexed_iter_mut() {
-                    if i <= j {
-                        *val = lm[(i, j)];
-                    }
-                }
-                for ((i, j), val) in lm.indexed_iter_mut() {
-                    if i < j {
-                        *val = A::zero();
-                    } else if i == j {
-                        *val = A::one();
-                    }
-                }
-                Ok((p, lm, um))
+                let (p, l) = ImplSolve::lu(self.layout(), n, m, self.clone().into_raw_vec())?;
+                (p, Array::from_vec(l).into_shape((n, m)).unwrap())
+            }
+        };
+        println!("a (after LU) = \n{:?}", &a);
+        let mut lm = Array::zeros((n, k));
+        for ((i, j), val) in lm.indexed_iter_mut() {
+            if i > j {
+                *val = a[(i, j)];
+            } else if i == j {
+                *val = A::one();
             }
         }
+        for ((i, j), val) in a.indexed_iter_mut() {
+            if i > j {
+                *val = A::zero();
+            }
+        }
+        let am = if n > k {
+            a.slice(s![0..k as isize, ..]).to_owned()
+        } else {
+            a
+        };
+        println!("am = \n{:?}", am);
+        Ok((p, lm, am))
     }
     fn permutate(&mut self, ipiv: &Self::Permutator) {
         let (_, m) = self.size();

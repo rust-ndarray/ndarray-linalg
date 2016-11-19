@@ -36,7 +36,10 @@ impl ImplSolve for $scalar {
         let m = m as i32;
         let n = n as i32;
         let k = min(m, n);
-        let lda = m;
+        let lda = match layout {
+            Layout::ColumnMajor => m,
+            Layout::RowMajor => n,
+        };
         let mut ipiv = vec![0; k as usize];
         let info = $getrf(layout, m, n, &mut a, lda, &mut ipiv);
         if info == 0 {

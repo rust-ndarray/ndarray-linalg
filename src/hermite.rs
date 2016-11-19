@@ -1,5 +1,6 @@
 //! Define trait for Hermite matrices
 
+use std::fmt::Debug;
 use ndarray::prelude::*;
 use ndarray::LinalgScalar;
 use num_traits::float::Float;
@@ -22,7 +23,7 @@ pub trait HermiteMatrix: SquareMatrix + Matrix {
 }
 
 impl<A> HermiteMatrix for Array<A, (Ix, Ix)>
-    where A: ImplQR + ImplSVD + ImplNorm + ImplSolve + ImplEigh + LinalgScalar + Float
+    where A: ImplQR + ImplSVD + ImplNorm + ImplSolve + ImplEigh + LinalgScalar + Float + Debug
 {
     fn eigh(self) -> Result<(Self::Vector, Self), LinalgError> {
         try!(self.check_square());

@@ -25,8 +25,9 @@
 //! - [WIP] Cholesky factorization
 
 extern crate lapack;
-extern crate ndarray;
 extern crate num_traits;
+#[macro_use(s)]
+extern crate ndarray;
 
 pub mod prelude;
 pub mod error;

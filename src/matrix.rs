@@ -1,6 +1,7 @@
 //! Define trait for general matrix
 
 use std::cmp::min;
+use std::fmt::Debug;
 use ndarray::prelude::*;
 use ndarray::LinalgScalar;
 use lapack::c::Layout;
@@ -39,7 +40,7 @@ pub trait Matrix: Sized {
 }
 
 impl<A> Matrix for Array<A, (Ix, Ix)>
-    where A: ImplQR + ImplSVD + ImplNorm + ImplSolve + LinalgScalar
+    where A: ImplQR + ImplSVD + ImplNorm + ImplSolve + LinalgScalar + Debug
 {
     type Scalar = A;
     type Vector = Array<A, Ix>;
@@ -135,28 +136,40 @@ impl<A> Matrix for Array<A, (Ix, Ix)>
     }
     fn lu(self) -> Result<(Self::Permutator, Self, Self), LapackError> {
         let (n, m) = self.size();
-        let (p, l) = try!(ImplSolve::lu(self.layout(), n, m, self.clone().into_raw_vec()));
-        let mut lm = Array::from_vec(l).into_shape((m, n)).unwrap();
-        let mut um = Array::zeros((n, m));
+        println!("n={}, m={}", n, m);
+        let k = min(n, m);
+        let (p, l) = ImplSolve::lu(self.layout(), n, m, self.clone().into_raw_vec())?;
         match self.layout() {
             Layout::ColumnMajor => {
                 println!("ColumnMajor");
-                for ((i, j), val) in um.indexed_iter_mut() {
-                    if i < j {
-                        *val = lm[(i, j)];
+                let mut a = Array::from_vec(l).into_shape((m, n)).unwrap().reversed_axes();
+                println!("a (after LU) = \n{:?}", &a);
+                let mut lm = Array::zeros((n, k));
+                for ((i, j), val) in lm.indexed_iter_mut() {
+                    if i > j {
+                        *val = a[(i, j)];
                     } else if i == j {
                         *val = A::one();
                     }
                 }
-                for ((i, j), val) in lm.indexed_iter_mut() {
-                    if i < j {
+                for ((i, j), val) in a.indexed_iter_mut() {
+                    if i > j {
                         *val = A::zero();
                     }
                 }
-                Ok((p, um.reversed_axes(), lm.reversed_axes()))
+                let am = if n > k {
+                    a.slice(s![0..k as isize, ..]).to_owned()
+                } else {
+                    a
+                };
+                println!("am = \n{:?}", am);
+                Ok((p, lm, am))
             }
             Layout::RowMajor => {
                 println!("RowMajor");
+                let mut lm = Array::from_vec(l).into_shape((m, n)).unwrap();
+                println!("a (after LU) = \n{:?}", &lm);
+                let mut um = Array::zeros((n, m));
                 for ((i, j), val) in um.indexed_iter_mut() {
                     if i <= j {
                         *val = lm[(i, j)];

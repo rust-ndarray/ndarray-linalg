@@ -3,6 +3,7 @@
 use std::cmp::min;
 use ndarray::prelude::*;
 use ndarray::LinalgScalar;
+use lapack::c::Layout;
 
 use error::LapackError;
 use qr::ImplQR;
@@ -17,6 +18,8 @@ pub trait Matrix: Sized {
     type Permutator;
     /// number of (rows, columns)
     fn size(&self) -> (usize, usize);
+    /// Layout (C/Fortran) of matrix
+    fn layout(&self) -> Layout;
     /// Operator norm for L-1 norm
     fn norm_1(&self) -> Self::Scalar;
     /// Operator norm for L-inf norm
@@ -44,6 +47,14 @@ impl<A> Matrix for Array<A, (Ix, Ix)>
 
     fn size(&self) -> (usize, usize) {
         (self.rows(), self.cols())
+    }
+    fn layout(&self) -> Layout {
+        let strides = self.strides();
+        if strides[0] < strides[1] {
+            Layout::ColumnMajor
+        } else {
+            Layout::RowMajor
+        }
     }
     fn norm_1(&self) -> Self::Scalar {
         let (m, n) = self.size();
@@ -124,63 +135,34 @@ impl<A> Matrix for Array<A, (Ix, Ix)>
     }
     fn lu(self) -> Result<(Self::Permutator, Self, Self), LapackError> {
         let (n, m) = self.size();
-        let strides = self.strides();
-        if strides[0] < strides[1] {
-            println!("Fortran align");
-            let (p, l) = try!(ImplSolve::lu(m, n, self.clone().into_raw_vec()));
-            let mut lm = Array::from_vec(l).into_shape((m, n)).unwrap();
-            let mut um = Array::zeros((n, m));
-            for ((i, j), val) in um.indexed_iter_mut() {
-                if i < j {
-                    *val = lm[(i, j)];
-                } else if i == j {
-                    *val = A::one();
-                }
+        let (p, l) = try!(ImplSolve::lu(self.layout(), n, m, self.clone().into_raw_vec()));
+        let mut lm = Array::from_vec(l).into_shape((m, n)).unwrap();
+        let mut um = Array::zeros((n, m));
+        for ((i, j), val) in um.indexed_iter_mut() {
+            if i < j {
+                *val = lm[(i, j)];
+            } else if i == j {
+                *val = A::one();
             }
-            for ((i, j), val) in lm.indexed_iter_mut() {
-                if i < j {
-                    *val = A::zero();
-                }
-            }
-            Ok((p, um.reversed_axes(), lm.reversed_axes()))
-        } else {
-            println!("C align");
-            let (p, l) = try!(ImplSolve::lu(n, m, self.clone().into_raw_vec()));
-            let mut lm = Array::from_vec(l).into_shape((n, m)).unwrap().reversed_axes();
-            let mut um = Array::zeros((n, m));
-            for ((i, j), val) in um.indexed_iter_mut() {
-                if i < j {
-                    *val = lm[(i, j)];
-                } else if i == j {
-                    *val = A::one();
-                }
-            }
-            for ((i, j), val) in lm.indexed_iter_mut() {
-                if i < j {
-                    *val = A::zero();
-                }
-            }
-            Ok((p, um.reversed_axes(), lm.reversed_axes()))
         }
+        for ((i, j), val) in lm.indexed_iter_mut() {
+            if i < j {
+                *val = A::zero();
+            }
+        }
+        Ok((p, um.reversed_axes(), lm.reversed_axes()))
     }
     fn permutate_column(self, p: &Self::Permutator) -> Self {
         let (n, m) = self.size();
-        let strides = self.strides();
-        if strides[0] < strides[1] {
-            let pd = ImplSolve::permutate_column(n, m, self.clone().into_raw_vec(), p);
-            Array::from_vec(pd).into_shape((m, n)).unwrap().reversed_axes()
-        } else {
-            panic!("Not implemented!");
+        let pd = ImplSolve::permutate_column(self.layout(), n, m, self.clone().into_raw_vec(), p);
+        match self.layout() {
+            Layout::ColumnMajor => Array::from_vec(pd).into_shape((m, n)).unwrap().reversed_axes(),
+            Layout::RowMajor => Array::from_vec(pd).into_shape((m, n)).unwrap(),
         }
     }
     fn permutate_row(self, p: &Self::Permutator) -> Self {
         let (n, m) = self.size();
-        let strides = self.strides();
-        if strides[0] < strides[1] {
-            panic!("Not implemented!");
-        } else {
-            let pd = ImplSolve::permutate_column(m, n, self.clone().into_raw_vec(), p);
-            Array::from_vec(pd).into_shape((n, m)).unwrap()
-        }
+        let pd = ImplSolve::permutate_column(self.layout(), m, n, self.clone().into_raw_vec(), p);
+        Array::from_vec(pd).into_shape((n, m)).unwrap()
     }
 }

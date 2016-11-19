@@ -140,6 +140,7 @@ impl<A> Matrix for Array<A, (Ix, Ix)>
         let mut um = Array::zeros((n, m));
         match self.layout() {
             Layout::ColumnMajor => {
+                println!("ColumnMajor");
                 for ((i, j), val) in um.indexed_iter_mut() {
                     if i < j {
                         *val = lm[(i, j)];
@@ -155,16 +156,17 @@ impl<A> Matrix for Array<A, (Ix, Ix)>
                 Ok((p, um.reversed_axes(), lm.reversed_axes()))
             }
             Layout::RowMajor => {
+                println!("RowMajor");
                 for ((i, j), val) in um.indexed_iter_mut() {
-                    if i > j {
+                    if i <= j {
                         *val = lm[(i, j)];
-                    } else if i == j {
-                        *val = A::one();
                     }
                 }
                 for ((i, j), val) in lm.indexed_iter_mut() {
-                    if i > j {
+                    if i < j {
                         *val = A::zero();
+                    } else if i == j {
+                        *val = A::one();
                     }
                 }
                 Ok((p, lm, um))

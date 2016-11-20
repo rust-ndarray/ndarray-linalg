@@ -16,13 +16,13 @@
 //! - [inverse of matrix](square/trait.SquareMatrix.html#tymethod.inv)
 //! - [trace of matrix](square/trait.SquareMatrix.html#tymethod.trace)
 //! - [WIP] eigenvalue
-//! - [WIP] LU factorization
+//! - [LU factorization](square/trait.SquareMatrix.html#tymethod.lu)
 //!
 //! HermiteMatrix
 //! --------------
 //! - [eigenvalue analysis](hermite/trait.HermiteMatrix.html#tymethod.eigh)
 //! - [symmetric square root](hermite/trait.HermiteMatrix.html#tymethod.ssqrt)
-//! - [WIP] Cholesky factorization
+//! - [Cholesky factorization](hermite/trait.HermiteMatrix.html#tymethod.cholesky)
 
 extern crate lapack;
 extern crate num_traits;

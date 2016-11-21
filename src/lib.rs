@@ -10,13 +10,13 @@
 //! - [operator norm for L1 norm](matrix/trait.Matrix.html#tymethod.norm_1)
 //! - [operator norm for L-inf norm](matrix/trait.Matrix.html#tymethod.norm_i)
 //! - [Frobeiuns norm](matrix/trait.Matrix.html#tymethod.norm_f)
+//! - [LU factorization](matrix/trait.Matrix.html#tymethod.lu)
 //!
 //! SquareMatrix
 //! -------------
 //! - [inverse of matrix](square/trait.SquareMatrix.html#tymethod.inv)
 //! - [trace of matrix](square/trait.SquareMatrix.html#tymethod.trace)
 //! - [WIP] eigenvalue
-//! - [LU factorization](square/trait.SquareMatrix.html#tymethod.lu)
 //!
 //! HermiteMatrix
 //! --------------

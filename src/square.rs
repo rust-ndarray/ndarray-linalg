@@ -3,6 +3,7 @@
 use ndarray::{Ix2, Array, LinalgScalar};
 use std::fmt::Debug;
 use num_traits::float::Float;
+use lapack::c::Layout;
 
 use matrix::Matrix;
 use error::{LinalgError, NotSquareError};
@@ -42,13 +43,12 @@ impl<A> SquareMatrix for Array<A, Ix2>
     fn inv(self) -> Result<Self, LinalgError> {
         try!(self.check_square());
         let (n, _) = self.size();
-        let is_fortran_align = self.strides()[0] > self.strides()[1];
-        let a = ImplSolve::inv(self.layout()?, n, self.into_raw_vec())?;
+        let layout = self.layout()?;
+        let a = ImplSolve::inv(layout, n, self.into_raw_vec())?;
         let m = Array::from_vec(a).into_shape((n, n)).unwrap();
-        if is_fortran_align {
-            Ok(m)
-        } else {
-            Ok(m.reversed_axes())
+        match layout {
+            Layout::RowMajor => Ok(m),
+            Layout::ColumnMajor => Ok(m.reversed_axes()),
         }
     }
     fn trace(&self) -> Result<Self::Scalar, LinalgError> {

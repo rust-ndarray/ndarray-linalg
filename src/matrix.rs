@@ -1,19 +1,26 @@
 //! Define trait for general matrix
 
 use std::cmp::min;
-use ndarray::{Ix1, Ix2, Array, Axis, LinalgScalar};
+use std::fmt::Debug;
+use ndarray::prelude::*;
+use ndarray::LinalgScalar;
+use lapack::c::Layout;
 
 use error::LapackError;
 use qr::ImplQR;
 use svd::ImplSVD;
 use norm::ImplNorm;
+use solve::ImplSolve;
 
 /// Methods for general matrices
 pub trait Matrix: Sized {
     type Scalar;
     type Vector;
+    type Permutator;
     /// number of (rows, columns)
     fn size(&self) -> (usize, usize);
+    /// Layout (C/Fortran) of matrix
+    fn layout(&self) -> Layout;
     /// Operator norm for L-1 norm
     fn norm_1(&self) -> Self::Scalar;
     /// Operator norm for L-inf norm
@@ -24,15 +31,34 @@ pub trait Matrix: Sized {
     fn svd(self) -> Result<(Self, Self::Vector, Self), LapackError>;
     /// QR decomposition
     fn qr(self) -> Result<(Self, Self), LapackError>;
+    /// LU decomposition
+    fn lu(self) -> Result<(Self::Permutator, Self, Self), LapackError>;
+    /// permutate matrix (inplace)
+    fn permutate(&mut self, p: &Self::Permutator);
+    /// permutate matrix (outplace)
+    fn permutated(mut self, p: &Self::Permutator) -> Self {
+        self.permutate(p);
+        self
+    }
 }
 
 impl<A> Matrix for Array<A, Ix2>
-    where A: ImplQR + ImplSVD + ImplNorm + LinalgScalar
+    where A: ImplQR + ImplSVD + ImplNorm + ImplSolve + LinalgScalar + Debug
 {
     type Scalar = A;
-    type Vector = Array<A, Ix1>;
+    type Vector = Array<A, Ix>;
+    type Permutator = Vec<i32>;
+
     fn size(&self) -> (usize, usize) {
         (self.rows(), self.cols())
+    }
+    fn layout(&self) -> Layout {
+        let strides = self.strides();
+        if strides[0] < strides[1] {
+            Layout::ColumnMajor
+        } else {
+            Layout::RowMajor
+        }
     }
     fn norm_1(&self) -> Self::Scalar {
         let (m, n) = self.size();
@@ -110,5 +136,55 @@ impl<A> Matrix for Array<A, Ix2>
             }
         }
         Ok((qm, rm))
+    }
+    fn lu(self) -> Result<(Self::Permutator, Self, Self), LapackError> {
+        let (n, m) = self.size();
+        println!("n={}, m={}", n, m);
+        let k = min(n, m);
+        let (p, mut a) = match self.layout() {
+            Layout::ColumnMajor => {
+                println!("ColumnMajor");
+                let (p, l) = ImplSolve::lu(self.layout(), n, m, self.clone().into_raw_vec())?;
+                (p, Array::from_vec(l).into_shape((m, n)).unwrap().reversed_axes())
+            }
+            Layout::RowMajor => {
+                println!("RowMajor");
+                let (p, l) = ImplSolve::lu(self.layout(), n, m, self.clone().into_raw_vec())?;
+                (p, Array::from_vec(l).into_shape((n, m)).unwrap())
+            }
+        };
+        println!("a (after LU) = \n{:?}", &a);
+        let mut lm = Array::zeros((n, k));
+        for ((i, j), val) in lm.indexed_iter_mut() {
+            if i > j {
+                *val = a[(i, j)];
+            } else if i == j {
+                *val = A::one();
+            }
+        }
+        for ((i, j), val) in a.indexed_iter_mut() {
+            if i > j {
+                *val = A::zero();
+            }
+        }
+        let am = if n > k {
+            a.slice(s![0..k as isize, ..]).to_owned()
+        } else {
+            a
+        };
+        println!("am = \n{:?}", am);
+        Ok((p, lm, am))
+    }
+    fn permutate(&mut self, ipiv: &Self::Permutator) {
+        let (_, m) = self.size();
+        for (i, j_) in ipiv.iter().enumerate().rev() {
+            let j = (j_ - 1) as usize;
+            if i == j {
+                continue;
+            }
+            for k in 0..m {
+                self.swap((i, k), (j, k));
+            }
+        }
     }
 }

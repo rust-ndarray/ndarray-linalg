@@ -10,23 +10,24 @@
 //! - [operator norm for L1 norm](matrix/trait.Matrix.html#tymethod.norm_1)
 //! - [operator norm for L-inf norm](matrix/trait.Matrix.html#tymethod.norm_i)
 //! - [Frobeiuns norm](matrix/trait.Matrix.html#tymethod.norm_f)
+//! - [LU factorization](matrix/trait.Matrix.html#tymethod.lu)
 //!
 //! SquareMatrix
 //! -------------
 //! - [inverse of matrix](square/trait.SquareMatrix.html#tymethod.inv)
 //! - [trace of matrix](square/trait.SquareMatrix.html#tymethod.trace)
 //! - [WIP] eigenvalue
-//! - [WIP] LU factorization
 //!
 //! HermiteMatrix
 //! --------------
 //! - [eigenvalue analysis](hermite/trait.HermiteMatrix.html#tymethod.eigh)
 //! - [symmetric square root](hermite/trait.HermiteMatrix.html#tymethod.ssqrt)
-//! - [WIP] Cholesky factorization
+//! - [Cholesky factorization](hermite/trait.HermiteMatrix.html#tymethod.cholesky)
 
 extern crate lapack;
-extern crate ndarray;
 extern crate num_traits;
+#[macro_use(s)]
+extern crate ndarray;
 
 pub mod prelude;
 pub mod error;
@@ -40,3 +41,4 @@ pub mod svd;
 pub mod eigh;
 pub mod norm;
 pub mod solve;
+pub mod cholesky;

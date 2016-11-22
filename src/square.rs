@@ -1,6 +1,7 @@
 //! Define trait for Hermite matrices
 
 use ndarray::{Ix2, Array, LinalgScalar};
+use std::fmt::Debug;
 use num_traits::float::Float;
 
 use matrix::Matrix;
@@ -16,7 +17,6 @@ use solve::ImplSolve;
 /// but does not assure that the matrix is square.
 /// If not square, `NotSquareError` will be thrown.
 pub trait SquareMatrix: Matrix {
-    // fn lu(self) -> (Self, Self);
     // fn eig(self) -> (Self::Vector, Self);
     /// inverse matrix
     fn inv(self) -> Result<Self, LinalgError>;
@@ -37,13 +37,13 @@ pub trait SquareMatrix: Matrix {
 }
 
 impl<A> SquareMatrix for Array<A, Ix2>
-    where A: ImplQR + ImplNorm + ImplSVD + ImplSolve + LinalgScalar + Float
+    where A: ImplQR + ImplNorm + ImplSVD + ImplSolve + LinalgScalar + Float + Debug
 {
     fn inv(self) -> Result<Self, LinalgError> {
         try!(self.check_square());
         let (n, _) = self.size();
         let is_fortran_align = self.strides()[0] > self.strides()[1];
-        let a = try!(ImplSolve::inv(n, self.into_raw_vec()));
+        let a = try!(ImplSolve::inv(self.layout(), n, self.into_raw_vec()));
         let m = Array::from_vec(a).into_shape((n, n)).unwrap();
         if is_fortran_align {
             Ok(m)

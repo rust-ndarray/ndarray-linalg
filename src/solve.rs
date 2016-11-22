@@ -1,31 +1,49 @@
 //! Implement linear solver and inverse matrix
 
-use lapack::fortran::*;
-use num_traits::Zero;
+use lapack::c::*;
+use std::cmp::min;
 
 use error::LapackError;
 
 pub trait ImplSolve: Sized {
-    fn inv(size: usize, mut a: Vec<Self>) -> Result<Vec<Self>, LapackError>;
+    fn inv(layout: Layout, size: usize, a: Vec<Self>) -> Result<Vec<Self>, LapackError>;
+    fn lu(layout: Layout,
+          m: usize,
+          n: usize,
+          a: Vec<Self>)
+          -> Result<(Vec<i32>, Vec<Self>), LapackError>;
 }
 
 macro_rules! impl_solve {
-    ($scalar:ty, $getrf:path, $getri:path) => {
+    ($scalar:ty, $getrf:path, $getri:path, $laswp:path) => {
 impl ImplSolve for $scalar {
-    fn inv(size: usize, mut a: Vec<Self>) -> Result<Vec<Self>, LapackError> {
+    fn inv(layout: Layout, size: usize, mut a: Vec<Self>) -> Result<Vec<Self>, LapackError> {
         let n = size as i32;
         let lda = n;
         let mut ipiv = vec![0; size];
-        let mut info = 0;
-        $getrf(n, n, &mut a, lda, &mut ipiv, &mut info);
+        let info = $getrf(layout, n, n, &mut a, lda, &mut ipiv);
         if info != 0 {
             return Err(From::from(info));
         }
-        let lwork = n;
-        let mut work = vec![Self::zero(); size];
-        $getri(n, &mut a, lda, &mut ipiv, &mut work, lwork, &mut info);
+        let info = $getri(layout, n, &mut a, lda, &mut ipiv);
         if info == 0 {
             Ok(a)
+        } else {
+            Err(From::from(info))
+        }
+    }
+    fn lu(layout: Layout, m: usize, n: usize, mut a: Vec<Self>) -> Result<(Vec<i32>, Vec<Self>), LapackError> {
+        let m = m as i32;
+        let n = n as i32;
+        let k = min(m, n);
+        let lda = match layout {
+            Layout::ColumnMajor => m,
+            Layout::RowMajor => n,
+        };
+        let mut ipiv = vec![0; k as usize];
+        let info = $getrf(layout, m, n, &mut a, lda, &mut ipiv);
+        if info == 0 {
+            Ok((ipiv, a))
         } else {
             Err(From::from(info))
         }
@@ -33,5 +51,5 @@ impl ImplSolve for $scalar {
 }
 }} // end macro_rules
 
-impl_solve!(f64, dgetrf, dgetri);
-impl_solve!(f32, sgetrf, sgetri);
+impl_solve!(f64, dgetrf, dgetri, dlaswp);
+impl_solve!(f32, sgetrf, sgetri, slaswp);

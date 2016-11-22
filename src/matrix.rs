@@ -89,23 +89,15 @@ impl<A> Matrix for Array<A, Ix2>
         ImplNorm::norm_f(m, n, self.clone().into_raw_vec())
     }
     fn svd(self) -> Result<(Self, Self::Vector, Self), LinalgError> {
-        let strides = self.strides();
-        let (m, n) = if strides[0] > strides[1] {
-            self.size()
-        } else {
-            let (n, m) = self.size();
-            (m, n)
-        };
-        let (u, s, vt) = try!(ImplSVD::svd(m, n, self.clone().into_raw_vec()));
+        let (n, m) = self.size();
+        let layout = self.layout()?;
+        let (u, s, vt) = ImplSVD::svd(layout, m, n, self.clone().into_raw_vec())?;
         let sv = Array::from_vec(s);
-        if strides[0] > strides[1] {
-            let ua = Array::from_vec(u).into_shape((n, n)).unwrap();
-            let va = Array::from_vec(vt).into_shape((m, m)).unwrap();
-            Ok((va, sv, ua))
-        } else {
-            let ua = Array::from_vec(u).into_shape((n, n)).unwrap().reversed_axes();
-            let va = Array::from_vec(vt).into_shape((m, m)).unwrap().reversed_axes();
-            Ok((ua, sv, va))
+        let ua = Array::from_vec(u).into_shape((n, n)).unwrap();
+        let va = Array::from_vec(vt).into_shape((m, m)).unwrap();
+        match layout {
+            Layout::RowMajor => Ok((ua, sv, va)), 
+            Layout::ColumnMajor => Ok((ua.reversed_axes(), sv, va.reversed_axes())),
         }
     }
     fn qr(self) -> Result<(Self, Self), LinalgError> {

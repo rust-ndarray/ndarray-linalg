@@ -41,7 +41,7 @@ impl<A> SquareMatrix for Array<A, Ix2>
     where A: ImplQR + ImplNorm + ImplSVD + ImplSolve + LinalgScalar + Float + Debug
 {
     fn inv(self) -> Result<Self, LinalgError> {
-        try!(self.check_square());
+        self.check_square()?;
         let (n, _) = self.size();
         let layout = self.layout()?;
         let a = ImplSolve::inv(layout, n, self.into_raw_vec())?;
@@ -52,7 +52,7 @@ impl<A> SquareMatrix for Array<A, Ix2>
         }
     }
     fn trace(&self) -> Result<Self::Scalar, LinalgError> {
-        try!(self.check_square());
+        self.check_square()?;
         let (n, _) = self.size();
         Ok((0..n).fold(A::zero(), |sum, i| sum + self[(i, i)]))
     }

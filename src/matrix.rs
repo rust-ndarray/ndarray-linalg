@@ -105,7 +105,7 @@ impl<A> Matrix for Array<A, Ix2>
         let strides = self.strides();
         let k = min(n, m);
         let layout = self.layout()?;
-        let (q, r) = try!(ImplQR::qr(layout, m, n, self.clone().into_raw_vec()));
+        let (q, r) = ImplQR::qr(layout, m, n, self.clone().into_raw_vec())?;
         let (qa, ra) = if strides[0] < strides[1] {
             (Array::from_vec(q).into_shape((m, n)).unwrap().reversed_axes(),
              Array::from_vec(r).into_shape((m, n)).unwrap().reversed_axes())

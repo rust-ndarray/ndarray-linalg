@@ -30,10 +30,14 @@ impl<A> HermiteMatrix for Array<A, Ix2>
 {
     fn eigh(self) -> Result<(Self::Vector, Self), LinalgError> {
         try!(self.check_square());
+        let layout = self.layout()?;
         let (rows, cols) = self.size();
-        let (w, a) = try!(ImplEigh::eigh(rows, self.into_raw_vec()));
+        let (w, a) = ImplEigh::eigh(layout, rows, self.into_raw_vec())?;
         let ea = Array::from_vec(w);
-        let va = Array::from_vec(a).into_shape((rows, cols)).unwrap().reversed_axes();
+        let va = match layout {
+            Layout::ColumnMajor => Array::from_vec(a).into_shape((rows, cols)).unwrap().reversed_axes(),
+            Layout::RowMajor => Array::from_vec(a).into_shape((rows, cols)).unwrap(),
+        };
         Ok((ea, va))
     }
     fn ssqrt(self) -> Result<Self, LinalgError> {

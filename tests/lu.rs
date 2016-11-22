@@ -9,7 +9,7 @@ use ndarray_linalg::prelude::*;
 use rand::distributions::*;
 use ndarray_rand::RandomExt;
 
-fn all_close(a: Array<f64, (Ix, Ix)>, b: Array<f64, (Ix, Ix)>) {
+fn all_close(a: Array<f64, Ix2>, b: Array<f64, Ix2>) {
     if !a.all_close(&b, 1.0e-7) {
         panic!("\nTwo matrices are not equal:\na = \n{:?}\nb = \n{:?}\n",
                a,
@@ -68,7 +68,7 @@ test_permutate_t!(permutate_4x3_t,
                   &[[1., 4., 7., 10.], [2., 5., 8., 11.], [3., 6., 9., 12.]],
                   &[[10., 11., 12.], [4., 5., 6.], [7., 8., 9.], [1., 2., 3.]]);
 
-fn test_lu(a: Array<f64, (Ix, Ix)>) {
+fn test_lu(a: Array<f64, Ix2>) {
     println!("a = \n{:?}", &a);
     let (p, l, u) = a.clone().lu().unwrap();
     println!("P = \n{:?}", &p);

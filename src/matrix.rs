@@ -42,11 +42,11 @@ pub trait Matrix: Sized {
     }
 }
 
-impl<A> Matrix for Array<A, (Ix, Ix)>
+impl<A> Matrix for Array<A, Ix2>
     where A: ImplQR + ImplSVD + ImplNorm + ImplSolve + LinalgScalar + Debug
 {
     type Scalar = A;
-    type Vector = Array<A, Ix>;
+    type Vector = Array<A, Ix1>;
     type Permutator = Vec<i32>;
 
     fn size(&self) -> (usize, usize) {

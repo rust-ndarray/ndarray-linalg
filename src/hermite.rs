@@ -1,8 +1,7 @@
 //! Define trait for Hermite matrices
 
+use ndarray::{Ix2, Array, LinalgScalar};
 use std::fmt::Debug;
-use ndarray::prelude::*;
-use ndarray::LinalgScalar;
 use num_traits::float::Float;
 use lapack::c::Layout;
 
@@ -26,7 +25,7 @@ pub trait HermiteMatrix: SquareMatrix + Matrix {
     fn cholesky(self) -> Result<Self, LinalgError>;
 }
 
-impl<A> HermiteMatrix for Array<A, (Ix, Ix)>
+impl<A> HermiteMatrix for Array<A, Ix2>
     where A: ImplQR + ImplSVD + ImplNorm + ImplSolve + ImplEigh + ImplCholesky + LinalgScalar + Float + Debug
 {
     fn eigh(self) -> Result<(Self::Vector, Self), LinalgError> {

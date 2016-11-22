@@ -2,6 +2,7 @@
 
 use std::error;
 use std::fmt;
+use ndarray::Ixs;
 
 #[derive(Debug)]
 pub struct LapackError {
@@ -45,11 +46,14 @@ impl error::Error for NotSquareError {
 }
 
 #[derive(Debug)]
-pub struct StrideError {}
+pub struct StrideError {
+    pub s0: Ixs,
+    pub s1: Ixs,
+}
 
 impl fmt::Display for StrideError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "invalid stride")
+        write!(f, "invalid stride: s0={}, s1={}", self.s0, self.s1)
     }
 }
 

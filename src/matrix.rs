@@ -54,6 +54,12 @@ impl<A> Matrix for Array<A, Ix2>
     }
     fn layout(&self) -> Result<Layout, StrideError> {
         let strides = self.strides();
+        if min(strides[0], strides[1]) != 1 {
+            return Err(StrideError {
+                s0: strides[0],
+                s1: strides[1],
+            });;
+        }
         if strides[0] < strides[1] {
             Ok(Layout::ColumnMajor)
         } else {

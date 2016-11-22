@@ -43,7 +43,7 @@ impl<A> SquareMatrix for Array<A, Ix2>
         try!(self.check_square());
         let (n, _) = self.size();
         let is_fortran_align = self.strides()[0] > self.strides()[1];
-        let a = try!(ImplSolve::inv(self.layout(), n, self.into_raw_vec()));
+        let a = ImplSolve::inv(self.layout()?, n, self.into_raw_vec())?;
         let m = Array::from_vec(a).into_shape((n, n)).unwrap();
         if is_fortran_align {
             Ok(m)

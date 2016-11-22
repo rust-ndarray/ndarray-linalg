@@ -6,7 +6,7 @@ use ndarray::prelude::*;
 use ndarray::LinalgScalar;
 use lapack::c::Layout;
 
-use error::LapackError;
+use error::{LinalgError, StrideError};
 use qr::ImplQR;
 use svd::ImplSVD;
 use norm::ImplNorm;
@@ -20,7 +20,7 @@ pub trait Matrix: Sized {
     /// number of (rows, columns)
     fn size(&self) -> (usize, usize);
     /// Layout (C/Fortran) of matrix
-    fn layout(&self) -> Layout;
+    fn layout(&self) -> Result<Layout, StrideError>;
     /// Operator norm for L-1 norm
     fn norm_1(&self) -> Self::Scalar;
     /// Operator norm for L-inf norm
@@ -28,11 +28,11 @@ pub trait Matrix: Sized {
     /// Frobenius norm
     fn norm_f(&self) -> Self::Scalar;
     /// singular-value decomposition (SVD)
-    fn svd(self) -> Result<(Self, Self::Vector, Self), LapackError>;
+    fn svd(self) -> Result<(Self, Self::Vector, Self), LinalgError>;
     /// QR decomposition
-    fn qr(self) -> Result<(Self, Self), LapackError>;
+    fn qr(self) -> Result<(Self, Self), LinalgError>;
     /// LU decomposition
-    fn lu(self) -> Result<(Self::Permutator, Self, Self), LapackError>;
+    fn lu(self) -> Result<(Self::Permutator, Self, Self), LinalgError>;
     /// permutate matrix (inplace)
     fn permutate(&mut self, p: &Self::Permutator);
     /// permutate matrix (outplace)
@@ -52,12 +52,12 @@ impl<A> Matrix for Array<A, Ix2>
     fn size(&self) -> (usize, usize) {
         (self.rows(), self.cols())
     }
-    fn layout(&self) -> Layout {
+    fn layout(&self) -> Result<Layout, StrideError> {
         let strides = self.strides();
         if strides[0] < strides[1] {
-            Layout::ColumnMajor
+            Ok(Layout::ColumnMajor)
         } else {
-            Layout::RowMajor
+            Ok(Layout::RowMajor)
         }
     }
     fn norm_1(&self) -> Self::Scalar {
@@ -82,7 +82,7 @@ impl<A> Matrix for Array<A, Ix2>
         let (m, n) = self.size();
         ImplNorm::norm_f(m, n, self.clone().into_raw_vec())
     }
-    fn svd(self) -> Result<(Self, Self::Vector, Self), LapackError> {
+    fn svd(self) -> Result<(Self, Self::Vector, Self), LinalgError> {
         let strides = self.strides();
         let (m, n) = if strides[0] > strides[1] {
             self.size()
@@ -102,7 +102,7 @@ impl<A> Matrix for Array<A, Ix2>
             Ok((ua, sv, va))
         }
     }
-    fn qr(self) -> Result<(Self, Self), LapackError> {
+    fn qr(self) -> Result<(Self, Self), LinalgError> {
         let (n, m) = self.size();
         let strides = self.strides();
         let k = min(n, m);
@@ -136,19 +136,19 @@ impl<A> Matrix for Array<A, Ix2>
         }
         Ok((qm, rm))
     }
-    fn lu(self) -> Result<(Self::Permutator, Self, Self), LapackError> {
+    fn lu(self) -> Result<(Self::Permutator, Self, Self), LinalgError> {
         let (n, m) = self.size();
         println!("n={}, m={}", n, m);
         let k = min(n, m);
-        let (p, mut a) = match self.layout() {
+        let (p, mut a) = match self.layout()? {
             Layout::ColumnMajor => {
                 println!("ColumnMajor");
-                let (p, l) = ImplSolve::lu(self.layout(), n, m, self.clone().into_raw_vec())?;
+                let (p, l) = ImplSolve::lu(self.layout()?, n, m, self.clone().into_raw_vec())?;
                 (p, Array::from_vec(l).into_shape((m, n)).unwrap().reversed_axes())
             }
             Layout::RowMajor => {
                 println!("RowMajor");
-                let (p, l) = ImplSolve::lu(self.layout(), n, m, self.clone().into_raw_vec())?;
+                let (p, l) = ImplSolve::lu(self.layout()?, n, m, self.clone().into_raw_vec())?;
                 (p, Array::from_vec(l).into_shape((n, m)).unwrap())
             }
         };

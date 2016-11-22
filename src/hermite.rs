@@ -49,9 +49,8 @@ impl<A> HermiteMatrix for Array<A, Ix2>
     }
     fn cholesky(self) -> Result<Self, LinalgError> {
         try!(self.check_square());
-        println!("layout = {:?}", self.layout());
         let (n, _) = self.size();
-        let layout = self.layout();
+        let layout = self.layout()?;
         let a = try!(ImplCholesky::cholesky(layout, n, self.into_raw_vec()));
         let mut c = match layout {
             Layout::RowMajor => Array::from_vec(a).into_shape((n, n)).unwrap(),

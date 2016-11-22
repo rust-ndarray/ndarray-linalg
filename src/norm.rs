@@ -1,7 +1,6 @@
 //! Implement Norms for matrices
 
-use lapack::fortran::*;
-use num_traits::Zero;
+use lapack::c::*;
 
 pub trait ImplNorm: Sized {
     fn norm_1(m: usize, n: usize, mut a: Vec<Self>) -> Self;
@@ -13,16 +12,13 @@ macro_rules! impl_norm {
     ($scalar:ty, $lange:path) => {
 impl ImplNorm for $scalar {
     fn norm_1(m: usize, n: usize, mut a: Vec<Self>) -> Self {
-        let mut work = Vec::<Self>::new();
-        $lange(b'o', m as i32, n as i32, &mut a, m as i32, &mut work)
+        $lange(Layout::ColumnMajor, b'o', m as i32, n as i32, &mut a, m as i32)
     }
     fn norm_i(m: usize, n: usize, mut a: Vec<Self>) -> Self {
-        let mut work = vec![Self::zero(); m];
-        $lange(b'i', m as i32, n as i32, &mut a, m as i32, &mut work)
+        $lange(Layout::ColumnMajor, b'i', m as i32, n as i32, &mut a, m as i32)
     }
     fn norm_f(m: usize, n: usize, mut a: Vec<Self>) -> Self {
-        let mut work = Vec::<Self>::new();
-        $lange(b'f', m as i32, n as i32, &mut a, m as i32, &mut work)
+        $lange(Layout::ColumnMajor, b'f', m as i32, n as i32, &mut a, m as i32)
     }
 }
 }} // end macro_rules

@@ -14,9 +14,9 @@ lapack = "0.11.1"
 num-traits = "0.1.36"
 
 [dependencies.ndarray]
-version = "0.6.9"
+version = "0.7"
 features = ["blas"]
 
 [dev-dependencies]
 rand = "0.3.14"
-ndarray-rand = "0.2.0"
+ndarray-rand = "0.3"

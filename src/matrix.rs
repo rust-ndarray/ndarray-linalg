@@ -115,8 +115,7 @@ impl<A> Matrix for Array<A, Ix2>
             (Array::from_vec(q).into_shape((m, n)).unwrap().reversed_axes(),
              Array::from_vec(r).into_shape((m, n)).unwrap().reversed_axes())
         } else {
-            (Array::from_vec(q).into_shape((n, m)).unwrap(),
-             Array::from_vec(r).into_shape((n, m)).unwrap())
+            (Array::from_vec(q).into_shape((n, m)).unwrap(), Array::from_vec(r).into_shape((n, m)).unwrap())
         };
         let qm = if m > k {
             let (qsl, _) = qa.view().split_at(Axis(1), k);

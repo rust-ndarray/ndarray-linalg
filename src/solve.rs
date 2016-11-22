@@ -7,11 +7,7 @@ use error::LapackError;
 
 pub trait ImplSolve: Sized {
     fn inv(layout: Layout, size: usize, a: Vec<Self>) -> Result<Vec<Self>, LapackError>;
-    fn lu(layout: Layout,
-          m: usize,
-          n: usize,
-          a: Vec<Self>)
-          -> Result<(Vec<i32>, Vec<Self>), LapackError>;
+    fn lu(layout: Layout, m: usize, n: usize, a: Vec<Self>) -> Result<(Vec<i32>, Vec<Self>), LapackError>;
 }
 
 macro_rules! impl_solve {

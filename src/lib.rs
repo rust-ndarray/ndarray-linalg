@@ -24,10 +24,11 @@
 //! - [symmetric square root](hermite/trait.HermiteMatrix.html#tymethod.ssqrt)
 //! - [Cholesky factorization](hermite/trait.HermiteMatrix.html#tymethod.cholesky)
 
-extern crate lapack;
-extern crate num_traits;
 #[macro_use(s)]
 extern crate ndarray;
+extern crate lapack;
+extern crate num_complex;
+extern crate num_traits;
 
 pub mod prelude;
 pub mod error;
@@ -38,6 +39,7 @@ pub mod hermite;
 
 pub mod qr;
 pub mod svd;
+pub mod eig;
 pub mod eigh;
 pub mod norm;
 pub mod solve;

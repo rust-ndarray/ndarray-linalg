@@ -4,10 +4,12 @@ use std::fmt::Debug;
 use ndarray::prelude::*;
 use ndarray::LinalgScalar;
 use num_traits::float::Float;
+use num_complex::Complex;
 
 use matrix::Matrix;
 use error::{LinalgError, NotSquareError};
 use qr::ImplQR;
+use eig::ImplEig;
 use svd::ImplSVD;
 use norm::ImplNorm;
 use solve::ImplSolve;
@@ -18,7 +20,7 @@ use solve::ImplSolve;
 /// but does not assure that the matrix is square.
 /// If not square, `NotSquareError` will be thrown.
 pub trait SquareMatrix: Matrix {
-    // fn eig(self) -> (Self::Vector, Self);
+    fn eig(self) -> Result<(Self::ComplexVector, Self::ComplexMatrix), LinalgError>;
     /// inverse matrix
     fn inv(self) -> Result<Self, LinalgError>;
     /// trace of matrix
@@ -38,8 +40,40 @@ pub trait SquareMatrix: Matrix {
 }
 
 impl<A> SquareMatrix for Array<A, (Ix, Ix)>
-    where A: ImplQR + ImplNorm + ImplSVD + ImplSolve + LinalgScalar + Float + Debug
+    where A: ImplEig + ImplQR + ImplNorm + ImplSVD + ImplSolve + LinalgScalar + Float + Debug
 {
+    fn eig(self) -> Result<(Self::ComplexVector, Self::ComplexMatrix), LinalgError> {
+        try!(self.check_square());
+        let (n, _) = self.size();
+        let (wr, wi, vv) = try!(ImplEig::eig(n, self.into_raw_vec()));
+        println!("wi = {:?}", &wi);
+        let vr = Array::from_vec(vv).into_shape((n, n)).unwrap();
+        let mut v = Array::<Self::Complex, _>::zeros((n, n));
+        let mut i = 0;
+        while i < n {
+            println!("i = {}", &i);
+            println!("wi[i] = {:?}", &wi[i]);
+            if !wi[i].is_normal() {
+                println!("Real eigenvalue");
+                for j in 0..n {
+                    v[(i, j)] = Complex::new(vr[(i, j)], A::zero());
+                }
+                i += 1;
+            } else {
+                println!("Imaginal eigenvalue");
+                for j in 0..n {
+                    v[(i, j)] = Complex::new(vr[(i, j)], vr[(i + 1, j)]);
+                    v[(i + 1, j)] = Complex::new(vr[(i, j)], -vr[(i + 1, j)]);
+                }
+                i += 2;
+            }
+        }
+        let w = wr.into_iter()
+            .zip(wi.into_iter())
+            .map(|(r, i)| Complex::new(r, i))
+            .collect();
+        Ok((w, v.reversed_axes()))
+    }
     fn inv(self) -> Result<Self, LinalgError> {
         try!(self.check_square());
         let (n, _) = self.size();

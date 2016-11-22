@@ -133,21 +133,12 @@ impl<A> Matrix for Array<A, Ix2>
     }
     fn lu(self) -> Result<(Self::Permutator, Self, Self), LinalgError> {
         let (n, m) = self.size();
-        println!("n={}, m={}", n, m);
         let k = min(n, m);
-        let (p, mut a) = match self.layout()? {
-            Layout::ColumnMajor => {
-                println!("ColumnMajor");
-                let (p, l) = ImplSolve::lu(self.layout()?, n, m, self.clone().into_raw_vec())?;
-                (p, Array::from_vec(l).into_shape((m, n)).unwrap().reversed_axes())
-            }
-            Layout::RowMajor => {
-                println!("RowMajor");
-                let (p, l) = ImplSolve::lu(self.layout()?, n, m, self.clone().into_raw_vec())?;
-                (p, Array::from_vec(l).into_shape((n, m)).unwrap())
-            }
+        let (p, l) = ImplSolve::lu(self.layout()?, n, m, self.clone().into_raw_vec())?;
+        let mut a = match self.layout()? {
+            Layout::ColumnMajor => Array::from_vec(l).into_shape((m, n)).unwrap().reversed_axes(),
+            Layout::RowMajor => Array::from_vec(l).into_shape((n, m)).unwrap(),
         };
-        println!("a (after LU) = \n{:?}", &a);
         let mut lm = Array::zeros((n, k));
         for ((i, j), val) in lm.indexed_iter_mut() {
             if i > j {
@@ -166,7 +157,6 @@ impl<A> Matrix for Array<A, Ix2>
         } else {
             a
         };
-        println!("am = \n{:?}", am);
         Ok((p, lm, am))
     }
     fn permutate(&mut self, ipiv: &Self::Permutator) {

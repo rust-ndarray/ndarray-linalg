@@ -55,8 +55,8 @@ impl<A> HermiteMatrix for Array<A, (Ix, Ix)>
         let layout = self.layout();
         let a = try!(ImplCholesky::cholesky(layout, n, self.into_raw_vec()));
         let mut c = match layout {
-          Layout::RowMajor => Array::from_vec(a).into_shape((n, n)).unwrap(),
-          Layout::ColumnMajor => Array::from_vec(a).into_shape((n, n)).unwrap().reversed_axes(),
+            Layout::RowMajor => Array::from_vec(a).into_shape((n, n)).unwrap(),
+            Layout::ColumnMajor => Array::from_vec(a).into_shape((n, n)).unwrap().reversed_axes(),
         };
         for ((i, j), val) in c.indexed_iter_mut() {
             if i > j {

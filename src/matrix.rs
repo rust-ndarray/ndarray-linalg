@@ -96,7 +96,7 @@ impl<A> Matrix for Array<A, Ix2>
         let ua = Array::from_vec(u).into_shape((n, n)).unwrap();
         let va = Array::from_vec(vt).into_shape((m, m)).unwrap();
         match layout {
-            Layout::RowMajor => Ok((ua, sv, va)), 
+            Layout::RowMajor => Ok((ua, sv, va)),
             Layout::ColumnMajor => Ok((ua.reversed_axes(), sv, va.reversed_axes())),
         }
     }
@@ -104,11 +104,8 @@ impl<A> Matrix for Array<A, Ix2>
         let (n, m) = self.size();
         let strides = self.strides();
         let k = min(n, m);
-        let (q, r) = if strides[0] < strides[1] {
-            try!(ImplQR::qr(m, n, self.clone().into_raw_vec()))
-        } else {
-            try!(ImplQR::lq(n, m, self.clone().into_raw_vec()))
-        };
+        let layout = self.layout()?;
+        let (q, r) = try!(ImplQR::qr(layout, m, n, self.clone().into_raw_vec()));
         let (qa, ra) = if strides[0] < strides[1] {
             (Array::from_vec(q).into_shape((m, n)).unwrap().reversed_axes(),
              Array::from_vec(r).into_shape((m, n)).unwrap().reversed_axes())

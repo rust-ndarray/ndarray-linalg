@@ -44,7 +44,8 @@ impl<A> SquareMatrix for Array<A, Ix2>
         self.check_square()?;
         let (n, _) = self.size();
         let layout = self.layout()?;
-        let a = ImplSolve::inv(layout, n, self.into_raw_vec())?;
+        let (ipiv, a) = ImplSolve::lu(layout, n, n, self.into_raw_vec())?;
+        let a = ImplSolve::inv(layout, n, a, &ipiv)?;
         let m = Array::from_vec(a).into_shape((n, n)).unwrap();
         match layout {
             Layout::RowMajor => Ok(m),

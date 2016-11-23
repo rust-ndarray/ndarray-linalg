@@ -35,6 +35,7 @@ pub mod vector;
 pub mod matrix;
 pub mod square;
 pub mod hermite;
+pub mod triangular;
 
 pub mod qr;
 pub mod svd;

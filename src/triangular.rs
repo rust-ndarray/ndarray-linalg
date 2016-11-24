@@ -14,8 +14,8 @@ use solve::ImplSolve;
 pub trait TriangularMatrix: Matrix + SquareMatrix {
     /// solve a triangular system with upper triangular matrix
     fn solve_upper(&self, Self::Vector) -> Result<Self::Vector, LinalgError>;
-    // /// solve a triangular system with lower triangular matrix
-    // fn solve_lower(&self, Self::Vector) -> Result<Self::Vector, LinalgError>;
+    /// solve a triangular system with lower triangular matrix
+    fn solve_lower(&self, Self::Vector) -> Result<Self::Vector, LinalgError>;
 }
 
 impl<A> TriangularMatrix for Array<A, Ix2>
@@ -27,6 +27,14 @@ impl<A> TriangularMatrix for Array<A, Ix2>
         let layout = self.layout()?;
         let a = self.as_slice_memory_order().unwrap();
         let x = ImplSolve::solve_triangle(layout, 'U' as u8, n, a, b.into_raw_vec())?;
+        Ok(Array::from_vec(x))
+    }
+    fn solve_lower(&self, b: Self::Vector) -> Result<Self::Vector, LinalgError> {
+        self.check_square()?;
+        let (n, _) = self.size();
+        let layout = self.layout()?;
+        let a = self.as_slice_memory_order().unwrap();
+        let x = ImplSolve::solve_triangle(layout, 'L' as u8, n, a, b.into_raw_vec())?;
         Ok(Array::from_vec(x))
     }
 }

@@ -52,3 +52,39 @@ fn solve_upper_t() {
     println!("Ax = \n{:?}", a.dot(&x));
     all_close(a.dot(&x), b);
 }
+
+#[test]
+fn solve_lower() {
+    let r_dist = Range::new(0., 1.);
+    let mut a = Array::<f64, _>::random((3, 3), r_dist);
+    for ((i, j), val) in a.indexed_iter_mut() {
+        if i < j {
+            *val = 0.0;
+        }
+    }
+    println!("a = \n{:?}", &a);
+    let b = Array::<f64, _>::random(3, r_dist);
+    println!("b = \n{:?}", &b);
+    let x = a.solve_lower(b.clone()).unwrap();
+    println!("x = \n{:?}", &x);
+    println!("Ax = \n{:?}", a.dot(&x));
+    all_close(a.dot(&x), b);
+}
+
+#[test]
+fn solve_lower_t() {
+    let r_dist = Range::new(0., 1.);
+    let mut a = Array::<f64, _>::random((3, 3), r_dist).reversed_axes();
+    for ((i, j), val) in a.indexed_iter_mut() {
+        if i < j {
+            *val = 0.0;
+        }
+    }
+    println!("a = \n{:?}", &a);
+    let b = Array::<f64, _>::random(3, r_dist);
+    println!("b = \n{:?}", &b);
+    let x = a.solve_lower(b.clone()).unwrap();
+    println!("x = \n{:?}", &x);
+    println!("Ax = \n{:?}", a.dot(&x));
+    all_close(a.dot(&x), b);
+}

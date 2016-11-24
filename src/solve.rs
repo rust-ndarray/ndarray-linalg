@@ -17,10 +17,17 @@ pub trait ImplSolve: Sized {
              ipiv: &Vec<i32>,
              b: Vec<Self>)
              -> Result<Vec<Self>, LapackError>;
+    /// solve triangular linear problem
+    fn solve_triangle(layout: Layout,
+                      uplo: u8,
+                      size: usize,
+                      a: &Vec<Self>,
+                      b: Vec<Self>)
+                      -> Result<Vec<Self>, LapackError>;
 }
 
 macro_rules! impl_solve {
-    ($scalar:ty, $getrf:path, $getri:path, $getrs:path) => {
+    ($scalar:ty, $getrf:path, $getri:path, $getrs:path, $trtrs:path) => {
 impl ImplSolve for $scalar {
     fn lu(layout: Layout, m: usize, n: usize, mut a: Vec<Self>) -> Result<(Vec<i32>, Vec<Self>), LapackError> {
         let m = m as i32;
@@ -51,7 +58,17 @@ impl ImplSolve for $scalar {
     fn solve(layout: Layout, size: usize, a: &Vec<Self>, ipiv: &Vec<i32>, mut b: Vec<Self>) -> Result<Vec<Self>, LapackError> {
         let n = size as i32;
         let lda = n;
-        let info = $getrs(layout, 'N' as u8, n, 1, a, lda, &ipiv, &mut b, n);
+        let info = $getrs(layout, 'N' as u8, n, 1, a, lda, ipiv, &mut b, n);
+        if info == 0 {
+            Ok(b)
+        } else {
+            Err(From::from(info))
+        }
+    }
+    fn solve_triangle(layout: Layout, uplo: u8, size: usize, a: &Vec<Self>, mut b: Vec<Self>) -> Result<Vec<Self>, LapackError> {
+        let n = size as i32;
+        let lda = n;
+        let info = $trtrs(layout, uplo, 'N' as u8, 'N' as u8, n, 1, a, lda, &mut b, n);
         if info == 0 {
             Ok(b)
         } else {
@@ -61,5 +78,5 @@ impl ImplSolve for $scalar {
 }
 }} // end macro_rules
 
-impl_solve!(f64, dgetrf, dgetri, dgetrs);
-impl_solve!(f32, sgetrf, sgetri, sgetrs);
+impl_solve!(f64, dgetrf, dgetri, dgetrs, dtrtrs);
+impl_solve!(f32, sgetrf, sgetri, sgetrs, strtrs);

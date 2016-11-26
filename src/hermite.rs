@@ -3,6 +3,7 @@
 use ndarray::{Ix2, Array, LinalgScalar};
 use std::fmt::Debug;
 use num_traits::float::Float;
+use num_traits::One;
 use lapack::c::Layout;
 
 use matrix::Matrix;
@@ -23,10 +24,12 @@ pub trait HermiteMatrix: SquareMatrix + Matrix {
     fn ssqrt(self) -> Result<Self, LinalgError>;
     /// Cholesky factorization
     fn cholesky(self) -> Result<Self, LinalgError>;
+    /// calc determinant using Cholesky factorization
+    fn deth(self) -> Result<Self::Scalar, LinalgError>;
 }
 
 impl<A> HermiteMatrix for Array<A, Ix2>
-    where A: ImplQR + ImplSVD + ImplNorm + ImplSolve + ImplEigh + ImplCholesky + LinalgScalar + Float + Debug
+    where A: ImplQR + ImplSVD + ImplNorm + ImplSolve + ImplEigh + ImplCholesky + LinalgScalar + Float + Debug + One
 {
     fn eigh(self) -> Result<(Self::Vector, Self), LinalgError> {
         self.check_square()?;
@@ -66,5 +69,11 @@ impl<A> HermiteMatrix for Array<A, Ix2>
             }
         }
         Ok(c)
+    }
+    fn deth(self) -> Result<Self::Scalar, LinalgError> {
+        let (n, _) = self.size();
+        let c = self.cholesky()?;
+        let rt = (0..n).map(|i| c[(i, i)]).fold(A::one(), |det, c| det * c);
+        Ok(rt * rt)
     }
 }

@@ -20,3 +20,4 @@ features = ["blas"]
 [dev-dependencies]
 rand = "0.3.14"
 ndarray-rand = "0.3"
+float-cmp = "0.2.3"

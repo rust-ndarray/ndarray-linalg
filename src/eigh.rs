@@ -6,7 +6,7 @@ use num_traits::Zero;
 use error::LapackError;
 
 pub trait ImplEigh: Sized {
-    fn eigh(layout: Layout, n: usize, mut a: Vec<Self>) -> Result<(Vec<Self>, Vec<Self>), LapackError>;
+    fn eigh(layout: Layout, n: usize, a: Vec<Self>) -> Result<(Vec<Self>, Vec<Self>), LapackError>;
 }
 
 macro_rules! impl_eigh {

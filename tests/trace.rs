@@ -1,24 +1,17 @@
 
-extern crate rand;
 extern crate ndarray;
 extern crate ndarray_rand;
 extern crate ndarray_linalg;
+extern crate ndarray_numtest;
 
 use ndarray::prelude::*;
 use ndarray_linalg::prelude::*;
-use rand::distributions::*;
+use ndarray_numtest::prelude::*;
 use ndarray_rand::RandomExt;
-
-fn assert_almost_eq(a: f64, b: f64) {
-    let rel_dev = (a - b).abs() / (a.abs() + b.abs());
-    if rel_dev > 1.0e-7 {
-        panic!("a={:?}, b={:?} are not almost equal", a, b);
-    }
-}
 
 #[test]
 fn trace() {
-    let r_dist = Range::new(0., 1.);
+    let r_dist = RealNormal::new(0., 1.);
     let a = Array::<f64, _>::random((3, 3), r_dist);
-    assert_almost_eq(a.trace().unwrap(), a[(0, 0)] + a[(1, 1)] + a[(2, 2)]);
+    a.trace().unwrap().assert_close(a[(0, 0)] + a[(1, 1)] + a[(2, 2)], 1e-7);
 }

@@ -21,3 +21,4 @@ features = ["blas"]
 rand = "0.3.14"
 ndarray-rand = "0.3"
 float-cmp = "0.2.3"
+ndarray-numtest = "0.1.3"

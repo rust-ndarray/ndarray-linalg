@@ -11,8 +11,7 @@ use norm::ImplNorm;
 use solve::ImplSolve;
 
 pub trait MFloat: ImplQR + ImplSVD + ImplNorm + ImplSolve + NdFloat {}
-impl MFloat for f32 {}
-impl MFloat for f64 {}
+impl<A: ImplQR + ImplSVD + ImplNorm + ImplSolve + NdFloat> MFloat for A {}
 
 /// Methods for general matrices
 pub trait Matrix: Sized {

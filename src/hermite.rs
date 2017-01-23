@@ -10,8 +10,7 @@ use eigh::ImplEigh;
 use cholesky::ImplCholesky;
 
 pub trait HMFloat: ImplEigh + ImplCholesky + MFloat {}
-impl HMFloat for f32 {}
-impl HMFloat for f64 {}
+impl<A: ImplEigh + ImplCholesky + MFloat> HMFloat for A {}
 
 /// Methods for Hermite matrix
 pub trait HermiteMatrix: SquareMatrix + Matrix {

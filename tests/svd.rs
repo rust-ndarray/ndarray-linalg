@@ -1,14 +1,6 @@
-
-extern crate ndarray;
-extern crate ndarray_rand;
-extern crate ndarray_linalg;
-extern crate ndarray_numtest;
+include!("header.rs");
 
 use std::cmp::min;
-use ndarray::prelude::*;
-use ndarray_linalg::prelude::*;
-use ndarray_numtest::prelude::*;
-use ndarray_rand::RandomExt;
 
 #[test]
 fn svd_square() {

@@ -1,38 +1,21 @@
-
-extern crate rand;
-extern crate ndarray;
-extern crate ndarray_rand;
-extern crate ndarray_linalg;
-
-use ndarray::prelude::*;
-use ndarray_linalg::prelude::*;
-use rand::distributions::*;
-use ndarray_rand::RandomExt;
-
-fn all_close(a: Array<f64, Ix2>, b: Array<f64, Ix2>) {
-    if !a.all_close(&b, 1.0e-7) {
-        panic!("\nTwo matrices are not equal:\na = \n{:?}\nb = \n{:?}\n",
-               a,
-               b);
-    }
-}
+include!("header.rs");
 
 #[test]
 fn inv_random() {
-    let r_dist = Range::new(0., 1.);
+    let r_dist = RealNormal::new(0., 1.);
     let a = Array::<f64, _>::random((3, 3), r_dist);
     let ai = a.clone().inv().unwrap();
     let id = Array::eye(3);
-    all_close(ai.dot(&a), id);
+    ai.dot(&a).assert_allclose_l2(&id, 1e-7);
 }
 
 #[test]
 fn inv_random_t() {
-    let r_dist = Range::new(0., 1.);
+    let r_dist = RealNormal::new(0., 1.);
     let a = Array::<f64, _>::random((3, 3), r_dist).reversed_axes();
     let ai = a.clone().inv().unwrap();
     let id = Array::eye(3);
-    all_close(ai.dot(&a), id);
+    ai.dot(&a).assert_allclose_l2(&id, 1e-7);
 }
 
 #[test]

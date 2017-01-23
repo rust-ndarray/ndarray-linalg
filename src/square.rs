@@ -1,15 +1,10 @@
 //! Define trait for Hermite matrices
 
-use ndarray::{Ix2, Array, LinalgScalar};
-use std::fmt::Debug;
-use num_traits::float::Float;
+use ndarray::{Ix2, Array};
 use lapack::c::Layout;
 
-use matrix::Matrix;
+use matrix::{Matrix, MFloat};
 use error::{LinalgError, NotSquareError};
-use qr::ImplQR;
-use svd::ImplSVD;
-use norm::ImplNorm;
 use solve::ImplSolve;
 
 /// Methods for square matrices
@@ -37,9 +32,7 @@ pub trait SquareMatrix: Matrix {
     }
 }
 
-impl<A> SquareMatrix for Array<A, Ix2>
-    where A: ImplQR + ImplNorm + ImplSVD + ImplSolve + LinalgScalar + Float + Debug
-{
+impl<A: MFloat> SquareMatrix for Array<A, Ix2> {
     fn inv(self) -> Result<Self, LinalgError> {
         self.check_square()?;
         let (n, _) = self.size();

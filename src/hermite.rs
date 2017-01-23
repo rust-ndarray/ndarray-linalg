@@ -1,20 +1,16 @@
 //! Define trait for Hermite matrices
 
-use ndarray::{Ix2, Array, LinalgScalar};
-use std::fmt::Debug;
-use num_traits::float::Float;
-use num_traits::One;
+use ndarray::{Ix2, Array};
 use lapack::c::Layout;
 
-use matrix::Matrix;
+use matrix::{Matrix, MFloat};
 use square::SquareMatrix;
 use error::LinalgError;
 use eigh::ImplEigh;
-use qr::ImplQR;
-use svd::ImplSVD;
-use norm::ImplNorm;
-use solve::ImplSolve;
 use cholesky::ImplCholesky;
+
+pub trait HMFloat: ImplEigh + ImplCholesky + MFloat {}
+impl<A: ImplEigh + ImplCholesky + MFloat> HMFloat for A {}
 
 /// Methods for Hermite matrix
 pub trait HermiteMatrix: SquareMatrix + Matrix {
@@ -28,9 +24,7 @@ pub trait HermiteMatrix: SquareMatrix + Matrix {
     fn deth(self) -> Result<Self::Scalar, LinalgError>;
 }
 
-impl<A> HermiteMatrix for Array<A, Ix2>
-    where A: ImplQR + ImplSVD + ImplNorm + ImplSolve + ImplEigh + ImplCholesky + LinalgScalar + Float + Debug + One
-{
+impl<A: HMFloat> HermiteMatrix for Array<A, Ix2> {
     fn eigh(self) -> Result<(Self::Vector, Self), LinalgError> {
         self.check_square()?;
         let layout = self.layout()?;

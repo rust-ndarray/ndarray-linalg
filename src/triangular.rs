@@ -1,14 +1,9 @@
 
-use ndarray::{Ix2, Array, LinalgScalar};
-use std::fmt::Debug;
-use num_traits::float::Float;
+use ndarray::{Ix2, Array};
 
-use matrix::Matrix;
+use matrix::{Matrix, MFloat};
 use square::SquareMatrix;
 use error::LinalgError;
-use qr::ImplQR;
-use svd::ImplSVD;
-use norm::ImplNorm;
 use solve::ImplSolve;
 
 pub trait TriangularMatrix: Matrix + SquareMatrix {
@@ -18,9 +13,7 @@ pub trait TriangularMatrix: Matrix + SquareMatrix {
     fn solve_lower(&self, Self::Vector) -> Result<Self::Vector, LinalgError>;
 }
 
-impl<A> TriangularMatrix for Array<A, Ix2>
-    where A: ImplQR + ImplNorm + ImplSVD + ImplSolve + LinalgScalar + Float + Debug
-{
+impl<A: MFloat> TriangularMatrix for Array<A, Ix2> {
     fn solve_upper(&self, b: Self::Vector) -> Result<Self::Vector, LinalgError> {
         self.check_square()?;
         let (n, _) = self.size();

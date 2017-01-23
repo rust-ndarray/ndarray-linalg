@@ -193,26 +193,29 @@ impl<A: MFloat> Matrix for RcArray<A, Ix2> {
         check_layout(self.strides())
     }
     fn norm_1(&self) -> Self::Scalar {
-        // TODO remove clone by into_owned()
+        // XXX unnecessary clone
         self.to_owned().norm_1()
     }
     fn norm_i(&self) -> Self::Scalar {
-        // TODO remove clone by into_owned()
+        // XXX unnecessary clone
         self.to_owned().norm_i()
     }
     fn norm_f(&self) -> Self::Scalar {
-        // TODO remove clone by into_owned()
+        // XXX unnecessary clone
         self.to_owned().norm_f()
     }
     fn svd(self) -> Result<(Self, Self::Vector, Self), LinalgError> {
+        // XXX unnecessary clone
         let (u, s, v) = self.to_owned().svd()?;
         Ok((u.into_shared(), s.into_shared(), v.into_shared()))
     }
     fn qr(self) -> Result<(Self, Self), LinalgError> {
+        // XXX unnecessary clone
         let (q, r) = self.to_owned().qr()?;
         Ok((q.into_shared(), r.into_shared()))
     }
     fn lu(self) -> Result<(Self::Permutator, Self, Self), LinalgError> {
+        // XXX unnecessary clone
         let (p, l, u) = self.to_owned().lu()?;
         Ok((p, l.into_shared(), u.into_shared()))
     }

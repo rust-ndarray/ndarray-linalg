@@ -34,10 +34,12 @@ impl<A: MFloat> TriangularMatrix for Array<A, Ix2> {
 
 impl<A: MFloat> TriangularMatrix for RcArray<A, Ix2> {
     fn solve_upper(&self, b: Self::Vector) -> Result<Self::Vector, LinalgError> {
+        // XXX unnecessary clone
         let x = self.to_owned().solve_upper(b.to_owned())?;
         Ok(x.into_shared())
     }
     fn solve_lower(&self, b: Self::Vector) -> Result<Self::Vector, LinalgError> {
+        // XXX unnecessary clone
         let x = self.to_owned().solve_lower(b.to_owned())?;
         Ok(x.into_shared())
     }

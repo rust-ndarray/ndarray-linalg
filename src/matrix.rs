@@ -1,9 +1,7 @@
 //! Define trait for general matrix
 
 use std::cmp::min;
-use std::fmt::Debug;
 use ndarray::prelude::*;
-use ndarray::LinalgScalar;
 use lapack::c::Layout;
 
 use error::{LinalgError, StrideError};
@@ -11,6 +9,10 @@ use qr::ImplQR;
 use svd::ImplSVD;
 use norm::ImplNorm;
 use solve::ImplSolve;
+
+pub trait MFloat: ImplQR + ImplSVD + ImplNorm + ImplSolve + NdFloat {}
+impl MFloat for f32 {}
+impl MFloat for f64 {}
 
 /// Methods for general matrices
 pub trait Matrix: Sized {
@@ -42,9 +44,7 @@ pub trait Matrix: Sized {
     }
 }
 
-impl<A> Matrix for Array<A, Ix2>
-    where A: ImplQR + ImplSVD + ImplNorm + ImplSolve + LinalgScalar + Debug
-{
+impl<A: MFloat> Matrix for Array<A, Ix2> {
     type Scalar = A;
     type Vector = Array<A, Ix1>;
     type Permutator = Vec<i32>;

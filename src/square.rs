@@ -1,6 +1,6 @@
 //! Define trait for Hermite matrices
 
-use ndarray::{Ix2, Array};
+use ndarray::{Ix2, Array, RcArray, ArrayBase, Data};
 use lapack::c::Layout;
 
 use matrix::{Matrix, MFloat};
@@ -32,6 +32,13 @@ pub trait SquareMatrix: Matrix {
     }
 }
 
+fn trace<A: MFloat, S>(a: &ArrayBase<S, Ix2>) -> A
+    where S: Data<Elem = A>
+{
+    let n = a.rows();
+    (0..n).fold(A::zero(), |sum, i| sum + a[(i, i)])
+}
+
 impl<A: MFloat> SquareMatrix for Array<A, Ix2> {
     fn inv(self) -> Result<Self, LinalgError> {
         self.check_square()?;
@@ -47,7 +54,17 @@ impl<A: MFloat> SquareMatrix for Array<A, Ix2> {
     }
     fn trace(&self) -> Result<Self::Scalar, LinalgError> {
         self.check_square()?;
-        let (n, _) = self.size();
-        Ok((0..n).fold(A::zero(), |sum, i| sum + self[(i, i)]))
+        Ok(trace(self))
+    }
+}
+
+impl<A: MFloat> SquareMatrix for RcArray<A, Ix2> {
+    fn inv(self) -> Result<Self, LinalgError> {
+        let i = self.to_owned().inv()?;
+        Ok(i.into_shared())
+    }
+    fn trace(&self) -> Result<Self::Scalar, LinalgError> {
+        self.check_square()?;
+        Ok(trace(self))
     }
 }

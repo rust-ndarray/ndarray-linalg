@@ -38,3 +38,21 @@ impl<A> TriangularMatrix for Array<A, Ix2>
         Ok(Array::from_vec(x))
     }
 }
+
+pub fn drop_upper(mut a: Array<f64, Ix2>) -> Array<f64, Ix2> {
+    for ((i, j), val) in a.indexed_iter_mut() {
+        if i < j {
+            *val = 0.0;
+        }
+    }
+    a
+}
+
+pub fn drop_lower(mut a: Array<f64, Ix2>) -> Array<f64, Ix2> {
+    for ((i, j), val) in a.indexed_iter_mut() {
+        if i > j {
+            *val = 0.0;
+        }
+    }
+    a
+}

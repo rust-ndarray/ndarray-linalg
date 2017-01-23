@@ -1,17 +1,4 @@
-
-extern crate ndarray;
-extern crate ndarray_linalg;
-
-use ndarray::prelude::*;
-use ndarray_linalg::prelude::*;
-
-fn assert_almost_eq(a: f64, b: f64) {
-    let rel_dev = (a - b).abs() / (a.abs() + b.abs());
-    if rel_dev > 1.0e-7 {
-        panic!("a={:?}, b={:?} are not almost equal", a, b);
-    }
-}
-
+include!("header.rs");
 
 #[test]
 fn eigen_vector_manual() {
@@ -31,6 +18,6 @@ fn diagonalize() {
     let (e, vecs) = a.clone().eigh().unwrap();
     let s = vecs.t().dot(&a).dot(&vecs);
     for i in 0..3 {
-        assert_almost_eq(e[i], s[(i, i)]);
+        e[i].assert_close(s[(i, i)], 1e-7);
     }
 }

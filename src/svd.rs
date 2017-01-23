@@ -7,11 +7,7 @@ use num_traits::Zero;
 use error::LapackError;
 
 pub trait ImplSVD: Sized {
-    fn svd(layout: Layout,
-           n: usize,
-           m: usize,
-           mut a: Vec<Self>)
-           -> Result<(Vec<Self>, Vec<Self>, Vec<Self>), LapackError>;
+    fn svd(layout: Layout, n: usize, m: usize, a: Vec<Self>) -> Result<(Vec<Self>, Vec<Self>, Vec<Self>), LapackError>;
 }
 
 macro_rules! impl_svd {

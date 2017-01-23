@@ -3,4 +3,4 @@ pub use vector::Vector;
 pub use matrix::Matrix;
 pub use square::SquareMatrix;
 pub use hermite::HermiteMatrix;
-pub use triangular::TriangularMatrix;
+pub use triangular::{TriangularMatrix, drop_lower, drop_upper};

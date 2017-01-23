@@ -1,11 +1,4 @@
-
-extern crate ndarray;
-extern crate ndarray_linalg;
-extern crate num_traits;
-
-use ndarray::prelude::*;
-use ndarray_linalg::prelude::*;
-use num_traits::float::Float;
+include!("header.rs");
 
 fn assert_almost_eq(a: f64, b: f64) {
     let rel_dev = (a - b).abs() / (a.abs() + b.abs());

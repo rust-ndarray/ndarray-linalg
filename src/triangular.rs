@@ -1,5 +1,5 @@
 
-use ndarray::{Ix2, Array, NdFloat, ArrayBase, DataMut};
+use ndarray::{Ix2, Array, RcArray, NdFloat, ArrayBase, DataMut};
 
 use matrix::{Matrix, MFloat};
 use square::SquareMatrix;
@@ -29,6 +29,17 @@ impl<A: MFloat> TriangularMatrix for Array<A, Ix2> {
         let a = self.as_slice_memory_order().unwrap();
         let x = ImplSolve::solve_triangle(layout, 'L' as u8, n, a, b.into_raw_vec())?;
         Ok(Array::from_vec(x))
+    }
+}
+
+impl<A: MFloat> TriangularMatrix for RcArray<A, Ix2> {
+    fn solve_upper(&self, b: Self::Vector) -> Result<Self::Vector, LinalgError> {
+        let x = self.to_owned().solve_upper(b.to_owned())?;
+        Ok(x.into_shared())
+    }
+    fn solve_lower(&self, b: Self::Vector) -> Result<Self::Vector, LinalgError> {
+        let x = self.to_owned().solve_lower(b.to_owned())?;
+        Ok(x.into_shared())
     }
 }
 

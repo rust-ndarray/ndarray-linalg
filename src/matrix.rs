@@ -7,11 +7,11 @@ use lapack::c::Layout;
 use error::{LinalgError, StrideError};
 use qr::ImplQR;
 use svd::ImplSVD;
-use norm::ImplNorm;
+use opnorm::ImplOpNorm;
 use solve::ImplSolve;
 
-pub trait MFloat: ImplQR + ImplSVD + ImplNorm + ImplSolve + NdFloat {}
-impl<A: ImplQR + ImplSVD + ImplNorm + ImplSolve + NdFloat> MFloat for A {}
+pub trait MFloat: ImplQR + ImplSVD + ImplOpNorm + ImplSolve + NdFloat {}
+impl<A: ImplQR + ImplSVD + ImplOpNorm + ImplSolve + NdFloat> MFloat for A {}
 
 /// Methods for general matrices
 pub trait Matrix: Sized {
@@ -23,11 +23,11 @@ pub trait Matrix: Sized {
     /// Layout (C/Fortran) of matrix
     fn layout(&self) -> Result<Layout, StrideError>;
     /// Operator norm for L-1 norm
-    fn norm_1(&self) -> Self::Scalar;
+    fn opnorm_1(&self) -> Self::Scalar;
     /// Operator norm for L-inf norm
-    fn norm_i(&self) -> Self::Scalar;
+    fn opnorm_i(&self) -> Self::Scalar;
     /// Frobenius norm
-    fn norm_f(&self) -> Self::Scalar;
+    fn opnorm_f(&self) -> Self::Scalar;
     /// singular-value decomposition (SVD)
     fn svd(self) -> Result<(Self, Self::Vector, Self), LinalgError>;
     /// QR decomposition
@@ -65,27 +65,27 @@ impl<A: MFloat> Matrix for Array<A, Ix2> {
             Ok(Layout::RowMajor)
         }
     }
-    fn norm_1(&self) -> Self::Scalar {
+    fn opnorm_1(&self) -> Self::Scalar {
         let (m, n) = self.size();
         let strides = self.strides();
         if strides[0] > strides[1] {
-            ImplNorm::norm_i(n, m, self.clone().into_raw_vec())
+            ImplOpNorm::opnorm_i(n, m, self.clone().into_raw_vec())
         } else {
-            ImplNorm::norm_1(m, n, self.clone().into_raw_vec())
+            ImplOpNorm::opnorm_1(m, n, self.clone().into_raw_vec())
         }
     }
-    fn norm_i(&self) -> Self::Scalar {
+    fn opnorm_i(&self) -> Self::Scalar {
         let (m, n) = self.size();
         let strides = self.strides();
         if strides[0] > strides[1] {
-            ImplNorm::norm_1(n, m, self.clone().into_raw_vec())
+            ImplOpNorm::opnorm_1(n, m, self.clone().into_raw_vec())
         } else {
-            ImplNorm::norm_i(m, n, self.clone().into_raw_vec())
+            ImplOpNorm::opnorm_i(m, n, self.clone().into_raw_vec())
         }
     }
-    fn norm_f(&self) -> Self::Scalar {
+    fn opnorm_f(&self) -> Self::Scalar {
         let (m, n) = self.size();
-        ImplNorm::norm_f(m, n, self.clone().into_raw_vec())
+        ImplOpNorm::opnorm_f(m, n, self.clone().into_raw_vec())
     }
     fn svd(self) -> Result<(Self, Self::Vector, Self), LinalgError> {
         let (n, m) = self.size();

@@ -48,6 +48,8 @@ pub mod triangular;
 pub mod qr;
 pub mod svd;
 pub mod eigh;
-pub mod norm;
+pub mod opnorm;
 pub mod solve;
 pub mod cholesky;
+
+pub mod util;

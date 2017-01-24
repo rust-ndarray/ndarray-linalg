@@ -52,4 +52,4 @@ pub mod opnorm;
 pub mod solve;
 pub mod cholesky;
 
-pub mod topology;
+pub mod util;

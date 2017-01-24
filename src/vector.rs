@@ -1,7 +1,6 @@
 //! Define trait for vectors
 
-use ndarray::{LinalgScalar, Array, Ix1};
-use num_traits::float::Float;
+use ndarray::{NdFloat, Array, RcArray, Ix1};
 
 /// Methods for vectors
 pub trait Vector {
@@ -10,7 +9,14 @@ pub trait Vector {
     fn norm(&self) -> Self::Scalar;
 }
 
-impl<A: Float + LinalgScalar> Vector for Array<A, Ix1> {
+impl<A: NdFloat> Vector for Array<A, Ix1> {
+    type Scalar = A;
+    fn norm(&self) -> Self::Scalar {
+        self.dot(&self).sqrt()
+    }
+}
+
+impl<A: NdFloat> Vector for RcArray<A, Ix1> {
     type Scalar = A;
     fn norm(&self) -> Self::Scalar {
         self.dot(&self).sqrt()

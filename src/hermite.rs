@@ -1,6 +1,6 @@
 //! Define trait for Hermite matrices
 
-use ndarray::{Ix2, Array};
+use ndarray::{Ix2, Array, RcArray};
 use lapack::c::Layout;
 
 use matrix::{Matrix, MFloat};
@@ -69,5 +69,27 @@ impl<A: HMFloat> HermiteMatrix for Array<A, Ix2> {
         let c = self.cholesky()?;
         let rt = (0..n).map(|i| c[(i, i)]).fold(A::one(), |det, c| det * c);
         Ok(rt * rt)
+    }
+}
+
+impl<A: HMFloat> HermiteMatrix for RcArray<A, Ix2> {
+    fn eigh(self) -> Result<(Self::Vector, Self), LinalgError> {
+        // XXX unnecessray clone (should use into_owned())
+        let (e, v) = self.to_owned().eigh()?;
+        Ok((e.into_shared(), v.into_shared()))
+    }
+    fn ssqrt(self) -> Result<Self, LinalgError> {
+        // XXX unnecessray clone (should use into_owned())
+        let s = self.to_owned().ssqrt()?;
+        Ok(s.into_shared())
+    }
+    fn cholesky(self) -> Result<Self, LinalgError> {
+        // XXX unnecessray clone (should use into_owned())
+        let s = self.to_owned().cholesky()?;
+        Ok(s.into_shared())
+    }
+    fn deth(self) -> Result<Self::Scalar, LinalgError> {
+        // XXX unnecessray clone (should use into_owned())
+        self.to_owned().deth()
     }
 }

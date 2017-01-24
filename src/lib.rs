@@ -51,3 +51,5 @@ pub mod eigh;
 pub mod norm;
 pub mod solve;
 pub mod cholesky;
+
+pub mod topology;

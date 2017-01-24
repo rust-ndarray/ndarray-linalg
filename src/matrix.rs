@@ -205,17 +205,17 @@ impl<A: MFloat> Matrix for RcArray<A, Ix2> {
         self.to_owned().norm_f()
     }
     fn svd(self) -> Result<(Self, Self::Vector, Self), LinalgError> {
-        // XXX unnecessary clone
+        // XXX unnecessary clone (should use into_owned())
         let (u, s, v) = self.to_owned().svd()?;
         Ok((u.into_shared(), s.into_shared(), v.into_shared()))
     }
     fn qr(self) -> Result<(Self, Self), LinalgError> {
-        // XXX unnecessary clone
+        // XXX unnecessary clone (should use into_owned())
         let (q, r) = self.to_owned().qr()?;
         Ok((q.into_shared(), r.into_shared()))
     }
     fn lu(self) -> Result<(Self::Permutator, Self, Self), LinalgError> {
-        // XXX unnecessary clone
+        // XXX unnecessary clone (should use into_owned())
         let (p, l, u) = self.to_owned().lu()?;
         Ok((p, l.into_shared(), u.into_shared()))
     }

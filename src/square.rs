@@ -60,7 +60,7 @@ impl<A: MFloat> SquareMatrix for Array<A, Ix2> {
 
 impl<A: MFloat> SquareMatrix for RcArray<A, Ix2> {
     fn inv(self) -> Result<Self, LinalgError> {
-        // XXX unnecessary clone
+        // XXX unnecessary clone (should use into_owned())
         let i = self.to_owned().inv()?;
         Ok(i.into_shared())
     }

@@ -9,7 +9,7 @@ fn $testname() {
     let p = $permutate; // replace 1-2
     let pa = a.permutated(&p);
     println!("permutated = \n{:?}", &pa);
-    pa.assert_allclose_l2(&arr2($answer), 1e-7);
+    all_close_l2(&pa, &arr2($answer), 1e-7).unwrap();
 }
 }} // end test_permutate
 
@@ -22,7 +22,7 @@ fn $testname() {
     let p = $permutate; // replace 1-2
     let pa = a.permutated(&p);
     println!("permutated = \n{:?}", &pa);
-    pa.assert_allclose_l2(&arr2($answer), 1e-7);
+    all_close_l2(&pa, &arr2($answer), 1e-7).unwrap();
 }
 }} // end test_permutate_t
 
@@ -58,7 +58,7 @@ fn test_lu(a: Array<f64, Ix2>) {
     println!("L = \n{:?}", &l);
     println!("U = \n{:?}", &u);
     println!("LU = \n{:?}", l.dot(&u));
-    l.dot(&u).permutated(&p).assert_allclose_l2(&a, 1e-7);
+    all_close_l2(&l.dot(&u).permutated(&p), &a, 1e-7).unwrap();
 }
 
 macro_rules! test_lu_upper {

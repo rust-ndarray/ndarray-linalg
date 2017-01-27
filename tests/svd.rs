@@ -11,7 +11,7 @@ fn svd_square() {
     for i in 0..3 {
         sm[(i, i)] = s[i];
     }
-    u.dot(&sm).dot(&vt).assert_allclose_l2(&a, 1e-7);
+    all_close_l2(&u.dot(&sm).dot(&vt), &a, 1e-7).unwrap();
 }
 #[test]
 fn svd_square_t() {
@@ -22,7 +22,7 @@ fn svd_square_t() {
     for i in 0..3 {
         sm[(i, i)] = s[i];
     }
-    u.dot(&sm).dot(&vt).assert_allclose_l2(&a, 1e-7);
+    all_close_l2(&u.dot(&sm).dot(&vt), &a, 1e-7).unwrap();
 }
 
 #[test]
@@ -34,7 +34,7 @@ fn svd_4x3() {
     for i in 0..3 {
         sm[(i, i)] = s[i];
     }
-    u.dot(&sm).dot(&vt).assert_allclose_l2(&a, 1e-7);
+    all_close_l2(&u.dot(&sm).dot(&vt), &a, 1e-7).unwrap();
 }
 #[test]
 fn svd_4x3_t() {
@@ -45,7 +45,7 @@ fn svd_4x3_t() {
     for i in 0..3 {
         sm[(i, i)] = s[i];
     }
-    u.dot(&sm).dot(&vt).assert_allclose_l2(&a, 1e-7);
+    all_close_l2(&u.dot(&sm).dot(&vt), &a, 1e-7).unwrap();
 }
 
 #[test]
@@ -57,7 +57,7 @@ fn svd_3x4() {
     for i in 0..3 {
         sm[(i, i)] = s[i];
     }
-    u.dot(&sm).dot(&vt).assert_allclose_l2(&a, 1e-7);
+    all_close_l2(&u.dot(&sm).dot(&vt), &a, 1e-7).unwrap();
 }
 #[test]
 fn svd_3x4_t() {
@@ -68,7 +68,7 @@ fn svd_3x4_t() {
     for i in 0..3 {
         sm[(i, i)] = s[i];
     }
-    u.dot(&sm).dot(&vt).assert_allclose_l2(&a, 1e-7);
+    all_close_l2(&u.dot(&sm).dot(&vt), &a, 1e-7).unwrap();
 }
 
 #[test]
@@ -83,5 +83,5 @@ fn svd_large() {
     for i in 0..min(n, m) {
         sm[(i, i)] = s[i];
     }
-    u.dot(&sm).dot(&vt).assert_allclose_l2(&a, 1e-7);
+    all_close_l2(&u.dot(&sm).dot(&vt), &a, 1e-7).unwrap();
 }

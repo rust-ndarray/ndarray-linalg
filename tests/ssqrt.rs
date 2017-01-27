@@ -6,7 +6,7 @@ fn ssqrt_symmetric_random() {
     let mut a = Array::<f64, _>::random((3, 3), r_dist);
     a = a.dot(&a.t());
     let ar = a.clone().ssqrt().unwrap();
-    ar.clone().reversed_axes().assert_allclose_l2(&ar, 1e-7);
+    all_close_l2(&ar.clone().reversed_axes(), &ar, 1e-7).unwrap();
 }
 
 #[test]
@@ -15,7 +15,7 @@ fn ssqrt_symmetric_random_t() {
     let mut a = Array::<f64, _>::random((3, 3), r_dist);
     a = a.dot(&a.t()).reversed_axes();
     let ar = a.clone().ssqrt().unwrap();
-    ar.clone().reversed_axes().assert_allclose_l2(&ar, 1e-7);
+    all_close_l2(&ar.clone().reversed_axes(), &ar, 1e-7).unwrap();
 }
 
 #[test]
@@ -24,7 +24,7 @@ fn ssqrt_sqrt_random() {
     let mut a = Array::<f64, _>::random((3, 3), r_dist);
     a = a.dot(&a.t());
     let ar = a.clone().ssqrt().unwrap();
-    ar.clone().reversed_axes().assert_allclose_l2(&ar, 1e-7);
+    all_close_l2(&ar.clone().reversed_axes(), &ar, 1e-7).unwrap();
 }
 
 #[test]
@@ -33,5 +33,5 @@ fn ssqrt_sqrt_random_t() {
     let mut a = Array::<f64, _>::random((3, 3), r_dist);
     a = a.dot(&a.t()).reversed_axes();
     let ar = a.clone().ssqrt().unwrap();
-    ar.clone().reversed_axes().assert_allclose_l2(&ar, 1e-7);
+    all_close_l2(&ar.clone().reversed_axes(), &ar, 1e-7).unwrap();
 }

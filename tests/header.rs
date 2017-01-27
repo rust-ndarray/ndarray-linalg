@@ -10,6 +10,8 @@ use ndarray::prelude::*;
 #[allow(unused_imports)]
 use ndarray_linalg::prelude::*;
 #[allow(unused_imports)]
+use ndarray_linalg::util::*;
+#[allow(unused_imports)]
 use ndarray_numtest::prelude::*;
 #[allow(unused_imports)]
 use ndarray_rand::RandomExt;

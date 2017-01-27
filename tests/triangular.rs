@@ -10,7 +10,7 @@ fn solve_upper() {
     let x = a.solve_upper(b.clone()).unwrap();
     println!("x = \n{:?}", &x);
     println!("Ax = \n{:?}", a.dot(&x));
-    a.dot(&x).assert_allclose_l2(&b, 1e-7);
+    all_close_l2(&a.dot(&x), &b, 1e-7).unwrap();
 }
 
 #[test]
@@ -23,7 +23,7 @@ fn solve_upper_t() {
     let x = a.solve_upper(b.clone()).unwrap();
     println!("x = \n{:?}", &x);
     println!("Ax = \n{:?}", a.dot(&x));
-    a.dot(&x).assert_allclose_l2(&b, 1e-7);
+    all_close_l2(&a.dot(&x), &b, 1e-7).unwrap();
 }
 
 #[test]
@@ -36,7 +36,7 @@ fn solve_lower() {
     let x = a.solve_lower(b.clone()).unwrap();
     println!("x = \n{:?}", &x);
     println!("Ax = \n{:?}", a.dot(&x));
-    a.dot(&x).assert_allclose_l2(&b, 1e-7);
+    all_close_l2(&a.dot(&x), &b, 1e-7).unwrap();
 }
 
 #[test]
@@ -49,5 +49,5 @@ fn solve_lower_t() {
     let x = a.solve_lower(b.clone()).unwrap();
     println!("x = \n{:?}", &x);
     println!("Ax = \n{:?}", a.dot(&x));
-    a.dot(&x).assert_allclose_l2(&b, 1e-7);
+    all_close_l2(&a.dot(&x), &b, 1e-7).unwrap();
 }

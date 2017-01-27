@@ -9,7 +9,7 @@ fn cholesky() {
     let c = a.clone().cholesky().unwrap();
     println!("c = \n{:?}", c);
     println!("cc = \n{:?}", c.t().dot(&c));
-    c.t().dot(&c).assert_allclose_l2(&a, 1e-7);
+    all_close_l2(&c.t().dot(&c), &a, 1e-7).unwrap();
 }
 
 #[test]
@@ -21,5 +21,5 @@ fn cholesky_t() {
     let c = a.clone().cholesky().unwrap();
     println!("c = \n{:?}", c);
     println!("cc = \n{:?}", c.t().dot(&c));
-    c.t().dot(&c).assert_allclose_l2(&a, 1e-7);
+    all_close_l2(&c.t().dot(&c), &a, 1e-7).unwrap();
 }

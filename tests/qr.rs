@@ -13,9 +13,9 @@ fn qr_square_upper() {
     let (q, r) = a.clone().qr().unwrap();
     println!("q = \n{:?}", &q);
     println!("r = \n{:?}", &r);
-    q.clone().assert_allclose_l2(&Array::eye(3), 1e-7);
-    q.dot(&q.t()).assert_allclose_l2(&Array::eye(3), 1e-7);
-    r.assert_allclose_l2(&a, 1e-7);
+    all_close_l2(&q.clone(), &Array::eye(3), 1e-7).unwrap();
+    all_close_l2(&q.dot(&q.t()), &Array::eye(3), 1e-7).unwrap();
+    all_close_l2(&r, &a, 1e-7).unwrap();
 }
 
 #[test]
@@ -31,9 +31,9 @@ fn qr_square_upper_t() {
     let (q, r) = a.clone().qr().unwrap();
     println!("q = \n{:?}", &q);
     println!("r = \n{:?}", &r);
-    q.clone().assert_allclose_l2(&Array::eye(3), 1e-7);
-    q.dot(&q.t()).assert_allclose_l2(&Array::eye(3), 1e-7);
-    r.assert_allclose_l2(&a, 1e-7);
+    all_close_l2(&q.clone(), &Array::eye(3), 1e-7).unwrap();
+    all_close_l2(&q.dot(&q.t()), &Array::eye(3), 1e-7).unwrap();
+    all_close_l2(&r, &a, 1e-7).unwrap();
 }
 
 #[test]
@@ -44,8 +44,8 @@ fn qr_square() {
     let (q, r) = a.clone().qr().unwrap();
     println!("q = \n{:?}", &q);
     println!("r = \n{:?}", &r);
-    q.dot(&q.t()).assert_allclose_l2(&Array::eye(3), 1e-7);
-    q.dot(&r).assert_allclose_l2(&a, 1e-7);
+    all_close_l2(&q.dot(&q.t()), &Array::eye(3), 1e-7).unwrap();
+    all_close_l2(&q.dot(&r), &a, 1e-7).unwrap();
 }
 
 #[test]
@@ -56,8 +56,8 @@ fn qr_square_t() {
     let (q, r) = a.clone().qr().unwrap();
     println!("q = \n{:?}", &q);
     println!("r = \n{:?}", &r);
-    q.dot(&q.t()).assert_allclose_l2(&Array::eye(3), 1e-7);
-    q.dot(&r).assert_allclose_l2(&a, 1e-7);
+    all_close_l2(&q.dot(&q.t()), &Array::eye(3), 1e-7).unwrap();
+    all_close_l2(&q.dot(&r), &a, 1e-7).unwrap();
 }
 
 #[test]
@@ -73,9 +73,9 @@ fn qr_3x4_upper() {
     let (q, r) = a.clone().qr().unwrap();
     println!("q = \n{:?}", &q);
     println!("r = \n{:?}", &r);
-    q.clone().assert_allclose_l2(&Array::eye(3), 1e-7);
-    q.dot(&q.t()).assert_allclose_l2(&Array::eye(3), 1e-7);
-    q.dot(&r).assert_allclose_l2(&a, 1e-7);
+    all_close_l2(&q.clone(), &Array::eye(3), 1e-7).unwrap();
+    all_close_l2(&q.dot(&q.t()), &Array::eye(3), 1e-7).unwrap();
+    all_close_l2(&q.dot(&r), &a, 1e-7).unwrap();
 }
 
 #[test]
@@ -91,9 +91,9 @@ fn qr_3x4_upper_t() {
     let (q, r) = a.clone().qr().unwrap();
     println!("q = \n{:?}", &q);
     println!("r = \n{:?}", &r);
-    q.clone().assert_allclose_l2(&Array::eye(3), 1e-7);
-    q.dot(&q.t()).assert_allclose_l2(&Array::eye(3), 1e-7);
-    q.dot(&r).assert_allclose_l2(&a, 1e-7);
+    all_close_l2(&q.clone(), &Array::eye(3), 1e-7).unwrap();
+    all_close_l2(&q.dot(&q.t()), &Array::eye(3), 1e-7).unwrap();
+    all_close_l2(&q.dot(&r), &a, 1e-7).unwrap();
 }
 
 #[test]
@@ -104,8 +104,8 @@ fn qr_3x4() {
     let (q, r) = a.clone().qr().unwrap();
     println!("q = \n{:?}", &q);
     println!("r = \n{:?}", &r);
-    q.dot(&q.t()).assert_allclose_l2(&Array::eye(3), 1e-7);
-    q.dot(&r).assert_allclose_l2(&a, 1e-7);
+    all_close_l2(&q.dot(&q.t()), &Array::eye(3), 1e-7).unwrap();
+    all_close_l2(&q.dot(&r), &a, 1e-7).unwrap();
 }
 
 #[test]
@@ -116,8 +116,8 @@ fn qr_3x4_t() {
     let (q, r) = a.clone().qr().unwrap();
     println!("q = \n{:?}", &q);
     println!("r = \n{:?}", &r);
-    q.dot(&q.t()).assert_allclose_l2(&Array::eye(3), 1e-7);
-    q.dot(&r).assert_allclose_l2(&a, 1e-7);
+    all_close_l2(&q.dot(&q.t()), &Array::eye(3), 1e-7).unwrap();
+    all_close_l2(&q.dot(&r), &a, 1e-7).unwrap();
 }
 
 #[test]
@@ -133,8 +133,8 @@ fn qr_4x3_upper() {
     let (q, r) = a.clone().qr().unwrap();
     println!("q = \n{:?}", &q);
     println!("r = \n{:?}", &r);
-    q.t().dot(&q).assert_allclose_l2(&Array::eye(3), 1e-7);
-    q.dot(&r).assert_allclose_l2(&a, 1e-7);
+    all_close_l2(&q.t().dot(&q), &Array::eye(3), 1e-7).unwrap();
+    all_close_l2(&q.dot(&r), &a, 1e-7).unwrap();
 }
 
 #[test]
@@ -150,8 +150,8 @@ fn qr_4x3_upper_t() {
     let (q, r) = a.clone().qr().unwrap();
     println!("q = \n{:?}", &q);
     println!("r = \n{:?}", &r);
-    q.t().dot(&q).assert_allclose_l2(&Array::eye(3), 1e-7);
-    q.dot(&r).assert_allclose_l2(&a, 1e-7);
+    all_close_l2(&q.t().dot(&q), &Array::eye(3), 1e-7).unwrap();
+    all_close_l2(&q.dot(&r), &a, 1e-7).unwrap();
 }
 
 #[test]
@@ -162,8 +162,8 @@ fn qr_4x3() {
     let (q, r) = a.clone().qr().unwrap();
     println!("q = \n{:?}", &q);
     println!("r = \n{:?}", &r);
-    q.t().dot(&q).assert_allclose_l2(&Array::eye(3), 1e-7);
-    q.dot(&r).assert_allclose_l2(&a, 1e-7);
+    all_close_l2(&q.t().dot(&q), &Array::eye(3), 1e-7).unwrap();
+    all_close_l2(&q.dot(&r), &a, 1e-7).unwrap();
 }
 
 #[test]
@@ -174,6 +174,6 @@ fn qr_4x3_t() {
     let (q, r) = a.clone().qr().unwrap();
     println!("q = \n{:?}", &q);
     println!("r = \n{:?}", &r);
-    q.t().dot(&q).assert_allclose_l2(&Array::eye(3), 1e-7);
-    q.dot(&r).assert_allclose_l2(&a, 1e-7);
+    all_close_l2(&q.t().dot(&q), &Array::eye(3), 1e-7).unwrap();
+    all_close_l2(&q.dot(&r), &a, 1e-7).unwrap();
 }

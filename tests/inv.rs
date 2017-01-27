@@ -6,7 +6,7 @@ fn inv_random() {
     let a = Array::<f64, _>::random((3, 3), r_dist);
     let ai = a.clone().inv().unwrap();
     let id = Array::eye(3);
-    ai.dot(&a).assert_allclose_l2(&id, 1e-7);
+    all_close_l2(&ai.dot(&a), &id, 1e-7).unwrap();
 }
 
 #[test]
@@ -15,7 +15,7 @@ fn inv_random_t() {
     let a = Array::<f64, _>::random((3, 3), r_dist).reversed_axes();
     let ai = a.clone().inv().unwrap();
     let id = Array::eye(3);
-    ai.dot(&a).assert_allclose_l2(&id, 1e-7);
+    all_close_l2(&ai.dot(&a), &id, 1e-7).unwrap();
 }
 
 #[test]

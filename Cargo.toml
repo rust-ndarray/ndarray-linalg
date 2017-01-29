@@ -14,7 +14,7 @@ lapack = "0.11.1"
 num-traits = "0.1.36"
 
 [dependencies.ndarray]
-version = "0.7"
+version = "0.7.3"
 features = ["blas"]
 
 [dev-dependencies]

@@ -1,5 +1,5 @@
 
-use ndarray::{Ix2, Array};
+use ndarray::{Ix2, Array, RcArray, NdFloat, ArrayBase, DataMut};
 
 use matrix::{Matrix, MFloat};
 use square::SquareMatrix;
@@ -32,19 +32,36 @@ impl<A: MFloat> TriangularMatrix for Array<A, Ix2> {
     }
 }
 
-pub fn drop_upper(mut a: Array<f64, Ix2>) -> Array<f64, Ix2> {
+impl<A: MFloat> TriangularMatrix for RcArray<A, Ix2> {
+    fn solve_upper(&self, b: Self::Vector) -> Result<Self::Vector, LinalgError> {
+        // XXX unnecessary clone
+        let x = self.to_owned().solve_upper(b.to_owned())?;
+        Ok(x.into_shared())
+    }
+    fn solve_lower(&self, b: Self::Vector) -> Result<Self::Vector, LinalgError> {
+        // XXX unnecessary clone
+        let x = self.to_owned().solve_lower(b.to_owned())?;
+        Ok(x.into_shared())
+    }
+}
+
+pub fn drop_upper<A: NdFloat, S>(mut a: ArrayBase<S, Ix2>) -> ArrayBase<S, Ix2>
+    where S: DataMut<Elem = A>
+{
     for ((i, j), val) in a.indexed_iter_mut() {
         if i < j {
-            *val = 0.0;
+            *val = A::zero();
         }
     }
     a
 }
 
-pub fn drop_lower(mut a: Array<f64, Ix2>) -> Array<f64, Ix2> {
+pub fn drop_lower<A: NdFloat, S>(mut a: ArrayBase<S, Ix2>) -> ArrayBase<S, Ix2>
+    where S: DataMut<Elem = A>
+{
     for ((i, j), val) in a.indexed_iter_mut() {
         if i > j {
-            *val = 0.0;
+            *val = A::zero();
         }
     }
     a

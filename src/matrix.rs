@@ -2,6 +2,7 @@
 
 use std::cmp::min;
 use ndarray::prelude::*;
+use ndarray::DataMut;
 use lapack::c::Layout;
 
 use error::{LinalgError, StrideError};
@@ -43,6 +44,35 @@ pub trait Matrix: Sized {
     }
 }
 
+fn check_layout(strides: &[Ixs]) -> Result<Layout, StrideError> {
+    if min(strides[0], strides[1]) != 1 {
+        return Err(StrideError {
+            s0: strides[0],
+            s1: strides[1],
+        });;
+    }
+    if strides[0] < strides[1] {
+        Ok(Layout::ColumnMajor)
+    } else {
+        Ok(Layout::RowMajor)
+    }
+}
+
+fn permutate<A: NdFloat, S>(mut a: &mut ArrayBase<S, Ix2>, ipiv: &Vec<i32>)
+    where S: DataMut<Elem = A>
+{
+    let m = a.cols();
+    for (i, j_) in ipiv.iter().enumerate().rev() {
+        let j = (j_ - 1) as usize;
+        if i == j {
+            continue;
+        }
+        for k in 0..m {
+            a.swap((i, k), (j, k));
+        }
+    }
+}
+
 impl<A: MFloat> Matrix for Array<A, Ix2> {
     type Scalar = A;
     type Vector = Array<A, Ix1>;
@@ -52,18 +82,7 @@ impl<A: MFloat> Matrix for Array<A, Ix2> {
         (self.rows(), self.cols())
     }
     fn layout(&self) -> Result<Layout, StrideError> {
-        let strides = self.strides();
-        if min(strides[0], strides[1]) != 1 {
-            return Err(StrideError {
-                s0: strides[0],
-                s1: strides[1],
-            });;
-        }
-        if strides[0] < strides[1] {
-            Ok(Layout::ColumnMajor)
-        } else {
-            Ok(Layout::RowMajor)
-        }
+        check_layout(self.strides())
     }
     fn opnorm_1(&self) -> Self::Scalar {
         let (m, n) = self.size();
@@ -159,15 +178,45 @@ impl<A: MFloat> Matrix for Array<A, Ix2> {
         Ok((p, lm, am))
     }
     fn permutate(&mut self, ipiv: &Self::Permutator) {
-        let (_, m) = self.size();
-        for (i, j_) in ipiv.iter().enumerate().rev() {
-            let j = (j_ - 1) as usize;
-            if i == j {
-                continue;
-            }
-            for k in 0..m {
-                self.swap((i, k), (j, k));
-            }
-        }
+        permutate(self, ipiv);
+    }
+}
+
+impl<A: MFloat> Matrix for RcArray<A, Ix2> {
+    type Scalar = A;
+    type Vector = RcArray<A, Ix1>;
+    type Permutator = Vec<i32>;
+    fn size(&self) -> (usize, usize) {
+        (self.rows(), self.cols())
+    }
+    fn layout(&self) -> Result<Layout, StrideError> {
+        check_layout(self.strides())
+    }
+    fn opnorm_1(&self) -> Self::Scalar {
+        // XXX unnecessary clone
+        self.to_owned().opnorm_1()
+    }
+    fn opnorm_i(&self) -> Self::Scalar {
+        // XXX unnecessary clone
+        self.to_owned().opnorm_i()
+    }
+    fn opnorm_f(&self) -> Self::Scalar {
+        // XXX unnecessary clone
+        self.to_owned().opnorm_f()
+    }
+    fn svd(self) -> Result<(Self, Self::Vector, Self), LinalgError> {
+        let (u, s, v) = self.into_owned().svd()?;
+        Ok((u.into_shared(), s.into_shared(), v.into_shared()))
+    }
+    fn qr(self) -> Result<(Self, Self), LinalgError> {
+        let (q, r) = self.into_owned().qr()?;
+        Ok((q.into_shared(), r.into_shared()))
+    }
+    fn lu(self) -> Result<(Self::Permutator, Self, Self), LinalgError> {
+        let (p, l, u) = self.into_owned().lu()?;
+        Ok((p, l.into_shared(), u.into_shared()))
+    }
+    fn permutate(&mut self, ipiv: &Self::Permutator) {
+        permutate(self, ipiv);
     }
 }

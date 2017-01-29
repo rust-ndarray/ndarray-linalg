@@ -22,22 +22,17 @@ fn $funcname() {
 }
 }} // impl_test
 
-mod owned {
-    use super::random_owned;
-    impl_test!(svd_square, random_owned, 3, 3, false);
-    impl_test!(svd_square_t, random_owned, 3, 3, true);
-    impl_test!(svd_4x3, random_owned, 4, 3, false);
-    impl_test!(svd_4x3_t, random_owned, 4, 3, true);
-    impl_test!(svd_3x4, random_owned, 3, 4, false);
-    impl_test!(svd_3x4_t, random_owned, 3, 4, true);
+macro_rules! impl_test_svd {
+    ($modname:ident, $random:path) => {
+mod $modname {
+    impl_test!(svd_square, $random, 3, 3, false);
+    impl_test!(svd_square_t, $random, 3, 3, true);
+    impl_test!(svd_4x3, $random, 4, 3, false);
+    impl_test!(svd_4x3_t, $random, 4, 3, true);
+    impl_test!(svd_3x4, $random, 3, 4, false);
+    impl_test!(svd_3x4_t, $random, 3, 4, true);
 }
+}} // impl_test_svd
 
-mod shared {
-    use super::random_shared;
-    impl_test!(svd_square, random_shared, 3, 3, false);
-    impl_test!(svd_square_t, random_shared, 3, 3, true);
-    impl_test!(svd_4x3, random_shared, 4, 3, false);
-    impl_test!(svd_4x3_t, random_shared, 4, 3, true);
-    impl_test!(svd_3x4, random_shared, 3, 4, false);
-    impl_test!(svd_3x4_t, random_shared, 3, 4, true);
-}
+impl_test_svd!(owned, super::random_owned);
+impl_test_svd!(shared, super::random_shared);

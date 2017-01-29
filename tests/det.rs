@@ -1,6 +1,6 @@
 include!("header.rs");
 
-macro_rules! impl_test_det {
+macro_rules! impl_test{
     ($modname:ident, $clone:ident) => {
 mod $modname {
     use super::random_hermite;
@@ -15,7 +15,7 @@ mod $modname {
         deth.assert_close(det_eig, 1.0e-7);
     }
 }
-}} // impl_test_det
+}} // impl_test
 
-impl_test_det!(owned, clone);
-impl_test_det!(shared, to_shared);
+impl_test!(owned, clone);
+impl_test!(shared, to_shared);

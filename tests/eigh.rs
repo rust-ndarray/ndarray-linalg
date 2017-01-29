@@ -1,6 +1,6 @@
 include!("header.rs");
 
-macro_rules! impl_test_eigh {
+macro_rules! impl_test {
     ($modname:ident, $clone:ident) => {
 mod $modname {
     use ndarray::prelude::*;
@@ -27,7 +27,7 @@ mod $modname {
         }
     }
 }
-}} // impl_test_eigh
+}} // impl_test
 
-impl_test_eigh!(owned, clone);
-impl_test_eigh!(shared, to_shared);
+impl_test!(owned, clone);
+impl_test!(shared, to_shared);

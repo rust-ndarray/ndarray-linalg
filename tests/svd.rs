@@ -1,87 +1,43 @@
 include!("header.rs");
 
-use std::cmp::min;
+macro_rules! impl_test {
+    ($funcname:ident, $random:path, $n:expr, $m:expr, $t:expr) => {
+#[test]
+fn $funcname() {
+    use std::cmp::min;
+    use ndarray::prelude::*;
+    use ndarray_linalg::prelude::*;
+    let a = $random($n, $m, $t);
+    let answer = a.clone();
+    println!("a = \n{}", &a);
+    let (u, s, vt) = a.svd().unwrap();
+    println!("u = \n{}", &u);
+    println!("s = \n{}", &s);
+    println!("v = \n{}", &vt);
+    let mut sm = Array::zeros(($n, $m));
+    for i in 0..min($n, $m) {
+        sm[(i, i)] = s[i];
+    }
+    all_close_l2(&u.dot(&sm).dot(&vt), &answer, 1e-7).unwrap();
+}
+}} // impl_test
 
-#[test]
-fn svd_square() {
-    let r_dist = RealNormal::new(0., 1.);
-    let a = Array::<f64, _>::random((3, 3), r_dist);
-    let (u, s, vt) = a.clone().svd().unwrap();
-    let mut sm = Array::eye(3);
-    for i in 0..3 {
-        sm[(i, i)] = s[i];
-    }
-    all_close_l2(&u.dot(&sm).dot(&vt), &a, 1e-7).unwrap();
-}
-#[test]
-fn svd_square_t() {
-    let r_dist = RealNormal::new(0., 1.);
-    let a = Array::<f64, _>::random((3, 3), r_dist).reversed_axes();
-    let (u, s, vt) = a.clone().svd().unwrap();
-    let mut sm = Array::eye(3);
-    for i in 0..3 {
-        sm[(i, i)] = s[i];
-    }
-    all_close_l2(&u.dot(&sm).dot(&vt), &a, 1e-7).unwrap();
-}
-
-#[test]
-fn svd_4x3() {
-    let r_dist = RealNormal::new(0., 1.);
-    let a = Array::<f64, _>::random((4, 3), r_dist);
-    let (u, s, vt) = a.clone().svd().unwrap();
-    let mut sm = Array::zeros((4, 3));
-    for i in 0..3 {
-        sm[(i, i)] = s[i];
-    }
-    all_close_l2(&u.dot(&sm).dot(&vt), &a, 1e-7).unwrap();
-}
-#[test]
-fn svd_4x3_t() {
-    let r_dist = RealNormal::new(0., 1.);
-    let a = Array::<f64, _>::random((3, 4), r_dist).reversed_axes();
-    let (u, s, vt) = a.clone().svd().unwrap();
-    let mut sm = Array::zeros((4, 3));
-    for i in 0..3 {
-        sm[(i, i)] = s[i];
-    }
-    all_close_l2(&u.dot(&sm).dot(&vt), &a, 1e-7).unwrap();
+mod owned {
+    use super::random_owned;
+    impl_test!(svd_square, random_owned, 3, 3, false);
+    impl_test!(svd_square_t, random_owned, 3, 3, true);
+    impl_test!(svd_4x3, random_owned, 4, 3, false);
+    impl_test!(svd_4x3_t, random_owned, 4, 3, true);
+    impl_test!(svd_3x4, random_owned, 3, 4, false);
+    impl_test!(svd_3x4_t, random_owned, 3, 4, true);
 }
 
-#[test]
-fn svd_3x4() {
-    let r_dist = RealNormal::new(0., 1.);
-    let a = Array::<f64, _>::random((3, 4), r_dist);
-    let (u, s, vt) = a.clone().svd().unwrap();
-    let mut sm = Array::zeros((3, 4));
-    for i in 0..3 {
-        sm[(i, i)] = s[i];
-    }
-    all_close_l2(&u.dot(&sm).dot(&vt), &a, 1e-7).unwrap();
-}
-#[test]
-fn svd_3x4_t() {
-    let r_dist = RealNormal::new(0., 1.);
-    let a = Array::<f64, _>::random((4, 3), r_dist).reversed_axes();
-    let (u, s, vt) = a.clone().svd().unwrap();
-    let mut sm = Array::zeros((3, 4));
-    for i in 0..3 {
-        sm[(i, i)] = s[i];
-    }
-    all_close_l2(&u.dot(&sm).dot(&vt), &a, 1e-7).unwrap();
-}
-
-#[test]
-#[ignore]
-fn svd_large() {
-    let n = 2480;
-    let m = 4280;
-    let r_dist = RealNormal::new(0., 1.);
-    let a = Array::<f64, _>::random((n, m), r_dist);
-    let (u, s, vt) = a.clone().svd().unwrap();
-    let mut sm = Array::zeros((n, m));
-    for i in 0..min(n, m) {
-        sm[(i, i)] = s[i];
-    }
-    all_close_l2(&u.dot(&sm).dot(&vt), &a, 1e-7).unwrap();
+mod shared {
+    use super::random_shared;
+    impl_test!(svd_square, random_shared, 3, 3, false);
+    impl_test!(svd_square_t, random_shared, 3, 3, true);
+    impl_test!(svd_4x3, random_shared, 4, 3, false);
+    impl_test!(svd_4x3_t, random_shared, 4, 3, true);
+    impl_test!(svd_3x4, random_shared, 3, 4, false);
+    impl_test!(svd_3x4_t, random_shared, 3, 4, true);
 }

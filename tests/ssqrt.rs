@@ -1,37 +1,26 @@
 include!("header.rs");
 
-#[test]
-fn ssqrt_symmetric_random() {
-    let r_dist = RealNormal::new(0., 1.);
-    let mut a = Array::<f64, _>::random((3, 3), r_dist);
-    a = a.dot(&a.t());
-    let ar = a.clone().ssqrt().unwrap();
-    all_close_l2(&ar.clone().reversed_axes(), &ar, 1e-7).unwrap();
+macro_rules! impl_test{
+    ($modname:ident, $clone:ident) => {
+mod $modname {
+    use super::random_hermite;
+    use ndarray_linalg::prelude::*;
+    #[test]
+    fn ssqrt() {
+        let a = random_hermite(3);
+        let ar = a.$clone().ssqrt().unwrap();
+        all_close_l2(&ar.clone().t(), &ar, 1e-7).expect("not symmetric");
+        all_close_l2(&ar.dot(&ar), &a, 1e-7).expect("not sqrt");
+    }
+    #[test]
+    fn ssqrt_t() {
+        let a = random_hermite(3).reversed_axes();
+        let ar = a.$clone().ssqrt().unwrap();
+        all_close_l2(&ar.clone().t(), &ar, 1e-7).expect("not symmetric");
+        all_close_l2(&ar.dot(&ar), &a, 1e-7).expect("not sqrt");
+    }
 }
+}} // impl_test
 
-#[test]
-fn ssqrt_symmetric_random_t() {
-    let r_dist = RealNormal::new(0., 1.);
-    let mut a = Array::<f64, _>::random((3, 3), r_dist);
-    a = a.dot(&a.t()).reversed_axes();
-    let ar = a.clone().ssqrt().unwrap();
-    all_close_l2(&ar.clone().reversed_axes(), &ar, 1e-7).unwrap();
-}
-
-#[test]
-fn ssqrt_sqrt_random() {
-    let r_dist = RealNormal::new(0., 1.);
-    let mut a = Array::<f64, _>::random((3, 3), r_dist);
-    a = a.dot(&a.t());
-    let ar = a.clone().ssqrt().unwrap();
-    all_close_l2(&ar.clone().reversed_axes(), &ar, 1e-7).unwrap();
-}
-
-#[test]
-fn ssqrt_sqrt_random_t() {
-    let r_dist = RealNormal::new(0., 1.);
-    let mut a = Array::<f64, _>::random((3, 3), r_dist);
-    a = a.dot(&a.t()).reversed_axes();
-    let ar = a.clone().ssqrt().unwrap();
-    all_close_l2(&ar.clone().reversed_axes(), &ar, 1e-7).unwrap();
-}
+impl_test!(owned, clone);
+impl_test!(shared, to_shared);

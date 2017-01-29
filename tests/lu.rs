@@ -1,88 +1,32 @@
 include!("header.rs");
 
-fn test_lu(a: Array<f64, Ix2>) {
-    println!("a = \n{:?}", &a);
-    let (p, l, u) = a.clone().lu().unwrap();
+macro_rules! impl_test {
+    ($funcname:ident, $random:path, $n:expr, $m:expr, $t:expr) => {
+#[test]
+fn $funcname() {
+    use ndarray_linalg::prelude::*;
+    let a = $random($n, $m, $t);
+    let ans = a.clone();
+    let (p, l, u) = a.lu().unwrap();
     println!("P = \n{:?}", &p);
     println!("L = \n{:?}", &l);
     println!("U = \n{:?}", &u);
     println!("LU = \n{:?}", l.dot(&u));
-    all_close_l2(&l.dot(&u).permutated(&p), &a, 1e-7).unwrap();
+    all_close_l2(&l.dot(&u).permutated(&p), &ans, 1e-7).unwrap();
 }
+}} // impl_test
 
-macro_rules! test_lu_upper {
-    ($testname:ident, $testname_t:ident, $n:expr, $m:expr) => {
-#[test]
-fn $testname() {
-    let r_dist = RealNormal::new(0., 1.);
-    let mut a = Array::<f64, _>::random(($n, $m), r_dist);
-    for ((i, j), val) in a.indexed_iter_mut() {
-        if i > j {
-            *val = 0.0;
-        }
-    }
-    test_lu(a);
+macro_rules! impl_test_lu {
+    ($modname:ident, $random:path) => {
+mod $modname {
+    impl_test!(lu_square, $random, 3, 3, false);
+    impl_test!(lu_square_t, $random, 3, 3, true);
+    impl_test!(lu_3x4, $random, 3, 4, false);
+    impl_test!(lu_3x4_t, $random, 3, 4, true);
+    impl_test!(lu_4x3, $random, 4, 3, false);
+    impl_test!(lu_4x3_t, $random, 4, 3, true);
 }
-#[test]
-fn $testname_t() {
-    let r_dist = RealNormal::new(0., 1.);
-    let mut a = Array::<f64, _>::random(($m, $n), r_dist).reversed_axes();
-    for ((i, j), val) in a.indexed_iter_mut() {
-        if i > j {
-            *val = 0.0;
-        }
-    }
-    test_lu(a);
-}
-}} // end test_lu_upper
-test_lu_upper!(lu_square_upper, lu_square_upper_t, 3, 3);
-test_lu_upper!(lu_3x4_upper, lu_3x4_upper_t, 3, 4);
-test_lu_upper!(lu_4x3_upper, lu_4x3_upper_t, 4, 3);
+}} // impl_test_lu
 
-macro_rules! test_lu_lower {
-    ($testname:ident, $testname_t:ident, $n:expr, $m:expr) => {
-#[test]
-fn $testname() {
-    let r_dist = RealNormal::new(0., 1.);
-    let mut a = Array::<f64, _>::random(($n, $m), r_dist);
-    for ((i, j), val) in a.indexed_iter_mut() {
-        if i < j {
-            *val = 0.0;
-        }
-    }
-    test_lu(a);
-}
-#[test]
-fn $testname_t() {
-    let r_dist = RealNormal::new(0., 1.);
-    let mut a = Array::<f64, _>::random(($m, $n), r_dist).reversed_axes();
-    for ((i, j), val) in a.indexed_iter_mut() {
-        if i < j {
-            *val = 0.0;
-        }
-    }
-    test_lu(a);
-}
-}} // end test_lu_lower
-test_lu_lower!(lu_square_lower, lu_square_lower_t, 3, 3);
-test_lu_lower!(lu_3x4_lower, lu_3x4_lower_t, 3, 4);
-test_lu_lower!(lu_4x3_lower, lu_4x3_lower_t, 4, 3);
-
-macro_rules! test_lu {
-    ($testname:ident, $testname_t:ident, $n:expr, $m:expr) => {
-#[test]
-fn $testname() {
-    let r_dist = RealNormal::new(0., 1.);
-    let a = Array::<f64, _>::random(($n, $m), r_dist);
-    test_lu(a);
-}
-#[test]
-fn $testname_t() {
-    let r_dist = RealNormal::new(0., 1.);
-    let a = Array::<f64, _>::random(($m, $n), r_dist).reversed_axes();
-    test_lu(a);
-}
-}} // end test_lu
-test_lu!(lu_square, lu_square_t, 3, 3);
-test_lu!(lu_3x4, lu_3x4_t, 3, 4);
-test_lu!(lu_4x3, lu_4x3_t, 4, 3);
+impl_test_lu!(owned, super::random_owned);
+impl_test_lu!(shared, super::random_shared);

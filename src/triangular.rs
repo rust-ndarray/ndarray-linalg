@@ -6,7 +6,7 @@ use square::SquareMatrix;
 use error::LinalgError;
 use solve::ImplSolve;
 
-pub trait TriangularMatrix<Rhs>: Matrix + SquareMatrix {
+pub trait SolveTriangular<Rhs>: Matrix + SquareMatrix {
     type Output;
     /// solve a triangular system with upper triangular matrix
     fn solve_upper(&self, Rhs) -> Result<Self::Output, LinalgError>;
@@ -14,7 +14,7 @@ pub trait TriangularMatrix<Rhs>: Matrix + SquareMatrix {
     fn solve_lower(&self, Rhs) -> Result<Self::Output, LinalgError>;
 }
 
-impl<A: MFloat> TriangularMatrix<Array<A, Ix1>> for Array<A, Ix2> {
+impl<A: MFloat> SolveTriangular<Array<A, Ix1>> for Array<A, Ix2> {
     type Output = Array<A, Ix1>;
     fn solve_upper(&self, b: Array<A, Ix1>) -> Result<Self::Output, LinalgError> {
         let n = self.square_size()?;
@@ -32,7 +32,7 @@ impl<A: MFloat> TriangularMatrix<Array<A, Ix1>> for Array<A, Ix2> {
     }
 }
 
-impl<A: MFloat> TriangularMatrix<RcArray<A, Ix1>> for RcArray<A, Ix2> {
+impl<A: MFloat> SolveTriangular<RcArray<A, Ix1>> for RcArray<A, Ix2> {
     type Output = RcArray<A, Ix1>;
     fn solve_upper(&self, b: RcArray<A, Ix1>) -> Result<Self::Output, LinalgError> {
         // XXX unnecessary clone

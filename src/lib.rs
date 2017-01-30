@@ -3,7 +3,7 @@
 //!
 //! They are implemented as traits,
 //! [Matrix](matrix/trait.Matrix.html), [SquareMatrix](square/trait.SquareMatrix.html),
-//! [TriangularMatrix](triangular/trait.TriangularMatrix.html), and
+//! [SolveTriangular](triangular/trait.SolveTriangular.html), and
 //! [HermiteMatrix](hermite/trait.HermiteMatrix.html)
 //!
 //! Matrix
@@ -21,10 +21,10 @@
 //! - [trace of matrix](square/trait.SquareMatrix.html#tymethod.trace)
 //! - [WIP] eigenvalue
 //!
-//! TriangularMatrix
+//! SolveTriangular
 //! ------------------
-//! - [solve linear problem with upper triangular matrix](triangular/trait.TriangularMatrix.html#tymethod.solve_upper)
-//! - [solve linear problem with lower triangular matrix](triangular/trait.TriangularMatrix.html#tymethod.solve_lower)
+//! - [solve linear problem with upper triangular matrix](triangular/trait.SolveTriangular.html#tymethod.solve_upper)
+//! - [solve linear problem with lower triangular matrix](triangular/trait.SolveTriangular.html#tymethod.solve_lower)
 //!
 //! HermiteMatrix
 //! --------------

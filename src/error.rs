@@ -2,7 +2,7 @@
 
 use std::error;
 use std::fmt;
-use ndarray::Ixs;
+use ndarray::{Ixs, ShapeError};
 
 #[derive(Debug)]
 pub struct LapackError {
@@ -68,6 +68,7 @@ pub enum LinalgError {
     NotSquare(NotSquareError),
     Lapack(LapackError),
     Stride(StrideError),
+    Shape(ShapeError),
 }
 
 impl fmt::Display for LinalgError {
@@ -76,6 +77,7 @@ impl fmt::Display for LinalgError {
             LinalgError::NotSquare(ref err) => err.fmt(f),
             LinalgError::Lapack(ref err) => err.fmt(f),
             LinalgError::Stride(ref err) => err.fmt(f),
+            LinalgError::Shape(ref err) => err.fmt(f),
         }
     }
 }
@@ -86,6 +88,7 @@ impl error::Error for LinalgError {
             LinalgError::NotSquare(ref err) => err.description(),
             LinalgError::Lapack(ref err) => err.description(),
             LinalgError::Stride(ref err) => err.description(),
+            LinalgError::Shape(ref err) => err.description(),
         }
     }
 }
@@ -105,5 +108,10 @@ impl From<LapackError> for LinalgError {
 impl From<StrideError> for LinalgError {
     fn from(err: StrideError) -> LinalgError {
         LinalgError::Stride(err)
+    }
+}
+impl From<ShapeError> for LinalgError {
+    fn from(err: ShapeError) -> LinalgError {
+        LinalgError::Shape(err)
     }
 }

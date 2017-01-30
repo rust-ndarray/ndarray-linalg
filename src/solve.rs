@@ -18,13 +18,13 @@ pub trait ImplSolve: Sized {
              b: Vec<Self>)
              -> Result<Vec<Self>, LapackError>;
     /// solve triangular linear problem
-    fn solve_triangle(layout: Layout,
-                      uplo: u8,
-                      size: usize,
-                      a: &[Self],
-                      b: Vec<Self>,
-                      nrhs: i32)
-                      -> Result<Vec<Self>, LapackError>;
+    fn solve_triangle<'a, 'b>(layout: Layout,
+                              uplo: u8,
+                              size: usize,
+                              a: &'a [Self],
+                              b: &'b mut [Self],
+                              nrhs: i32)
+                              -> Result<&'b mut [Self], LapackError>;
 }
 
 macro_rules! impl_solve {
@@ -66,7 +66,7 @@ impl ImplSolve for $scalar {
             Err(From::from(info))
         }
     }
-    fn solve_triangle(layout: Layout, uplo: u8, size: usize, a: &[Self], mut b: Vec<Self>, nrhs: i32) -> Result<Vec<Self>, LapackError> {
+    fn solve_triangle<'a, 'b>(layout: Layout, uplo: u8, size: usize, a: &'a [Self], mut b: &'b mut [Self], nrhs: i32) -> Result<&'b mut [Self], LapackError> {
         let n = size as i32;
         let lda = n;
         let ldb = match layout {

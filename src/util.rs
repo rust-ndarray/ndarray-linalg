@@ -1,10 +1,36 @@
-//! module for topologcal vector space
-//!
 
 use std::iter::Sum;
-use ndarray::{ArrayBase, Data, Dimension, LinalgScalar};
+use ndarray::*;
 use num_traits::Float;
 use super::vector::*;
+
+/// stack vectors into matrix horizontally
+pub fn hstack<A, S>(xs: &[ArrayBase<S, Ix1>]) -> Result<Array<A, Ix2>, ShapeError>
+    where A: NdFloat,
+          S: Data<Elem = A>
+{
+    let views: Vec<_> = xs.iter()
+        .map(|x| {
+            let n = x.len();
+            x.view().into_shape((n, 1)).unwrap()
+        })
+        .collect();
+    stack(Axis(1), &views)
+}
+
+/// stack vectors into matrix vertically
+pub fn vstack<A, S>(xs: &[ArrayBase<S, Ix1>]) -> Result<Array<A, Ix2>, ShapeError>
+    where A: NdFloat,
+          S: Data<Elem = A>
+{
+    let views: Vec<_> = xs.iter()
+        .map(|x| {
+            let n = x.len();
+            x.view().into_shape((1, n)).unwrap()
+        })
+        .collect();
+    stack(Axis(0), &views)
+}
 
 pub fn all_close_max<A, Tol, S1, S2, D>(test: &ArrayBase<S1, D>,
                                         truth: &ArrayBase<S2, D>,

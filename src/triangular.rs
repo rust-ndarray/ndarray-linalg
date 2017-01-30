@@ -19,7 +19,7 @@ impl<A: MFloat> TriangularMatrix for Array<A, Ix2> {
         let (n, _) = self.size();
         let layout = self.layout()?;
         let a = self.as_slice_memory_order().unwrap();
-        let x = ImplSolve::solve_triangle(layout, 'U' as u8, n, a, b.into_raw_vec())?;
+        let x = ImplSolve::solve_triangle(layout, 'U' as u8, n, a, b.into_raw_vec(), 1)?;
         Ok(Array::from_vec(x))
     }
     fn solve_lower(&self, b: Self::Vector) -> Result<Self::Vector, LinalgError> {
@@ -27,7 +27,7 @@ impl<A: MFloat> TriangularMatrix for Array<A, Ix2> {
         let (n, _) = self.size();
         let layout = self.layout()?;
         let a = self.as_slice_memory_order().unwrap();
-        let x = ImplSolve::solve_triangle(layout, 'L' as u8, n, a, b.into_raw_vec())?;
+        let x = ImplSolve::solve_triangle(layout, 'L' as u8, n, a, b.into_raw_vec(), 1)?;
         Ok(Array::from_vec(x))
     }
 }

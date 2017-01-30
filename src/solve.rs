@@ -22,7 +22,8 @@ pub trait ImplSolve: Sized {
                       uplo: u8,
                       size: usize,
                       a: &[Self],
-                      b: Vec<Self>)
+                      b: Vec<Self>,
+                      nrhs: i32)
                       -> Result<Vec<Self>, LapackError>;
 }
 
@@ -65,14 +66,14 @@ impl ImplSolve for $scalar {
             Err(From::from(info))
         }
     }
-    fn solve_triangle(layout: Layout, uplo: u8, size: usize, a: &[Self], mut b: Vec<Self>) -> Result<Vec<Self>, LapackError> {
+    fn solve_triangle(layout: Layout, uplo: u8, size: usize, a: &[Self], mut b: Vec<Self>, nrhs: i32) -> Result<Vec<Self>, LapackError> {
         let n = size as i32;
         let lda = n;
         let ldb = match layout {
             Layout::ColumnMajor => n,
             Layout::RowMajor => 1,
         };
-        let info = $trtrs(layout, uplo, 'N' as u8, 'N' as u8, n, 1, a, lda, &mut b, ldb);
+        let info = $trtrs(layout, uplo, 'N' as u8, 'N' as u8, n, nrhs, a, lda, &mut b, ldb);
         if info == 0 {
             Ok(b)
         } else {

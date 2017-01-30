@@ -30,6 +30,12 @@ pub trait SquareMatrix: Matrix {
             })
         }
     }
+    /// test matrix is square and return its size
+    fn square_size(&self) -> Result<usize, NotSquareError> {
+        self.check_square()?;
+        let (n, _) = self.size();
+        Ok(n)
+    }
 }
 
 fn trace<A: MFloat, S>(a: &ArrayBase<S, Ix2>) -> A

@@ -25,20 +25,24 @@ impl<A, S1, S2> SolveTriangular<ArrayBase<S2, Ix1>> for ArrayBase<S1, Ix2>
         let n = self.square_size()?;
         let layout = self.layout()?;
         let a = self.as_slice_memory_order().unwrap();
-        {
-            let b_ = b.as_slice_memory_order_mut().unwrap();
-            ImplSolve::solve_triangle(layout, 'U' as u8, n, a, b_, 1)?;
-        }
+        ImplSolve::solve_triangle(layout,
+                                  'U' as u8,
+                                  n,
+                                  a,
+                                  b.as_slice_memory_order_mut().unwrap(),
+                                  1)?;
         Ok(b)
     }
     fn solve_lower(&self, mut b: ArrayBase<S2, Ix1>) -> Result<Self::Output, LinalgError> {
         let n = self.square_size()?;
         let layout = self.layout()?;
         let a = self.as_slice_memory_order().unwrap();
-        {
-            let b_ = b.as_slice_memory_order_mut().unwrap();
-            ImplSolve::solve_triangle(layout, 'L' as u8, n, a, b_, 1)?;
-        }
+        ImplSolve::solve_triangle(layout,
+                                  'L' as u8,
+                                  n,
+                                  a,
+                                  b.as_slice_memory_order_mut().unwrap(),
+                                  1)?;
         Ok(b)
     }
 }

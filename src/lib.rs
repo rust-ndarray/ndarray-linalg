@@ -32,6 +32,7 @@
 //! - [symmetric square root](hermite/trait.HermiteMatrix.html#tymethod.ssqrt)
 //! - [Cholesky factorization](hermite/trait.HermiteMatrix.html#tymethod.cholesky)
 
+extern crate blas;
 extern crate lapack;
 extern crate num_traits;
 #[macro_use(s)]
@@ -45,6 +46,7 @@ pub mod square;
 pub mod hermite;
 pub mod triangular;
 
+pub mod outer;
 pub mod qr;
 pub mod svd;
 pub mod eigh;

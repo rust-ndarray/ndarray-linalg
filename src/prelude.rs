@@ -1,5 +1,5 @@
 
-pub use vector::Vector;
+pub use vector::Norm;
 pub use matrix::Matrix;
 pub use square::SquareMatrix;
 pub use hermite::HermiteMatrix;

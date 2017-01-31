@@ -36,7 +36,7 @@ pub fn all_close_max<A, Tol, S1, S2, D>(test: &ArrayBase<S1, D>,
                                         truth: &ArrayBase<S2, D>,
                                         atol: Tol)
                                         -> Result<Tol, Tol>
-    where A: LinalgScalar + Squared<Output = Tol>,
+    where A: LinalgScalar + NormedField<Output = Tol>,
           Tol: Float + Sum,
           S1: Data<Elem = A>,
           S2: Data<Elem = A>,
@@ -47,7 +47,7 @@ pub fn all_close_max<A, Tol, S1, S2, D>(test: &ArrayBase<S1, D>,
 }
 
 pub fn all_close_l1<A, Tol, S1, S2, D>(test: &ArrayBase<S1, D>, truth: &ArrayBase<S2, D>, rtol: Tol) -> Result<Tol, Tol>
-    where A: LinalgScalar + Squared<Output = Tol>,
+    where A: LinalgScalar + NormedField<Output = Tol>,
           Tol: Float + Sum,
           S1: Data<Elem = A>,
           S2: Data<Elem = A>,
@@ -58,7 +58,7 @@ pub fn all_close_l1<A, Tol, S1, S2, D>(test: &ArrayBase<S1, D>, truth: &ArrayBas
 }
 
 pub fn all_close_l2<A, Tol, S1, S2, D>(test: &ArrayBase<S1, D>, truth: &ArrayBase<S2, D>, rtol: Tol) -> Result<Tol, Tol>
-    where A: LinalgScalar + Squared<Output = Tol>,
+    where A: LinalgScalar + NormedField<Output = Tol>,
           Tol: Float + Sum,
           S1: Data<Elem = A>,
           S2: Data<Elem = A>,

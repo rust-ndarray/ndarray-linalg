@@ -5,58 +5,62 @@ use ndarray::{Array, NdFloat, Ix1, Ix2, LinalgScalar, ArrayBase, Data, Dimension
 use num_traits::float::Float;
 use super::impls::outer::ImplOuter;
 
-/// Methods for vectors
-pub trait Vector {
-    type Scalar;
-    /// rename of norm_l2
-    fn norm(&self) -> Self::Scalar {
+/// Norms of ndarray
+pub trait Norm {
+    type Output;
+    /// rename of `norm_l2`
+    fn norm(&self) -> Self::Output {
         self.norm_l2()
     }
     /// L-1 norm
-    fn norm_l1(&self) -> Self::Scalar;
+    fn norm_l1(&self) -> Self::Output;
     /// L-2 norm
-    fn norm_l2(&self) -> Self::Scalar;
+    fn norm_l2(&self) -> Self::Output;
     /// maximum norm
-    fn norm_max(&self) -> Self::Scalar;
+    fn norm_max(&self) -> Self::Output;
 }
 
-impl<A, S, D, T> Vector for ArrayBase<S, D>
-    where A: LinalgScalar + Squared<Output = T>,
+impl<A, S, D, T> Norm for ArrayBase<S, D>
+    where A: LinalgScalar + NormedField<Output = T>,
           T: Float + Sum,
           S: Data<Elem = A>,
           D: Dimension
 {
-    type Scalar = T;
-    fn norm_l1(&self) -> Self::Scalar {
-        self.iter().map(|x| x.sq_abs()).sum()
+    type Output = T;
+    fn norm_l1(&self) -> Self::Output {
+        self.iter().map(|x| x.norm()).sum()
     }
-    fn norm_l2(&self) -> Self::Scalar {
+    fn norm_l2(&self) -> Self::Output {
         self.iter().map(|x| x.squared()).sum::<T>().sqrt()
     }
-    fn norm_max(&self) -> Self::Scalar {
+    fn norm_max(&self) -> Self::Output {
         self.iter().fold(T::zero(), |f, &val| {
-            let v = val.sq_abs();
+            let v = val.norm();
             if f > v { f } else { v }
         })
     }
 }
 
-pub trait Squared {
-    type Output;
+/// Field with norm
+pub trait NormedField {
+    type Output: Float;
     fn squared(&self) -> Self::Output;
-    fn sq_abs(&self) -> Self::Output;
+    fn norm(&self) -> Self::Output {
+        self.squared().sqrt()
+    }
 }
 
-impl<A: Float> Squared for A {
+impl<A: Float> NormedField for A {
     type Output = A;
     fn squared(&self) -> A {
         *self * *self
     }
-    fn sq_abs(&self) -> A {
+    fn norm(&self) -> A {
         self.abs()
     }
 }
 
+/// Outer product
 pub fn outer<A, S1, S2>(a: &ArrayBase<S1, Ix1>, b: &ArrayBase<S2, Ix1>) -> Array<A, Ix2>
     where A: NdFloat + ImplOuter,
           S1: Data<Elem = A>,

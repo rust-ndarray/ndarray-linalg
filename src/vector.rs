@@ -1,8 +1,9 @@
 //! Define trait for vectors
 
 use std::iter::Sum;
-use ndarray::{LinalgScalar, ArrayBase, Data, Dimension};
+use ndarray::{Array, NdFloat, Ix1, Ix2, LinalgScalar, ArrayBase, Data, Dimension};
 use num_traits::float::Float;
+use super::outer::ImplOuter;
 
 /// Methods for vectors
 pub trait Vector {
@@ -54,4 +55,20 @@ impl<A: Float> Squared for A {
     fn sq_abs(&self) -> A {
         self.abs()
     }
+}
+
+pub fn outer<A, S1, S2>(a: &ArrayBase<S1, Ix1>, b: &ArrayBase<S2, Ix1>) -> Array<A, Ix2>
+    where A: NdFloat + ImplOuter,
+          S1: Data<Elem = A>,
+          S2: Data<Elem = A>
+{
+    let m = a.len();
+    let n = b.len();
+    let mut ab = Array::zeros((m, n));
+    ImplOuter::outer(m,
+                     n,
+                     a.as_slice_memory_order().unwrap(),
+                     b.as_slice_memory_order().unwrap(),
+                     ab.as_slice_memory_order_mut().unwrap());
+    ab
 }

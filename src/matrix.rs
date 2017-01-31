@@ -5,11 +5,11 @@ use ndarray::prelude::*;
 use ndarray::DataMut;
 use lapack::c::Layout;
 
-use error::{LinalgError, StrideError};
-use qr::ImplQR;
-use svd::ImplSVD;
-use opnorm::ImplOpNorm;
-use solve::ImplSolve;
+use super::error::{LinalgError, StrideError};
+use super::impls::qr::ImplQR;
+use super::impls::svd::ImplSVD;
+use super::impls::opnorm::ImplOpNorm;
+use super::impls::solve::ImplSolve;
 
 pub trait MFloat: ImplQR + ImplSVD + ImplOpNorm + ImplSolve + NdFloat {}
 impl<A: ImplQR + ImplSVD + ImplOpNorm + ImplSolve + NdFloat> MFloat for A {}

@@ -3,7 +3,7 @@
 use std::iter::Sum;
 use ndarray::{Array, NdFloat, Ix1, Ix2, LinalgScalar, ArrayBase, Data, Dimension};
 use num_traits::float::Float;
-use super::outer::ImplOuter;
+use super::impls::outer::ImplOuter;
 
 /// Methods for vectors
 pub trait Vector {

@@ -1,3 +1,4 @@
+//! Define methods for triangular matrices
 
 use ndarray::*;
 use super::matrix::{Matrix, MFloat};

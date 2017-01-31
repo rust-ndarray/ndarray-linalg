@@ -1,3 +1,4 @@
+//! misc utilities
 
 use std::iter::Sum;
 use ndarray::*;
@@ -32,6 +33,7 @@ pub fn vstack<A, S>(xs: &[ArrayBase<S, Ix1>]) -> Result<Array<A, Ix2>, ShapeErro
     stack(Axis(0), &views)
 }
 
+/// check two arrays are close in maximum norm
 pub fn all_close_max<A, Tol, S1, S2, D>(test: &ArrayBase<S1, D>,
                                         truth: &ArrayBase<S2, D>,
                                         atol: Tol)
@@ -46,6 +48,7 @@ pub fn all_close_max<A, Tol, S1, S2, D>(test: &ArrayBase<S1, D>,
     if tol < atol { Ok(tol) } else { Err(tol) }
 }
 
+/// check two arrays are close in L1 norm
 pub fn all_close_l1<A, Tol, S1, S2, D>(test: &ArrayBase<S1, D>, truth: &ArrayBase<S2, D>, rtol: Tol) -> Result<Tol, Tol>
     where A: LinalgScalar + NormedField<Output = Tol>,
           Tol: Float + Sum,
@@ -57,6 +60,7 @@ pub fn all_close_l1<A, Tol, S1, S2, D>(test: &ArrayBase<S1, D>, truth: &ArrayBas
     if tol < rtol { Ok(tol) } else { Err(tol) }
 }
 
+/// check two arrays are close in L2 norm
 pub fn all_close_l2<A, Tol, S1, S2, D>(test: &ArrayBase<S1, D>, truth: &ArrayBase<S2, D>, rtol: Tol) -> Result<Tol, Tol>
     where A: LinalgScalar + NormedField<Output = Tol>,
           Tol: Float + Sum,

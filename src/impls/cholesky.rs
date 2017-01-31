@@ -1,3 +1,4 @@
+//! Implements cholesky decomposition
 
 use lapack::c::*;
 use error::LapackError;

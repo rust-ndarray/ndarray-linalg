@@ -3,9 +3,9 @@
 use ndarray::{Ix2, Array, RcArray, ArrayBase, Data};
 use lapack::c::Layout;
 
-use matrix::{Matrix, MFloat};
-use error::{LinalgError, NotSquareError};
-use solve::ImplSolve;
+use super::matrix::{Matrix, MFloat};
+use super::error::{LinalgError, NotSquareError};
+use super::impls::solve::ImplSolve;
 
 /// Methods for square matrices
 ///
@@ -18,7 +18,7 @@ pub trait SquareMatrix: Matrix {
     fn inv(self) -> Result<Self, LinalgError>;
     /// trace of matrix
     fn trace(&self) -> Result<Self::Scalar, LinalgError>;
-    /// test matrix is square
+    #[doc(hidden)]
     fn check_square(&self) -> Result<(), NotSquareError> {
         let (rows, cols) = self.size();
         if rows == cols {

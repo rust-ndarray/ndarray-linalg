@@ -1,10 +1,11 @@
+//! Define methods for triangular matrices
 
 use ndarray::*;
 use super::matrix::{Matrix, MFloat};
 use super::square::SquareMatrix;
 use super::error::LinalgError;
-use super::solve::ImplSolve;
 use super::util::hstack;
+use super::impls::solve::ImplSolve;
 
 pub trait SolveTriangular<Rhs>: Matrix + SquareMatrix {
     type Output;

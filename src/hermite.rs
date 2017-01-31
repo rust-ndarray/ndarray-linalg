@@ -3,11 +3,11 @@
 use ndarray::{Ix2, Array, RcArray};
 use lapack::c::Layout;
 
-use matrix::{Matrix, MFloat};
-use square::SquareMatrix;
-use error::LinalgError;
-use eigh::ImplEigh;
-use cholesky::ImplCholesky;
+use super::matrix::{Matrix, MFloat};
+use super::square::SquareMatrix;
+use super::error::LinalgError;
+use super::impls::eigh::ImplEigh;
+use super::impls::cholesky::ImplCholesky;
 
 pub trait HMFloat: ImplEigh + ImplCholesky + MFloat {}
 impl<A: ImplEigh + ImplCholesky + MFloat> HMFloat for A {}

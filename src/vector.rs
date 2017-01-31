@@ -64,11 +64,11 @@ pub fn outer<A, S1, S2>(a: &ArrayBase<S1, Ix1>, b: &ArrayBase<S2, Ix1>) -> Array
 {
     let m = a.len();
     let n = b.len();
-    let mut ab = Array::zeros((m, n));
+    let mut ab = Array::zeros((n, m));
     ImplOuter::outer(m,
                      n,
                      a.as_slice_memory_order().unwrap(),
                      b.as_slice_memory_order().unwrap(),
                      ab.as_slice_memory_order_mut().unwrap());
-    ab
+    ab.reversed_axes()
 }

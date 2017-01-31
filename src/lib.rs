@@ -1,10 +1,9 @@
-//! This crate serves matrix manipulation for
-//! [rust-ndarray](https://github.com/bluss/rust-ndarray).
+//! This crate implements matrix manipulation for
+//! [rust-ndarray](https://github.com/bluss/rust-ndarray) using LAPACK.
 //!
-//! They are implemented as traits,
+//! Basic manipulations are implemented as matrix traits,
 //! [Matrix](matrix/trait.Matrix.html), [SquareMatrix](square/trait.SquareMatrix.html),
-//! [SolveTriangular](triangular/trait.SolveTriangular.html), and
-//! [HermiteMatrix](hermite/trait.HermiteMatrix.html)
+//! and [HermiteMatrix](hermite/trait.HermiteMatrix.html).
 //!
 //! Matrix
 //! -------
@@ -21,16 +20,16 @@
 //! - [trace of matrix](square/trait.SquareMatrix.html#tymethod.trace)
 //! - [WIP] eigenvalue
 //!
-//! SolveTriangular
-//! ------------------
-//! - [solve linear problem with upper triangular matrix](triangular/trait.SolveTriangular.html#tymethod.solve_upper)
-//! - [solve linear problem with lower triangular matrix](triangular/trait.SolveTriangular.html#tymethod.solve_lower)
-//!
 //! HermiteMatrix
 //! --------------
 //! - [eigenvalue analysis](hermite/trait.HermiteMatrix.html#tymethod.eigh)
 //! - [symmetric square root](hermite/trait.HermiteMatrix.html#tymethod.ssqrt)
 //! - [Cholesky factorization](hermite/trait.HermiteMatrix.html#tymethod.cholesky)
+//!
+//! Others
+//! -------
+//! - [solve triangular](triangular/trait.SolveTriangular.html)
+//! - [misc utilities](util/index.html)
 
 extern crate blas;
 extern crate lapack;

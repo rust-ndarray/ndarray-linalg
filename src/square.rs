@@ -18,7 +18,7 @@ pub trait SquareMatrix: Matrix {
     fn inv(self) -> Result<Self, LinalgError>;
     /// trace of matrix
     fn trace(&self) -> Result<Self::Scalar, LinalgError>;
-    /// test matrix is square
+    #[doc(hidden)]
     fn check_square(&self) -> Result<(), NotSquareError> {
         let (rows, cols) = self.size();
         if rows == cols {

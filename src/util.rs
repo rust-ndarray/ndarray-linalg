@@ -46,38 +46,24 @@ pub fn vstack<A, S>(xs: &[ArrayBase<S, Ix1>]) -> Result<Array<A, Ix2>, ShapeErro
     stack(Axis(0), &views)
 }
 
-/// normalize columns in L2 norm
-pub fn normalize_columns<A, S, T>(m: &ArrayBase<S, Ix2>) -> (Array2<A>, Vec<T>)
-    where S: Data<Elem = A>,
-          A: LinalgScalar + NormedField<Output = T> + Div<T, Output = A>,
-          T: Float + Sum
-{
-    let mut ms = Vec::new();
-    let vs = m.axis_iter(Axis(1))
-        .map(|v| {
-            let n = v.norm();
-            ms.push(n);
-            v.mapv(|x| x / n)
-        })
-        .collect::<Vec<_>>();
-    (hstack(&vs).unwrap(), ms)
+pub enum NormalizeAxis {
+    Row = 0,
+    Column = 1,
 }
 
-/// normalize rows in L2 norm
-pub fn normalize_rows<A, S, T>(m: &ArrayBase<S, Ix2>) -> (Vec<T>, Array2<A>)
-    where S: Data<Elem = A>,
-          A: LinalgScalar + NormedField<Output = T> + Div<T, Output = A>,
+/// normalize in L2 norm
+pub fn normalize<A, S, T>(mut m: ArrayBase<S, Ix2>, axis: NormalizeAxis) -> (ArrayBase<S, Ix2>, Vec<T>)
+    where A: LinalgScalar + NormedField<Output = T> + Div<T, Output = A>,
+          S: DataMut<Elem = A>,
           T: Float + Sum
 {
     let mut ms = Vec::new();
-    let vs = m.axis_iter(Axis(0))
-        .map(|v| {
-            let n = v.norm();
-            ms.push(n);
-            v.mapv(|x| x / n)
-        })
-        .collect::<Vec<_>>();
-    (ms, vstack(&vs).unwrap())
+    for mut v in m.axis_iter_mut(Axis(axis as usize)) {
+        let n = v.norm();
+        ms.push(n);
+        v.map_inplace(|x| *x = *x / n)
+    }
+    (m, ms)
 }
 
 /// check two arrays are close in maximum norm

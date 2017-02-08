@@ -6,6 +6,18 @@ use num_traits::Float;
 use super::vector::*;
 use std::ops::Div;
 
+/// construct matrix from diag
+pub fn from_diag<A>(d: &[A]) -> Array2<A>
+    where A: LinalgScalar
+{
+    let n = d.len();
+    let mut e = Array::zeros((n, n));
+    for i in 0..n {
+        e[(i, i)] = d[i];
+    }
+    e
+}
+
 /// stack vectors into matrix horizontally
 pub fn hstack<A, S>(xs: &[ArrayBase<S, Ix1>]) -> Result<Array<A, Ix2>, ShapeError>
     where A: LinalgScalar,

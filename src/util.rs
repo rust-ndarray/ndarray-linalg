@@ -4,10 +4,11 @@ use std::iter::Sum;
 use ndarray::*;
 use num_traits::Float;
 use super::vector::*;
+use std::ops::Div;
 
 /// stack vectors into matrix horizontally
 pub fn hstack<A, S>(xs: &[ArrayBase<S, Ix1>]) -> Result<Array<A, Ix2>, ShapeError>
-    where A: NdFloat,
+    where A: LinalgScalar,
           S: Data<Elem = A>
 {
     let views: Vec<_> = xs.iter()
@@ -21,7 +22,7 @@ pub fn hstack<A, S>(xs: &[ArrayBase<S, Ix1>]) -> Result<Array<A, Ix2>, ShapeErro
 
 /// stack vectors into matrix vertically
 pub fn vstack<A, S>(xs: &[ArrayBase<S, Ix1>]) -> Result<Array<A, Ix2>, ShapeError>
-    where A: NdFloat,
+    where A: LinalgScalar,
           S: Data<Elem = A>
 {
     let views: Vec<_> = xs.iter()
@@ -31,6 +32,40 @@ pub fn vstack<A, S>(xs: &[ArrayBase<S, Ix1>]) -> Result<Array<A, Ix2>, ShapeErro
         })
         .collect();
     stack(Axis(0), &views)
+}
+
+/// normalize columns in L2 norm
+pub fn normalize_columns<A, S, T>(m: &ArrayBase<S, Ix2>) -> (Array2<A>, Vec<T>)
+    where S: Data<Elem = A>,
+          A: LinalgScalar + NormedField<Output = T> + Div<T, Output = A>,
+          T: Float + Sum
+{
+    let mut ms = Vec::new();
+    let vs = m.axis_iter(Axis(1))
+        .map(|v| {
+            let n = v.norm();
+            ms.push(n);
+            v.mapv(|x| x / n)
+        })
+        .collect::<Vec<_>>();
+    (hstack(&vs).unwrap(), ms)
+}
+
+/// normalize rows in L2 norm
+pub fn normalize_rows<A, S, T>(m: &ArrayBase<S, Ix2>) -> (Vec<T>, Array2<A>)
+    where S: Data<Elem = A>,
+          A: LinalgScalar + NormedField<Output = T> + Div<T, Output = A>,
+          T: Float + Sum
+{
+    let mut ms = Vec::new();
+    let vs = m.axis_iter(Axis(0))
+        .map(|v| {
+            let n = v.norm();
+            ms.push(n);
+            v.mapv(|x| x / n)
+        })
+        .collect::<Vec<_>>();
+    (ms, vstack(&vs).unwrap())
 }
 
 /// check two arrays are close in maximum norm

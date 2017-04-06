@@ -1,5 +1,4 @@
 language: rust
-sudo: required
 
 rust:
   - stable
@@ -20,9 +19,6 @@ script:
 
 addons:
   apt:
-    sources:
-      - kubuntu-backports
-
     packages:
       - cmake
       - gfortran

@@ -9,6 +9,13 @@ repository = "https://github.com/termoshtt/ndarray-linalg"
 keywords = ["ndarray", "lapack", "matrix"]
 license = "MIT"
 
+[features]
+default = ["openblas"]
+openblas = ["blas/openblas", "lapack/openblas"]
+netlib = ["blas/netlib", "lapack/netlib"]
+openblas-system = ["blas/openblas", "lapack/openblas", "openblas-src/system"]
+netlib-system = ["blas/netlib", "lapack/netlib", "netlib-src/system"]
+
 [dependencies]
 lapack = "0.11"
 blas = "0.15"
@@ -16,8 +23,17 @@ num-traits = "0.1.36"
 
 [dependencies.ndarray]
 version = "0.8"
+default-features = false
 features = ["blas"]
 
 [dev-dependencies]
 ndarray-rand = "0.4"
 ndarray-numtest = "0.2"
+
+[dependencies.openblas-src]
+version = "0.5"
+optional = true
+
+[dependencies.netlib-src]
+version = "0.6"
+optional = true

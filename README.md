@@ -24,6 +24,10 @@ fn main() {
 
 See complete example at [src/bin/main.rs](src/bin/main.rs).
 
-Progress: WIP
+Progress
 ---------
 Some algorithms have not been implemented yet. See [#6](https://github.com/termoshtt/ndarray-linalg/issues/6).
+
+Similar Projects
+-----------------
+- [linxal](https://github.com/masonium/linxal)

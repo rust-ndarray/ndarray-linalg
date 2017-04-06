@@ -26,11 +26,7 @@ addons:
     packages:
       - cmake
       - gfortran
-      - liblapack-dev
-      - libopenblas-dev
 
 env:
   - RUST_BACKTRACE=1 FEATURE=netlib
-  - RUST_BACKTRACE=1 FEATURE=netlib-system
   - RUST_BACKTRACE=1 FEATURE=openblas
-  - RUST_BACKTRACE=1 FEATURE=openblas-system

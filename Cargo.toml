@@ -1,6 +1,6 @@
 [package]
 name = "ndarray-linalg"
-version = "0.2.1"
+version = "0.3.0"
 authors = ["Toshiki Teramura <toshiki.teramura@gmail.com>"]
 
 description = "Linear algebra package for rust-ndarray using LAPACK"
@@ -15,9 +15,9 @@ blas = "0.15"
 num-traits = "0.1.36"
 
 [dependencies.ndarray]
-version = "0.7.3"
+version = "0.8"
 features = ["blas"]
 
 [dev-dependencies]
-ndarray-rand = "0.3"
-ndarray-numtest = "0.1.4"
+ndarray-rand = "0.4"
+ndarray-numtest = "0.2"

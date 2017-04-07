@@ -12,7 +12,7 @@ os:
 cache: cargo
 
 matrix:
-  allow-failures:
+  allow_failures:
     - rust: nightly
 
 script:
@@ -26,3 +26,7 @@ addons:
     packages:
       - cmake
       - gfortran
+
+env:
+  - RUST_BACKTRACE=1 FEATURE=netlib
+  - RUST_BACKTRACE=1 FEATURE=openblas

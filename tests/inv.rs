@@ -26,8 +26,9 @@ mod $modname {
     #[should_panic]
     fn inv_error() {
         // do not have inverse
-        let a = Array::range(1., 10., 1.).into_shape((3, 3)).unwrap();
-        let _ = a.$clone().inv().unwrap();
+        let a = Array::<f64, _>::zeros(9).into_shape((3, 3)).unwrap();
+        let a_inv = a.$clone().inv().unwrap();
+        println!("{:?}", a_inv);
     }
 }
 }} // impl_test

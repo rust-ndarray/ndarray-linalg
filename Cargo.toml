@@ -13,16 +13,12 @@ license       = "MIT"
 default  = ["openblas"]
 openblas = ["blas/openblas", "lapack/openblas"]
 netlib   = ["blas/netlib", "lapack/netlib"]
-openblas-system = ["blas/openblas", "lapack/openblas", "openblas-src/system"]
-netlib-system   = ["blas/netlib", "lapack/netlib", "netlib-src/system"]
 
 [dependencies]
-num-traits   = "0.1.36"
-ndarray      = { version = "0.8",  default-features = false, features = ["blas"] }
-lapack       = { version = "0.11", default-features = false }
-blas         = { version = "0.15", default-features = false }
-openblas-src = { version = "0.5",  default-features = false, optional = true }
-netlib-src   = { version = "0.7",  default-features = false, optional = true }
+num-traits = "0.1.36"
+ndarray = { version = "0.8",  default-features = false, features = ["blas"] }
+lapack  = { version = "0.11", default-features = false }
+blas    = { version = "0.15", default-features = false }
 
 [dev-dependencies]
 ndarray-rand    = "0.4"

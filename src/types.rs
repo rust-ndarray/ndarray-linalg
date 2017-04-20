@@ -1,6 +1,5 @@
-#![allow(non_camel_case_types)]
 
 use num_complex::Complex;
 
-pub type c64 = Complex<f64>;
-pub type c32 = Complex<f32>;
+pub use num_comlex::Complex32 as c32;
+pub use num_comlex::Complex64 as c64;

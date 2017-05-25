@@ -1,8 +1,8 @@
 
+extern crate rand_extra;
 extern crate ndarray;
 extern crate ndarray_rand;
 extern crate ndarray_linalg;
-extern crate ndarray_numtest;
 extern crate num_traits;
 
 #[allow(unused_imports)]
@@ -10,7 +10,7 @@ use ndarray::*;
 #[allow(unused_imports)]
 use ndarray_linalg::prelude::*;
 #[allow(unused_imports)]
-use ndarray_numtest::prelude::*;
+use rand_extra::*;
 #[allow(unused_imports)]
 use ndarray_rand::RandomExt;
 #[allow(unused_imports)]

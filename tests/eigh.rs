@@ -5,7 +5,6 @@ macro_rules! impl_test {
 mod $modname {
     use ndarray::prelude::*;
     use ndarray_linalg::prelude::*;
-    use ndarray_numtest::prelude::*;
     #[test]
     fn eigen_vector_manual() {
         let a = arr2(&[[3.0, 1.0, 1.0], [1.0, 3.0, 1.0], [1.0, 1.0, 3.0]]);

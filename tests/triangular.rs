@@ -5,8 +5,8 @@ macro_rules! impl_test {
 mod $modname {
     use ndarray::prelude::*;
     use ndarray_linalg::prelude::*;
-    use ndarray_numtest::prelude::*;
     use ndarray_rand::RandomExt;
+    use rand_extra::*;
     #[test]
     fn solve_upper() {
         let r_dist = RealNormal::new(0.0, 1.0);

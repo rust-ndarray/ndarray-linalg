@@ -5,7 +5,6 @@ macro_rules! impl_test{
 mod $modname {
     use super::random_hermite;
     use ndarray_linalg::prelude::*;
-    use ndarray_numtest::prelude::*;
     #[test]
     fn deth() {
         let a = random_hermite(3);

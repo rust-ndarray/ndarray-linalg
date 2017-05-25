@@ -16,7 +16,6 @@ macro_rules! impl_test_opnorm {
 mod $modname {
     use ndarray::prelude::*;
     use ndarray_linalg::prelude::*;
-    use ndarray_numtest::prelude::*;
     use num_traits::Float;
     fn gen(i: usize, j: usize, rev: bool) -> $array {
         let n = (i * j + 1) as f64;

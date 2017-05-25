@@ -21,42 +21,42 @@ pub trait Norm {
 }
 
 impl<A, S, D, T> Norm for ArrayBase<S, D>
-    where A: LinalgScalar + NormedField<Output = T>,
+    where A: LinalgScalar + Absolute<Output = T>,
           T: Float + Sum,
           S: Data<Elem = A>,
           D: Dimension
 {
     type Output = T;
     fn norm_l1(&self) -> Self::Output {
-        self.iter().map(|x| x.norm()).sum()
+        self.iter().map(|x| x.abs()).sum()
     }
     fn norm_l2(&self) -> Self::Output {
-        self.iter().map(|x| x.squared()).sum::<T>().sqrt()
+        self.iter().map(|x| x.sq_abs()).sum::<T>().sqrt()
     }
     fn norm_max(&self) -> Self::Output {
         self.iter().fold(T::zero(), |f, &val| {
-            let v = val.norm();
+            let v = val.abs();
             if f > v { f } else { v }
         })
     }
 }
 
 /// Field with norm
-pub trait NormedField {
+pub trait Absolute {
     type Output: Float;
-    fn squared(&self) -> Self::Output;
-    fn norm(&self) -> Self::Output {
-        self.squared().sqrt()
+    fn sq_abs(&self) -> Self::Output;
+    fn abs(&self) -> Self::Output {
+        self.sq_abs().sqrt()
     }
 }
 
-impl<A: Float> NormedField for A {
+impl<A: Float> Absolute for A {
     type Output = A;
-    fn squared(&self) -> A {
+    fn sq_abs(&self) -> A {
         *self * *self
     }
-    fn norm(&self) -> A {
-        self.abs()
+    fn abs(&self) -> A {
+        Float::abs(*self)
     }
 }
 

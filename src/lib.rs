@@ -34,6 +34,8 @@
 extern crate blas;
 extern crate lapack;
 extern crate num_traits;
+extern crate num_complex;
+extern crate float_cmp;
 #[macro_use(s)]
 extern crate ndarray;
 
@@ -47,4 +49,5 @@ pub mod hermite;
 pub mod triangular;
 
 pub mod util;
+pub mod assert;
 pub mod prelude;

@@ -15,7 +15,7 @@ openblas = ["blas/openblas", "lapack/openblas"]
 netlib   = ["blas/netlib", "lapack/netlib"]
 
 [dependencies]
-num-traits = "*"
+num-traits = "0.1"
 ndarray = { version = "0.9",  default-features = false, features = ["blas"] }
 lapack  = { version = "0.11", default-features = false }
 blas    = { version = "0.15", default-features = false }

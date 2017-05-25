@@ -5,9 +5,9 @@ macro_rules! impl_test {
 #[test]
 fn $funcname() {
     let a = $a;
-    a.opnorm_1().assert_close($op1, 1e-7);
-    a.opnorm_i().assert_close($opi, 1e-7);
-    a.opnorm_f().assert_close($opf, 1e-7);
+    assert_rclose!(a.opnorm_1(), $op1, 1e-7);
+    assert_rclose!(a.opnorm_i(), $opi, 1e-7);
+    assert_rclose!(a.opnorm_f(), $opf, 1e-7);
 }
 }} // impl_test
 
@@ -16,7 +16,6 @@ macro_rules! impl_test_opnorm {
 mod $modname {
     use ndarray::prelude::*;
     use ndarray_linalg::prelude::*;
-    use ndarray_numtest::prelude::*;
     use num_traits::Float;
     fn gen(i: usize, j: usize, rev: bool) -> $array {
         let n = (i * j + 1) as f64;

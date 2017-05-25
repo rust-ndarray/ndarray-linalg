@@ -12,7 +12,7 @@ mod $modname {
         let c = a.$clone().cholesky().unwrap();
         println!("c = \n{:?}", c);
         println!("cc = \n{:?}", c.t().dot(&c));
-        all_close_l2(&c.t().dot(&c), &a, 1e-7).unwrap();
+        assert_close_l2!(&c.t().dot(&c), &a, 1e-7);
     }
     #[test]
     fn cholesky_t() {
@@ -21,7 +21,7 @@ mod $modname {
         let c = a.$clone().cholesky().unwrap();
         println!("c = \n{:?}", c);
         println!("cc = \n{:?}", c.t().dot(&c));
-        all_close_l2(&c.t().dot(&c), &a, 1e-7).unwrap();
+        assert_close_l2!(&c.t().dot(&c), &a, 1e-7);
     }
 }
 }} // impl_test

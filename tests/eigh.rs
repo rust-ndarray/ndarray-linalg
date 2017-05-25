@@ -5,16 +5,15 @@ macro_rules! impl_test {
 mod $modname {
     use ndarray::prelude::*;
     use ndarray_linalg::prelude::*;
-    use ndarray_numtest::prelude::*;
     #[test]
     fn eigen_vector_manual() {
         let a = arr2(&[[3.0, 1.0, 1.0], [1.0, 3.0, 1.0], [1.0, 1.0, 3.0]]);
         let (e, vecs) = a.$clone().eigh().unwrap();
-        all_close_l2(&e, &arr1(&[2.0, 2.0, 5.0]), 1.0e-7).unwrap();
+        assert_close_l2!(&e, &arr1(&[2.0, 2.0, 5.0]), 1.0e-7);
         for (i, v) in vecs.axis_iter(Axis(1)).enumerate() {
             let av = a.dot(&v);
             let ev = v.mapv(|x| e[i] * x);
-            all_close_l2(&av, &ev, 1.0e-7).unwrap();
+            assert_close_l2!(&av, &ev, 1.0e-7);
         }
     }
     #[test]
@@ -23,7 +22,7 @@ mod $modname {
         let (e, vecs) = a.$clone().eigh().unwrap();
         let s = vecs.t().dot(&a).dot(&vecs);
         for i in 0..3 {
-            e[i].assert_close(s[(i, i)], 1e-7);
+            assert_rclose!(e[i], s[(i, i)], 1e-7);
         }
     }
 }

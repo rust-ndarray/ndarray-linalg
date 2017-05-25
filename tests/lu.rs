@@ -12,7 +12,7 @@ fn $funcname() {
     println!("L = \n{:?}", &l);
     println!("U = \n{:?}", &u);
     println!("LU = \n{:?}", l.dot(&u));
-    all_close_l2(&l.dot(&u).permutated(&p), &ans, 1e-7).unwrap();
+    assert_close_l2!(&l.dot(&u).permutated(&p), &ans, 1e-7);
 }
 }} // impl_test
 

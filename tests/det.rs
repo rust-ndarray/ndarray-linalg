@@ -5,14 +5,13 @@ macro_rules! impl_test{
 mod $modname {
     use super::random_hermite;
     use ndarray_linalg::prelude::*;
-    use ndarray_numtest::prelude::*;
     #[test]
     fn deth() {
         let a = random_hermite(3);
         let (e, _) = a.$clone().eigh().unwrap();
         let deth = a.$clone().deth().unwrap();
         let det_eig = e.iter().fold(1.0, |x, y| x * y);
-        deth.assert_close(det_eig, 1.0e-7);
+        assert_rclose!(deth, det_eig, 1.0e-7);
     }
 }
 }} // impl_test

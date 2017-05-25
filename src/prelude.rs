@@ -4,3 +4,4 @@ pub use square::SquareMatrix;
 pub use hermite::HermiteMatrix;
 pub use triangular::*;
 pub use util::*;
+pub use assert::*;

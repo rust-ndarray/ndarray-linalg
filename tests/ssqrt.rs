@@ -9,15 +9,15 @@ mod $modname {
     fn ssqrt() {
         let a = random_hermite(3);
         let ar = a.$clone().ssqrt().unwrap();
-        all_close_l2(&ar.clone().t(), &ar, 1e-7).expect("not symmetric");
-        all_close_l2(&ar.dot(&ar), &a, 1e-7).expect("not sqrt");
+        assert_close_l2!(&ar.clone().t(), &ar, 1e-7; "not symmetric");
+        assert_close_l2!(&ar.dot(&ar), &a, 1e-7; "not sqrt");
     }
     #[test]
     fn ssqrt_t() {
         let a = random_hermite(3).reversed_axes();
         let ar = a.$clone().ssqrt().unwrap();
-        all_close_l2(&ar.clone().t(), &ar, 1e-7).expect("not symmetric");
-        all_close_l2(&ar.dot(&ar), &a, 1e-7).expect("not sqrt");
+        assert_close_l2!(&ar.clone().t(), &ar, 1e-7; "not symmetric");
+        assert_close_l2!(&ar.dot(&ar), &a, 1e-7; "not sqrt");
     }
 }
 }} // impl_test

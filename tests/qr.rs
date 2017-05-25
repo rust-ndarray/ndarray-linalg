@@ -13,9 +13,9 @@ fn $funcname() {
     let (q, r) = a.qr().unwrap();
     println!("q = \n{:?}", &q);
     println!("r = \n{:?}", &r);
-    all_close_l2(&q.t().dot(&q), &Array::eye(min($n, $m)), 1e-7).unwrap();
-    all_close_l2(&q.dot(&r), &ans, 1e-7).unwrap();
-    all_close_l2(&drop_lower(r.clone()), &r, 1e-7).unwrap();
+    assert_close_l2!(&q.t().dot(&q), &Array::eye(min($n, $m)), 1e-7);
+    assert_close_l2!(&q.dot(&r), &ans, 1e-7);
+    assert_close_l2!(&drop_lower(r.clone()), &r, 1e-7);
 }
 }} // impl_test
 

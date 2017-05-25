@@ -18,7 +18,7 @@ fn $funcname() {
     for i in 0..min($n, $m) {
         sm[(i, i)] = s[i];
     }
-    all_close_l2(&u.dot(&sm).dot(&vt), &answer, 1e-7).unwrap();
+    assert_close_l2!(&u.dot(&sm).dot(&vt), &answer, 1e-7);
 }
 }} // impl_test
 

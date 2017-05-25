@@ -5,8 +5,8 @@ macro_rules! impl_test {
 mod $modname {
     use ndarray::prelude::*;
     use ndarray_linalg::prelude::*;
-    use ndarray_numtest::prelude::*;
     use ndarray_rand::RandomExt;
+    use rand_extra::*;
     #[test]
     fn solve_upper() {
         let r_dist = RealNormal::new(0.0, 1.0);
@@ -17,7 +17,7 @@ mod $modname {
         let x = a.solve_upper(b.clone()).unwrap();
         println!("x = \n{:?}", &x);
         println!("Ax = \n{:?}", a.dot(&x));
-        all_close_l2(&a.dot(&x), &b, 1e-7).unwrap();
+        assert_close_l2!(&a.dot(&x), &b, 1e-7);
     }
 
     #[test]
@@ -30,7 +30,7 @@ mod $modname {
         let x = a.solve_upper(b.clone()).unwrap();
         println!("x = \n{:?}", &x);
         println!("Ax = \n{:?}", a.dot(&x));
-        all_close_l2(&a.dot(&x), &b, 1e-7).unwrap();
+        assert_close_l2!(&a.dot(&x), &b, 1e-7);
     }
 
     #[test]
@@ -43,7 +43,7 @@ mod $modname {
         let x = a.solve_lower(b.clone()).unwrap();
         println!("x = \n{:?}", &x);
         println!("Ax = \n{:?}", a.dot(&x));
-        all_close_l2(&a.dot(&x), &b, 1e-7).unwrap();
+        assert_close_l2!(&a.dot(&x), &b, 1e-7);
     }
 
     #[test]
@@ -56,7 +56,7 @@ mod $modname {
         let x = a.solve_lower(b.clone()).unwrap();
         println!("x = \n{:?}", &x);
         println!("Ax = \n{:?}", a.dot(&x));
-        all_close_l2(&a.dot(&x), &b, 1e-7).unwrap();
+        assert_close_l2!(&a.dot(&x), &b, 1e-7);
     }
 }
 }} // impl_test_opnorm
@@ -78,7 +78,7 @@ mod $modname {
         let x = a.$solve(&b).unwrap();
         println!("x = \n{:?}", &x);
         println!("Ax = \n{:?}", a.dot(&x));
-        all_close_l2(&a.dot(&x), &b, 1e-7).unwrap();
+        assert_close_l2!(&a.dot(&x), &b, 1e-7);
     }
     #[test]
     fn solve_tf() {
@@ -89,7 +89,7 @@ mod $modname {
         let x = a.$solve(&b).unwrap();
         println!("x = \n{:?}", &x);
         println!("Ax = \n{:?}", a.dot(&x));
-        all_close_l2(&a.dot(&x), &b, 1e-7).unwrap();
+        assert_close_l2!(&a.dot(&x), &b, 1e-7);
     }
     #[test]
     fn solve_ft() {
@@ -100,7 +100,7 @@ mod $modname {
         let x = a.$solve(&b).unwrap();
         println!("x = \n{:?}", &x);
         println!("Ax = \n{:?}", a.dot(&x));
-        all_close_l2(&a.dot(&x), &b, 1e-7).unwrap();
+        assert_close_l2!(&a.dot(&x), &b, 1e-7);
     }
     #[test]
     fn solve_ff() {
@@ -111,7 +111,7 @@ mod $modname {
         let x = a.$solve(&b).unwrap();
         println!("x = \n{:?}", &x);
         println!("Ax = \n{:?}", a.dot(&x));
-        all_close_l2(&a.dot(&x), &b, 1e-7).unwrap();
+        assert_close_l2!(&a.dot(&x), &b, 1e-7);
     }
 }
 }} // impl_test_2d

@@ -10,7 +10,7 @@ fn $testname() {
     let p = $permutate; // replace 1-2
     let pa = a.permutated(&p);
     println!("permutated = \n{:?}", &pa);
-    all_close_l2(&pa, &$answer, 1e-7).unwrap();
+    assert_close_l2!(&pa, &$answer, 1e-7);
 }
 }} // impl_test
 

@@ -1,7 +1,7 @@
 //! Define trait for general matrix
 
 use std::cmp::min;
-use ndarray::prelude::*;
+use ndarray::*;
 use ndarray::DataMut;
 use lapack::c::Layout;
 

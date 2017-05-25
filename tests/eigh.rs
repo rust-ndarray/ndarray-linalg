@@ -9,11 +9,11 @@ mod $modname {
     fn eigen_vector_manual() {
         let a = arr2(&[[3.0, 1.0, 1.0], [1.0, 3.0, 1.0], [1.0, 1.0, 3.0]]);
         let (e, vecs) = a.$clone().eigh().unwrap();
-        all_close_l2(&e, &arr1(&[2.0, 2.0, 5.0]), 1.0e-7).unwrap();
+        assert_close_l2!(&e, &arr1(&[2.0, 2.0, 5.0]), 1.0e-7);
         for (i, v) in vecs.axis_iter(Axis(1)).enumerate() {
             let av = a.dot(&v);
             let ev = v.mapv(|x| e[i] * x);
-            all_close_l2(&av, &ev, 1.0e-7).unwrap();
+            assert_close_l2!(&av, &ev, 1.0e-7);
         }
     }
     #[test]

@@ -11,7 +11,7 @@ mod $modname {
         let a = random_square(3);
         let ai = a.$clone().inv().unwrap();
         let id = Array::eye(3);
-        all_close_l2(&ai.dot(&a), &id, 1e-7).unwrap();
+        assert_close_l2!(&ai.dot(&a), &id, 1e-7);
     }
 
     #[test]
@@ -19,7 +19,7 @@ mod $modname {
         let a = random_square(3).reversed_axes();
         let ai = a.$clone().inv().unwrap();
         let id = Array::eye(3);
-        all_close_l2(&ai.dot(&a), &id, 1e-7).unwrap();
+        assert_close_l2!(&ai.dot(&a), &id, 1e-7);
     }
 
     #[test]

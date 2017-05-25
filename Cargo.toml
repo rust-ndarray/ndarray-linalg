@@ -15,13 +15,13 @@ openblas = ["blas/openblas", "lapack/openblas"]
 netlib   = ["blas/netlib", "lapack/netlib"]
 
 [dependencies]
-float-cmp = "0.2"
-num-traits = "0.1"
+float-cmp   = "0.2"
+num-traits  = "0.1"
 num-complex = "0.1"
 ndarray = { version = "0.9",  default-features = false, features = ["blas"] }
 lapack  = { version = "0.11", default-features = false }
 blas    = { version = "0.15", default-features = false }
 
 [dev-dependencies]
-ndarray-rand    = "0.5"
-rand-extra = { git = "http://github.com/termoshtt/rust-rand-extra" }
+ndarray-rand = "0.5"
+rand-extra   = "0.1"

@@ -6,7 +6,7 @@ extern crate ndarray_numtest;
 extern crate num_traits;
 
 #[allow(unused_imports)]
-use ndarray::prelude::*;
+use ndarray::*;
 #[allow(unused_imports)]
 use ndarray_linalg::prelude::*;
 #[allow(unused_imports)]

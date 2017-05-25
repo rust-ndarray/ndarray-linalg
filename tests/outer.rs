@@ -14,7 +14,7 @@ fn outer_3x4() {
     println!("ab = \n{:?}", &ab);
     for i in 0..m {
         for j in 0..n {
-            ab[(i, j)].assert_close(a[i] * b[j], 1e-7);
+            assert_rclose!(ab[(i, j)], a[i] * b[j], 1e-7);
         }
     }
 }
@@ -32,7 +32,7 @@ fn outer_4x3() {
     println!("ab = \n{:?}", &ab);
     for i in 0..m {
         for j in 0..n {
-            ab[(i, j)].assert_close(a[i] * b[j], 1e-7);
+            assert_rclose!(ab[(i, j)], a[i] * b[j], 1e-7);
         }
     }
 }

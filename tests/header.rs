@@ -2,6 +2,8 @@
 extern crate rand_extra;
 extern crate ndarray;
 extern crate ndarray_rand;
+#[macro_use]
+#[allow(unused_imports)]
 extern crate ndarray_linalg;
 extern crate num_traits;
 

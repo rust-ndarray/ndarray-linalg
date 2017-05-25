@@ -22,7 +22,7 @@ mod $modname {
         let (e, vecs) = a.$clone().eigh().unwrap();
         let s = vecs.t().dot(&a).dot(&vecs);
         for i in 0..3 {
-            e[i].assert_close(s[(i, i)], 1e-7);
+            assert_rclose!(e[i], s[(i, i)], 1e-7);
         }
     }
 }

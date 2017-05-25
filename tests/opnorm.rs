@@ -5,9 +5,9 @@ macro_rules! impl_test {
 #[test]
 fn $funcname() {
     let a = $a;
-    a.opnorm_1().assert_close($op1, 1e-7);
-    a.opnorm_i().assert_close($opi, 1e-7);
-    a.opnorm_f().assert_close($opf, 1e-7);
+    assert_rclose!(a.opnorm_1(), $op1, 1e-7);
+    assert_rclose!(a.opnorm_i(), $opi, 1e-7);
+    assert_rclose!(a.opnorm_f(), $opf, 1e-7);
 }
 }} // impl_test
 

@@ -11,7 +11,7 @@ mod $modname {
         let (e, _) = a.$clone().eigh().unwrap();
         let deth = a.$clone().deth().unwrap();
         let det_eig = e.iter().fold(1.0, |x, y| x * y);
-        deth.assert_close(det_eig, 1.0e-7);
+        assert_rclose!(deth, det_eig, 1.0e-7);
     }
 }
 }} // impl_test

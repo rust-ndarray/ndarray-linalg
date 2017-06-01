@@ -44,6 +44,7 @@ extern crate derive_new;
 
 pub mod impls;
 pub mod error;
+pub mod layout;
 
 pub mod vector;
 pub mod matrix;

@@ -9,6 +9,7 @@ pub enum LinalgError {
     NotSquare(NotSquareError),
     Lapack(LapackError),
     Stride(StrideError),
+    MemoryCont(MemoryContError),
     Shape(ShapeError),
 }
 
@@ -68,5 +69,20 @@ impl fmt::Display for StrideError {
 impl error::Error for StrideError {
     fn description(&self) -> &str {
         "invalid stride"
+    }
+}
+
+#[derive(Debug)]
+pub struct MemoryContError {}
+
+impl fmt::Display for MemoryContError {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "Memory is not contiguous")
+    }
+}
+
+impl error::Error for MemoryContError {
+    fn description(&self) -> &str {
+        "Memory is not contiguous"
     }
 }

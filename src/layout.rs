@@ -23,9 +23,9 @@ impl Layout {
         }
     }
 
-    pub fn ffi_size(&self) -> (Col_, Row_) {
+    pub fn ffi_size(&self) -> (Row_, Col_) {
         let (n, m) = self.size();
-        (m as Col_, n as Row_)
+        (n as Row_, m as Col_)
     }
 
     pub fn ffi_layout(&self) -> Layout_ {
@@ -38,9 +38,9 @@ impl Layout {
 
 pub trait AllocatedArray2D {
     type Scalar;
-    fn layout(&self) -> LResult<Layout>;
-    fn square_layout(&self) -> LResult<Layout>;
-    fn as_allocated(&self) -> LResult<&[Self::Scalar]>;
+    fn layout(&self) -> Result<Layout>;
+    fn square_layout(&self) -> Result<Layout>;
+    fn as_allocated(&self) -> Result<&[Self::Scalar]>;
 }
 
 impl<A, S> AllocatedArray2D for ArrayBase<S, Ix2>
@@ -48,7 +48,7 @@ impl<A, S> AllocatedArray2D for ArrayBase<S, Ix2>
 {
     type Scalar = A;
 
-    fn layout(&self) -> LResult<Layout> {
+    fn layout(&self) -> Result<Layout> {
         let strides = self.strides();
         if ::std::cmp::min(strides[0], strides[1]) != 1 {
             return Err(StrideError::new(strides[0], strides[1]).into());
@@ -60,7 +60,7 @@ impl<A, S> AllocatedArray2D for ArrayBase<S, Ix2>
         }
     }
 
-    fn square_layout(&self) -> LResult<Layout> {
+    fn square_layout(&self) -> Result<Layout> {
         let l = self.layout()?;
         let (n, m) = l.size();
         if n == m {
@@ -70,7 +70,7 @@ impl<A, S> AllocatedArray2D for ArrayBase<S, Ix2>
         }
     }
 
-    fn as_allocated(&self) -> LResult<&[A]> {
+    fn as_allocated(&self) -> Result<&[A]> {
         let slice = self.as_slice_memory_order().ok_or(MemoryContError::new())?;
         Ok(slice)
     }

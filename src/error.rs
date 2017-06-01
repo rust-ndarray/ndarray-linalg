@@ -4,7 +4,7 @@ use std::error;
 use std::fmt;
 use ndarray::{Ixs, ShapeError};
 
-pub type LResult<T> = Result<T, LinalgError>;
+pub type Result<T> = ::std::result::Result<T, LinalgError>;
 
 #[derive(Debug, EnumError)]
 pub enum LinalgError {

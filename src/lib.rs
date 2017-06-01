@@ -43,9 +43,10 @@ extern crate enum_error_derive;
 extern crate derive_new;
 
 pub mod types;
-pub mod impls;
 pub mod error;
 pub mod layout;
+pub mod impls;
+pub mod impl2;
 
 pub mod vector;
 pub mod matrix;

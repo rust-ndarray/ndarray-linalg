@@ -2,6 +2,7 @@
 use ndarray::*;
 
 use super::error::*;
+use lapack::c::Layout as FFI_Layout;
 
 pub enum Layout {
     C((usize, usize)),
@@ -13,6 +14,18 @@ impl Layout {
         match self {
             &Layout::C(s) => s,
             &Layout::F(s) => s,
+        }
+    }
+
+    pub fn ffi_size(&self) -> (i32, i32) {
+        let (n, m) = self.size();
+        (m as i32, n as i32)
+    }
+
+    pub fn ffi_layout(&self) -> FFI_Layout {
+        match self {
+            &Layout::C(_) => FFI_Layout::RowMajor,
+            &Layout::F(_) => FFI_Layout::ColumnMajor,
         }
     }
 }

@@ -48,6 +48,8 @@ pub mod layout;
 pub mod impls;
 pub mod impl2;
 
+pub mod traits;
+
 pub mod vector;
 pub mod matrix;
 pub mod square;

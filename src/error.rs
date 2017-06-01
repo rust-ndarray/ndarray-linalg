@@ -4,6 +4,8 @@ use std::error;
 use std::fmt;
 use ndarray::{Ixs, ShapeError};
 
+pub type LResult<T> = Result<T, LinalgError>;
+
 #[derive(Debug, EnumError)]
 pub enum LinalgError {
     NotSquare(NotSquareError),
@@ -13,7 +15,7 @@ pub enum LinalgError {
     Shape(ShapeError),
 }
 
-#[derive(Debug)]
+#[derive(Debug, new)]
 pub struct LapackError {
     pub return_code: i32,
 }
@@ -36,7 +38,7 @@ impl From<i32> for LapackError {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, new)]
 pub struct NotSquareError {
     pub rows: usize,
     pub cols: usize,
@@ -54,7 +56,7 @@ impl error::Error for NotSquareError {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, new)]
 pub struct StrideError {
     pub s0: Ixs,
     pub s1: Ixs,
@@ -72,7 +74,7 @@ impl error::Error for StrideError {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, new)]
 pub struct MemoryContError {}
 
 impl fmt::Display for MemoryContError {

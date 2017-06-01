@@ -37,6 +37,8 @@ extern crate num_traits;
 extern crate num_complex;
 #[macro_use(s)]
 extern crate ndarray;
+#[macro_use]
+extern crate enum_error_derive;
 
 pub mod impls;
 pub mod error;

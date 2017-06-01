@@ -4,6 +4,14 @@ use std::error;
 use std::fmt;
 use ndarray::{Ixs, ShapeError};
 
+#[derive(Debug, EnumError)]
+pub enum LinalgError {
+    NotSquare(NotSquareError),
+    Lapack(LapackError),
+    Stride(StrideError),
+    Shape(ShapeError),
+}
+
 #[derive(Debug)]
 pub struct LapackError {
     pub return_code: i32,
@@ -60,58 +68,5 @@ impl fmt::Display for StrideError {
 impl error::Error for StrideError {
     fn description(&self) -> &str {
         "invalid stride"
-    }
-}
-
-#[derive(Debug)]
-pub enum LinalgError {
-    NotSquare(NotSquareError),
-    Lapack(LapackError),
-    Stride(StrideError),
-    Shape(ShapeError),
-}
-
-impl fmt::Display for LinalgError {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        match *self {
-            LinalgError::NotSquare(ref err) => err.fmt(f),
-            LinalgError::Lapack(ref err) => err.fmt(f),
-            LinalgError::Stride(ref err) => err.fmt(f),
-            LinalgError::Shape(ref err) => err.fmt(f),
-        }
-    }
-}
-
-impl error::Error for LinalgError {
-    fn description(&self) -> &str {
-        match *self {
-            LinalgError::NotSquare(ref err) => err.description(),
-            LinalgError::Lapack(ref err) => err.description(),
-            LinalgError::Stride(ref err) => err.description(),
-            LinalgError::Shape(ref err) => err.description(),
-        }
-    }
-}
-
-impl From<NotSquareError> for LinalgError {
-    fn from(err: NotSquareError) -> LinalgError {
-        LinalgError::NotSquare(err)
-    }
-}
-
-impl From<LapackError> for LinalgError {
-    fn from(err: LapackError) -> LinalgError {
-        LinalgError::Lapack(err)
-    }
-}
-
-impl From<StrideError> for LinalgError {
-    fn from(err: StrideError) -> LinalgError {
-        LinalgError::Stride(err)
-    }
-}
-impl From<ShapeError> for LinalgError {
-    fn from(err: ShapeError) -> LinalgError {
-        LinalgError::Shape(err)
     }
 }

@@ -15,6 +15,7 @@ openblas = ["blas/openblas", "lapack/openblas"]
 netlib   = ["blas/netlib", "lapack/netlib"]
 
 [dependencies]
+enum-error-derive = "0.1"
 num-traits  = "0.1"
 num-complex = "0.1"
 ndarray = { version = "0.9",  default-features = false, features = ["blas"] }

@@ -12,7 +12,7 @@ pub enum NormType {
     Frobenius = b'f',
 }
 
-pub trait OperatorNorm: Sized {
+pub trait OperatorNorm_: Sized {
     type Output;
 
     fn opnorm(NormType, Layout, &[Self]) -> Self::Output;
@@ -32,7 +32,7 @@ pub trait OperatorNorm: Sized {
 
 macro_rules! impl_opnorm {
     ($scalar:ty, $output:ty, $lange:path) => {
-impl OperatorNorm for $scalar {
+impl OperatorNorm_ for $scalar {
     type Output = $output;
     fn opnorm(t: NormType, l: Layout, a: &[Self]) -> Self::Output {
         let (m, n) = l.ffi_size();

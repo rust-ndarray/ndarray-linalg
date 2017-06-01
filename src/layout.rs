@@ -2,30 +2,36 @@
 use ndarray::*;
 
 use super::error::*;
-use lapack::c::Layout as FFI_Layout;
+use lapack::c::Layout as Layout_;
+
+pub type Row = usize;
+pub type Col = usize;
+
+pub type Row_ = i32;
+pub type Col_ = i32;
 
 pub enum Layout {
-    C((usize, usize)),
-    F((usize, usize)),
+    C((Row, Col)),
+    F((Row, Col)),
 }
 
 impl Layout {
-    pub fn size(&self) -> (usize, usize) {
+    pub fn size(&self) -> (Row, Col) {
         match self {
             &Layout::C(s) => s,
             &Layout::F(s) => s,
         }
     }
 
-    pub fn ffi_size(&self) -> (i32, i32) {
+    pub fn ffi_size(&self) -> (Col_, Row_) {
         let (n, m) = self.size();
-        (m as i32, n as i32)
+        (m as Col_, n as Row_)
     }
 
-    pub fn ffi_layout(&self) -> FFI_Layout {
+    pub fn ffi_layout(&self) -> Layout_ {
         match self {
-            &Layout::C(_) => FFI_Layout::RowMajor,
-            &Layout::F(_) => FFI_Layout::ColumnMajor,
+            &Layout::C(_) => Layout_::RowMajor,
+            &Layout::F(_) => Layout_::ColumnMajor,
         }
     }
 }

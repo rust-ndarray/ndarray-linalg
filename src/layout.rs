@@ -36,14 +36,14 @@ impl Layout {
     }
 }
 
-pub trait AllocatedArray2D {
+pub trait AllocatedArray {
     type Scalar;
     fn layout(&self) -> Result<Layout>;
     fn square_layout(&self) -> Result<Layout>;
     fn as_allocated(&self) -> Result<&[Self::Scalar]>;
 }
 
-impl<A, S> AllocatedArray2D for ArrayBase<S, Ix2>
+impl<A, S> AllocatedArray for ArrayBase<S, Ix2>
     where S: Data<Elem = A>
 {
     type Scalar = A;

@@ -25,8 +25,8 @@ pub trait SquareMatrix: Matrix {
             Ok(())
         } else {
             Err(NotSquareError {
-                rows: rows,
-                cols: cols,
+                rows: rows as i32,
+                cols: cols as i32,
             })
         }
     }

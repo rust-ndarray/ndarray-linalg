@@ -2,36 +2,21 @@
 use ndarray::*;
 
 use super::error::*;
-use lapack::c::Layout as Layout_;
 
-pub type Row = usize;
-pub type Col = usize;
-
-pub type Row_ = i32;
-pub type Col_ = i32;
+pub type LDA = i32;
+pub type Col = i32;
+pub type Row = i32;
 
 pub enum Layout {
-    C((Row, Col)),
-    F((Row, Col)),
+    C((Row, LDA)),
+    F((Col, LDA)),
 }
 
 impl Layout {
     pub fn size(&self) -> (Row, Col) {
-        match self {
-            &Layout::C(s) => s,
-            &Layout::F(s) => s,
-        }
-    }
-
-    pub fn ffi_size(&self) -> (Row_, Col_) {
-        let (n, m) = self.size();
-        (n as Row_, m as Col_)
-    }
-
-    pub fn ffi_layout(&self) -> Layout_ {
-        match self {
-            &Layout::C(_) => Layout_::RowMajor,
-            &Layout::F(_) => Layout_::ColumnMajor,
+        match *self {
+            Layout::C((row, lda)) => (row, lda),
+            Layout::F((col, lda)) => (lda, col),
         }
     }
 }
@@ -53,10 +38,10 @@ impl<A, S> AllocatedArray for ArrayBase<S, Ix2>
         if ::std::cmp::min(strides[0], strides[1]) != 1 {
             return Err(StrideError::new(strides[0], strides[1]).into());
         }
-        if strides[0] < strides[1] {
-            Ok(Layout::C((self.rows(), self.cols())))
+        if strides[0] > strides[1] {
+            Ok(Layout::C((self.rows() as i32, self.cols() as i32)))
         } else {
-            Ok(Layout::F((self.rows(), self.cols())))
+            Ok(Layout::F((self.cols() as i32, self.rows() as i32)))
         }
     }
 

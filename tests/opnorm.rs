@@ -5,9 +5,12 @@ macro_rules! impl_test {
 #[test]
 fn $funcname() {
     let a = $a;
-    assert_rclose!(a.opnorm_one().unwrap(), $op1, 1e-7);
-    assert_rclose!(a.opnorm_inf().unwrap(), $opi, 1e-7);
-    assert_rclose!(a.opnorm_fro().unwrap(), $opf, 1e-7);
+    println!("ONE = {:?}", a.opnorm_one());
+    println!("INF = {:?}", a.opnorm_inf());
+    println!("FRO = {:?}", a.opnorm_fro());
+    assert_rclose!(a.opnorm_fro().unwrap(), $opf, 1e-7; "Frobenius norm");
+    assert_rclose!(a.opnorm_one().unwrap(), $op1, 1e-7; "One norm");
+    assert_rclose!(a.opnorm_inf().unwrap(), $opi, 1e-7; "Infinity norm");
 }
 }} // impl_test
 

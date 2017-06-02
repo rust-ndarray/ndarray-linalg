@@ -1,6 +1,7 @@
 //! Implement Operator norms for matrices
 
 use lapack::c;
+use lapack::c::Layout::ColumnMajor as cm;
 
 use types::*;
 use layout::*;
@@ -12,6 +13,16 @@ pub enum NormType {
     Frobenius = b'f',
 }
 
+impl NormType {
+    fn transpose(self) -> Self {
+        match self {
+            NormType::One => NormType::Infinity,
+            NormType::Infinity => NormType::One,
+            NormType::Frobenius => NormType::Frobenius,
+        }
+    }
+}
+
 pub trait OperatorNorm_: AssociatedReal {
     fn opnorm(NormType, Layout, &[Self]) -> Self::Real;
 }
@@ -20,8 +31,10 @@ macro_rules! impl_opnorm {
     ($scalar:ty, $lange:path) => {
 impl OperatorNorm_ for $scalar {
     fn opnorm(t: NormType, l: Layout, a: &[Self]) -> Self::Real {
-        let (m, n) = l.ffi_size();
-        $lange(l.ffi_layout(), t as u8, m, n, a, m)
+        match l {
+            Layout::F((col, lda)) => $lange(cm, t as u8, lda, col, a, lda),
+            Layout::C((row, lda)) => $lange(cm, t.transpose() as u8, lda, row, a, lda),
+        }
     }
 }
 }} // impl_opnorm!

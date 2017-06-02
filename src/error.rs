@@ -40,8 +40,8 @@ impl From<i32> for LapackError {
 
 #[derive(Debug, new)]
 pub struct NotSquareError {
-    pub rows: usize,
-    pub cols: usize,
+    pub rows: i32,
+    pub cols: i32,
 }
 
 impl fmt::Display for NotSquareError {

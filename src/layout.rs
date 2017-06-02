@@ -22,14 +22,6 @@ impl Layout {
         }
     }
 
-    pub fn row(&self) -> Row {
-        self.size().0
-    }
-
-    pub fn col(&self) -> Col {
-        self.size().1
-    }
-
     pub fn lda(&self) -> LDA {
         match *self {
             Layout::C((_, lda)) => lda,

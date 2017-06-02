@@ -8,11 +8,10 @@ use lapack::c::Layout;
 use super::error::{LinalgError, StrideError};
 use super::impls::qr::ImplQR;
 use super::impls::svd::ImplSVD;
-use super::impls::opnorm::ImplOpNorm;
 use super::impls::solve::ImplSolve;
 
-pub trait MFloat: ImplQR + ImplSVD + ImplOpNorm + ImplSolve + NdFloat {}
-impl<A: ImplQR + ImplSVD + ImplOpNorm + ImplSolve + NdFloat> MFloat for A {}
+pub trait MFloat: ImplQR + ImplSVD + ImplSolve + NdFloat {}
+impl<A: ImplQR + ImplSVD + ImplSolve + NdFloat> MFloat for A {}
 
 /// Methods for general matrices
 pub trait Matrix: Sized {
@@ -23,12 +22,6 @@ pub trait Matrix: Sized {
     fn size(&self) -> (usize, usize);
     /// Layout (C/Fortran) of matrix
     fn layout(&self) -> Result<Layout, StrideError>;
-    /// Operator norm for L-1 norm
-    fn opnorm_1(&self) -> Self::Scalar;
-    /// Operator norm for L-inf norm
-    fn opnorm_i(&self) -> Self::Scalar;
-    /// Frobenius norm
-    fn opnorm_f(&self) -> Self::Scalar;
     /// singular-value decomposition (SVD)
     fn svd(self) -> Result<(Self, Self::Vector, Self), LinalgError>;
     /// QR decomposition
@@ -83,28 +76,6 @@ impl<A: MFloat> Matrix for Array<A, Ix2> {
     }
     fn layout(&self) -> Result<Layout, StrideError> {
         check_layout(self.strides())
-    }
-    fn opnorm_1(&self) -> Self::Scalar {
-        let (m, n) = self.size();
-        let strides = self.strides();
-        if strides[0] > strides[1] {
-            ImplOpNorm::opnorm_i(n, m, self.clone().into_raw_vec())
-        } else {
-            ImplOpNorm::opnorm_1(m, n, self.clone().into_raw_vec())
-        }
-    }
-    fn opnorm_i(&self) -> Self::Scalar {
-        let (m, n) = self.size();
-        let strides = self.strides();
-        if strides[0] > strides[1] {
-            ImplOpNorm::opnorm_1(n, m, self.clone().into_raw_vec())
-        } else {
-            ImplOpNorm::opnorm_i(m, n, self.clone().into_raw_vec())
-        }
-    }
-    fn opnorm_f(&self) -> Self::Scalar {
-        let (m, n) = self.size();
-        ImplOpNorm::opnorm_f(m, n, self.clone().into_raw_vec())
     }
     fn svd(self) -> Result<(Self, Self::Vector, Self), LinalgError> {
         let (n, m) = self.size();
@@ -191,18 +162,6 @@ impl<A: MFloat> Matrix for RcArray<A, Ix2> {
     }
     fn layout(&self) -> Result<Layout, StrideError> {
         check_layout(self.strides())
-    }
-    fn opnorm_1(&self) -> Self::Scalar {
-        // XXX unnecessary clone
-        self.to_owned().opnorm_1()
-    }
-    fn opnorm_i(&self) -> Self::Scalar {
-        // XXX unnecessary clone
-        self.to_owned().opnorm_i()
-    }
-    fn opnorm_f(&self) -> Self::Scalar {
-        // XXX unnecessary clone
-        self.to_owned().opnorm_f()
     }
     fn svd(self) -> Result<(Self, Self::Vector, Self), LinalgError> {
         let (u, s, v) = self.into_owned().svd()?;

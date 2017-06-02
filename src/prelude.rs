@@ -5,3 +5,4 @@ pub use hermite::HermiteMatrix;
 pub use triangular::*;
 pub use util::*;
 pub use assert::*;
+pub use traits::*;

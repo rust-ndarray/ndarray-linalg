@@ -1,5 +1,6 @@
 
 use ndarray::*;
+use lapack::c;
 
 use super::error::*;
 
@@ -7,6 +8,7 @@ pub type LDA = i32;
 pub type Col = i32;
 pub type Row = i32;
 
+#[derive(Debug, Clone, Copy)]
 pub enum Layout {
     C((Row, LDA)),
     F((Col, LDA)),
@@ -17,6 +19,28 @@ impl Layout {
         match *self {
             Layout::C((row, lda)) => (row, lda),
             Layout::F((col, lda)) => (lda, col),
+        }
+    }
+
+    pub fn row(&self) -> Row {
+        self.size().0
+    }
+
+    pub fn col(&self) -> Col {
+        self.size().1
+    }
+
+    pub fn lda(&self) -> LDA {
+        match *self {
+            Layout::C((_, lda)) => lda,
+            Layout::F((_, lda)) => lda,
+        }
+    }
+
+    pub fn lapacke_layout(&self) -> c::Layout {
+        match *self {
+            Layout::C(_) => c::Layout::RowMajor,
+            Layout::F(_) => c::Layout::ColumnMajor,
         }
     }
 }

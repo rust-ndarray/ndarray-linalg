@@ -44,6 +44,10 @@ pub trait AllocatedArray {
     fn as_allocated(&self) -> Result<&[Self::Scalar]>;
 }
 
+pub trait AllocatedArrayMut: AllocatedArray {
+    fn as_allocated_mut(&mut self) -> Result<&mut [Self::Scalar]>;
+}
+
 impl<A, S> AllocatedArray for ArrayBase<S, Ix2>
     where S: Data<Elem = A>
 {
@@ -75,4 +79,22 @@ impl<A, S> AllocatedArray for ArrayBase<S, Ix2>
         let slice = self.as_slice_memory_order().ok_or(MemoryContError::new())?;
         Ok(slice)
     }
+}
+
+impl<A, S> AllocatedArrayMut for ArrayBase<S, Ix2>
+    where S: DataMut<Elem = A>
+{
+    fn as_allocated_mut(&mut self) -> Result<&mut [A]> {
+        let slice = self.as_slice_memory_order_mut().ok_or(MemoryContError::new())?;
+        Ok(slice)
+    }
+}
+
+pub fn reconstruct<A, S>(l: Layout, a: Vec<A>) -> Result<ArrayBase<S, Ix2>>
+    where S: DataOwned<Elem = A>
+{
+    Ok(match l {
+        Layout::C((row, col)) => ArrayBase::from_shape_vec((row as usize, col as usize), a)?,
+        Layout::F((col, row)) => ArrayBase::from_shape_vec((row as usize, col as usize).f(), a)?,
+    })
 }

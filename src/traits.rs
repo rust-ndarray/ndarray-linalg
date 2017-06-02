@@ -34,3 +34,19 @@ impl<A, S> OperationNorm for ArrayBase<S, Ix2>
         Ok(A::opnorm(t, l, a))
     }
 }
+
+pub trait QR<Q, R> {
+    fn qr(self) -> Result<(Q, R)>;
+}
+
+impl<A, Sq, Sr> QR<ArrayBase<Sq, Ix2>, ArrayBase<Sr, Ix2>> for ArrayBase<Sq, Ix2>
+    where A: LapackScalar,
+          Sq: DataMut<Elem = A>,
+          Sr: DataOwned<Elem = A>
+{
+    fn qr(mut self) -> Result<(ArrayBase<Sq, Ix2>, ArrayBase<Sr, Ix2>)> {
+        let l = self.layout()?;
+        let r = A::qr(l, self.as_allocated_mut()?)?;
+        Ok((self, reconstruct(l, r)?))
+    }
+}

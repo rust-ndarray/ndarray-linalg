@@ -2,6 +2,7 @@
 pub use impl2::LapackScalar;
 pub use impl2::NormType;
 
+use num_traits::Zero;
 use ndarray::*;
 
 use super::types::*;
@@ -39,16 +40,32 @@ pub trait QR<Q, R> {
     fn qr2(self) -> Result<(Q, R)>;
 }
 
-impl<A, Sq, Sr> QR<ArrayBase<Sq, Ix2>, ArrayBase<Sr, Ix2>> for ArrayBase<Sq, Ix2>
-    where A: LapackScalar,
-          Sq: DataMut<Elem = A>,
-          Sr: DataOwned<Elem = A>
+impl<A, S, Sq, Sr> QR<ArrayBase<Sq, Ix2>, ArrayBase<Sr, Ix2>> for ArrayBase<S, Ix2>
+    where A: LapackScalar + Copy + Zero,
+          S: DataMut<Elem = A>,
+          Sq: DataOwned<Elem = A> + DataMut,
+          Sr: DataOwned<Elem = A> + DataMut
 {
     fn qr2(mut self) -> Result<(ArrayBase<Sq, Ix2>, ArrayBase<Sr, Ix2>)> {
+        let n = self.rows();
+        let m = self.cols();
+        let k = ::std::cmp::min(n, m);
         let l = self.layout()?;
+        // calc QR decomposition
         let r = A::qr(l, self.as_allocated_mut()?)?;
-        let r = reconstruct(l, r)?;
+        let r: Array2<_> = reconstruct(l, r)?;
         let q = self;
+        // get slice
+        let qv = q.slice(s![..n as isize, ..k as isize]);
+        let mut q = unsafe { ArrayBase::uninitialized((n, k)) };
+        q.assign(&qv);
+        let rv = r.slice(s![..k as isize, ..m as isize]);
+        let mut r = ArrayBase::zeros((k, m));
+        for ((i, j), val) in r.indexed_iter_mut() {
+            if i <= j {
+                *val = rv[(i, j)];
+            }
+        }
         Ok((q, r))
     }
 }

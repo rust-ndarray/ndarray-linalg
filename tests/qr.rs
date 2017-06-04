@@ -10,7 +10,7 @@ fn $funcname() {
     let a = $random($n, $m, $t);
     let ans = a.clone();
     println!("a = \n{:?}", &a);
-    let (q, r) = a.qr().unwrap();
+    let (q, r) : (_, Array2<f64>) = a.qr2().unwrap();
     println!("q = \n{:?}", &q);
     println!("r = \n{:?}", &r);
     assert_close_l2!(&q.t().dot(&q), &Array::eye(min($n, $m)), 1e-7);

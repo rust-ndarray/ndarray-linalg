@@ -37,7 +37,7 @@ impl<A, S> OperationNorm for ArrayBase<S, Ix2>
 }
 
 pub trait QR<Q, R> {
-    fn qr2(self) -> Result<(Q, R)>;
+    fn qr(self) -> Result<(Q, R)>;
 }
 
 impl<A, S, Sq, Sr> QR<ArrayBase<Sq, Ix2>, ArrayBase<Sr, Ix2>> for ArrayBase<S, Ix2>
@@ -46,7 +46,7 @@ impl<A, S, Sq, Sr> QR<ArrayBase<Sq, Ix2>, ArrayBase<Sr, Ix2>> for ArrayBase<S, I
           Sq: DataOwned<Elem = A> + DataMut,
           Sr: DataOwned<Elem = A> + DataMut
 {
-    fn qr2(mut self) -> Result<(ArrayBase<Sq, Ix2>, ArrayBase<Sr, Ix2>)> {
+    fn qr(mut self) -> Result<(ArrayBase<Sq, Ix2>, ArrayBase<Sr, Ix2>)> {
         let n = self.rows();
         let m = self.cols();
         let k = ::std::cmp::min(n, m);

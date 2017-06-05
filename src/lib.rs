@@ -48,7 +48,8 @@ pub mod layout;
 pub mod impls;
 pub mod impl2;
 
-pub mod traits;
+pub mod qr;
+pub mod opnorm;
 
 pub mod vector;
 pub mod matrix;

@@ -7,4 +7,5 @@ pub use util::*;
 pub use assert::*;
 
 pub use qr::*;
+pub use svd::*;
 pub use opnorm::*;

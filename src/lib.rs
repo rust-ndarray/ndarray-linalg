@@ -49,6 +49,7 @@ pub mod impls;
 pub mod impl2;
 
 pub mod qr;
+pub mod svd;
 pub mod opnorm;
 
 pub mod vector;

@@ -30,7 +30,7 @@ macro_rules! impl_svd {
 
 impl SVD_ for $scalar {
     fn svd(l: Layout, calc_u: bool, calc_vt: bool, mut a: &mut [Self]) -> Result<SVDOutput<Self>> {
-        let (n, m) = l.size();
+        let (m, n) = l.size();
         let k = ::std::cmp::min(n, m);
         let lda = l.lda();
         let (ju, ldu, mut u) = if calc_u {
@@ -39,7 +39,7 @@ impl SVD_ for $scalar {
             (FlagSVD::No, 0, Vec::new())
         };
         let (jvt, ldvt, mut vt) = if calc_vt {
-            (FlagSVD::All, m, vec![Self::zero(); (m*m) as usize])
+            (FlagSVD::All, n, vec![Self::zero(); (n*n) as usize])
         } else {
             (FlagSVD::No, 0, Vec::new())
         };

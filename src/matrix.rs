@@ -21,8 +21,6 @@ pub trait Matrix: Sized {
     fn size(&self) -> (usize, usize);
     /// Layout (C/Fortran) of matrix
     fn layout(&self) -> Result<Layout, StrideError>;
-    /// singular-value decomposition (SVD)
-    fn svd(self) -> Result<(Self, Self::Vector, Self), LinalgError>;
     /// LU decomposition
     fn lu(self) -> Result<(Self::Permutator, Self, Self), LinalgError>;
     /// permutate matrix (inplace)
@@ -74,18 +72,6 @@ impl<A: MFloat> Matrix for Array<A, Ix2> {
     fn layout(&self) -> Result<Layout, StrideError> {
         check_layout(self.strides())
     }
-    fn svd(self) -> Result<(Self, Self::Vector, Self), LinalgError> {
-        let (n, m) = self.size();
-        let layout = self.layout()?;
-        let (u, s, vt) = ImplSVD::svd(layout, m, n, self.clone().into_raw_vec())?;
-        let sv = Array::from_vec(s);
-        let ua = Array::from_vec(u).into_shape((n, n)).unwrap();
-        let va = Array::from_vec(vt).into_shape((m, m)).unwrap();
-        match layout {
-            Layout::RowMajor => Ok((ua, sv, va)),
-            Layout::ColumnMajor => Ok((ua.reversed_axes(), sv, va.reversed_axes())),
-        }
-    }
     fn lu(self) -> Result<(Self::Permutator, Self, Self), LinalgError> {
         let (n, m) = self.size();
         let k = min(n, m);
@@ -128,10 +114,6 @@ impl<A: MFloat> Matrix for RcArray<A, Ix2> {
     }
     fn layout(&self) -> Result<Layout, StrideError> {
         check_layout(self.strides())
-    }
-    fn svd(self) -> Result<(Self, Self::Vector, Self), LinalgError> {
-        let (u, s, v) = self.into_owned().svd()?;
-        Ok((u.into_shared(), s.into_shared(), v.into_shared()))
     }
     fn lu(self) -> Result<(Self::Permutator, Self, Self), LinalgError> {
         let (p, l, u) = self.into_owned().lu()?;

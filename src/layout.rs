@@ -22,6 +22,13 @@ impl Layout {
         }
     }
 
+    pub fn resized(&self, row: Row, col: Col) -> Layout {
+        match *self {
+            Layout::C(_) => Layout::C((row, col)),
+            Layout::F(_) => Layout::F((col, row)),
+        }
+    }
+
     pub fn lda(&self) -> LDA {
         match *self {
             Layout::C((_, lda)) => lda,

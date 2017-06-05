@@ -2,7 +2,7 @@
 use ndarray::*;
 
 use super::error::*;
-use super::layout::{Layout, AllocatedArray, AllocatedArrayMut};
+use super::layout::*;
 use impl2::LapackScalar;
 
 pub trait SVD<U, S, VT> {
@@ -20,20 +20,11 @@ impl<A, S, Su, Svt, Ss> SVD<ArrayBase<Su, Ix2>, ArrayBase<Ss, Ix1>, ArrayBase<Sv
            calc_u: bool,
            calc_vt: bool)
            -> Result<(Option<ArrayBase<Su, Ix2>>, ArrayBase<Ss, Ix1>, Option<ArrayBase<Svt, Ix2>>)> {
-        let n = self.rows();
-        let m = self.cols();
         let l = self.layout()?;
         let svd_res = A::svd(l, calc_u, calc_vt, self.as_allocated_mut()?)?;
-        let (u, vt) = match l {
-            Layout::C(_) => {
-                (svd_res.u.map(|u| ArrayBase::from_shape_vec((n, n), u).unwrap()),
-                 svd_res.vt.map(|vt| ArrayBase::from_shape_vec((m, m), vt).unwrap()))
-            }
-            Layout::F(_) => {
-                (svd_res.u.map(|u| ArrayBase::from_shape_vec((n, n).f(), u).unwrap()),
-                 svd_res.vt.map(|vt| ArrayBase::from_shape_vec((m, m).f(), vt).unwrap()))
-            }
-        };
+        let (n, m) = l.size();
+        let u = svd_res.u.map(|u| reconstruct(l.resized(n, n), u).unwrap());
+        let vt = svd_res.vt.map(|vt| reconstruct(l.resized(m, m), vt).unwrap());
         let s = ArrayBase::from_vec(svd_res.s);
         Ok((u, s, vt))
     }

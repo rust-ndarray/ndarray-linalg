@@ -1,12 +1,12 @@
 
-pub use impl2::LapackScalar;
-pub use impl2::NormType;
-
 use ndarray::*;
 
 use super::types::*;
 use super::error::*;
 use super::layout::*;
+
+pub use impl2::NormType;
+use impl2::LapackScalar;
 
 pub trait OperationNorm {
     type Output;

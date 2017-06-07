@@ -6,12 +6,11 @@ use ndarray::DataMut;
 use lapack::c::Layout;
 
 use super::error::{LinalgError, StrideError};
-use super::impls::qr::ImplQR;
 use super::impls::svd::ImplSVD;
 use super::impls::solve::ImplSolve;
 
-pub trait MFloat: ImplQR + ImplSVD + ImplSolve + NdFloat {}
-impl<A: ImplQR + ImplSVD + ImplSolve + NdFloat> MFloat for A {}
+pub trait MFloat: ImplSVD + ImplSolve + NdFloat {}
+impl<A: ImplSVD + ImplSolve + NdFloat> MFloat for A {}
 
 /// Methods for general matrices
 pub trait Matrix: Sized {
@@ -22,10 +21,6 @@ pub trait Matrix: Sized {
     fn size(&self) -> (usize, usize);
     /// Layout (C/Fortran) of matrix
     fn layout(&self) -> Result<Layout, StrideError>;
-    /// singular-value decomposition (SVD)
-    fn svd(self) -> Result<(Self, Self::Vector, Self), LinalgError>;
-    /// QR decomposition
-    fn qr(self) -> Result<(Self, Self), LinalgError>;
     /// LU decomposition
     fn lu(self) -> Result<(Self::Permutator, Self, Self), LinalgError>;
     /// permutate matrix (inplace)
@@ -77,49 +72,6 @@ impl<A: MFloat> Matrix for Array<A, Ix2> {
     fn layout(&self) -> Result<Layout, StrideError> {
         check_layout(self.strides())
     }
-    fn svd(self) -> Result<(Self, Self::Vector, Self), LinalgError> {
-        let (n, m) = self.size();
-        let layout = self.layout()?;
-        let (u, s, vt) = ImplSVD::svd(layout, m, n, self.clone().into_raw_vec())?;
-        let sv = Array::from_vec(s);
-        let ua = Array::from_vec(u).into_shape((n, n)).unwrap();
-        let va = Array::from_vec(vt).into_shape((m, m)).unwrap();
-        match layout {
-            Layout::RowMajor => Ok((ua, sv, va)),
-            Layout::ColumnMajor => Ok((ua.reversed_axes(), sv, va.reversed_axes())),
-        }
-    }
-    fn qr(self) -> Result<(Self, Self), LinalgError> {
-        let (n, m) = self.size();
-        let strides = self.strides();
-        let k = min(n, m);
-        let layout = self.layout()?;
-        let (q, r) = ImplQR::qr(layout, m, n, self.clone().into_raw_vec())?;
-        let (qa, ra) = if strides[0] < strides[1] {
-            (Array::from_vec(q).into_shape((m, n)).unwrap().reversed_axes(),
-             Array::from_vec(r).into_shape((m, n)).unwrap().reversed_axes())
-        } else {
-            (Array::from_vec(q).into_shape((n, m)).unwrap(), Array::from_vec(r).into_shape((n, m)).unwrap())
-        };
-        let qm = if m > k {
-            let (qsl, _) = qa.view().split_at(Axis(1), k);
-            qsl.to_owned()
-        } else {
-            qa
-        };
-        let mut rm = if n > k {
-            let (rsl, _) = ra.view().split_at(Axis(0), k);
-            rsl.to_owned()
-        } else {
-            ra
-        };
-        for ((i, j), val) in rm.indexed_iter_mut() {
-            if i > j {
-                *val = A::zero();
-            }
-        }
-        Ok((qm, rm))
-    }
     fn lu(self) -> Result<(Self::Permutator, Self, Self), LinalgError> {
         let (n, m) = self.size();
         let k = min(n, m);
@@ -162,14 +114,6 @@ impl<A: MFloat> Matrix for RcArray<A, Ix2> {
     }
     fn layout(&self) -> Result<Layout, StrideError> {
         check_layout(self.strides())
-    }
-    fn svd(self) -> Result<(Self, Self::Vector, Self), LinalgError> {
-        let (u, s, v) = self.into_owned().svd()?;
-        Ok((u.into_shared(), s.into_shared(), v.into_shared()))
-    }
-    fn qr(self) -> Result<(Self, Self), LinalgError> {
-        let (q, r) = self.into_owned().qr()?;
-        Ok((q.into_shared(), r.into_shared()))
     }
     fn lu(self) -> Result<(Self::Permutator, Self, Self), LinalgError> {
         let (p, l, u) = self.into_owned().lu()?;

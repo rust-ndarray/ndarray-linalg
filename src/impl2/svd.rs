@@ -7,6 +7,8 @@ use types::*;
 use error::*;
 use layout::Layout;
 
+use super::into_result;
+
 #[repr(u8)]
 enum FlagSVD {
     All = b'A',
@@ -46,15 +48,11 @@ impl SVD_ for $scalar {
         let mut s = vec![Self::Real::zero(); k as usize];
         let mut superb = vec![Self::Real::zero(); (k-2) as usize];
         let info = $gesvd(l.lapacke_layout(), ju as u8, jvt as u8, m, n, &mut a, lda, &mut s, &mut u, ldu, &mut vt, ldvt, &mut superb);
-        if info == 0 {
-            Ok(SVDOutput {
-                s: s,
-                u: if ldu > 0 { Some(u) } else { None },
-                vt: if ldvt > 0 { Some(vt) } else { None },
-            })
-        } else {
-            Err(LapackError::new(info).into())
-        }
+        into_result(info, SVDOutput {
+            s: s,
+            u: if ldu > 0 { Some(u) } else { None },
+            vt: if ldvt > 0 { Some(vt) } else { None },
+        })
     }
 }
 

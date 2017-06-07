@@ -8,6 +8,8 @@ use types::*;
 use error::*;
 use layout::Layout;
 
+use super::into_result;
+
 pub trait QR_: Sized {
     fn householder(Layout, a: &mut [Self]) -> Result<Vec<Self>>;
     fn q(Layout, a: &mut [Self], tau: &[Self]) -> Result<()>;
@@ -22,22 +24,14 @@ impl QR_ for $scalar {
         let k = min(row, col);
         let mut tau = vec![Self::zero(); k as usize];
         let info = $qrf(l.lapacke_layout(), row, col, &mut a, l.lda(), &mut tau);
-        if info == 0 {
-            Ok(tau)
-        } else {
-            Err(LapackError::new(info).into())
-        }
+        into_result(info, tau)
     }
 
     fn q(l: Layout, mut a: &mut [Self], tau: &[Self]) -> Result<()> {
         let (row, col) = l.size();
         let k = min(row, col);
         let info = $gqr(l.lapacke_layout(), row, k, k, &mut a, l.lda(), &tau);
-        if info == 0 {
-            Ok(())
-        } else {
-            Err(LapackError::new(info).into())
-        }
+        into_result(info, ())
     }
 
     fn qr(l: Layout, mut a: &mut [Self]) -> Result<Vec<Self>> {

@@ -2,10 +2,14 @@
 pub mod opnorm;
 pub mod qr;
 pub mod svd;
+pub mod solve;
 
 pub use self::opnorm::*;
 pub use self::qr::*;
 pub use self::svd::*;
+pub use self::solve::*;
+
+use super::error::*;
 
 use super::error::*;
 

@@ -11,10 +11,8 @@ pub use self::solve::*;
 
 use super::error::*;
 
-use super::error::*;
-
-pub trait LapackScalar: OperatorNorm_ + QR_ + SVD_ {}
-impl<A> LapackScalar for A where A: OperatorNorm_ + QR_ + SVD_ {}
+pub trait LapackScalar: OperatorNorm_ + QR_ + SVD_ + Solve_ {}
+impl<A> LapackScalar for A where A: OperatorNorm_ + QR_ + SVD_ + Solve_ {}
 
 pub fn into_result<T>(info: i32, val: T) -> Result<T> {
     if info == 0 {

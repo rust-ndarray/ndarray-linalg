@@ -9,6 +9,7 @@ use super::into_result;
 
 pub type Pivot = Vec<i32>;
 
+#[derive(Debug, Clone, Copy)]
 #[repr(u8)]
 pub enum Transpose {
     No = b'N',

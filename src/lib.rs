@@ -51,6 +51,7 @@ pub mod impl2;
 pub mod qr;
 pub mod svd;
 pub mod opnorm;
+pub mod solve;
 
 pub mod vector;
 pub mod matrix;

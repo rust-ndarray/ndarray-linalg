@@ -6,11 +6,10 @@ use ndarray::DataMut;
 use lapack::c::Layout;
 
 use super::error::{LinalgError, StrideError};
-use super::impls::svd::ImplSVD;
 use super::impls::solve::ImplSolve;
 
-pub trait MFloat: ImplSVD + ImplSolve + NdFloat {}
-impl<A: ImplSVD + ImplSolve + NdFloat> MFloat for A {}
+pub trait MFloat: ImplSolve + NdFloat {}
+impl<A: ImplSolve + NdFloat> MFloat for A {}
 
 /// Methods for general matrices
 pub trait Matrix: Sized {

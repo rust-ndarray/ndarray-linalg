@@ -64,3 +64,27 @@ impl<'a, A, S> Factorize<OwnedRepr<A>> for &'a ArrayBase<S, Ix2>
         Ok(Factorized { a: a, ipiv: ipiv })
     }
 }
+
+pub trait Inverse<Inv> {
+    fn inv(self) -> Result<Inv>;
+}
+
+impl<A, S> Inverse<ArrayBase<S, Ix2>> for ArrayBase<S, Ix2>
+    where A: LapackScalar,
+          S: DataMut<Elem = A>
+{
+    fn inv(self) -> Result<ArrayBase<S, Ix2>> {
+        let f = self.factorize()?;
+        f.into_inverse()
+    }
+}
+
+impl<'a, A, S> Inverse<Array2<A>> for &'a ArrayBase<S, Ix2>
+    where A: LapackScalar + Clone,
+          S: Data<Elem = A>
+{
+    fn inv(self) -> Result<Array2<A>> {
+        let f = self.factorize()?;
+        f.into_inverse()
+    }
+}

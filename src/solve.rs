@@ -18,7 +18,7 @@ impl<A, S> Factorized<S>
     pub fn solve<Sb>(&self, t: Transpose, mut rhs: ArrayBase<Sb, Ix1>) -> Result<ArrayBase<Sb, Ix1>>
         where Sb: DataMut<Elem = A>
     {
-        A::solve(self.a.layout()?,
+        A::solve(self.a.square_layout()?,
                  t,
                  self.a.as_allocated()?,
                  &self.ipiv,
@@ -32,7 +32,9 @@ impl<A, S> Factorized<S>
           S: DataMut<Elem = A>
 {
     pub fn into_inverse(mut self) -> Result<ArrayBase<S, Ix2>> {
-        A::inv(self.a.layout()?, self.a.as_allocated_mut()?, &self.ipiv)?;
+        A::inv(self.a.square_layout()?,
+               self.a.as_allocated_mut()?,
+               &self.ipiv)?;
         Ok(self.a)
     }
 }

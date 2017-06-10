@@ -56,12 +56,13 @@ impl<A, S> Factorize<S> for ArrayBase<S, Ix2>
     }
 }
 
-impl<'a, A, S> Factorize<OwnedRepr<A>> for &'a ArrayBase<S, Ix2>
-    where A: LapackScalar + Clone,
-          S: Data<Elem = A>
+impl<'a, A, Si, So> Factorize<So> for &'a ArrayBase<Si, Ix2>
+    where A: LapackScalar + Copy,
+          Si: Data<Elem = A>,
+          So: DataOwned<Elem = A> + DataMut
 {
-    fn factorize(self) -> Result<Factorized<OwnedRepr<A>>> {
-        let mut a = self.to_owned();
+    fn factorize(self) -> Result<Factorized<So>> {
+        let mut a: ArrayBase<So, Ix2> = replicate(self);
         let ipiv = A::lu(a.layout()?, a.as_allocated_mut()?)?;
         Ok(Factorized { a: a, ipiv: ipiv })
     }
@@ -81,11 +82,12 @@ impl<A, S> Inverse<ArrayBase<S, Ix2>> for ArrayBase<S, Ix2>
     }
 }
 
-impl<'a, A, S> Inverse<Array2<A>> for &'a ArrayBase<S, Ix2>
-    where A: LapackScalar + Clone,
-          S: Data<Elem = A>
+impl<'a, A, Si, So> Inverse<ArrayBase<So, Ix2>> for &'a ArrayBase<Si, Ix2>
+    where A: LapackScalar + Copy,
+          Si: Data<Elem = A>,
+          So: DataOwned<Elem = A> + DataMut
 {
-    fn inv(self) -> Result<Array2<A>> {
+    fn inv(self) -> Result<ArrayBase<So, Ix2>> {
         let f = self.factorize()?;
         f.into_inverse()
     }

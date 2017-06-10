@@ -23,3 +23,10 @@ pub fn into_result<T>(info: i32, val: T) -> Result<T> {
         Err(LapackError::new(info).into())
     }
 }
+
+#[derive(Debug, Clone, Copy)]
+#[repr(u8)]
+pub enum UPLO {
+    Upper = b'U',
+    Lower = b'L',
+}

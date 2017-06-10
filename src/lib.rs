@@ -52,6 +52,7 @@ pub mod qr;
 pub mod svd;
 pub mod opnorm;
 pub mod solve;
+pub mod cholesky;
 pub mod eigh;
 
 pub mod vector;

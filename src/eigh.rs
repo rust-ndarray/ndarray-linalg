@@ -48,3 +48,37 @@ impl<'a, A, S, Se> Eigh<ArrayBase<Se, Ix1>, &'a mut ArrayBase<S, Ix2>> for &'a m
 pub trait EigValsh<EigVal> {
     fn eigvalsh(self, UPLO) -> Result<EigVal>;
 }
+
+impl<A, S, Se> EigValsh<ArrayBase<Se, Ix1>> for ArrayBase<S, Ix2>
+    where A: LapackScalar,
+          S: DataMut<Elem = A>,
+          Se: DataOwned<Elem = A::Real>
+{
+    fn eigvalsh(mut self, uplo: UPLO) -> Result<ArrayBase<Se, Ix1>> {
+        let s = A::eigh(false, self.square_layout()?, uplo, self.as_allocated_mut()?)?;
+        Ok(ArrayBase::from_vec(s))
+    }
+}
+
+impl<'a, A, S, Se> EigValsh<ArrayBase<Se, Ix1>> for &'a ArrayBase<S, Ix2>
+    where A: LapackScalar + Copy,
+          S: Data<Elem = A>,
+          Se: DataOwned<Elem = A::Real>
+{
+    fn eigvalsh(self, uplo: UPLO) -> Result<ArrayBase<Se, Ix1>> {
+        let mut a = self.to_owned();
+        let s = A::eigh(false, a.square_layout()?, uplo, a.as_allocated_mut()?)?;
+        Ok(ArrayBase::from_vec(s))
+    }
+}
+
+impl<'a, A, S, Se> EigValsh<ArrayBase<Se, Ix1>> for &'a mut ArrayBase<S, Ix2>
+    where A: LapackScalar,
+          S: DataMut<Elem = A>,
+          Se: DataOwned<Elem = A::Real>
+{
+    fn eigvalsh(mut self, uplo: UPLO) -> Result<ArrayBase<Se, Ix1>> {
+        let s = A::eigh(true, self.square_layout()?, uplo, self.as_allocated_mut()?)?;
+        Ok(ArrayBase::from_vec(s))
+    }
+}

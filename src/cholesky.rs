@@ -4,7 +4,8 @@ use ndarray::*;
 use super::error::*;
 use super::layout::*;
 
-use impl2::{LapackScalar, UPLO};
+use impl2::LapackScalar;
+pub use impl2::UPLO;
 
 pub trait Cholesky<K> {
     fn cholesky(self, UPLO) -> Result<K>;

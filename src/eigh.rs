@@ -21,6 +21,19 @@ impl<A, S, Se> Eigh<ArrayBase<Se, Ix1>, ArrayBase<S, Ix2>> for ArrayBase<S, Ix2>
     }
 }
 
+impl<'a, A, S, Se, So> Eigh<ArrayBase<Se, Ix1>, ArrayBase<So, Ix2>> for &'a ArrayBase<S, Ix2>
+    where A: LapackScalar + Copy,
+          S: Data<Elem = A>,
+          Se: DataOwned<Elem = A::Real>,
+          So: DataOwned<Elem = A> + DataMut
+{
+    fn eigh(self, uplo: UPLO) -> Result<(ArrayBase<Se, Ix1>, ArrayBase<So, Ix2>)> {
+        let mut a = replicate(self);
+        let s = A::eigh(true, a.square_layout()?, uplo, a.as_allocated_mut()?)?;
+        Ok((ArrayBase::from_vec(s), a))
+    }
+}
+
 impl<'a, A, S, Se> Eigh<ArrayBase<Se, Ix1>, &'a mut ArrayBase<S, Ix2>> for &'a mut ArrayBase<S, Ix2>
     where A: LapackScalar,
           S: DataMut<Elem = A>,

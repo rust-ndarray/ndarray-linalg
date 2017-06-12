@@ -1,6 +1,9 @@
 //! Define methods for triangular matrices
 
 use ndarray::*;
+use num_traits::Zero;
+use super::impl2::UPLO;
+
 use super::matrix::{Matrix, MFloat};
 use super::square::SquareMatrix;
 use super::error::LinalgError;
@@ -87,7 +90,7 @@ impl<A: MFloat> SolveTriangular<RcArray<A, Ix2>> for RcArray<A, Ix2> {
     }
 }
 
-pub fn drop_upper<A: NdFloat, S>(mut a: ArrayBase<S, Ix2>) -> ArrayBase<S, Ix2>
+pub fn drop_upper<A: Zero, S>(mut a: ArrayBase<S, Ix2>) -> ArrayBase<S, Ix2>
     where S: DataMut<Elem = A>
 {
     for ((i, j), val) in a.indexed_iter_mut() {
@@ -98,7 +101,7 @@ pub fn drop_upper<A: NdFloat, S>(mut a: ArrayBase<S, Ix2>) -> ArrayBase<S, Ix2>
     a
 }
 
-pub fn drop_lower<A: NdFloat, S>(mut a: ArrayBase<S, Ix2>) -> ArrayBase<S, Ix2>
+pub fn drop_lower<A: Zero, S>(mut a: ArrayBase<S, Ix2>) -> ArrayBase<S, Ix2>
     where S: DataMut<Elem = A>
 {
     for ((i, j), val) in a.indexed_iter_mut() {
@@ -107,4 +110,43 @@ pub fn drop_lower<A: NdFloat, S>(mut a: ArrayBase<S, Ix2>) -> ArrayBase<S, Ix2>
         }
     }
     a
+}
+
+pub trait IntoTriangular<T> {
+    fn into_triangular(self, UPLO) -> T;
+}
+
+impl<'a, A, S> IntoTriangular<&'a mut ArrayBase<S, Ix2>> for &'a mut ArrayBase<S, Ix2>
+    where A: Zero,
+          S: DataMut<Elem = A>
+{
+    fn into_triangular(self, uplo: UPLO) -> &'a mut ArrayBase<S, Ix2> {
+        match uplo {
+            UPLO::Upper => {
+                for ((i, j), val) in self.indexed_iter_mut() {
+                    if i > j {
+                        *val = A::zero();
+                    }
+                }
+            }
+            UPLO::Lower => {
+                for ((i, j), val) in self.indexed_iter_mut() {
+                    if i < j {
+                        *val = A::zero();
+                    }
+                }
+            }
+        }
+        self
+    }
+}
+
+impl<A, S> IntoTriangular<ArrayBase<S, Ix2>> for ArrayBase<S, Ix2>
+    where A: Zero,
+          S: DataMut<Elem = A>
+{
+    fn into_triangular(mut self, uplo: UPLO) -> ArrayBase<S, Ix2> {
+        (&mut self).into_triangular(uplo);
+        self
+    }
 }

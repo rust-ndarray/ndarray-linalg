@@ -52,11 +52,12 @@ pub mod qr;
 pub mod svd;
 pub mod opnorm;
 pub mod solve;
+pub mod cholesky;
+pub mod eigh;
 
 pub mod vector;
 pub mod matrix;
 pub mod square;
-pub mod hermite;
 pub mod triangular;
 
 pub mod util;

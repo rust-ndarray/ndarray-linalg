@@ -105,3 +105,14 @@ pub fn reconstruct<A, S>(l: Layout, a: Vec<A>) -> Result<ArrayBase<S, Ix2>>
         Layout::F((col, row)) => ArrayBase::from_shape_vec((row as usize, col as usize).f(), a)?,
     })
 }
+
+pub fn replicate<A, Sv, So, D>(a: &ArrayBase<Sv, D>) -> ArrayBase<So, D>
+    where A: Copy,
+          Sv: Data<Elem = A>,
+          So: DataOwned<Elem = A> + DataMut,
+          D: Dimension
+{
+    let mut b = unsafe { ArrayBase::uninitialized(a.dim()) };
+    b.assign(a);
+    b
+}

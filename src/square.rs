@@ -1,11 +1,9 @@
 //! Define trait for Hermite matrices
 
 use ndarray::{Ix2, Array, RcArray, ArrayBase, Data};
-use lapack::c::Layout;
 
 use super::matrix::{Matrix, MFloat};
 use super::error::{LinalgError, NotSquareError};
-use super::impls::solve::ImplSolve;
 
 /// Methods for square matrices
 ///
@@ -13,9 +11,6 @@ use super::impls::solve::ImplSolve;
 /// but does not assure that the matrix is square.
 /// If not square, `NotSquareError` will be thrown.
 pub trait SquareMatrix: Matrix {
-    // fn eig(self) -> (Self::Vector, Self);
-    /// inverse matrix
-    fn inv(self) -> Result<Self, LinalgError>;
     /// trace of matrix
     fn trace(&self) -> Result<Self::Scalar, LinalgError>;
     #[doc(hidden)]
@@ -25,8 +20,8 @@ pub trait SquareMatrix: Matrix {
             Ok(())
         } else {
             Err(NotSquareError {
-                rows: rows,
-                cols: cols,
+                rows: rows as i32,
+                cols: cols as i32,
             })
         }
     }
@@ -46,18 +41,6 @@ fn trace<A: MFloat, S>(a: &ArrayBase<S, Ix2>) -> A
 }
 
 impl<A: MFloat> SquareMatrix for Array<A, Ix2> {
-    fn inv(self) -> Result<Self, LinalgError> {
-        self.check_square()?;
-        let (n, _) = self.size();
-        let layout = self.layout()?;
-        let (ipiv, a) = ImplSolve::lu(layout, n, n, self.into_raw_vec())?;
-        let a = ImplSolve::inv(layout, n, a, &ipiv)?;
-        let m = Array::from_vec(a).into_shape((n, n)).unwrap();
-        match layout {
-            Layout::RowMajor => Ok(m),
-            Layout::ColumnMajor => Ok(m.reversed_axes()),
-        }
-    }
     fn trace(&self) -> Result<Self::Scalar, LinalgError> {
         self.check_square()?;
         Ok(trace(self))
@@ -65,11 +48,6 @@ impl<A: MFloat> SquareMatrix for Array<A, Ix2> {
 }
 
 impl<A: MFloat> SquareMatrix for RcArray<A, Ix2> {
-    fn inv(self) -> Result<Self, LinalgError> {
-        // XXX unnecessary clone (should use into_owned())
-        let i = self.to_owned().inv()?;
-        Ok(i.into_shared())
-    }
     fn trace(&self) -> Result<Self::Scalar, LinalgError> {
         self.check_square()?;
         Ok(trace(self))

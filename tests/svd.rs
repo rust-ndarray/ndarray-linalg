@@ -9,11 +9,13 @@ fn $funcname() {
     use ndarray_linalg::prelude::*;
     let a = $random($n, $m, $t);
     let answer = a.clone();
-    println!("a = \n{}", &a);
-    let (u, s, vt) = a.svd().unwrap();
-    println!("u = \n{}", &u);
-    println!("s = \n{}", &s);
-    println!("v = \n{}", &vt);
+    println!("a = \n{:?}", &a);
+    let (u, s, vt): (_, Array1<_>, _) = a.svd(true, true).unwrap();
+    let u: Array2<_> = u.unwrap();
+    let vt: Array2<_> = vt.unwrap();
+    println!("u = \n{:?}", &u);
+    println!("s = \n{:?}", &s);
+    println!("v = \n{:?}", &vt);
     let mut sm = Array::zeros(($n, $m));
     for i in 0..min($n, $m) {
         sm[(i, i)] = s[i];

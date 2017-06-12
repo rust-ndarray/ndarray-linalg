@@ -4,7 +4,18 @@ use std::error;
 use std::fmt;
 use ndarray::{Ixs, ShapeError};
 
-#[derive(Debug)]
+pub type Result<T> = ::std::result::Result<T, LinalgError>;
+
+#[derive(Debug, EnumError)]
+pub enum LinalgError {
+    NotSquare(NotSquareError),
+    Lapack(LapackError),
+    Stride(StrideError),
+    MemoryCont(MemoryContError),
+    Shape(ShapeError),
+}
+
+#[derive(Debug, new)]
 pub struct LapackError {
     pub return_code: i32,
 }
@@ -27,10 +38,10 @@ impl From<i32> for LapackError {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, new)]
 pub struct NotSquareError {
-    pub rows: usize,
-    pub cols: usize,
+    pub rows: i32,
+    pub cols: i32,
 }
 
 impl fmt::Display for NotSquareError {
@@ -45,7 +56,7 @@ impl error::Error for NotSquareError {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, new)]
 pub struct StrideError {
     pub s0: Ixs,
     pub s1: Ixs,
@@ -63,55 +74,17 @@ impl error::Error for StrideError {
     }
 }
 
-#[derive(Debug)]
-pub enum LinalgError {
-    NotSquare(NotSquareError),
-    Lapack(LapackError),
-    Stride(StrideError),
-    Shape(ShapeError),
-}
+#[derive(Debug, new)]
+pub struct MemoryContError {}
 
-impl fmt::Display for LinalgError {
+impl fmt::Display for MemoryContError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        match *self {
-            LinalgError::NotSquare(ref err) => err.fmt(f),
-            LinalgError::Lapack(ref err) => err.fmt(f),
-            LinalgError::Stride(ref err) => err.fmt(f),
-            LinalgError::Shape(ref err) => err.fmt(f),
-        }
+        write!(f, "Memory is not contiguous")
     }
 }
 
-impl error::Error for LinalgError {
+impl error::Error for MemoryContError {
     fn description(&self) -> &str {
-        match *self {
-            LinalgError::NotSquare(ref err) => err.description(),
-            LinalgError::Lapack(ref err) => err.description(),
-            LinalgError::Stride(ref err) => err.description(),
-            LinalgError::Shape(ref err) => err.description(),
-        }
-    }
-}
-
-impl From<NotSquareError> for LinalgError {
-    fn from(err: NotSquareError) -> LinalgError {
-        LinalgError::NotSquare(err)
-    }
-}
-
-impl From<LapackError> for LinalgError {
-    fn from(err: LapackError) -> LinalgError {
-        LinalgError::Lapack(err)
-    }
-}
-
-impl From<StrideError> for LinalgError {
-    fn from(err: StrideError) -> LinalgError {
-        LinalgError::Stride(err)
-    }
-}
-impl From<ShapeError> for LinalgError {
-    fn from(err: ShapeError) -> LinalgError {
-        LinalgError::Shape(err)
+        "Memory is not contiguous"
     }
 }

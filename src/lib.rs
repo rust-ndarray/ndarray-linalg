@@ -37,14 +37,27 @@ extern crate num_traits;
 extern crate num_complex;
 #[macro_use(s)]
 extern crate ndarray;
+#[macro_use]
+extern crate enum_error_derive;
+#[macro_use]
+extern crate derive_new;
 
-pub mod impls;
+pub mod types;
 pub mod error;
+pub mod layout;
+pub mod impls;
+pub mod impl2;
+
+pub mod qr;
+pub mod svd;
+pub mod opnorm;
+pub mod solve;
+pub mod cholesky;
+pub mod eigh;
 
 pub mod vector;
 pub mod matrix;
 pub mod square;
-pub mod hermite;
 pub mod triangular;
 
 pub mod util;

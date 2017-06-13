@@ -4,10 +4,10 @@ test-openblas:
   steps:
     - script:
       name: test OpenBLAS backend
-      code: cargo test -vv --no-default-features --features=openblas
+      code: cargo test --no-default-features --features=openblas
 
 test-netlib:
   steps:
     - script:
       name: test NetLib backend
-      code: cargo test -vv --no-default-features --features=netlib
+      code: cargo test --no-default-features --features=netlib

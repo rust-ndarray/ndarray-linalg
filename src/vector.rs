@@ -1,11 +1,14 @@
 //! Define trait for vectors
 
 use std::iter::Sum;
-use ndarray::{Array, NdFloat, Ix1, Ix2, LinalgScalar, ArrayBase, Data, Dimension};
-use num_traits::float::Float;
-use super::impls::outer::ImplOuter;
+use ndarray::*;
+use num_traits::Float;
 
-/// Norms of ndarray
+use super::types::*;
+
+/// Define norm as a metric linear space (not as a matrix)
+///
+/// For operator norms, see opnorm module
 pub trait Norm {
     type Output;
     /// rename of `norm_l2`
@@ -31,7 +34,7 @@ impl<A, S, D, T> Norm for ArrayBase<S, D>
         self.iter().map(|x| x.abs()).sum()
     }
     fn norm_l2(&self) -> Self::Output {
-        self.iter().map(|x| x.sq_abs()).sum::<T>().sqrt()
+        self.iter().map(|x| x.squared()).sum::<T>().sqrt()
     }
     fn norm_max(&self) -> Self::Output {
         self.iter().fold(T::zero(), |f, &val| {
@@ -44,35 +47,36 @@ impl<A, S, D, T> Norm for ArrayBase<S, D>
 /// Field with norm
 pub trait Absolute {
     type Output: Float;
-    fn sq_abs(&self) -> Self::Output;
+    fn squared(&self) -> Self::Output;
     fn abs(&self) -> Self::Output {
-        self.sq_abs().sqrt()
+        self.squared().sqrt()
     }
 }
 
-impl<A: Float> Absolute for A {
-    type Output = A;
-    fn sq_abs(&self) -> A {
+macro_rules! impl_abs {
+    ($f:ty, $c:ty) => {
+
+impl Absolute for $f {
+    type Output = Self;
+    fn squared(&self) -> Self::Output {
         *self * *self
     }
-    fn abs(&self) -> A {
+    fn abs(&self) -> Self::Output {
         Float::abs(*self)
     }
 }
 
-/// Outer product
-pub fn outer<A, S1, S2>(a: &ArrayBase<S1, Ix1>, b: &ArrayBase<S2, Ix1>) -> Array<A, Ix2>
-    where A: NdFloat + ImplOuter,
-          S1: Data<Elem = A>,
-          S2: Data<Elem = A>
-{
-    let m = a.len();
-    let n = b.len();
-    let mut ab = Array::zeros((n, m));
-    ImplOuter::outer(m,
-                     n,
-                     a.as_slice_memory_order().unwrap(),
-                     b.as_slice_memory_order().unwrap(),
-                     ab.as_slice_memory_order_mut().unwrap());
-    ab.reversed_axes()
+impl Absolute for $c {
+    type Output = $f;
+    fn squared(&self) -> Self::Output {
+        self.norm_sqr()
+    }
+    fn abs(&self) -> Self::Output {
+        self.norm()
+    }
 }
+
+}} // impl_abs!
+
+impl_abs!(f64, c64);
+impl_abs!(f32, c32);

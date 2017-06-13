@@ -53,20 +53,20 @@ impl Layout {
 }
 
 pub trait AllocatedArray {
-    type Scalar;
+    type Elem;
     fn layout(&self) -> Result<Layout>;
     fn square_layout(&self) -> Result<Layout>;
-    fn as_allocated(&self) -> Result<&[Self::Scalar]>;
+    fn as_allocated(&self) -> Result<&[Self::Elem]>;
 }
 
 pub trait AllocatedArrayMut: AllocatedArray {
-    fn as_allocated_mut(&mut self) -> Result<&mut [Self::Scalar]>;
+    fn as_allocated_mut(&mut self) -> Result<&mut [Self::Elem]>;
 }
 
 impl<A, S> AllocatedArray for ArrayBase<S, Ix2>
     where S: Data<Elem = A>
 {
-    type Scalar = A;
+    type Elem = A;
 
     fn layout(&self) -> Result<Layout> {
         let strides = self.strides();
@@ -91,8 +91,7 @@ impl<A, S> AllocatedArray for ArrayBase<S, Ix2>
     }
 
     fn as_allocated(&self) -> Result<&[A]> {
-        let slice = self.as_slice_memory_order().ok_or(MemoryContError::new())?;
-        Ok(slice)
+        Ok(self.as_slice_memory_order().ok_or(MemoryContError::new())?)
     }
 }
 
@@ -100,10 +99,36 @@ impl<A, S> AllocatedArrayMut for ArrayBase<S, Ix2>
     where S: DataMut<Elem = A>
 {
     fn as_allocated_mut(&mut self) -> Result<&mut [A]> {
-        let slice = self.as_slice_memory_order_mut().ok_or(MemoryContError::new())?;
-        Ok(slice)
+        Ok(self.as_slice_memory_order_mut().ok_or(MemoryContError::new())?)
     }
 }
+
+impl<A, S> AllocatedArray for ArrayBase<S, Ix1>
+    where S: Data<Elem = A>
+{
+    type Elem = A;
+
+    fn layout(&self) -> Result<Layout> {
+        Ok(Layout::F((self.len() as i32, 1)))
+    }
+
+    fn square_layout(&self) -> Result<Layout> {
+        Err(NotSquareError::new(self.len() as i32, 1).into())
+    }
+
+    fn as_allocated(&self) -> Result<&[A]> {
+        Ok(self.as_slice_memory_order().ok_or(MemoryContError::new())?)
+    }
+}
+
+impl<A, S> AllocatedArrayMut for ArrayBase<S, Ix1>
+    where S: DataMut<Elem = A>
+{
+    fn as_allocated_mut(&mut self) -> Result<&mut [A]> {
+        Ok(self.as_slice_memory_order_mut().ok_or(MemoryContError::new())?)
+    }
+}
+
 
 pub fn reconstruct<A, S>(l: Layout, a: Vec<A>) -> Result<ArrayBase<S, Ix2>>
     where S: DataOwned<Elem = A>

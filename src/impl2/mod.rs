@@ -5,6 +5,7 @@ pub mod svd;
 pub mod solve;
 pub mod cholesky;
 pub mod eigh;
+pub mod triangular;
 
 pub use self::opnorm::*;
 pub use self::qr::*;
@@ -35,4 +36,12 @@ pub fn into_result<T>(info: i32, val: T) -> Result<T> {
 pub enum UPLO {
     Upper = b'U',
     Lower = b'L',
+}
+
+#[derive(Debug, Clone, Copy)]
+#[repr(u8)]
+pub enum Transpose {
+    No = b'N',
+    Transpose = b'T',
+    Hermite = b'C',
 }

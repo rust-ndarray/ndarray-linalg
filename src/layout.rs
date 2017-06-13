@@ -5,6 +5,7 @@ use lapack::c;
 use super::error::*;
 
 pub type LDA = i32;
+pub type LEN = i32;
 pub type Col = i32;
 pub type Row = i32;
 
@@ -33,6 +34,13 @@ impl Layout {
         match *self {
             Layout::C((_, lda)) => lda,
             Layout::F((_, lda)) => lda,
+        }
+    }
+
+    pub fn len(&self) -> LEN {
+        match *self {
+            Layout::C((row, _)) => row,
+            Layout::F((col, _)) => col,
         }
     }
 

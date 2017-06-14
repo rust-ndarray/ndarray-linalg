@@ -12,3 +12,4 @@ pub use opnorm::*;
 pub use solve::*;
 pub use eigh::*;
 pub use cholesky::*;
+pub use impl2::LapackScalar;

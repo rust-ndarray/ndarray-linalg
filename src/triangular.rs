@@ -7,6 +7,8 @@ use super::layout::*;
 use super::error::*;
 use super::impl2::*;
 
+pub use super::impl2::Diag;
+
 /// solve a triangular system with upper triangular matrix
 pub trait SolveTriangular<Rhs> {
     type Output;

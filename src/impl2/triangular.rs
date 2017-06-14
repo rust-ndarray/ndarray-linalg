@@ -3,6 +3,7 @@
 use lapack::c;
 
 use error::*;
+use types::*;
 use layout::Layout;
 use super::{UPLO, Transpose, into_result};
 
@@ -18,11 +19,14 @@ pub trait Triangular_: Sized {
     fn solve_triangular(al: Layout, bl: Layout, UPLO, Diag, a: &[Self], b: &mut [Self]) -> Result<()>;
 }
 
-impl Triangular_ for f64 {
+macro_rules! impl_triangular {
+    ($scalar:ty, $trtri:path, $trtrs:path) => {
+
+impl Triangular_ for $scalar {
     fn inv_triangular(l: Layout, uplo: UPLO, diag: Diag, a: &mut [Self]) -> Result<()> {
         let (n, _) = l.size();
         let lda = l.lda();
-        let info = c::dtrtri(l.lapacke_layout(), uplo as u8, diag as u8, n, a, lda);
+        let info = $trtri(l.lapacke_layout(), uplo as u8, diag as u8, n, a, lda);
         into_result(info, ())
     }
 
@@ -31,16 +35,14 @@ impl Triangular_ for f64 {
         let lda = al.lda();
         let nrhs = bl.len();
         let ldb = bl.lda();
-        let info = c::dtrtrs(al.lapacke_layout(),
-                             uplo as u8,
-                             Transpose::No as u8,
-                             diag as u8,
-                             n,
-                             nrhs,
-                             a,
-                             lda,
-                             &mut b,
-                             ldb);
+        let info = $trtrs(al.lapacke_layout(), uplo as u8, Transpose::No as u8, diag as u8, n, nrhs, a, lda, &mut b, ldb);
         into_result(info, ())
     }
 }
+
+}} // impl_triangular!
+
+impl_triangular!(f64, c::dtrtri, c::dtrtrs);
+impl_triangular!(f32, c::strtri, c::strtrs);
+impl_triangular!(c64, c::ztrtri, c::ztrtrs);
+impl_triangular!(c32, c::ctrtri, c::ctrtrs);

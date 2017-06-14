@@ -1,6 +1,7 @@
 
 pub use num_complex::Complex32 as c32;
 pub use num_complex::Complex64 as c64;
+use num_complex::Complex;
 use num_traits::Float;
 use std::ops::*;
 
@@ -18,6 +19,10 @@ pub trait Absolute {
     fn abs(&self) -> Self::Output {
         self.squared().sqrt()
     }
+}
+
+pub trait Conjugate: Copy {
+    fn conj(self) -> Self;
 }
 
 macro_rules! impl_traits {
@@ -56,6 +61,18 @@ impl Absolute for $complex {
     }
     fn abs(&self) -> Self::Output {
         self.norm()
+    }
+}
+
+impl Conjugate for $real {
+    fn conj(self) -> Self {
+        self
+    }
+}
+
+impl Conjugate for $complex {
+    fn conj(self) -> Self {
+        Complex::conj(&self)
     }
 }
 

@@ -3,9 +3,23 @@ use ndarray::*;
 use rand::*;
 use std::ops::*;
 
+use super::layout::*;
 use super::types::*;
 use super::error::*;
 
+pub fn conjugate<A, Si, So>(a: &ArrayBase<Si, Ix2>) -> ArrayBase<So, Ix2>
+    where A: Conjugate,
+          Si: Data<Elem = A>,
+          So: DataOwned<Elem = A> + DataMut
+{
+    let mut a = replicate(&a.t());
+    for val in a.iter_mut() {
+        *val = Conjugate::conj(*val);
+    }
+    a
+}
+
+/// Random square matrix
 pub fn random_square<A, S>(n: usize) -> ArrayBase<S, Ix2>
     where A: Rand,
           S: DataOwned<Elem = A>
@@ -15,6 +29,7 @@ pub fn random_square<A, S>(n: usize) -> ArrayBase<S, Ix2>
     ArrayBase::from_shape_vec((n, n), v).unwrap()
 }
 
+/// Random Hermite matrix
 pub fn random_hermite<A, S>(n: usize) -> ArrayBase<S, Ix2>
     where A: Rand + Conjugate + Add<Output = A>,
           S: DataOwned<Elem = A> + DataMut
@@ -22,11 +37,21 @@ pub fn random_hermite<A, S>(n: usize) -> ArrayBase<S, Ix2>
     let mut a = random_square(n);
     for i in 0..n {
         a[(i, i)] = a[(i, i)] + Conjugate::conj(a[(i, i)]);
-        for j in i..n {
-            a[(i, j)] = a[(j, i)];
+        for j in (i + 1)..n {
+            a[(i, j)] = Conjugate::conj(a[(j, i)])
         }
     }
     a
+}
+
+/// Random Hermite Positive-definite matrix
+pub fn random_hpd<A, S>(n: usize) -> ArrayBase<S, Ix2>
+    where A: Rand + Conjugate + LinalgScalar,
+          S: DataOwned<Elem = A> + DataMut
+{
+    let a: Array2<A> = random_square(n);
+    let ah: Array2<A> = conjugate(&a);
+    replicate(&ah.dot(&a))
 }
 
 /// construct matrix from diag

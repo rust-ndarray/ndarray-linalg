@@ -57,12 +57,12 @@ pub mod solve;
 pub mod cholesky;
 pub mod eigh;
 
-pub mod vector;
 pub mod matrix;
 pub mod square;
 pub mod triangular;
 
-pub mod util;
 pub mod generate;
 pub mod assert;
+pub mod norm;
+
 pub mod prelude;

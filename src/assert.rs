@@ -3,7 +3,7 @@
 use ndarray::*;
 
 use super::types::*;
-use super::vector::*;
+use super::norm::*;
 
 pub fn rclose<A, Tol>(test: A, truth: A, rtol: Tol) -> Result<Tol, Tol>
     where A: Field + Absolute<Output = Tol>,

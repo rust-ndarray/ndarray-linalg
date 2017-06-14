@@ -47,7 +47,6 @@ extern crate derive_new;
 pub mod types;
 pub mod error;
 pub mod layout;
-pub mod impls;
 pub mod impl2;
 
 pub mod qr;

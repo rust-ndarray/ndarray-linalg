@@ -4,6 +4,7 @@ use std::iter::Sum;
 use num_traits::Float;
 use ndarray::*;
 
+use super::types::*;
 use super::vector::*;
 
 pub fn rclose<A, Tol>(test: A, truth: A, rtol: Tol) -> Result<Tol, Tol>

@@ -15,8 +15,12 @@ pub use self::eigh::*;
 
 use super::error::*;
 
-pub trait LapackScalar: OperatorNorm_ + QR_ + SVD_ + Solve_ + Cholesky_ + Eigh_ {}
-impl<A> LapackScalar for A where A: OperatorNorm_ + QR_ + SVD_ + Solve_ + Cholesky_ + Eigh_ {}
+trait_alias!(LapackScalar: OperatorNorm_,
+             QR_,
+             SVD_,
+             Solve_,
+             Cholesky_,
+             Eigh_);
 
 pub fn into_result<T>(info: i32, val: T) -> Result<T> {
     if info == 0 {

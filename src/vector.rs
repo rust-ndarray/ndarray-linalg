@@ -1,8 +1,6 @@
 //! Define trait for vectors
 
 use ndarray::*;
-use num_traits::Float;
-
 use super::types::*;
 
 /// Define norm as a metric linear space (not as a matrix)
@@ -24,7 +22,7 @@ pub trait Norm {
 
 impl<A, S, D, T> Norm for ArrayBase<S, D>
     where A: Field + Absolute<Output = T>,
-          T: Field + Float,
+          T: RealField,
           S: Data<Elem = A>,
           D: Dimension
 {

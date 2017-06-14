@@ -1,7 +1,6 @@
 //! misc utilities
 
 use ndarray::*;
-use num_traits::Float;
 use std::ops::Div;
 
 use super::types::*;
@@ -16,7 +15,7 @@ pub enum NormalizeAxis {
 pub fn normalize<A, S, T>(mut m: ArrayBase<S, Ix2>, axis: NormalizeAxis) -> (ArrayBase<S, Ix2>, Vec<T>)
     where A: Field + Absolute<Output = T> + Div<T, Output = A>,
           S: DataMut<Elem = A>,
-          T: Field + Float
+          T: RealField
 {
     let mut ms = Vec::new();
     for mut v in m.axis_iter_mut(Axis(axis as usize)) {

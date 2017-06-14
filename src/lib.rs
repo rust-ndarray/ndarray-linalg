@@ -60,5 +60,6 @@ pub mod triangular;
 pub mod generate;
 pub mod assert;
 pub mod norm;
+pub mod trace;
 
 pub mod prelude;

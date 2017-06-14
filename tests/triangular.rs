@@ -19,3 +19,8 @@ fn test1d<A, Sa, Sb, Tol>(uplo: UPLO, a: ArrayBase<Sa, Ix2>, b: ArrayBase<Sb, Ix
     let b_ = a.dot(&x);
     assert_close_l2!(&b_, &ans, tol);
 }
+
+#[test]
+fn triangular_rand() {
+    let a = random_square(n);
+}

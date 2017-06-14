@@ -55,9 +55,6 @@ pub mod opnorm;
 pub mod solve;
 pub mod cholesky;
 pub mod eigh;
-
-pub mod matrix;
-pub mod square;
 pub mod triangular;
 
 pub mod generate;

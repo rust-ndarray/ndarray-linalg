@@ -4,6 +4,8 @@ pub use num_complex::Complex64 as c64;
 use num_complex::Complex;
 use num_traits::Float;
 use std::ops::*;
+use rand::Rng;
+use rand::distributions::*;
 
 pub trait AssociatedReal: Sized {
     type Real: Float + Mul<Self, Output = Self>;
@@ -23,6 +25,10 @@ pub trait Absolute {
 
 pub trait Conjugate: Copy {
     fn conj(self) -> Self;
+}
+
+pub trait RandNormal {
+    fn randn<R: Rng>(&mut R) -> Self;
 }
 
 macro_rules! impl_traits {
@@ -73,6 +79,22 @@ impl Conjugate for $real {
 impl Conjugate for $complex {
     fn conj(self) -> Self {
         Complex::conj(&self)
+    }
+}
+
+impl RandNormal for $real {
+    fn randn<R: Rng>(rng: &mut R) -> Self {
+        let dist = Normal::new(0., 1.);
+        dist.ind_sample(rng) as $real
+    }
+}
+
+impl RandNormal for $complex {
+    fn randn<R: Rng>(rng: &mut R) -> Self {
+        let dist = Normal::new(0., 1.);
+        let re = dist.ind_sample(rng) as $real;
+        let im = dist.ind_sample(rng) as $real;
+        Self::new(re, im)
     }
 }
 

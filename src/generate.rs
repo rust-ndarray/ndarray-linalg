@@ -1,7 +1,7 @@
 
 use ndarray::*;
-use rand::*;
 use std::ops::*;
+use rand::*;
 
 use super::layout::*;
 use super::types::*;
@@ -21,17 +21,17 @@ pub fn conjugate<A, Si, So>(a: &ArrayBase<Si, Ix2>) -> ArrayBase<So, Ix2>
 
 /// Random square matrix
 pub fn random_square<A, S>(n: usize) -> ArrayBase<S, Ix2>
-    where A: Rand,
+    where A: RandNormal,
           S: DataOwned<Elem = A>
 {
     let mut rng = thread_rng();
-    let v: Vec<A> = (0..n * n).map(|_| rng.gen()).collect();
+    let v: Vec<A> = (0..n * n).map(|_| A::randn(&mut rng)).collect();
     ArrayBase::from_shape_vec((n, n), v).unwrap()
 }
 
 /// Random Hermite matrix
 pub fn random_hermite<A, S>(n: usize) -> ArrayBase<S, Ix2>
-    where A: Rand + Conjugate + Add<Output = A>,
+    where A: RandNormal + Conjugate + Add<Output = A>,
           S: DataOwned<Elem = A> + DataMut
 {
     let mut a = random_square(n);
@@ -46,7 +46,7 @@ pub fn random_hermite<A, S>(n: usize) -> ArrayBase<S, Ix2>
 
 /// Random Hermite Positive-definite matrix
 pub fn random_hpd<A, S>(n: usize) -> ArrayBase<S, Ix2>
-    where A: Rand + Conjugate + LinalgScalar,
+    where A: RandNormal + Conjugate + LinalgScalar,
           S: DataOwned<Elem = A> + DataMut
 {
     let a: Array2<A> = random_square(n);

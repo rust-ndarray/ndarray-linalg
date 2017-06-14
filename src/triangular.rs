@@ -7,7 +7,7 @@ use super::impl2::UPLO;
 use super::matrix::{Matrix, MFloat};
 use super::square::SquareMatrix;
 use super::error::LinalgError;
-use super::util::hstack;
+use super::generate::hstack;
 use super::impls::solve::ImplSolve;
 
 pub trait SolveTriangular<Rhs>: Matrix + SquareMatrix {

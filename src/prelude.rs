@@ -3,6 +3,8 @@ pub use matrix::Matrix;
 pub use square::SquareMatrix;
 pub use triangular::*;
 pub use util::*;
+pub use types::*;
+pub use generate::*;
 pub use assert::*;
 
 pub use qr::*;

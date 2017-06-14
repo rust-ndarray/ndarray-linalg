@@ -15,14 +15,31 @@ pub trait SolveTriangular<Rhs> {
     fn solve_triangular(&self, UPLO, Diag, Rhs) -> Result<Self::Output>;
 }
 
-impl<A, S, V> SolveTriangular<V> for ArrayBase<S, Ix2>
+impl<A, Si, So, D> SolveTriangular<ArrayBase<So, D>> for ArrayBase<Si, Ix2>
     where A: LapackScalar,
-          S: Data<Elem = A>,
-          V: AllocatedArrayMut<Elem = A>
+          Si: Data<Elem = A>,
+          So: DataMut<Elem = A>,
+          D: Dimension,
+          ArrayBase<So, D>: AllocatedArrayMut<Elem = A>
 {
-    type Output = V;
+    type Output = ArrayBase<So, D>;
 
-    fn solve_triangular(&self, uplo: UPLO, diag: Diag, mut b: V) -> Result<Self::Output> {
+    fn solve_triangular(&self, uplo: UPLO, diag: Diag, mut b: ArrayBase<So, D>) -> Result<Self::Output> {
+        self.solve_triangular(uplo, diag, &mut b)?;
+        Ok(b)
+    }
+}
+
+impl<'a, A, Si, So, D> SolveTriangular<&'a mut ArrayBase<So, D>> for ArrayBase<Si, Ix2>
+    where A: LapackScalar,
+          Si: Data<Elem = A>,
+          So: DataMut<Elem = A>,
+          D: Dimension,
+          ArrayBase<So, D>: AllocatedArrayMut<Elem = A>
+{
+    type Output = &'a mut ArrayBase<So, D>;
+
+    fn solve_triangular(&self, uplo: UPLO, diag: Diag, mut b: &'a mut ArrayBase<So, D>) -> Result<Self::Output> {
         let la = self.layout()?;
         let lb = b.layout()?;
         let a_ = self.as_allocated()?;
@@ -31,16 +48,19 @@ impl<A, S, V> SolveTriangular<V> for ArrayBase<S, Ix2>
     }
 }
 
-pub fn drop_upper<A: Zero, S>(a: ArrayBase<S, Ix2>) -> ArrayBase<S, Ix2>
-    where S: DataMut<Elem = A>
+impl<'a, A, Si, So, D> SolveTriangular<&'a ArrayBase<So, D>> for ArrayBase<Si, Ix2>
+    where A: LapackScalar + Copy,
+          Si: Data<Elem = A>,
+          So: DataMut<Elem = A> + DataOwned,
+          D: Dimension,
+          ArrayBase<So, D>: AllocatedArrayMut<Elem = A>
 {
-    a.into_triangular(UPLO::Lower)
-}
+    type Output = ArrayBase<So, D>;
 
-pub fn drop_lower<A: Zero, S>(a: ArrayBase<S, Ix2>) -> ArrayBase<S, Ix2>
-    where S: DataMut<Elem = A>
-{
-    a.into_triangular(UPLO::Upper)
+    fn solve_triangular(&self, uplo: UPLO, diag: Diag, b: &'a ArrayBase<So, D>) -> Result<Self::Output> {
+        let b = replicate(b);
+        self.solve_triangular(uplo, diag, b)
+    }
 }
 
 pub trait IntoTriangular<T> {
@@ -80,4 +100,16 @@ impl<A, S> IntoTriangular<ArrayBase<S, Ix2>> for ArrayBase<S, Ix2>
         (&mut self).into_triangular(uplo);
         self
     }
+}
+
+pub fn drop_upper<A: Zero, S>(a: ArrayBase<S, Ix2>) -> ArrayBase<S, Ix2>
+    where S: DataMut<Elem = A>
+{
+    a.into_triangular(UPLO::Lower)
+}
+
+pub fn drop_lower<A: Zero, S>(a: ArrayBase<S, Ix2>) -> ArrayBase<S, Ix2>
+    where S: DataMut<Elem = A>
+{
+    a.into_triangular(UPLO::Upper)
 }

@@ -1,6 +1,5 @@
 //! Define trait for vectors
 
-use std::iter::Sum;
 use ndarray::*;
 use num_traits::Float;
 
@@ -24,8 +23,8 @@ pub trait Norm {
 }
 
 impl<A, S, D, T> Norm for ArrayBase<S, D>
-    where A: LinalgScalar + Absolute<Output = T>,
-          T: Float + Sum,
+    where A: Field + Absolute<Output = T>,
+          T: Field + Float,
           S: Data<Elem = A>,
           D: Dimension
 {

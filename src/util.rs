@@ -1,6 +1,5 @@
 //! misc utilities
 
-use std::iter::Sum;
 use ndarray::*;
 use num_traits::Float;
 use std::ops::Div;
@@ -15,9 +14,9 @@ pub enum NormalizeAxis {
 
 /// normalize in L2 norm
 pub fn normalize<A, S, T>(mut m: ArrayBase<S, Ix2>, axis: NormalizeAxis) -> (ArrayBase<S, Ix2>, Vec<T>)
-    where A: LinalgScalar + Absolute<Output = T> + Div<T, Output = A>,
+    where A: Field + Absolute<Output = T> + Div<T, Output = A>,
           S: DataMut<Elem = A>,
-          T: Float + Sum
+          T: Field + Float
 {
     let mut ms = Vec::new();
     for mut v in m.axis_iter_mut(Axis(axis as usize)) {

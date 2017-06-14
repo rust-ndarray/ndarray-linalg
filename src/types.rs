@@ -1,11 +1,39 @@
 
-pub use num_complex::Complex32 as c32;
-pub use num_complex::Complex64 as c64;
-use num_complex::Complex;
-use num_traits::Float;
 use std::ops::*;
+use std::fmt::Debug;
+use std::iter::Sum;
+use num_complex::Complex;
+use num_traits::*;
 use rand::Rng;
 use rand::distributions::*;
+use ndarray::LinalgScalar;
+
+use super::impl2::LapackScalar;
+
+pub use num_complex::Complex32 as c32;
+pub use num_complex::Complex64 as c64;
+
+macro_rules! trait_alias {
+    ($name:ident: $($t:ident),*) => {
+
+pub trait $name : $($t +)* {}
+
+impl<T> $name for T where T: $($t +)* {}
+
+}} // trait_alias!
+
+trait_alias!(Field: LapackScalar,
+             LinalgScalar,
+             AssociatedReal,
+             AssociatedComplex,
+             Absolute,
+             SquareRoot,
+             Conjugate,
+             RandNormal,
+             Sum,
+             Debug);
+
+trait_alias!(RealField: Field, Float);
 
 pub trait AssociatedReal: Sized {
     type Real: Float + Mul<Self, Output = Self>;
@@ -16,11 +44,15 @@ pub trait AssociatedComplex: Sized {
 
 /// Field with norm
 pub trait Absolute {
-    type Output: Float;
+    type Output: RealField;
     fn squared(&self) -> Self::Output;
     fn abs(&self) -> Self::Output {
         self.squared().sqrt()
     }
+}
+
+pub trait SquareRoot {
+    fn sqrt(&self) -> Self;
 }
 
 pub trait Conjugate: Copy {
@@ -67,6 +99,18 @@ impl Absolute for $complex {
     }
     fn abs(&self) -> Self::Output {
         self.norm()
+    }
+}
+
+impl SquareRoot for $real {
+    fn sqrt(&self) -> Self {
+        Float::sqrt(*self)
+    }
+}
+
+impl SquareRoot for $complex {
+    fn sqrt(&self) -> Self {
+        Complex::sqrt(self)
     }
 }
 

@@ -109,11 +109,11 @@ impl<A, S> AllocatedArray for ArrayBase<S, Ix1>
     type Elem = A;
 
     fn layout(&self) -> Result<Layout> {
-        Ok(Layout::F((self.len() as i32, 1)))
+        Ok(Layout::F((1, self.len() as i32)))
     }
 
     fn square_layout(&self) -> Result<Layout> {
-        Err(NotSquareError::new(self.len() as i32, 1).into())
+        Err(NotSquareError::new(1, self.len() as i32).into())
     }
 
     fn as_allocated(&self) -> Result<&[A]> {

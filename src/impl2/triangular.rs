@@ -34,7 +34,16 @@ impl Triangular_ for $scalar {
         let (n, _) = al.size();
         let lda = al.lda();
         let nrhs = bl.len();
-        let ldb = bl.lda();
+        let ldb = match al {
+            Layout::C(_) => bl.len() as i32,
+            Layout::F(_) => bl.lda() as i32,
+        };
+        println!("al = {:?}", al);
+        println!("bl = {:?}", bl);
+        println!("n = {}", n);
+        println!("lda = {}", lda);
+        println!("nrhs = {}", nrhs);
+        println!("ldb = {}", ldb);
         let info = $trtrs(al.lapacke_layout(), uplo as u8, Transpose::No as u8, diag as u8, n, nrhs, a, lda, &mut b, ldb);
         into_result(info, ())
     }

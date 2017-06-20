@@ -50,6 +50,37 @@ impl Layout {
             Layout::F(_) => c::Layout::ColumnMajor,
         }
     }
+
+    pub fn same_order(&self, other: &Layout) -> bool {
+        match *self {
+            Layout::C(_) => {
+                match *other {
+                    Layout::C(_) => true,
+                    Layout::F(_) => false,
+                }
+            }
+            Layout::F(_) => {
+                match *other {
+                    Layout::C(_) => false,
+                    Layout::F(_) => true,
+                }
+            }
+        }
+    }
+
+    pub fn as_shape(&self) -> Shape<Ix2> {
+        match *self {
+            Layout::C((row, col)) => (row as usize, col as usize).into_shape(),
+            Layout::F((col, row)) => (row as usize, col as usize).f().into_shape(),
+        }
+    }
+
+    pub fn t(&self) -> Self {
+        match *self {
+            Layout::C((row, col)) => Layout::F((col, row)),
+            Layout::F((col, row)) => Layout::C((row, col)),
+        }
+    }
 }
 
 pub trait AllocatedArray {
@@ -133,10 +164,14 @@ impl<A, S> AllocatedArrayMut for ArrayBase<S, Ix1>
 pub fn reconstruct<A, S>(l: Layout, a: Vec<A>) -> Result<ArrayBase<S, Ix2>>
     where S: DataOwned<Elem = A>
 {
-    Ok(match l {
-        Layout::C((row, col)) => ArrayBase::from_shape_vec((row as usize, col as usize), a)?,
-        Layout::F((col, row)) => ArrayBase::from_shape_vec((row as usize, col as usize).f(), a)?,
-    })
+    Ok(ArrayBase::from_shape_vec(l.as_shape(), a)?)
+}
+
+pub fn uninitialized<A, S>(l: Layout) -> ArrayBase<S, Ix2>
+    where A: Copy,
+          S: DataOwned<Elem = A>
+{
+    unsafe { ArrayBase::uninitialized(l.as_shape()) }
 }
 
 pub fn replicate<A, Sv, So, D>(a: &ArrayBase<Sv, D>) -> ArrayBase<So, D>
@@ -146,6 +181,16 @@ pub fn replicate<A, Sv, So, D>(a: &ArrayBase<Sv, D>) -> ArrayBase<So, D>
           D: Dimension
 {
     let mut b = unsafe { ArrayBase::uninitialized(a.dim()) };
+    b.assign(a);
+    b
+}
+
+pub fn clone_with_layout<A, Si, So>(l: Layout, a: &ArrayBase<Si, Ix2>) -> ArrayBase<So, Ix2>
+    where A: Copy,
+          Si: Data<Elem = A>,
+          So: DataOwned<Elem = A> + DataMut
+{
+    let mut b = uninitialized(l);
     b.assign(a);
     b
 }

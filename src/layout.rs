@@ -52,20 +52,7 @@ impl Layout {
     }
 
     pub fn same_order(&self, other: &Layout) -> bool {
-        match *self {
-            Layout::C(_) => {
-                match *other {
-                    Layout::C(_) => true,
-                    Layout::F(_) => false,
-                }
-            }
-            Layout::F(_) => {
-                match *other {
-                    Layout::C(_) => false,
-                    Layout::F(_) => true,
-                }
-            }
-        }
+        self.lapacke_layout() == other.lapacke_layout()
     }
 
     pub fn as_shape(&self) -> Shape<Ix2> {

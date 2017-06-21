@@ -62,7 +62,7 @@ impl Layout {
         }
     }
 
-    pub fn t(&self) -> Self {
+    pub fn toggle_order(&self) -> Self {
         match *self {
             Layout::C((row, col)) => Layout::F((col, row)),
             Layout::F((col, row)) => Layout::C((row, col)),
@@ -121,8 +121,26 @@ impl<A, S> AllocatedArrayMut for ArrayBase<S, Ix2>
     }
 }
 
+pub fn into_col_vec<S>(a: ArrayBase<S, Ix1>) -> ArrayBase<S, Ix2>
+    where S: Data
+{
+    let n = a.len();
+    a.into_shape((n, 1)).unwrap()
+}
 
+pub fn into_row_vec<S>(a: ArrayBase<S, Ix1>) -> ArrayBase<S, Ix2>
+    where S: Data
+{
+    let n = a.len();
+    a.into_shape((1, n)).unwrap()
+}
 
+pub fn into_vec<S>(a: ArrayBase<S, Ix2>) -> ArrayBase<S, Ix1>
+    where S: Data
+{
+    let n = a.len();
+    a.into_shape((n)).unwrap()
+}
 
 pub fn reconstruct<A, S>(l: Layout, a: Vec<A>) -> Result<ArrayBase<S, Ix2>>
     where S: DataOwned<Elem = A>
@@ -156,4 +174,14 @@ pub fn clone_with_layout<A, Si, So>(l: Layout, a: &ArrayBase<Si, Ix2>) -> ArrayB
     let mut b = uninitialized(l);
     b.assign(a);
     b
+}
+
+pub fn data_transpose<A, S>(a: &mut ArrayBase<S, Ix2>) -> Result<&mut ArrayBase<S, Ix2>>
+    where A: Copy,
+          S: DataOwned<Elem = A> + DataMut
+{
+    let l = a.layout()?.toggle_order();
+    let new = clone_with_layout(l, a);
+    ::std::mem::replace(a, new);
+    Ok(a)
 }

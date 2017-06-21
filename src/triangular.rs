@@ -15,49 +15,74 @@ pub trait SolveTriangular<Rhs> {
     fn solve_triangular(&self, UPLO, Diag, Rhs) -> Result<Self::Output>;
 }
 
-impl<A, Si, So, D> SolveTriangular<ArrayBase<So, D>> for ArrayBase<Si, Ix2>
-    where A: LapackScalar,
+impl<A, Si, So> SolveTriangular<ArrayBase<So, Ix2>> for ArrayBase<Si, Ix2>
+    where A: LapackScalar + Copy,
           Si: Data<Elem = A>,
-          So: DataMut<Elem = A>,
-          D: Dimension,
-          ArrayBase<So, D>: AllocatedArrayMut<Elem = A>
+          So: DataMut<Elem = A> + DataOwned
 {
-    type Output = ArrayBase<So, D>;
+    type Output = ArrayBase<So, Ix2>;
 
-    fn solve_triangular(&self, uplo: UPLO, diag: Diag, mut b: ArrayBase<So, D>) -> Result<Self::Output> {
+    fn solve_triangular(&self, uplo: UPLO, diag: Diag, mut b: ArrayBase<So, Ix2>) -> Result<Self::Output> {
         self.solve_triangular(uplo, diag, &mut b)?;
         Ok(b)
     }
 }
 
-impl<'a, A, Si, So, D> SolveTriangular<&'a mut ArrayBase<So, D>> for ArrayBase<Si, Ix2>
-    where A: LapackScalar,
+impl<'a, A, Si, So> SolveTriangular<&'a mut ArrayBase<So, Ix2>> for ArrayBase<Si, Ix2>
+    where A: LapackScalar + Copy,
           Si: Data<Elem = A>,
-          So: DataMut<Elem = A>,
-          D: Dimension,
-          ArrayBase<So, D>: AllocatedArrayMut<Elem = A>
+          So: DataMut<Elem = A> + DataOwned
 {
-    type Output = &'a mut ArrayBase<So, D>;
+    type Output = &'a mut ArrayBase<So, Ix2>;
 
-    fn solve_triangular(&self, uplo: UPLO, diag: Diag, mut b: &'a mut ArrayBase<So, D>) -> Result<Self::Output> {
+    fn solve_triangular(&self, uplo: UPLO, diag: Diag, mut b: &'a mut ArrayBase<So, Ix2>) -> Result<Self::Output> {
         let la = self.layout()?;
-        let lb = b.layout()?;
         let a_ = self.as_allocated()?;
+        let lb = b.layout()?;
+        if !la.same_order(&lb) {
+            data_transpose(b)?;
+        }
+        let lb = b.layout()?;
         A::solve_triangular(la, lb, uplo, diag, a_, b.as_allocated_mut()?)?;
         Ok(b)
     }
 }
 
-impl<'a, A, Si, So, D> SolveTriangular<&'a ArrayBase<So, D>> for ArrayBase<Si, Ix2>
+impl<'a, A, Si, So> SolveTriangular<&'a ArrayBase<So, Ix2>> for ArrayBase<Si, Ix2>
     where A: LapackScalar + Copy,
           Si: Data<Elem = A>,
-          So: DataMut<Elem = A> + DataOwned,
-          D: Dimension,
-          ArrayBase<So, D>: AllocatedArrayMut<Elem = A>
+          So: DataMut<Elem = A> + DataOwned
 {
-    type Output = ArrayBase<So, D>;
+    type Output = ArrayBase<So, Ix2>;
 
-    fn solve_triangular(&self, uplo: UPLO, diag: Diag, b: &'a ArrayBase<So, D>) -> Result<Self::Output> {
+    fn solve_triangular(&self, uplo: UPLO, diag: Diag, b: &'a ArrayBase<So, Ix2>) -> Result<Self::Output> {
+        let b = replicate(b);
+        self.solve_triangular(uplo, diag, b)
+    }
+}
+
+impl<A, Si, So> SolveTriangular<ArrayBase<So, Ix1>> for ArrayBase<Si, Ix2>
+    where A: LapackScalar + Copy,
+          Si: Data<Elem = A>,
+          So: DataMut<Elem = A> + DataOwned
+{
+    type Output = ArrayBase<So, Ix1>;
+
+    fn solve_triangular(&self, uplo: UPLO, diag: Diag, b: ArrayBase<So, Ix1>) -> Result<Self::Output> {
+        let b = into_col_vec(b);
+        let b = self.solve_triangular(uplo, diag, b)?;
+        Ok(into_vec(b))
+    }
+}
+
+impl<'a, A, Si, So> SolveTriangular<&'a ArrayBase<So, Ix1>> for ArrayBase<Si, Ix2>
+    where A: LapackScalar + Copy,
+          Si: Data<Elem = A>,
+          So: DataMut<Elem = A> + DataOwned
+{
+    type Output = ArrayBase<So, Ix1>;
+
+    fn solve_triangular(&self, uplo: UPLO, diag: Diag, b: &'a ArrayBase<So, Ix1>) -> Result<Self::Output> {
         let b = replicate(b);
         self.solve_triangular(uplo, diag, b)
     }

@@ -4,8 +4,8 @@ macro_rules! impl_test{
     ($modname:ident, $clone:ident) => {
 mod $modname {
     use super::random_square;
-    use ndarray::prelude::*;
-    use ndarray_linalg::prelude::*;
+    use ndarray::*;
+    use ndarray_linalg::*;
     #[test]
     fn inv_random() {
         let a = random_square(3);

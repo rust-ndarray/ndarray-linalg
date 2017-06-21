@@ -5,8 +5,8 @@ macro_rules! impl_test {
 #[test]
 fn $funcname() {
     use std::cmp::min;
-    use ndarray::prelude::*;
-    use ndarray_linalg::prelude::*;
+    use ndarray::*;
+    use ndarray_linalg::*;
     let a = $random($n, $m, $t);
     let answer = a.clone();
     println!("a = \n{:?}", &a);

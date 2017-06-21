@@ -17,8 +17,8 @@ fn $funcname() {
 macro_rules! impl_test_opnorm {
     ($modname:ident, $array:ty, $range:path) => {
 mod $modname {
-    use ndarray::prelude::*;
-    use ndarray_linalg::prelude::*;
+    use ndarray::*;
+    use ndarray_linalg::*;
     use num_traits::Float;
     fn gen(i: usize, j: usize, rev: bool) -> $array {
         let n = (i * j + 1) as f64;

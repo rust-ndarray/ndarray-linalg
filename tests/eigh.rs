@@ -3,8 +3,8 @@ extern crate ndarray;
 #[macro_use]
 extern crate ndarray_linalg;
 
-use ndarray::prelude::*;
-use ndarray_linalg::prelude::*;
+use ndarray::*;
+use ndarray_linalg::*;
 
 #[test]
 fn eigen_vector_manual() {

@@ -4,7 +4,7 @@ extern crate ndarray;
 extern crate ndarray_linalg;
 
 use ndarray::*;
-use ndarray_linalg::prelude::*;
+use ndarray_linalg::*;
 
 fn test1d<A, Sa, Sb, Tol>(uplo: UPLO, a: ArrayBase<Sa, Ix2>, b: ArrayBase<Sb, Ix1>, tol: Tol)
     where A: Field + Absolute<Output = Tol>,

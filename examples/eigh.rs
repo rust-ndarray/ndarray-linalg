@@ -2,8 +2,8 @@
 extern crate ndarray;
 extern crate ndarray_linalg;
 
-use ndarray::prelude::*;
-use ndarray_linalg::prelude::*;
+use ndarray::*;
+use ndarray_linalg::*;
 
 fn main() {
     let a = arr2(&[[3.0, 1.0, 1.0], [1.0, 3.0, 1.0], [1.0, 1.0, 3.0]]);

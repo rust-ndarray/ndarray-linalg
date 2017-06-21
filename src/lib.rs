@@ -49,12 +49,12 @@ pub mod error;
 pub mod layout;
 pub mod impl2;
 
-pub mod qr;
-pub mod svd;
-pub mod opnorm;
-pub mod solve;
 pub mod cholesky;
 pub mod eigh;
+pub mod opnorm;
+pub mod qr;
+pub mod solve;
+pub mod svd;
 pub mod triangular;
 
 pub mod generate;
@@ -62,4 +62,17 @@ pub mod assert;
 pub mod norm;
 pub mod trace;
 
-pub mod prelude;
+pub use assert::*;
+pub use generate::*;
+pub use layout::*;
+pub use types::*;
+
+pub use cholesky::*;
+pub use eigh::*;
+pub use norm::*;
+pub use opnorm::*;
+pub use qr::*;
+pub use solve::*;
+pub use svd::*;
+pub use trace::*;
+pub use triangular::*;

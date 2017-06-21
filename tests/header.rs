@@ -10,7 +10,7 @@ extern crate num_traits;
 #[allow(unused_imports)]
 use ndarray::*;
 #[allow(unused_imports)]
-use ndarray_linalg::prelude::*;
+use ndarray_linalg::*;
 #[allow(unused_imports)]
 use rand_extra::*;
 #[allow(unused_imports)]

@@ -33,11 +33,8 @@ impl Triangular_ for $scalar {
     fn solve_triangular(al: Layout, bl: Layout, uplo: UPLO, diag: Diag, a: &[Self], mut b: &mut [Self]) -> Result<()> {
         let (n, _) = al.size();
         let lda = al.lda();
-        let nrhs = bl.len();
-        let ldb = match al {
-            Layout::C(_) => bl.len() as i32,
-            Layout::F(_) => bl.lda() as i32,
-        };
+        let (_, nrhs) = bl.size();
+        let ldb = bl.lda();
         println!("al = {:?}", al);
         println!("bl = {:?}", bl);
         println!("n = {}", n);

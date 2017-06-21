@@ -5,17 +5,9 @@ use types::*;
 use error::*;
 use layout::Layout;
 
-use super::into_result;
+use super::{Transpose, into_result};
 
 pub type Pivot = Vec<i32>;
-
-#[derive(Debug, Clone, Copy)]
-#[repr(u8)]
-pub enum Transpose {
-    No = b'N',
-    Transpose = b'T',
-    Hermite = b'C',
-}
 
 pub trait Solve_: Sized {
     fn lu(Layout, a: &mut [Self]) -> Result<Pivot>;

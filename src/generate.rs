@@ -19,8 +19,18 @@ pub fn conjugate<A, Si, So>(a: &ArrayBase<Si, Ix2>) -> ArrayBase<So, Ix2>
     a
 }
 
+/// Random vector
+pub fn random_vector<A, S>(n: usize) -> ArrayBase<S, Ix1>
+    where A: RandNormal,
+          S: DataOwned<Elem = A>
+{
+    let mut rng = thread_rng();
+    let v: Vec<A> = (0..n).map(|_| A::randn(&mut rng)).collect();
+    ArrayBase::from_vec(v)
+}
+
 /// Random matrix
-pub fn random<A, S>(n: usize, m: usize) -> ArrayBase<S, Ix2>
+pub fn random_matrix<A, S>(n: usize, m: usize) -> ArrayBase<S, Ix2>
     where A: RandNormal,
           S: DataOwned<Elem = A>
 {
@@ -34,7 +44,7 @@ pub fn random_square<A, S>(n: usize) -> ArrayBase<S, Ix2>
     where A: RandNormal,
           S: DataOwned<Elem = A>
 {
-    random(n, n)
+    random_matrix(n, n)
 }
 
 /// Random Hermite matrix

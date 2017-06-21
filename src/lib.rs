@@ -47,7 +47,6 @@ extern crate derive_new;
 pub mod types;
 pub mod error;
 pub mod layout;
-pub mod impls;
 pub mod impl2;
 
 pub mod qr;
@@ -56,13 +55,11 @@ pub mod opnorm;
 pub mod solve;
 pub mod cholesky;
 pub mod eigh;
-
-pub mod matrix;
-pub mod square;
 pub mod triangular;
 
 pub mod generate;
 pub mod assert;
 pub mod norm;
+pub mod trace;
 
 pub mod prelude;

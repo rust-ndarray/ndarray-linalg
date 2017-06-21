@@ -1,120 +1,126 @@
-include!("header.rs");
 
-macro_rules! impl_test {
-    ($modname:ident, $random:path) => {
-mod $modname {
-    use ndarray::prelude::*;
-    use ndarray_linalg::prelude::*;
-    use ndarray_rand::RandomExt;
-    use rand_extra::*;
-    #[test]
-    fn solve_upper() {
-        let r_dist = RealNormal::new(0.0, 1.0);
-        let a = drop_lower($random((3, 3), r_dist));
-        println!("a = \n{:?}", &a);
-        let b = $random(3, r_dist);
-        println!("b = \n{:?}", &b);
-        let x = a.solve_upper(b.clone()).unwrap();
-        println!("x = \n{:?}", &x);
-        println!("Ax = \n{:?}", a.dot(&x));
-        assert_close_l2!(&a.dot(&x), &b, 1e-7);
-    }
+extern crate ndarray;
+#[macro_use]
+extern crate ndarray_linalg;
 
-    #[test]
-    fn solve_upper_t() {
-        let r_dist = RealNormal::new(0., 1.);
-        let a = drop_lower($random((3, 3), r_dist).reversed_axes());
-        println!("a = \n{:?}", &a);
-        let b = $random(3, r_dist);
-        println!("b = \n{:?}", &b);
-        let x = a.solve_upper(b.clone()).unwrap();
-        println!("x = \n{:?}", &x);
-        println!("Ax = \n{:?}", a.dot(&x));
-        assert_close_l2!(&a.dot(&x), &b, 1e-7);
-    }
+use ndarray::*;
+use ndarray_linalg::prelude::*;
 
-    #[test]
-    fn solve_lower() {
-        let r_dist = RealNormal::new(0., 1.);
-        let a = drop_upper($random((3, 3), r_dist));
-        println!("a = \n{:?}", &a);
-        let b = $random(3, r_dist);
-        println!("b = \n{:?}", &b);
-        let x = a.solve_lower(b.clone()).unwrap();
-        println!("x = \n{:?}", &x);
-        println!("Ax = \n{:?}", a.dot(&x));
-        assert_close_l2!(&a.dot(&x), &b, 1e-7);
-    }
-
-    #[test]
-    fn solve_lower_t() {
-        let r_dist = RealNormal::new(0., 1.);
-        let a = drop_upper($random((3, 3), r_dist).reversed_axes());
-        println!("a = \n{:?}", &a);
-        let b = $random(3, r_dist);
-        println!("b = \n{:?}", &b);
-        let x = a.solve_lower(b.clone()).unwrap();
-        println!("x = \n{:?}", &x);
-        println!("Ax = \n{:?}", a.dot(&x));
-        assert_close_l2!(&a.dot(&x), &b, 1e-7);
-    }
+fn test1d<A, Sa, Sb, Tol>(uplo: UPLO, a: ArrayBase<Sa, Ix2>, b: ArrayBase<Sb, Ix1>, tol: Tol)
+    where A: Field + Absolute<Output = Tol>,
+          Sa: Data<Elem = A>,
+          Sb: DataMut<Elem = A> + DataOwned,
+          Tol: RealField
+{
+    println!("a = {:?}", &a);
+    println!("b = {:?}", &b);
+    let x = a.solve_triangular(uplo, Diag::NonUnit, &b).unwrap();
+    println!("x = {:?}", &x);
+    let b_ = a.dot(&x);
+    println!("Ax = {:?}", &b_);
+    assert_close_l2!(&b_, &b, tol);
 }
-}} // impl_test_opnorm
 
-impl_test!(owned, Array<f64, _>::random);
-impl_test!(shared, RcArray<f64, _>::random);
-
-macro_rules! impl_test_2d {
-    ($modname:ident, $drop:path, $solve:ident) => {
-mod $modname {
-    use super::random_owned;
-    use ndarray_linalg::prelude::*;
-    #[test]
-    fn solve_tt() {
-        let a = $drop(random_owned(3, 3, true));
-        println!("a = \n{:?}", &a);
-        let b = random_owned(3, 2, true);
-        println!("b = \n{:?}", &b);
-        let x = a.$solve(&b).unwrap();
-        println!("x = \n{:?}", &x);
-        println!("Ax = \n{:?}", a.dot(&x));
-        assert_close_l2!(&a.dot(&x), &b, 1e-7);
-    }
-    #[test]
-    fn solve_tf() {
-        let a = $drop(random_owned(3, 3, true));
-        println!("a = \n{:?}", &a);
-        let b = random_owned(3, 2, false);
-        println!("b = \n{:?}", &b);
-        let x = a.$solve(&b).unwrap();
-        println!("x = \n{:?}", &x);
-        println!("Ax = \n{:?}", a.dot(&x));
-        assert_close_l2!(&a.dot(&x), &b, 1e-7);
-    }
-    #[test]
-    fn solve_ft() {
-        let a = $drop(random_owned(3, 3, false));
-        println!("a = \n{:?}", &a);
-        let b = random_owned(3, 2, true);
-        println!("b = \n{:?}", &b);
-        let x = a.$solve(&b).unwrap();
-        println!("x = \n{:?}", &x);
-        println!("Ax = \n{:?}", a.dot(&x));
-        assert_close_l2!(&a.dot(&x), &b, 1e-7);
-    }
-    #[test]
-    fn solve_ff() {
-        let a = $drop(random_owned(3, 3, false));
-        println!("a = \n{:?}", &a);
-        let b = random_owned(3, 2, false);
-        println!("b = \n{:?}", &b);
-        let x = a.$solve(&b).unwrap();
-        println!("x = \n{:?}", &x);
-        println!("Ax = \n{:?}", a.dot(&x));
-        assert_close_l2!(&a.dot(&x), &b, 1e-7);
-    }
+fn test2d<A, Sa, Sb, Tol>(uplo: UPLO, a: ArrayBase<Sa, Ix2>, b: ArrayBase<Sb, Ix2>, tol: Tol)
+    where A: Field + Absolute<Output = Tol>,
+          Sa: Data<Elem = A>,
+          Sb: DataMut<Elem = A> + DataOwned + DataClone,
+          Tol: RealField
+{
+    println!("a = {:?}", &a);
+    println!("b = {:?}", &b);
+    let ans = b.clone();
+    let x = a.solve_triangular(uplo, Diag::NonUnit, b).unwrap();
+    println!("x = {:?}", &x);
+    let b_ = a.dot(&x);
+    println!("Ax = {:?}", &b_);
+    assert_close_l2!(&b_, &ans, tol);
 }
-}} // impl_test_2d
 
-impl_test_2d!(lower2d, drop_upper, solve_lower);
-impl_test_2d!(upper2d, drop_lower, solve_upper);
+#[test]
+fn triangular_1d_upper() {
+    let n = 3;
+    let b: Array1<f64> = random_vector(n);
+    let a: Array2<f64> = random_square(n).into_triangular(UPLO::Upper);
+    test1d(UPLO::Upper, a, b, 1e-7);
+}
+
+#[test]
+fn triangular_1d_lower() {
+    let n = 3;
+    let b: Array1<f64> = random_vector(n);
+    let a: Array2<f64> = random_square(n).into_triangular(UPLO::Lower);
+    test1d(UPLO::Lower, a, b, 1e-7);
+}
+
+#[test]
+fn triangular_1d_lower_t() {
+    let n = 3;
+    let b: Array1<f64> = random_vector(n);
+    let a: Array2<f64> = random_square(n).into_triangular(UPLO::Lower).reversed_axes();
+    test1d(UPLO::Upper, a, b, 1e-7);
+}
+
+#[test]
+fn triangular_1d_upper_t() {
+    let n = 3;
+    let b: Array1<f64> = random_vector(n);
+    let a: Array2<f64> = random_square(n).into_triangular(UPLO::Upper).reversed_axes();
+    test1d(UPLO::Lower, a, b, 1e-7);
+}
+
+#[test]
+fn triangular_2d_upper() {
+    let b: Array2<f64> = random_matrix(3, 4);
+    let a: Array2<f64> = random_square(3).into_triangular(UPLO::Upper);
+    test2d(UPLO::Upper, a, b, 1e-7);
+}
+
+#[test]
+fn triangular_2d_lower() {
+    let b: Array2<f64> = random_matrix(3, 4);
+    let a: Array2<f64> = random_square(3).into_triangular(UPLO::Lower);
+    test2d(UPLO::Lower, a, b, 1e-7);
+}
+
+#[test]
+fn triangular_2d_lower_t() {
+    let b: Array2<f64> = random_matrix(3, 4);
+    let a: Array2<f64> = random_square(3).into_triangular(UPLO::Lower).reversed_axes();
+    test2d(UPLO::Upper, a, b, 1e-7);
+}
+
+#[test]
+fn triangular_2d_upper_t() {
+    let b: Array2<f64> = random_matrix(3, 4);
+    let a: Array2<f64> = random_square(3).into_triangular(UPLO::Upper).reversed_axes();
+    test2d(UPLO::Lower, a, b, 1e-7);
+}
+
+#[test]
+fn triangular_2d_upper_bt() {
+    let b: Array2<f64> = random_matrix(4, 3).reversed_axes();
+    let a: Array2<f64> = random_square(3).into_triangular(UPLO::Upper);
+    test2d(UPLO::Upper, a, b, 1e-7);
+}
+
+#[test]
+fn triangular_2d_lower_bt() {
+    let b: Array2<f64> = random_matrix(4, 3).reversed_axes();
+    let a: Array2<f64> = random_square(3).into_triangular(UPLO::Lower);
+    test2d(UPLO::Lower, a, b, 1e-7);
+}
+
+#[test]
+fn triangular_2d_lower_t_bt() {
+    let b: Array2<f64> = random_matrix(4, 3).reversed_axes();
+    let a: Array2<f64> = random_square(3).into_triangular(UPLO::Lower).reversed_axes();
+    test2d(UPLO::Upper, a, b, 1e-7);
+}
+
+#[test]
+fn triangular_2d_upper_t_bt() {
+    let b: Array2<f64> = random_matrix(4, 3).reversed_axes();
+    let a: Array2<f64> = random_square(3).into_triangular(UPLO::Upper).reversed_axes();
+    test2d(UPLO::Lower, a, b, 1e-7);
+}

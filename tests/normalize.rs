@@ -1,4 +1,3 @@
-include!("header.rs");
 
 #[test]
 fn n_columns() {

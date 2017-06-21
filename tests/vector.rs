@@ -1,4 +1,3 @@
-include!("header.rs");
 
 #[test]
 fn vector_norm() {

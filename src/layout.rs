@@ -9,7 +9,7 @@ pub type LEN = i32;
 pub type Col = i32;
 pub type Row = i32;
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub enum Layout {
     C((Row, LDA)),
     F((Col, LDA)),
@@ -87,15 +87,15 @@ impl<A, S> AllocatedArray for ArrayBase<S, Ix2>
     type Elem = A;
 
     fn layout(&self) -> Result<Layout> {
+        let shape = self.shape();
         let strides = self.strides();
-        if ::std::cmp::min(strides[0], strides[1]) != 1 {
-            return Err(StrideError::new(strides[0], strides[1]).into());
+        if shape[0] == strides[1] as usize {
+            return Ok(Layout::F((self.cols() as i32, self.rows() as i32)));
         }
-        if strides[0] > strides[1] {
-            Ok(Layout::C((self.rows() as i32, self.cols() as i32)))
-        } else {
-            Ok(Layout::F((self.cols() as i32, self.rows() as i32)))
+        if shape[1] == strides[0] as usize {
+            return Ok(Layout::C((self.rows() as i32, self.cols() as i32)));
         }
+        Err(StrideError::new(strides[0], strides[1]).into())
     }
 
     fn square_layout(&self) -> Result<Layout> {

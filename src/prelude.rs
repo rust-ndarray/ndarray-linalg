@@ -2,6 +2,7 @@
 pub use assert::*;
 pub use generate::*;
 pub use types::*;
+pub use layout::*;
 
 pub use cholesky::*;
 pub use eigh::*;

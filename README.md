@@ -13,7 +13,7 @@ See [examples](https://github.com/termoshtt/ndarray-linalg/tree/master/examples)
 Versions
 ---------
 
-- v0.5.0 (not released)
+- v0.5.0
     - **Breaking Change** Rewrite all algorithms to support complex numbers and general `ArrayBase`
 
 - v0.4.1

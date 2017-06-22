@@ -24,7 +24,7 @@
 //!
 //!  For example, we can execute [eigh][eigh] using three types of interfaces:
 //!
-//!  ```rust
+//!  ```rust,ignore
 //!  let a = random((3, 3));
 //!  let (eval, evec) = a.eigh(UPLO::Upper)?;
 //!  let (eval, evec) = (&a).eigh(UPLO::Upper)?;

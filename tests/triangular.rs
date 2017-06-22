@@ -40,87 +40,87 @@ fn test2d<A, Sa, Sb, Tol>(uplo: UPLO, a: ArrayBase<Sa, Ix2>, b: ArrayBase<Sb, Ix
 #[test]
 fn triangular_1d_upper() {
     let n = 3;
-    let b: Array1<f64> = random_vector(n);
-    let a: Array2<f64> = random_square(n).into_triangular(UPLO::Upper);
+    let b: Array1<f64> = random(n);
+    let a: Array2<f64> = random((n, n)).into_triangular(UPLO::Upper);
     test1d(UPLO::Upper, a, b, 1e-7);
 }
 
 #[test]
 fn triangular_1d_lower() {
     let n = 3;
-    let b: Array1<f64> = random_vector(n);
-    let a: Array2<f64> = random_square(n).into_triangular(UPLO::Lower);
+    let b: Array1<f64> = random(n);
+    let a: Array2<f64> = random((n, n)).into_triangular(UPLO::Lower);
     test1d(UPLO::Lower, a, b, 1e-7);
-}
-
-#[test]
-fn triangular_1d_lower_t() {
-    let n = 3;
-    let b: Array1<f64> = random_vector(n);
-    let a: Array2<f64> = random_square(n).into_triangular(UPLO::Lower).reversed_axes();
-    test1d(UPLO::Upper, a, b, 1e-7);
 }
 
 #[test]
 fn triangular_1d_upper_t() {
     let n = 3;
-    let b: Array1<f64> = random_vector(n);
-    let a: Array2<f64> = random_square(n).into_triangular(UPLO::Upper).reversed_axes();
+    let b: Array1<f64> = random(n);
+    let a: Array2<f64> = random((n, n).f()).into_triangular(UPLO::Upper);
+    test1d(UPLO::Upper, a, b, 1e-7);
+}
+
+#[test]
+fn triangular_1d_lower_t() {
+    let n = 3;
+    let b: Array1<f64> = random(n);
+    let a: Array2<f64> = random((n, n).f()).into_triangular(UPLO::Lower);
     test1d(UPLO::Lower, a, b, 1e-7);
 }
 
 #[test]
 fn triangular_2d_upper() {
-    let b: Array2<f64> = random_matrix(3, 4);
-    let a: Array2<f64> = random_square(3).into_triangular(UPLO::Upper);
+    let b: Array2<f64> = random((3, 4));
+    let a: Array2<f64> = random((3, 3)).into_triangular(UPLO::Upper);
     test2d(UPLO::Upper, a, b, 1e-7);
 }
 
 #[test]
 fn triangular_2d_lower() {
-    let b: Array2<f64> = random_matrix(3, 4);
-    let a: Array2<f64> = random_square(3).into_triangular(UPLO::Lower);
+    let b: Array2<f64> = random((3, 4));
+    let a: Array2<f64> = random((3, 3)).into_triangular(UPLO::Lower);
     test2d(UPLO::Lower, a, b, 1e-7);
 }
 
 #[test]
 fn triangular_2d_lower_t() {
-    let b: Array2<f64> = random_matrix(3, 4);
-    let a: Array2<f64> = random_square(3).into_triangular(UPLO::Lower).reversed_axes();
-    test2d(UPLO::Upper, a, b, 1e-7);
-}
-
-#[test]
-fn triangular_2d_upper_t() {
-    let b: Array2<f64> = random_matrix(3, 4);
-    let a: Array2<f64> = random_square(3).into_triangular(UPLO::Upper).reversed_axes();
+    let b: Array2<f64> = random((3, 4));
+    let a: Array2<f64> = random((3, 3).f()).into_triangular(UPLO::Lower);
     test2d(UPLO::Lower, a, b, 1e-7);
 }
 
 #[test]
+fn triangular_2d_upper_t() {
+    let b: Array2<f64> = random((3, 4));
+    let a: Array2<f64> = random((3, 3).f()).into_triangular(UPLO::Upper);
+    test2d(UPLO::Upper, a, b, 1e-7);
+}
+
+#[test]
 fn triangular_2d_upper_bt() {
-    let b: Array2<f64> = random_matrix(4, 3).reversed_axes();
-    let a: Array2<f64> = random_square(3).into_triangular(UPLO::Upper);
+    let b: Array2<f64> = random((3, 4).f());
+    let a: Array2<f64> = random((3, 3)).into_triangular(UPLO::Upper);
     test2d(UPLO::Upper, a, b, 1e-7);
 }
 
 #[test]
 fn triangular_2d_lower_bt() {
-    let b: Array2<f64> = random_matrix(4, 3).reversed_axes();
-    let a: Array2<f64> = random_square(3).into_triangular(UPLO::Lower);
+    let b: Array2<f64> = random((3, 4).f());
+    let a: Array2<f64> = random((3, 3)).into_triangular(UPLO::Lower);
     test2d(UPLO::Lower, a, b, 1e-7);
 }
 
 #[test]
 fn triangular_2d_lower_t_bt() {
-    let b: Array2<f64> = random_matrix(4, 3).reversed_axes();
-    let a: Array2<f64> = random_square(3).into_triangular(UPLO::Lower).reversed_axes();
-    test2d(UPLO::Upper, a, b, 1e-7);
+    let b: Array2<f64> = random((3, 4).f());
+    let a: Array2<f64> = random((3, 3).f()).into_triangular(UPLO::Lower);
+    test2d(UPLO::Lower, a, b, 1e-7);
 }
 
 #[test]
 fn triangular_2d_upper_t_bt() {
-    let b: Array2<f64> = random_matrix(4, 3).reversed_axes();
-    let a: Array2<f64> = random_square(3).into_triangular(UPLO::Upper).reversed_axes();
-    test2d(UPLO::Lower, a, b, 1e-7);
+    let b: Array2<f64> = random((3, 4).f());
+    let a: Array2<f64> = random((3, 3).f()).into_triangular(UPLO::Upper);
+    test2d(UPLO::Upper, a, b, 1e-7);
 }

@@ -1,4 +1,12 @@
-include!("header.rs");
+
+extern crate ndarray;
+#[macro_use]
+extern crate ndarray_linalg;
+extern crate num_traits;
+
+use ndarray::*;
+use ndarray_linalg::*;
+use num_traits::Float;
 
 #[test]
 fn vector_norm() {

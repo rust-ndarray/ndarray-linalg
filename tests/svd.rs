@@ -1,13 +1,15 @@
-include!("header.rs");
 
-macro_rules! impl_test {
-    ($funcname:ident, $random:path, $n:expr, $m:expr, $t:expr) => {
-#[test]
-fn $funcname() {
-    use std::cmp::min;
-    use ndarray::*;
-    use ndarray_linalg::*;
-    let a = $random($n, $m, $t);
+extern crate ndarray;
+#[macro_use]
+extern crate ndarray_linalg;
+extern crate num_traits;
+
+use std::cmp::min;
+use ndarray::*;
+use ndarray_linalg::*;
+use num_traits::Float;
+
+fn test(a: Array2<f64>, n: usize, m: usize) {
     let answer = a.clone();
     println!("a = \n{:?}", &a);
     let (u, s, vt): (_, Array1<_>, _) = a.svd(true, true).unwrap();
@@ -16,25 +18,45 @@ fn $funcname() {
     println!("u = \n{:?}", &u);
     println!("s = \n{:?}", &s);
     println!("v = \n{:?}", &vt);
-    let mut sm = Array::zeros(($n, $m));
-    for i in 0..min($n, $m) {
+    let mut sm = Array::zeros((n, m));
+    for i in 0..min(n, m) {
         sm[(i, i)] = s[i];
     }
     assert_close_l2!(&u.dot(&sm).dot(&vt), &answer, 1e-7);
 }
-}} // impl_test
 
-macro_rules! impl_test_svd {
-    ($modname:ident, $random:path) => {
-mod $modname {
-    impl_test!(svd_square, $random, 3, 3, false);
-    impl_test!(svd_square_t, $random, 3, 3, true);
-    impl_test!(svd_4x3, $random, 4, 3, false);
-    impl_test!(svd_4x3_t, $random, 4, 3, true);
-    impl_test!(svd_3x4, $random, 3, 4, false);
-    impl_test!(svd_3x4_t, $random, 3, 4, true);
+#[test]
+fn svd_square() {
+    let a = random((3, 3));
+    test(a, 3, 3);
 }
-}} // impl_test_svd
 
-impl_test_svd!(owned, super::random_owned);
-impl_test_svd!(shared, super::random_shared);
+#[test]
+fn svd_square_t() {
+    let a = random((3, 3).f());
+    test(a, 3, 3);
+}
+
+#[test]
+fn svd_3x4() {
+    let a = random((3, 4));
+    test(a, 3, 4);
+}
+
+#[test]
+fn svd_3x4_t() {
+    let a = random((3, 4).f());
+    test(a, 3, 4);
+}
+
+#[test]
+fn svd_4x3() {
+    let a = random((4, 3));
+    test(a, 4, 3);
+}
+
+#[test]
+fn svd_4x3_t() {
+    let a = random((4, 3).f());
+    test(a, 4, 3);
+}

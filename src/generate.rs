@@ -19,40 +19,26 @@ pub fn conjugate<A, Si, So>(a: &ArrayBase<Si, Ix2>) -> ArrayBase<So, Ix2>
     a
 }
 
-/// Random vector
-pub fn random_vector<A, S>(n: usize) -> ArrayBase<S, Ix1>
+pub fn random<A, S, Sh, D>(sh: Sh) -> ArrayBase<S, D>
     where A: RandNormal,
-          S: DataOwned<Elem = A>
+          S: DataOwned<Elem = A>,
+          D: Dimension,
+          Sh: ShapeBuilder<Dim = D>
 {
     let mut rng = thread_rng();
-    let v: Vec<A> = (0..n).map(|_| A::randn(&mut rng)).collect();
-    ArrayBase::from_vec(v)
-}
-
-/// Random matrix
-pub fn random_matrix<A, S>(n: usize, m: usize) -> ArrayBase<S, Ix2>
-    where A: RandNormal,
-          S: DataOwned<Elem = A>
-{
-    let mut rng = thread_rng();
-    let v: Vec<A> = (0..n * m).map(|_| A::randn(&mut rng)).collect();
-    ArrayBase::from_shape_vec((n, m), v).unwrap()
-}
-
-/// Random square matrix
-pub fn random_square<A, S>(n: usize) -> ArrayBase<S, Ix2>
-    where A: RandNormal,
-          S: DataOwned<Elem = A>
-{
-    random_matrix(n, n)
+    ArrayBase::from_shape_fn(sh, |_| A::randn(&mut rng))
 }
 
 /// Random Hermite matrix
-pub fn random_hermite<A, S>(n: usize) -> ArrayBase<S, Ix2>
+pub fn random_hermite<A, S>(n: usize, c_order: bool) -> ArrayBase<S, Ix2>
     where A: RandNormal + Conjugate + Add<Output = A>,
           S: DataOwned<Elem = A> + DataMut
 {
-    let mut a = random_square(n);
+    let mut a = if c_order {
+        random((n, n))
+    } else {
+        random((n, n).f())
+    };
     for i in 0..n {
         a[(i, i)] = a[(i, i)] + Conjugate::conj(a[(i, i)]);
         for j in (i + 1)..n {
@@ -67,7 +53,7 @@ pub fn random_hpd<A, S>(n: usize) -> ArrayBase<S, Ix2>
     where A: RandNormal + Conjugate + LinalgScalar,
           S: DataOwned<Elem = A> + DataMut
 {
-    let a: Array2<A> = random_square(n);
+    let a: Array2<A> = random((n, n));
     let ah: Array2<A> = conjugate(&a);
     replicate(&ah.dot(&a))
 }

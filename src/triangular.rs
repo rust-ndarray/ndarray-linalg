@@ -126,15 +126,3 @@ impl<A, S> IntoTriangular<ArrayBase<S, Ix2>> for ArrayBase<S, Ix2>
         self
     }
 }
-
-pub fn drop_upper<A: Zero, S>(a: ArrayBase<S, Ix2>) -> ArrayBase<S, Ix2>
-    where S: DataMut<Elem = A>
-{
-    a.into_triangular(UPLO::Lower)
-}
-
-pub fn drop_lower<A: Zero, S>(a: ArrayBase<S, Ix2>) -> ArrayBase<S, Ix2>
-    where S: DataMut<Elem = A>
-{
-    a.into_triangular(UPLO::Upper)
-}

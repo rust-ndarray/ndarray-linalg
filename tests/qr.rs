@@ -15,7 +15,7 @@ fn test(a: Array2<f64>, n: usize, m: usize) {
     println!("r = \n{:?}", &r);
     assert_close_l2!(&q.t().dot(&q), &Array::eye(min(n, m)), 1e-7);
     assert_close_l2!(&q.dot(&r), &ans, 1e-7);
-    assert_close_l2!(&drop_lower(r.clone()), &r, 1e-7);
+    assert_close_l2!(&r.clone().into_triangular(UPLO::Upper), &r, 1e-7);
 }
 
 #[test]

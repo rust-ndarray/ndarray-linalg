@@ -1,3 +1,4 @@
+//! Solve linear problems
 
 use ndarray::*;
 use super::layout::*;

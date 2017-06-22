@@ -1,3 +1,4 @@
+//! Operator norm
 
 use ndarray::*;
 

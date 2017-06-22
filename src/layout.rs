@@ -1,3 +1,4 @@
+//! Memory layout of matrices
 
 use ndarray::*;
 use lapack::c;

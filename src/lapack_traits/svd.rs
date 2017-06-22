@@ -1,4 +1,4 @@
-//! Implement Operator norms for matrices
+//! Singular-value decomposition
 
 use lapack::c;
 use num_traits::Zero;
@@ -17,12 +17,17 @@ enum FlagSVD {
     No = b'N',
 }
 
+/// Result of SVD
 pub struct SVDOutput<A: AssociatedReal> {
+    /// diagonal values
     pub s: Vec<A::Real>,
+    /// Unitary matrix for destination space
     pub u: Option<Vec<A>>,
+    /// Unitary matrix for departure space
     pub vt: Option<Vec<A>>,
 }
 
+/// Wraps `*gesvd`
 pub trait SVD_: AssociatedReal {
     fn svd(Layout, calc_u: bool, calc_vt: bool, a: &mut [Self]) -> Result<SVDOutput<Self>>;
 }

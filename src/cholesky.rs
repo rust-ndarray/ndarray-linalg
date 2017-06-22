@@ -1,3 +1,4 @@
+//! Cholesky decomposition
 
 use ndarray::*;
 use num_traits::Zero;

@@ -1,4 +1,4 @@
-//! implement Cholesky decomposition
+//! Cholesky decomposition
 
 use lapack::c;
 

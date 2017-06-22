@@ -1,3 +1,4 @@
+//! Generator functions for matrices
 
 use ndarray::*;
 use std::ops::*;

@@ -1,4 +1,4 @@
-//! Implement Operator norms for matrices
+//! Operator norms of matrices
 
 use lapack::c;
 use lapack::c::Layout::ColumnMajor as cm;

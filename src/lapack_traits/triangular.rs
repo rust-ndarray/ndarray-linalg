@@ -14,6 +14,7 @@ pub enum Diag {
     NonUnit = b'N',
 }
 
+/// Wraps `*trtri` and `*trtrs`
 pub trait Triangular_: Sized {
     fn inv_triangular(l: Layout, UPLO, Diag, a: &mut [Self]) -> Result<()>;
     fn solve_triangular(al: Layout, bl: Layout, UPLO, Diag, a: &[Self], b: &mut [Self]) -> Result<()>;

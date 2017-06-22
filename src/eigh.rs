@@ -1,3 +1,4 @@
+//! Eigenvalue decomposition for Hermite matrices
 
 use ndarray::*;
 

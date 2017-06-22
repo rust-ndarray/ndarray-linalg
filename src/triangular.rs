@@ -1,4 +1,4 @@
-//! Define methods for triangular matrices
+//! Methods for triangular matrices
 
 use ndarray::*;
 use num_traits::Zero;

@@ -1,3 +1,4 @@
+//! singular-value decomposition
 
 use ndarray::*;
 

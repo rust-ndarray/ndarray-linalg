@@ -1,3 +1,4 @@
+//! Eigenvalue decomposition for Hermite matrices
 
 use lapack::c;
 use num_traits::Zero;
@@ -8,6 +9,7 @@ use layout::Layout;
 
 use super::{into_result, UPLO};
 
+/// Wraps `*syev` for real and `*heev` for complex
 pub trait Eigh_: AssociatedReal {
     fn eigh(calc_eigenvec: bool, Layout, UPLO, a: &mut [Self]) -> Result<Vec<Self::Real>>;
 }

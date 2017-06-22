@@ -1,3 +1,4 @@
+//! QR decomposition
 
 use num_traits::Zero;
 use ndarray::*;

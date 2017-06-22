@@ -1,3 +1,4 @@
+//! Trace calculation
 
 use ndarray::*;
 

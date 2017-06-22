@@ -1,3 +1,4 @@
+//! Solve linear problem using LU decomposition
 
 use lapack::c;
 
@@ -9,6 +10,7 @@ use super::{Transpose, into_result};
 
 pub type Pivot = Vec<i32>;
 
+/// Wraps `*getrf`, `*getri`, and `*getrs`
 pub trait Solve_: Sized {
     fn lu(Layout, a: &mut [Self]) -> Result<Pivot>;
     fn inv(Layout, a: &mut [Self], &Pivot) -> Result<()>;

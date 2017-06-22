@@ -1,3 +1,4 @@
+//! Basic types and their methods for linear algebra
 
 use std::ops::*;
 use std::fmt::Debug;

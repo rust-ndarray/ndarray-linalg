@@ -1,3 +1,4 @@
+//! Define traits wrapping LAPACK routines
 
 pub mod opnorm;
 pub mod qr;
@@ -33,6 +34,7 @@ pub fn into_result<T>(info: i32, val: T) -> Result<T> {
     }
 }
 
+/// Upper/Lower specification for seveal usages
 #[derive(Debug, Clone, Copy)]
 #[repr(u8)]
 pub enum UPLO {

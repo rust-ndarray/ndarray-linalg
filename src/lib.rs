@@ -1,4 +1,19 @@
 //!  Linear algebra package for [rust-ndarray](https://github.com/bluss/rust-ndarray) using LAPACK via [stainless-steel/lapack](https://github.com/stainless-steel/lapack)
+//!
+//!  Linear algebra methods
+//!  -----------------------
+//!  - [QR decomposition](qr/trait.QR.html)
+//!  - [singular value decomposition](svd/trait.SVD.html)
+//!  - [solve linear problem](solve/index.html)
+//!  - [solve linear problem for triangular matrix](triangular/trait.SolveTriangular.html)
+//!  - [inverse matrix](solve/trait.Inverse.html)
+//!  - [eigenvalue decomposition for Hermite matrix](eigh/trait.Eigh.html)
+//!
+//!  Utilites
+//!  -----------
+//!  - [assertions for array](index.html#macros)
+//!  - [generator functions](generate/index.html)
+//!  - [Scalar trait](types/trait.Field.html)
 
 extern crate blas;
 extern crate lapack;

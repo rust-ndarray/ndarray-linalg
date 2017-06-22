@@ -2,12 +2,10 @@
 extern crate ndarray;
 #[macro_use]
 extern crate ndarray_linalg;
-extern crate num_traits;
 
 use std::cmp::min;
 use ndarray::*;
 use ndarray_linalg::*;
-use num_traits::Float;
 
 fn test(a: Array2<f64>, n: usize, m: usize) {
     let answer = a.clone();

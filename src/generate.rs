@@ -8,6 +8,7 @@ use super::layout::*;
 use super::types::*;
 use super::error::*;
 
+/// Hermite conjugate matrix
 pub fn conjugate<A, Si, So>(a: &ArrayBase<Si, Ix2>) -> ArrayBase<So, Ix2>
     where A: Conjugate,
           Si: Data<Elem = A>,
@@ -20,6 +21,7 @@ pub fn conjugate<A, Si, So>(a: &ArrayBase<Si, Ix2>) -> ArrayBase<So, Ix2>
     a
 }
 
+/// Generate random array
 pub fn random<A, S, Sh, D>(sh: Sh) -> ArrayBase<S, D>
     where A: RandNormal,
           S: DataOwned<Elem = A>,

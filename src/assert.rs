@@ -5,6 +5,7 @@ use ndarray::*;
 use super::types::*;
 use super::norm::*;
 
+/// check two values are close in terms of the relative torrence
 pub fn rclose<A, Tol>(test: A, truth: A, rtol: Tol) -> Result<Tol, Tol>
     where A: Field + Absolute<Output = Tol>,
           Tol: RealField
@@ -13,6 +14,7 @@ pub fn rclose<A, Tol>(test: A, truth: A, rtol: Tol) -> Result<Tol, Tol>
     if dev < rtol { Ok(dev) } else { Err(dev) }
 }
 
+/// check two values are close in terms of the absolute torrence
 pub fn aclose<A, Tol>(test: A, truth: A, atol: Tol) -> Result<Tol, Tol>
     where A: Field + Absolute<Output = Tol>,
           Tol: RealField

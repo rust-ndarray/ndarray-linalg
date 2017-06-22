@@ -19,6 +19,16 @@ pub fn conjugate<A, Si, So>(a: &ArrayBase<Si, Ix2>) -> ArrayBase<So, Ix2>
     a
 }
 
+pub fn random<A, S, Sh, D>(sh: Sh) -> ArrayBase<S, D>
+    where A: RandNormal,
+          S: DataOwned<Elem = A>,
+          D: Dimension,
+          Sh: ShapeBuilder<Dim = D>
+{
+    let mut rng = thread_rng();
+    ArrayBase::from_shape_fn(sh, |_| A::randn(&mut rng))
+}
+
 /// Random vector
 pub fn random_vector<A, S>(n: usize) -> ArrayBase<S, Ix1>
     where A: RandNormal,

@@ -1,36 +1,33 @@
 
-macro_rules! impl_test{
-    ($modname:ident, $clone:ident) => {
-mod $modname {
-    use super::random_square;
-    use ndarray::*;
-    use ndarray_linalg::*;
-    #[test]
-    fn inv_random() {
-        let a = random_square(3);
-        let ai = a.$clone().inv().unwrap();
-        let id = Array::eye(3);
-        assert_close_l2!(&ai.dot(&a), &id, 1e-7);
-    }
+extern crate ndarray;
+#[macro_use]
+extern crate ndarray_linalg;
+extern crate num_traits;
 
-    #[test]
-    fn inv_random_t() {
-        let a = random_square(3).reversed_axes();
-        let ai = a.$clone().inv().unwrap();
-        let id = Array::eye(3);
-        assert_close_l2!(&ai.dot(&a), &id, 1e-7);
-    }
+use ndarray::*;
+use ndarray_linalg::*;
 
-    #[test]
-    #[should_panic]
-    fn inv_error() {
-        // do not have inverse
-        let a = Array::<f64, _>::zeros(9).into_shape((3, 3)).unwrap();
-        let a_inv = a.$clone().inv().unwrap();
-        println!("{:?}", a_inv);
-    }
+#[test]
+fn inv_random() {
+    let a: Array2<f64> = random((3, 3));
+    let ai: Array2<_> = (&a).inv().unwrap();
+    let id = Array::eye(3);
+    assert_close_l2!(&ai.dot(&a), &id, 1e-7);
 }
-}} // impl_test
 
-impl_test!(owned, clone);
-impl_test!(shared, to_shared);
+#[test]
+fn inv_random_t() {
+    let a: Array2<f64> = random((3, 3).f());
+    let ai: Array2<_> = (&a).inv().unwrap();
+    let id = Array::eye(3);
+    assert_close_l2!(&ai.dot(&a), &id, 1e-7);
+}
+
+#[test]
+#[should_panic]
+fn inv_error() {
+    // do not have inverse
+    let a = Array::<f64, _>::zeros(9).into_shape((3, 3)).unwrap();
+    let a_inv = a.inv().unwrap();
+    println!("{:?}", a_inv);
+}

@@ -5,9 +5,9 @@ use num_traits::Zero;
 
 use super::layout::*;
 use super::error::*;
-use super::impl2::*;
+use super::lapack_traits::*;
 
-pub use super::impl2::Diag;
+pub use super::lapack_traits::Diag;
 
 /// solve a triangular system with upper triangular matrix
 pub trait SolveTriangular<Rhs> {

@@ -47,7 +47,7 @@ extern crate derive_new;
 pub mod types;
 pub mod error;
 pub mod layout;
-pub mod impl2;
+pub mod lapack_traits;
 
 pub mod cholesky;
 pub mod eigh;

@@ -5,8 +5,8 @@ use super::types::*;
 use super::error::*;
 use super::layout::*;
 
-pub use impl2::NormType;
-use impl2::LapackScalar;
+pub use lapack_traits::NormType;
+use lapack_traits::LapackScalar;
 
 pub trait OperationNorm {
     type Output;

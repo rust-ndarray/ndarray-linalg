@@ -6,8 +6,8 @@ use super::error::*;
 use super::layout::*;
 use super::triangular::IntoTriangular;
 
-use impl2::LapackScalar;
-pub use impl2::UPLO;
+use lapack_traits::LapackScalar;
+pub use lapack_traits::UPLO;
 
 pub trait Cholesky<K> {
     fn cholesky(self, UPLO) -> Result<K>;

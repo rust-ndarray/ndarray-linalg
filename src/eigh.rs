@@ -4,8 +4,8 @@ use ndarray::*;
 use super::error::*;
 use super::layout::*;
 
-use impl2::LapackScalar;
-pub use impl2::UPLO;
+use lapack_traits::LapackScalar;
+pub use lapack_traits::UPLO;
 
 pub trait Eigh<EigVal, EigVec> {
     fn eigh(self, UPLO) -> Result<(EigVal, EigVec)>;

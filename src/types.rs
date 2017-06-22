@@ -8,7 +8,7 @@ use rand::Rng;
 use rand::distributions::*;
 use ndarray::LinalgScalar;
 
-use super::impl2::LapackScalar;
+use super::lapack_traits::LapackScalar;
 
 pub use num_complex::Complex32 as c32;
 pub use num_complex::Complex64 as c64;

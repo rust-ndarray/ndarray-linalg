@@ -6,6 +6,7 @@ use ndarray::{Ixs, ShapeError};
 
 pub type Result<T> = ::std::result::Result<T, LinalgError>;
 
+/// Master Error type of this crate
 #[derive(Debug, EnumError)]
 pub enum LinalgError {
     NotSquare(NotSquareError),
@@ -15,6 +16,7 @@ pub enum LinalgError {
     Shape(ShapeError),
 }
 
+/// Error from LAPACK
 #[derive(Debug, new)]
 pub struct LapackError {
     pub return_code: i32,
@@ -38,6 +40,7 @@ impl From<i32> for LapackError {
     }
 }
 
+/// Error that matrix is not square
 #[derive(Debug, new)]
 pub struct NotSquareError {
     pub rows: i32,
@@ -56,6 +59,7 @@ impl error::Error for NotSquareError {
     }
 }
 
+/// Error that strides of the array is not supported
 #[derive(Debug, new)]
 pub struct StrideError {
     pub s0: Ixs,
@@ -74,6 +78,7 @@ impl error::Error for StrideError {
     }
 }
 
+/// Error that the memory is not aligned continously
 #[derive(Debug, new)]
 pub struct MemoryContError {}
 

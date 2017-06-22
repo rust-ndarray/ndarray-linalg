@@ -1,9 +1,10 @@
+//! singular-value decomposition
 
 use ndarray::*;
 
 use super::error::*;
 use super::layout::*;
-use impl2::LapackScalar;
+use lapack_traits::LapackScalar;
 
 pub trait SVD<U, S, VT> {
     fn svd(self, calc_u: bool, calc_vt: bool) -> Result<(Option<U>, S, Option<VT>)>;

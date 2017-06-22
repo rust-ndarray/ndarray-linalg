@@ -1,10 +1,11 @@
+//! Solve linear problems
 
 use ndarray::*;
 use super::layout::*;
 use super::error::*;
-use super::impl2::*;
+use super::lapack_traits::*;
 
-pub use impl2::{Pivot, Transpose};
+pub use lapack_traits::{Pivot, Transpose};
 
 pub struct Factorized<S: Data> {
     pub a: ArrayBase<S, Ix2>,

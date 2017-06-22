@@ -8,30 +8,16 @@ Linear algebra package for [rust-ndarray](https://github.com/bluss/rust-ndarray)
 
 Examples
 ---------
+See [examples](https://github.com/termoshtt/ndarray-linalg/tree/master/examples) directory.
 
-```rust
-extern crate ndarray;
-extern crate ndarray_linalg;
-
-use ndarray::prelude::*;
-use ndarray_linalg::prelude::*;
-
-fn main() {
-    let a = arr2(&[[3.0, 1.0, 1.0], [1.0, 3.0, 1.0], [1.0, 1.0, 3.0]]);
-    let (e, vecs) = a.clone().eigh().unwrap();
-    println!("eigenvalues = \n{:?}", e);
-    println!("V = \n{:?}", vecs);
-    let av = a.dot(&vecs);
-    println!("AV = \n{:?}", av);
-}
-```
-
-See complete example at [src/bin/main.rs](src/bin/main.rs).
-
-Progress
+Versions
 ---------
-Some algorithms have not been implemented yet. See [#6](https://github.com/termoshtt/ndarray-linalg/issues/6).
 
-Similar Projects
------------------
-- [linxal](https://github.com/masonium/linxal)
+- v0.5.0 (not released)
+    - **Breaking Change** Rewrite all algorithms to support complex numbers and general `ArrayBase`
+
+- v0.4.1
+    - ADD: assertion [#31](https://github.com/termoshtt/ndarray-linalg/pull/31)
+
+- v0.4.0
+    - MOD: use ndarray v0.9

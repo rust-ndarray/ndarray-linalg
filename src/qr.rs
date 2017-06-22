@@ -1,3 +1,4 @@
+//! QR decomposition
 
 use num_traits::Zero;
 use ndarray::*;
@@ -5,7 +6,7 @@ use ndarray::*;
 use super::error::*;
 use super::layout::*;
 
-use impl2::LapackScalar;
+use lapack_traits::LapackScalar;
 
 pub trait QR<Q, R> {
     fn qr(self) -> Result<(Q, R)>;

@@ -1,35 +1,45 @@
-//! This crate implements matrix manipulation for
-//! [rust-ndarray](https://github.com/bluss/rust-ndarray) using LAPACK.
+//!  Linear algebra package for [rust-ndarray](https://github.com/bluss/rust-ndarray) using LAPACK via [stainless-steel/lapack](https://github.com/stainless-steel/lapack)
 //!
-//! Basic manipulations are implemented as matrix traits,
-//! [Matrix](matrix/trait.Matrix.html), [SquareMatrix](square/trait.SquareMatrix.html),
-//! and [HermiteMatrix](hermite/trait.HermiteMatrix.html).
+//!  Linear algebra methods
+//!  -----------------------
+//!  - [QR decomposition](qr/trait.QR.html)
+//!  - [singular value decomposition](svd/trait.SVD.html)
+//!  - [solve linear problem](solve/index.html)
+//!  - [solve linear problem for triangular matrix](triangular/trait.SolveTriangular.html)
+//!  - [inverse matrix](solve/trait.Inverse.html)
+//!  - [eigenvalue decomposition for Hermite matrix][eigh]
 //!
-//! Matrix
-//! -------
-//! - [singular-value decomposition](matrix/trait.Matrix.html#tymethod.svd)
-//! - [LU decomposition](matrix/trait.Matrix.html#tymethod.lu)
-//! - [QR decomposition](matrix/trait.Matrix.html#tymethod.qr)
-//! - [operator norm for L1 norm](matrix/trait.Matrix.html#tymethod.norm_1)
-//! - [operator norm for L-inf norm](matrix/trait.Matrix.html#tymethod.norm_i)
-//! - [Frobeiuns norm](matrix/trait.Matrix.html#tymethod.norm_f)
+//!  [eigh]:eigh/trait.Eigh.html
 //!
-//! SquareMatrix
-//! -------------
-//! - [inverse of matrix](square/trait.SquareMatrix.html#tymethod.inv)
-//! - [trace of matrix](square/trait.SquareMatrix.html#tymethod.trace)
-//! - [WIP] eigenvalue
+//!  Utilities
+//!  -----------
+//!  - [assertions for array](index.html#macros)
+//!  - [generator functions](generate/index.html)
+//!  - [Scalar trait](types/trait.Field.html)
 //!
-//! HermiteMatrix
-//! --------------
-//! - [eigenvalue analysis](hermite/trait.HermiteMatrix.html#tymethod.eigh)
-//! - [symmetric square root](hermite/trait.HermiteMatrix.html#tymethod.ssqrt)
-//! - [Cholesky factorization](hermite/trait.HermiteMatrix.html#tymethod.cholesky)
+//!  Usage
+//!  ------
+//!  Most functions in this crate is defined as [self-consuming trait technique][sct] like [serde]
+//!  does.
 //!
-//! Others
-//! -------
-//! - [solve triangular](triangular/trait.SolveTriangular.html)
-//! - [misc utilities](util/index.html)
+//!  For example, we can execute [eigh][eigh] using three types of interfaces:
+//!
+//!  ```rust,ignore
+//!  let a = random((3, 3));
+//!  let (eval, evec) = a.eigh(UPLO::Upper)?;
+//!  let (eval, evec) = (&a).eigh(UPLO::Upper)?;
+//!  let (eval, evec) = (&mut a).eigh(UPLO::Upper)?;
+//!  ```
+//!
+//!  The first type `a.eigh()` consumes `a`, and the memory of `a` is used for `evec`.
+//!  The second type `(&a).eigh()` consumes the reference (not `a` itself),
+//!  and the memory for `evec` is newly allocated.
+//!  The last one `(&mut a).eigh()` is similar to the first one;
+//!  It borrows `a` mutably, and rewrite it to contains `evec`.
+//!  In all cases, the array `eval` is newly allocated.
+//!
+//!  [sct]:https://github.com/serde-rs/serde/releases/tag/v0.9.0
+//!  [serde]:https://github.com/serde-rs/serde
 
 extern crate blas;
 extern crate lapack;
@@ -47,7 +57,7 @@ extern crate derive_new;
 pub mod types;
 pub mod error;
 pub mod layout;
-pub mod impl2;
+pub mod lapack_traits;
 
 pub mod cholesky;
 pub mod eigh;

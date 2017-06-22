@@ -1,13 +1,13 @@
-//! Define methods for triangular matrices
+//! Methods for triangular matrices
 
 use ndarray::*;
 use num_traits::Zero;
 
 use super::layout::*;
 use super::error::*;
-use super::impl2::*;
+use super::lapack_traits::*;
 
-pub use super::impl2::Diag;
+pub use super::lapack_traits::Diag;
 
 /// solve a triangular system with upper triangular matrix
 pub trait SolveTriangular<Rhs> {
@@ -125,16 +125,4 @@ impl<A, S> IntoTriangular<ArrayBase<S, Ix2>> for ArrayBase<S, Ix2>
         (&mut self).into_triangular(uplo);
         self
     }
-}
-
-pub fn drop_upper<A: Zero, S>(a: ArrayBase<S, Ix2>) -> ArrayBase<S, Ix2>
-    where S: DataMut<Elem = A>
-{
-    a.into_triangular(UPLO::Lower)
-}
-
-pub fn drop_lower<A: Zero, S>(a: ArrayBase<S, Ix2>) -> ArrayBase<S, Ix2>
-    where S: DataMut<Elem = A>
-{
-    a.into_triangular(UPLO::Upper)
 }

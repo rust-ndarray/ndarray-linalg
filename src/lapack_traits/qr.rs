@@ -1,4 +1,4 @@
-//! Implement QR decomposition
+//! QR decomposition
 
 use std::cmp::min;
 use num_traits::Zero;
@@ -10,6 +10,7 @@ use layout::Layout;
 
 use super::into_result;
 
+/// Wraps `*geqrf` and `*orgqr` (`*ungqr` for complex numbers)
 pub trait QR_: Sized {
     fn householder(Layout, a: &mut [Self]) -> Result<Vec<Self>>;
     fn q(Layout, a: &mut [Self], tau: &[Self]) -> Result<()>;

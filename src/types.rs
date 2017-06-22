@@ -1,3 +1,4 @@
+//! Basic types and their methods for linear algebra
 
 use std::ops::*;
 use std::fmt::Debug;
@@ -8,7 +9,7 @@ use rand::Rng;
 use rand::distributions::*;
 use ndarray::LinalgScalar;
 
-use super::impl2::LapackScalar;
+use super::lapack_traits::LapackScalar;
 
 pub use num_complex::Complex32 as c32;
 pub use num_complex::Complex64 as c64;
@@ -35,14 +36,17 @@ trait_alias!(Field: LapackScalar,
 
 trait_alias!(RealField: Field, Float);
 
+/// Define associating real float type
 pub trait AssociatedReal: Sized {
     type Real: Float + Mul<Self, Output = Self>;
 }
+
+/// Define associating complex type
 pub trait AssociatedComplex: Sized {
     type Complex;
 }
 
-/// Field with norm
+/// Define `abs()` more generally
 pub trait Absolute {
     type Output: RealField;
     fn squared(&self) -> Self::Output;
@@ -51,14 +55,17 @@ pub trait Absolute {
     }
 }
 
+/// Define `sqrt()` more generally
 pub trait SquareRoot {
     fn sqrt(&self) -> Self;
 }
 
+/// Complex conjugate value
 pub trait Conjugate: Copy {
     fn conj(self) -> Self;
 }
 
+/// Scalars which can be initialized from Gaussian random number
 pub trait RandNormal {
     fn randn<R: Rng>(&mut R) -> Self;
 }

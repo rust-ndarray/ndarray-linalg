@@ -1,4 +1,4 @@
-//! Define trait for vectors
+//! Norm of vectors
 
 use std::ops::*;
 use ndarray::*;

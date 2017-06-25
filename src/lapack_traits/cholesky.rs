@@ -2,11 +2,11 @@
 
 use lapack::c;
 
-use types::*;
 use error::*;
 use layout::Layout;
+use types::*;
 
-use super::{into_result, UPLO};
+use super::{UPLO, into_result};
 
 pub trait Cholesky_: Sized {
     fn cholesky(Layout, UPLO, a: &mut [Self]) -> Result<()>;

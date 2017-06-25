@@ -2,9 +2,9 @@
 
 use ndarray::*;
 
-use super::types::*;
 use super::error::*;
 use super::layout::*;
+use super::types::*;
 
 pub trait Trace {
     type Output;
@@ -12,8 +12,9 @@ pub trait Trace {
 }
 
 impl<A, S> Trace for ArrayBase<S, Ix2>
-    where A: Field,
-          S: Data<Elem = A>
+where
+    A: Field,
+    S: Data<Elem = A>,
 {
     type Output = A;
 

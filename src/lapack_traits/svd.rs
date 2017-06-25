@@ -3,9 +3,9 @@
 use lapack::c;
 use num_traits::Zero;
 
-use types::*;
 use error::*;
 use layout::Layout;
+use types::*;
 
 use super::into_result;
 

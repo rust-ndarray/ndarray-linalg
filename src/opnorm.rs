@@ -2,12 +2,12 @@
 
 use ndarray::*;
 
-use super::types::*;
 use super::error::*;
 use super::layout::*;
+use super::types::*;
 
-pub use lapack_traits::NormType;
 use lapack_traits::LapackScalar;
+pub use lapack_traits::NormType;
 
 pub trait OperationNorm {
     type Output;
@@ -24,8 +24,9 @@ pub trait OperationNorm {
 }
 
 impl<A, S> OperationNorm for ArrayBase<S, Ix2>
-    where A: LapackScalar + AssociatedReal,
-          S: Data<Elem = A>
+where
+    A: LapackScalar + AssociatedReal,
+    S: Data<Elem = A>,
 {
     type Output = Result<A::Real>;
 

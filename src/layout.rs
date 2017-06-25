@@ -1,7 +1,7 @@
 //! Memory layout of matrices
 
-use ndarray::*;
 use lapack::c;
+use ndarray::*;
 
 use super::error::*;
 
@@ -83,7 +83,8 @@ pub trait AllocatedArrayMut: AllocatedArray {
 }
 
 impl<A, S> AllocatedArray for ArrayBase<S, Ix2>
-    where S: Data<Elem = A>
+where
+    S: Data<Elem = A>,
 {
     type Elem = A;
 
@@ -115,52 +116,61 @@ impl<A, S> AllocatedArray for ArrayBase<S, Ix2>
 }
 
 impl<A, S> AllocatedArrayMut for ArrayBase<S, Ix2>
-    where S: DataMut<Elem = A>
+where
+    S: DataMut<Elem = A>,
 {
     fn as_allocated_mut(&mut self) -> Result<&mut [A]> {
-        Ok(self.as_slice_memory_order_mut().ok_or(MemoryContError::new())?)
+        Ok(self.as_slice_memory_order_mut().ok_or(
+            MemoryContError::new(),
+        )?)
     }
 }
 
 pub fn into_col_vec<S>(a: ArrayBase<S, Ix1>) -> ArrayBase<S, Ix2>
-    where S: Data
+where
+    S: Data,
 {
     let n = a.len();
     a.into_shape((n, 1)).unwrap()
 }
 
 pub fn into_row_vec<S>(a: ArrayBase<S, Ix1>) -> ArrayBase<S, Ix2>
-    where S: Data
+where
+    S: Data,
 {
     let n = a.len();
     a.into_shape((1, n)).unwrap()
 }
 
 pub fn into_vec<S>(a: ArrayBase<S, Ix2>) -> ArrayBase<S, Ix1>
-    where S: Data
+where
+    S: Data,
 {
     let n = a.len();
     a.into_shape((n)).unwrap()
 }
 
 pub fn reconstruct<A, S>(l: Layout, a: Vec<A>) -> Result<ArrayBase<S, Ix2>>
-    where S: DataOwned<Elem = A>
+where
+    S: DataOwned<Elem = A>,
 {
     Ok(ArrayBase::from_shape_vec(l.as_shape(), a)?)
 }
 
 pub fn uninitialized<A, S>(l: Layout) -> ArrayBase<S, Ix2>
-    where A: Copy,
-          S: DataOwned<Elem = A>
+where
+    A: Copy,
+    S: DataOwned<Elem = A>,
 {
     unsafe { ArrayBase::uninitialized(l.as_shape()) }
 }
 
 pub fn replicate<A, Sv, So, D>(a: &ArrayBase<Sv, D>) -> ArrayBase<So, D>
-    where A: Copy,
-          Sv: Data<Elem = A>,
-          So: DataOwned<Elem = A> + DataMut,
-          D: Dimension
+where
+    A: Copy,
+    Sv: Data<Elem = A>,
+    So: DataOwned<Elem = A> + DataMut,
+    D: Dimension,
 {
     let mut b = unsafe { ArrayBase::uninitialized(a.dim()) };
     b.assign(a);
@@ -168,9 +178,10 @@ pub fn replicate<A, Sv, So, D>(a: &ArrayBase<Sv, D>) -> ArrayBase<So, D>
 }
 
 pub fn clone_with_layout<A, Si, So>(l: Layout, a: &ArrayBase<Si, Ix2>) -> ArrayBase<So, Ix2>
-    where A: Copy,
-          Si: Data<Elem = A>,
-          So: DataOwned<Elem = A> + DataMut
+where
+    A: Copy,
+    Si: Data<Elem = A>,
+    So: DataOwned<Elem = A> + DataMut,
 {
     let mut b = uninitialized(l);
     b.assign(a);
@@ -178,8 +189,9 @@ pub fn clone_with_layout<A, Si, So>(l: Layout, a: &ArrayBase<Si, Ix2>) -> ArrayB
 }
 
 pub fn data_transpose<A, S>(a: &mut ArrayBase<S, Ix2>) -> Result<&mut ArrayBase<S, Ix2>>
-    where A: Copy,
-          S: DataOwned<Elem = A> + DataMut
+where
+    A: Copy,
+    S: DataOwned<Elem = A> + DataMut,
 {
     let l = a.layout()?.toggle_order();
     let new = clone_with_layout(l, a);

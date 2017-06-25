@@ -2,10 +2,10 @@
 
 use lapack::c;
 
+use super::{Transpose, UPLO, into_result};
 use error::*;
-use types::*;
 use layout::Layout;
-use super::{UPLO, Transpose, into_result};
+use types::*;
 
 #[derive(Debug, Clone, Copy)]
 #[repr(u8)]

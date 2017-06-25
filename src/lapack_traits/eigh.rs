@@ -3,11 +3,11 @@
 use lapack::c;
 use num_traits::Zero;
 
-use types::*;
 use error::*;
 use layout::Layout;
+use types::*;
 
-use super::{into_result, UPLO};
+use super::{UPLO, into_result};
 
 /// Wraps `*syev` for real and `*heev` for complex
 pub trait Eigh_: AssociatedReal {

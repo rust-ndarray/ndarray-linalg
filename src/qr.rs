@@ -1,7 +1,7 @@
 //! QR decomposition
 
-use num_traits::Zero;
 use ndarray::*;
+use num_traits::Zero;
 
 use super::error::*;
 use super::layout::*;
@@ -13,10 +13,11 @@ pub trait QR<Q, R> {
 }
 
 impl<A, S, Sq, Sr> QR<ArrayBase<Sq, Ix2>, ArrayBase<Sr, Ix2>> for ArrayBase<S, Ix2>
-    where A: LapackScalar + Copy + Zero,
-          S: DataMut<Elem = A>,
-          Sq: DataOwned<Elem = A> + DataMut,
-          Sr: DataOwned<Elem = A> + DataMut
+where
+    A: LapackScalar + Copy + Zero,
+    S: DataMut<Elem = A>,
+    Sq: DataOwned<Elem = A> + DataMut,
+    Sr: DataOwned<Elem = A> + DataMut,
 {
     fn qr(mut self) -> Result<(ArrayBase<Sq, Ix2>, ArrayBase<Sr, Ix2>)> {
         (&mut self).qr()
@@ -24,9 +25,10 @@ impl<A, S, Sq, Sr> QR<ArrayBase<Sq, Ix2>, ArrayBase<Sr, Ix2>> for ArrayBase<S, I
 }
 
 fn take_slice<A, S1, S2>(a: &ArrayBase<S1, Ix2>, n: usize, m: usize) -> ArrayBase<S2, Ix2>
-    where A: Copy,
-          S1: Data<Elem = A>,
-          S2: DataMut<Elem = A> + DataOwned
+where
+    A: Copy,
+    S1: Data<Elem = A>,
+    S2: DataMut<Elem = A> + DataOwned,
 {
     let av = a.slice(s![..n as isize, ..m as isize]);
     let mut a = unsafe { ArrayBase::uninitialized((n, m)) };
@@ -35,9 +37,10 @@ fn take_slice<A, S1, S2>(a: &ArrayBase<S1, Ix2>, n: usize, m: usize) -> ArrayBas
 }
 
 fn take_slice_upper<A, S1, S2>(a: &ArrayBase<S1, Ix2>, n: usize, m: usize) -> ArrayBase<S2, Ix2>
-    where A: Copy + Zero,
-          S1: Data<Elem = A>,
-          S2: DataMut<Elem = A> + DataOwned
+where
+    A: Copy + Zero,
+    S1: Data<Elem = A>,
+    S2: DataMut<Elem = A> + DataOwned,
 {
     let av = a.slice(s![..n as isize, ..m as isize]);
     let mut a = unsafe { ArrayBase::uninitialized((n, m)) };
@@ -48,10 +51,15 @@ fn take_slice_upper<A, S1, S2>(a: &ArrayBase<S1, Ix2>, n: usize, m: usize) -> Ar
 }
 
 impl<'a, A, S, Sq, Sr> QR<ArrayBase<Sq, Ix2>, ArrayBase<Sr, Ix2>> for &'a mut ArrayBase<S, Ix2>
-    where A: LapackScalar + Copy + Zero,
-          S: DataMut<Elem = A>,
-          Sq: DataOwned<Elem = A> + DataMut,
-          Sr: DataOwned<Elem = A> + DataMut
+where
+    A: LapackScalar
+        + Copy
+        + Zero,
+    S: DataMut<Elem = A>,
+    Sq: DataOwned<Elem = A>
+        + DataMut,
+    Sr: DataOwned<Elem = A>
+        + DataMut,
 {
     fn qr(mut self) -> Result<(ArrayBase<Sq, Ix2>, ArrayBase<Sr, Ix2>)> {
         let n = self.rows();

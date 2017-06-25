@@ -13,9 +13,10 @@ pub trait Eigh<EigVal, EigVec> {
 }
 
 impl<A, S, Se> Eigh<ArrayBase<Se, Ix1>, ArrayBase<S, Ix2>> for ArrayBase<S, Ix2>
-    where A: LapackScalar,
-          S: DataMut<Elem = A>,
-          Se: DataOwned<Elem = A::Real>
+where
+    A: LapackScalar,
+    S: DataMut<Elem = A>,
+    Se: DataOwned<Elem = A::Real>,
 {
     fn eigh(mut self, uplo: UPLO) -> Result<(ArrayBase<Se, Ix1>, ArrayBase<S, Ix2>)> {
         let s = A::eigh(true, self.square_layout()?, uplo, self.as_allocated_mut()?)?;
@@ -52,9 +53,10 @@ pub trait EigValsh<EigVal> {
 }
 
 impl<A, S, Se> EigValsh<ArrayBase<Se, Ix1>> for ArrayBase<S, Ix2>
-    where A: LapackScalar,
-          S: DataMut<Elem = A>,
-          Se: DataOwned<Elem = A::Real>
+where
+    A: LapackScalar,
+    S: DataMut<Elem = A>,
+    Se: DataOwned<Elem = A::Real>,
 {
     fn eigvalsh(mut self, uplo: UPLO) -> Result<ArrayBase<Se, Ix1>> {
         let s = A::eigh(false, self.square_layout()?, uplo, self.as_allocated_mut()?)?;
@@ -63,9 +65,10 @@ impl<A, S, Se> EigValsh<ArrayBase<Se, Ix1>> for ArrayBase<S, Ix2>
 }
 
 impl<'a, A, S, Se> EigValsh<ArrayBase<Se, Ix1>> for &'a ArrayBase<S, Ix2>
-    where A: LapackScalar + Copy,
-          S: Data<Elem = A>,
-          Se: DataOwned<Elem = A::Real>
+where
+    A: LapackScalar + Copy,
+    S: Data<Elem = A>,
+    Se: DataOwned<Elem = A::Real>,
 {
     fn eigvalsh(self, uplo: UPLO) -> Result<ArrayBase<Se, Ix1>> {
         let mut a = self.to_owned();
@@ -75,9 +78,10 @@ impl<'a, A, S, Se> EigValsh<ArrayBase<Se, Ix1>> for &'a ArrayBase<S, Ix2>
 }
 
 impl<'a, A, S, Se> EigValsh<ArrayBase<Se, Ix1>> for &'a mut ArrayBase<S, Ix2>
-    where A: LapackScalar,
-          S: DataMut<Elem = A>,
-          Se: DataOwned<Elem = A::Real>
+where
+    A: LapackScalar,
+    S: DataMut<Elem = A>,
+    Se: DataOwned<Elem = A::Real>,
 {
     fn eigvalsh(mut self, uplo: UPLO) -> Result<ArrayBase<Se, Ix1>> {
         let s = A::eigh(true, self.square_layout()?, uplo, self.as_allocated_mut()?)?;

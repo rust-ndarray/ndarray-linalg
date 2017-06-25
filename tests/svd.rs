@@ -3,9 +3,9 @@ extern crate ndarray;
 #[macro_use]
 extern crate ndarray_linalg;
 
-use std::cmp::min;
 use ndarray::*;
 use ndarray_linalg::*;
+use std::cmp::min;
 
 fn test(a: Array2<f64>, n: usize, m: usize) {
     let answer = a.clone();

@@ -1,7 +1,7 @@
 //! Norm of vectors
 
-use std::ops::*;
 use ndarray::*;
+use std::ops::*;
 
 use super::types::*;
 
@@ -23,10 +23,11 @@ pub trait Norm {
 }
 
 impl<A, S, D, T> Norm for ArrayBase<S, D>
-    where A: Field + Absolute<Output = T>,
-          T: RealField,
-          S: Data<Elem = A>,
-          D: Dimension
+where
+    A: Field + Absolute<Output = T>,
+    T: RealField,
+    S: Data<Elem = A>,
+    D: Dimension,
 {
     type Output = T;
     fn norm_l1(&self) -> Self::Output {
@@ -50,9 +51,10 @@ pub enum NormalizeAxis {
 
 /// normalize in L2 norm
 pub fn normalize<A, S, T>(mut m: ArrayBase<S, Ix2>, axis: NormalizeAxis) -> (ArrayBase<S, Ix2>, Vec<T>)
-    where A: Field + Absolute<Output = T> + Div<T, Output = A>,
-          S: DataMut<Elem = A>,
-          T: RealField
+where
+    A: Field + Absolute<Output = T> + Div<T, Output = A>,
+    S: DataMut<Elem = A>,
+    T: RealField,
 {
     let mut ms = Vec::new();
     for mut v in m.axis_iter_mut(Axis(axis as usize)) {

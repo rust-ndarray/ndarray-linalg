@@ -7,10 +7,11 @@ use ndarray::*;
 use ndarray_linalg::*;
 
 fn test1d<A, Sa, Sb, Tol>(uplo: UPLO, a: ArrayBase<Sa, Ix2>, b: ArrayBase<Sb, Ix1>, tol: Tol)
-    where A: Field + Absolute<Output = Tol>,
-          Sa: Data<Elem = A>,
-          Sb: DataMut<Elem = A> + DataOwned,
-          Tol: RealField
+where
+    A: Field + Absolute<Output = Tol>,
+    Sa: Data<Elem = A>,
+    Sb: DataMut<Elem = A> + DataOwned,
+    Tol: RealField,
 {
     println!("a = {:?}", &a);
     println!("b = {:?}", &b);
@@ -22,10 +23,11 @@ fn test1d<A, Sa, Sb, Tol>(uplo: UPLO, a: ArrayBase<Sa, Ix2>, b: ArrayBase<Sb, Ix
 }
 
 fn test2d<A, Sa, Sb, Tol>(uplo: UPLO, a: ArrayBase<Sa, Ix2>, b: ArrayBase<Sb, Ix2>, tol: Tol)
-    where A: Field + Absolute<Output = Tol>,
-          Sa: Data<Elem = A>,
-          Sb: DataMut<Elem = A> + DataOwned + DataClone,
-          Tol: RealField
+where
+    A: Field + Absolute<Output = Tol>,
+    Sa: Data<Elem = A>,
+    Sb: DataMut<Elem = A> + DataOwned + DataClone,
+    Tol: RealField,
 {
     println!("a = {:?}", &a);
     println!("b = {:?}", &b);

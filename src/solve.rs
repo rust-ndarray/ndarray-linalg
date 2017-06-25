@@ -1,9 +1,9 @@
 //! Solve linear problems
 
-use ndarray::*;
-use super::layout::*;
 use super::error::*;
 use super::lapack_traits::*;
+use super::layout::*;
+use ndarray::*;
 
 pub use lapack_traits::{Pivot, Transpose};
 
@@ -13,29 +13,36 @@ pub struct Factorized<S: Data> {
 }
 
 impl<A, S> Factorized<S>
-    where A: LapackScalar,
-          S: Data<Elem = A>
+where
+    A: LapackScalar,
+    S: Data<Elem = A>,
 {
     pub fn solve<Sb>(&self, t: Transpose, mut rhs: ArrayBase<Sb, Ix1>) -> Result<ArrayBase<Sb, Ix1>>
-        where Sb: DataMut<Elem = A>
+    where
+        Sb: DataMut<Elem = A>,
     {
-        A::solve(self.a.square_layout()?,
-                 t,
-                 self.a.as_allocated()?,
-                 &self.ipiv,
-                 rhs.as_slice_mut().unwrap())?;
+        A::solve(
+            self.a.square_layout()?,
+            t,
+            self.a.as_allocated()?,
+            &self.ipiv,
+            rhs.as_slice_mut().unwrap(),
+        )?;
         Ok(rhs)
     }
 }
 
 impl<A, S> Factorized<S>
-    where A: LapackScalar,
-          S: DataMut<Elem = A>
+where
+    A: LapackScalar,
+    S: DataMut<Elem = A>,
 {
     pub fn into_inverse(mut self) -> Result<ArrayBase<S, Ix2>> {
-        A::inv(self.a.square_layout()?,
-               self.a.as_allocated_mut()?,
-               &self.ipiv)?;
+        A::inv(
+            self.a.square_layout()?,
+            self.a.as_allocated_mut()?,
+            &self.ipiv,
+        )?;
         Ok(self.a)
     }
 }
@@ -45,8 +52,9 @@ pub trait Factorize<S: Data> {
 }
 
 impl<A, S> Factorize<S> for ArrayBase<S, Ix2>
-    where A: LapackScalar,
-          S: DataMut<Elem = A>
+where
+    A: LapackScalar,
+    S: DataMut<Elem = A>,
 {
     fn factorize(mut self) -> Result<Factorized<S>> {
         let ipiv = A::lu(self.layout()?, self.as_allocated_mut()?)?;
@@ -58,9 +66,10 @@ impl<A, S> Factorize<S> for ArrayBase<S, Ix2>
 }
 
 impl<'a, A, Si, So> Factorize<So> for &'a ArrayBase<Si, Ix2>
-    where A: LapackScalar + Copy,
-          Si: Data<Elem = A>,
-          So: DataOwned<Elem = A> + DataMut
+where
+    A: LapackScalar + Copy,
+    Si: Data<Elem = A>,
+    So: DataOwned<Elem = A> + DataMut,
 {
     fn factorize(self) -> Result<Factorized<So>> {
         let mut a: ArrayBase<So, Ix2> = replicate(self);
@@ -74,8 +83,9 @@ pub trait Inverse<Inv> {
 }
 
 impl<A, S> Inverse<ArrayBase<S, Ix2>> for ArrayBase<S, Ix2>
-    where A: LapackScalar,
-          S: DataMut<Elem = A>
+where
+    A: LapackScalar,
+    S: DataMut<Elem = A>,
 {
     fn inv(self) -> Result<ArrayBase<S, Ix2>> {
         let f = self.factorize()?;
@@ -84,9 +94,10 @@ impl<A, S> Inverse<ArrayBase<S, Ix2>> for ArrayBase<S, Ix2>
 }
 
 impl<'a, A, Si, So> Inverse<ArrayBase<So, Ix2>> for &'a ArrayBase<Si, Ix2>
-    where A: LapackScalar + Copy,
-          Si: Data<Elem = A>,
-          So: DataOwned<Elem = A> + DataMut
+where
+    A: LapackScalar + Copy,
+    Si: Data<Elem = A>,
+    So: DataOwned<Elem = A> + DataMut,
 {
     fn inv(self) -> Result<ArrayBase<So, Ix2>> {
         let f = self.factorize()?;

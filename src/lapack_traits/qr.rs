@@ -1,12 +1,12 @@
 //! QR decomposition
 
-use std::cmp::min;
-use num_traits::Zero;
 use lapack::c;
+use num_traits::Zero;
+use std::cmp::min;
 
-use types::*;
 use error::*;
 use layout::Layout;
+use types::*;
 
 use super::into_result;
 

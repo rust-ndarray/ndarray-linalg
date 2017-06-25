@@ -1,8 +1,8 @@
 //! Define Errors
 
+use ndarray::{Ixs, ShapeError};
 use std::error;
 use std::fmt;
-use ndarray::{Ixs, ShapeError};
 
 pub type Result<T> = ::std::result::Result<T, LinalgError>;
 

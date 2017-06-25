@@ -2,9 +2,9 @@
 
 use lapack::c;
 
-use types::*;
 use error::*;
 use layout::Layout;
+use types::*;
 
 use super::{Transpose, into_result};
 

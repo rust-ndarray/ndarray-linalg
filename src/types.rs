@@ -1,13 +1,13 @@
 //! Basic types and their methods for linear algebra
 
-use std::ops::*;
-use std::fmt::Debug;
-use std::iter::Sum;
+use ndarray::LinalgScalar;
 use num_complex::Complex;
 use num_traits::*;
 use rand::Rng;
 use rand::distributions::*;
-use ndarray::LinalgScalar;
+use std::fmt::Debug;
+use std::iter::Sum;
+use std::ops::*;
 
 use super::lapack_traits::LapackScalar;
 
@@ -23,16 +23,18 @@ impl<T> $name for T where T: $($t +)* {}
 
 }} // trait_alias!
 
-trait_alias!(Field: LapackScalar,
-             LinalgScalar,
-             AssociatedReal,
-             AssociatedComplex,
-             Absolute,
-             SquareRoot,
-             Conjugate,
-             RandNormal,
-             Sum,
-             Debug);
+trait_alias!(
+    Field: LapackScalar,
+    LinalgScalar,
+    AssociatedReal,
+    AssociatedComplex,
+    Absolute,
+    SquareRoot,
+    Conjugate,
+    RandNormal,
+    Sum,
+    Debug
+);
 
 trait_alias!(RealField: Field, Float);
 

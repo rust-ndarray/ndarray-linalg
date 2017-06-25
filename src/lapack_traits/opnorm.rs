@@ -3,8 +3,8 @@
 use lapack::c;
 use lapack::c::Layout::ColumnMajor as cm;
 
-use types::*;
 use layout::Layout;
+use types::*;
 
 #[repr(u8)]
 pub enum NormType {

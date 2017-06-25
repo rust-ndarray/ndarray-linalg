@@ -3,9 +3,9 @@
 use ndarray::*;
 use num_traits::Zero;
 
-use super::layout::*;
 use super::error::*;
 use super::lapack_traits::*;
+use super::layout::*;
 
 pub use super::lapack_traits::Diag;
 
@@ -16,9 +16,10 @@ pub trait SolveTriangular<Rhs> {
 }
 
 impl<A, Si, So> SolveTriangular<ArrayBase<So, Ix2>> for ArrayBase<Si, Ix2>
-    where A: LapackScalar + Copy,
-          Si: Data<Elem = A>,
-          So: DataMut<Elem = A> + DataOwned
+where
+    A: LapackScalar + Copy,
+    Si: Data<Elem = A>,
+    So: DataMut<Elem = A> + DataOwned,
 {
     type Output = ArrayBase<So, Ix2>;
 
@@ -29,9 +30,10 @@ impl<A, Si, So> SolveTriangular<ArrayBase<So, Ix2>> for ArrayBase<Si, Ix2>
 }
 
 impl<'a, A, Si, So> SolveTriangular<&'a mut ArrayBase<So, Ix2>> for ArrayBase<Si, Ix2>
-    where A: LapackScalar + Copy,
-          Si: Data<Elem = A>,
-          So: DataMut<Elem = A> + DataOwned
+where
+    A: LapackScalar + Copy,
+    Si: Data<Elem = A>,
+    So: DataMut<Elem = A> + DataOwned,
 {
     type Output = &'a mut ArrayBase<So, Ix2>;
 
@@ -49,9 +51,10 @@ impl<'a, A, Si, So> SolveTriangular<&'a mut ArrayBase<So, Ix2>> for ArrayBase<Si
 }
 
 impl<'a, A, Si, So> SolveTriangular<&'a ArrayBase<So, Ix2>> for ArrayBase<Si, Ix2>
-    where A: LapackScalar + Copy,
-          Si: Data<Elem = A>,
-          So: DataMut<Elem = A> + DataOwned
+where
+    A: LapackScalar + Copy,
+    Si: Data<Elem = A>,
+    So: DataMut<Elem = A> + DataOwned,
 {
     type Output = ArrayBase<So, Ix2>;
 
@@ -62,9 +65,10 @@ impl<'a, A, Si, So> SolveTriangular<&'a ArrayBase<So, Ix2>> for ArrayBase<Si, Ix
 }
 
 impl<A, Si, So> SolveTriangular<ArrayBase<So, Ix1>> for ArrayBase<Si, Ix2>
-    where A: LapackScalar + Copy,
-          Si: Data<Elem = A>,
-          So: DataMut<Elem = A> + DataOwned
+where
+    A: LapackScalar + Copy,
+    Si: Data<Elem = A>,
+    So: DataMut<Elem = A> + DataOwned,
 {
     type Output = ArrayBase<So, Ix1>;
 
@@ -76,9 +80,10 @@ impl<A, Si, So> SolveTriangular<ArrayBase<So, Ix1>> for ArrayBase<Si, Ix2>
 }
 
 impl<'a, A, Si, So> SolveTriangular<&'a ArrayBase<So, Ix1>> for ArrayBase<Si, Ix2>
-    where A: LapackScalar + Copy,
-          Si: Data<Elem = A>,
-          So: DataMut<Elem = A> + DataOwned
+where
+    A: LapackScalar + Copy,
+    Si: Data<Elem = A>,
+    So: DataMut<Elem = A> + DataOwned,
 {
     type Output = ArrayBase<So, Ix1>;
 
@@ -93,8 +98,9 @@ pub trait IntoTriangular<T> {
 }
 
 impl<'a, A, S> IntoTriangular<&'a mut ArrayBase<S, Ix2>> for &'a mut ArrayBase<S, Ix2>
-    where A: Zero,
-          S: DataMut<Elem = A>
+where
+    A: Zero,
+    S: DataMut<Elem = A>,
 {
     fn into_triangular(self, uplo: UPLO) -> &'a mut ArrayBase<S, Ix2> {
         match uplo {
@@ -118,8 +124,9 @@ impl<'a, A, S> IntoTriangular<&'a mut ArrayBase<S, Ix2>> for &'a mut ArrayBase<S
 }
 
 impl<A, S> IntoTriangular<ArrayBase<S, Ix2>> for ArrayBase<S, Ix2>
-    where A: Zero,
-          S: DataMut<Elem = A>
+where
+    A: Zero,
+    S: DataMut<Elem = A>,
 {
     fn into_triangular(mut self, uplo: UPLO) -> ArrayBase<S, Ix2> {
         (&mut self).into_triangular(uplo);

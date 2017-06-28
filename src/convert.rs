@@ -27,14 +27,14 @@ where
     a.into_shape((n)).unwrap()
 }
 
-pub fn reconstruct<A, S>(l: MatrixLayout, a: Vec<A>) -> Result<ArrayBase<S, Ix2>>
+pub fn into_matrix<A, S>(l: MatrixLayout, a: Vec<A>) -> Result<ArrayBase<S, Ix2>>
 where
     S: DataOwned<Elem = A>,
 {
     Ok(ArrayBase::from_shape_vec(l.as_shape(), a)?)
 }
 
-pub fn uninitialized<A, S>(l: MatrixLayout) -> ArrayBase<S, Ix2>
+fn uninitialized<A, S>(l: MatrixLayout) -> ArrayBase<S, Ix2>
 where
     A: Copy,
     S: DataOwned<Elem = A>,
@@ -54,7 +54,7 @@ where
     b
 }
 
-pub fn clone_with_layout<A, Si, So>(l: MatrixLayout, a: &ArrayBase<Si, Ix2>) -> ArrayBase<So, Ix2>
+fn clone_with_layout<A, Si, So>(l: MatrixLayout, a: &ArrayBase<Si, Ix2>) -> ArrayBase<So, Ix2>
 where
     A: Copy,
     Si: Data<Elem = A>,
@@ -65,7 +65,7 @@ where
     b
 }
 
-pub fn data_transpose<A, S>(a: &mut ArrayBase<S, Ix2>) -> Result<&mut ArrayBase<S, Ix2>>
+pub fn transpose_data<A, S>(a: &mut ArrayBase<S, Ix2>) -> Result<&mut ArrayBase<S, Ix2>>
 where
     A: Copy,
     S: DataOwned<Elem = A> + DataMut,

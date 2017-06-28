@@ -43,7 +43,7 @@ where
         let a_ = self.as_allocated()?;
         let lb = b.layout()?;
         if !la.same_order(&lb) {
-            data_transpose(b)?;
+            transpose_data(b)?;
         }
         let lb = b.layout()?;
         A::solve_triangular(la, lb, uplo, diag, a_, b.as_allocated_mut()?)?;

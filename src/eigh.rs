@@ -106,7 +106,7 @@ where
     fn ssqrt(self, uplo: UPLO) -> Result<ArrayBase<S, Ix2>> {
         let (e, v): (Array1<A::Real>, _) = self.eigh(uplo)?;
         let e_sqrt = Array1::from_iter(e.iter().map(|r| AssociatedReal::inject(r.sqrt())));
-        let ev: Array2<_> = e_sqrt.into_diagonal().op(&v);
-        Ok(v.t().op(&ev))
+        let ev: Array2<_> = e_sqrt.into_diagonal().op(&v.t());
+        Ok(v.op(&ev))
     }
 }

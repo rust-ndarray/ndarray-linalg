@@ -4,8 +4,11 @@ use ndarray::*;
 use num_traits::Float;
 
 use super::convert::*;
+use super::diagonal::*;
 use super::error::*;
 use super::layout::*;
+use super::operator::*;
+use super::types::*;
 
 use lapack_traits::LapackScalar;
 pub use lapack_traits::UPLO;
@@ -97,15 +100,13 @@ pub trait SymmetricSqrt<Output> {
 
 impl<A, S> SymmetricSqrt<ArrayBase<S, Ix2>> for ArrayBase<S, Ix2>
 where
-    A: LapackScalar,
-    S: DataMut<Elem = A>,
+    A: Field,
+    S: DataMut<Elem = A> + DataOwned,
 {
     fn ssqrt(self, uplo: UPLO) -> Result<ArrayBase<S, Ix2>> {
-        let (mut e, v): (Array1<A::Real>, _) = self.eigh(uplo)?;
-        for val in e.iter_mut() {
-            *val = val.sqrt();
-        }
-        // TODO incomplete implement!
-        Ok(v)
+        let (e, v): (Array1<A::Real>, _) = self.eigh(uplo)?;
+        let e_sqrt = Array1::from_iter(e.iter().map(|r| AssociatedReal::inject(r.sqrt())));
+        let ev: Array2<_> = e_sqrt.into_diagonal().op(&v);
+        Ok(v.t().op(&ev))
     }
 }

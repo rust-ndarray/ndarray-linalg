@@ -73,9 +73,9 @@ where
     type Output = ArrayBase<So, Ix1>;
 
     fn solve_triangular(&self, uplo: UPLO, diag: Diag, b: ArrayBase<So, Ix1>) -> Result<Self::Output> {
-        let b = into_col_vec(b);
+        let b = into_col(b);
         let b = self.solve_triangular(uplo, diag, b)?;
-        Ok(into_vec(b))
+        Ok(flatten(b))
     }
 }
 

@@ -126,7 +126,7 @@ where
     }
 }
 
-pub fn into_col_vec<S>(a: ArrayBase<S, Ix1>) -> ArrayBase<S, Ix2>
+pub fn into_col<S>(a: ArrayBase<S, Ix1>) -> ArrayBase<S, Ix2>
 where
     S: Data,
 {
@@ -134,7 +134,7 @@ where
     a.into_shape((n, 1)).unwrap()
 }
 
-pub fn into_row_vec<S>(a: ArrayBase<S, Ix1>) -> ArrayBase<S, Ix2>
+pub fn into_row<S>(a: ArrayBase<S, Ix1>) -> ArrayBase<S, Ix2>
 where
     S: Data,
 {
@@ -142,7 +142,7 @@ where
     a.into_shape((1, n)).unwrap()
 }
 
-pub fn into_vec<S>(a: ArrayBase<S, Ix2>) -> ArrayBase<S, Ix1>
+pub fn flatten<S>(a: ArrayBase<S, Ix2>) -> ArrayBase<S, Ix1>
 where
     S: Data,
 {

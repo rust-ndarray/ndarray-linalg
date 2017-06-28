@@ -13,6 +13,7 @@ use super::types::*;
 use lapack_traits::LapackScalar;
 pub use lapack_traits::UPLO;
 
+/// Eigenvalue decomposition of Hermite matrix
 pub trait Eigh<EigVal, EigVec> {
     fn eigh(self, UPLO) -> Result<(EigVal, EigVec)>;
 }
@@ -53,6 +54,7 @@ impl<'a, A, S, Se> Eigh<ArrayBase<Se, Ix1>, &'a mut ArrayBase<S, Ix2>> for &'a m
     }
 }
 
+/// Calculate eigenvalues without eigenvectors
 pub trait EigValsh<EigVal> {
     fn eigvalsh(self, UPLO) -> Result<EigVal>;
 }
@@ -94,6 +96,7 @@ where
     }
 }
 
+/// Calculate symmetric square-root matrix using `eigh`
 pub trait SymmetricSqrt<Output> {
     fn ssqrt(self, UPLO) -> Result<Output>;
 }

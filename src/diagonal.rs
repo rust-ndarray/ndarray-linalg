@@ -1,8 +1,11 @@
+//! Vector as a Diagonal matrix
+
 use ndarray::*;
 
 use super::convert::*;
 use super::operator::*;
 
+/// Vector as a Diagonal matrix
 pub struct Diagonal<S: Data> {
     diag: ArrayBase<S, Ix1>,
 }

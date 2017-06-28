@@ -1,3 +1,5 @@
+//! utilities for convert array
+
 use ndarray::*;
 
 use super::error::*;

@@ -1,7 +1,10 @@
+//! Linear Operator
+
 use ndarray::*;
 
 use super::convert::*;
 
+/// General operator trait. It extends `ndarray::linalg::Dot`
 pub trait Operator<RHS, Output> {
     fn op(&self, RHS) -> Output;
 }

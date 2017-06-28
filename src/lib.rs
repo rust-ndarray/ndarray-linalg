@@ -79,9 +79,11 @@ pub use assert::*;
 pub use convert::*;
 pub use generate::*;
 pub use layout::*;
+pub use operator::*;
 pub use types::*;
 
 pub use cholesky::*;
+pub use diagonal::*;
 pub use eigh::*;
 pub use norm::*;
 pub use opnorm::*;

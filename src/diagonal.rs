@@ -7,15 +7,23 @@ pub struct Diagonal<S: Data> {
     diag: ArrayBase<S, Ix1>,
 }
 
-impl<S: Data> Diagonal<S> {
-    pub fn into_diagonal(diag: ArrayBase<S, Ix1>) -> Self {
-        Self { diag }
+pub trait IntoDiagonal<S: Data> {
+    fn into_diagonal(self) -> Diagonal<S>;
+}
+
+pub trait AsDiagonal<'a, A> {
+    fn as_diagonal(&self) -> Diagonal<ViewRepr<&'a A>>;
+}
+
+impl<S: Data> IntoDiagonal<S> for ArrayBase<S, Ix1> {
+    fn into_diagonal(self) -> Diagonal<S> {
+        Diagonal { diag: self }
     }
 }
 
-impl<'a, A> Diagonal<ViewRepr<&'a A>> {
-    pub fn as_diagonal<S: Data<Elem = A>>(a: &'a ArrayBase<S, Ix1>) -> Self {
-        Self { diag: a.view() }
+impl<'a, A, S: Data<Elem = A>> AsDiagonal<'a, A> for &'a ArrayBase<S, Ix1> {
+    fn as_diagonal(&self) -> Diagonal<ViewRepr<&'a A>> {
+        Diagonal { diag: self.view() }
     }
 }
 

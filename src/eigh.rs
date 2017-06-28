@@ -1,10 +1,14 @@
 //! Eigenvalue decomposition for Hermite matrices
 
 use ndarray::*;
+use num_traits::Float;
 
 use super::convert::*;
+use super::diagonal::*;
 use super::error::*;
 use super::layout::*;
+use super::operator::*;
+use super::types::*;
 
 use lapack_traits::LapackScalar;
 pub use lapack_traits::UPLO;
@@ -87,5 +91,22 @@ where
     fn eigvalsh(mut self, uplo: UPLO) -> Result<ArrayBase<Se, Ix1>> {
         let s = A::eigh(true, self.square_layout()?, uplo, self.as_allocated_mut()?)?;
         Ok(ArrayBase::from_vec(s))
+    }
+}
+
+pub trait SymmetricSqrt<Output> {
+    fn ssqrt(self, UPLO) -> Result<Output>;
+}
+
+impl<A, S> SymmetricSqrt<ArrayBase<S, Ix2>> for ArrayBase<S, Ix2>
+where
+    A: Field,
+    S: DataMut<Elem = A> + DataOwned,
+{
+    fn ssqrt(self, uplo: UPLO) -> Result<ArrayBase<S, Ix2>> {
+        let (e, v): (Array1<A::Real>, _) = self.eigh(uplo)?;
+        let e_sqrt = Array1::from_iter(e.iter().map(|r| AssociatedReal::inject(r.sqrt())));
+        let ev: Array2<_> = e_sqrt.into_diagonal().op(&v.t());
+        Ok(v.op(&ev))
     }
 }

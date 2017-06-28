@@ -41,11 +41,13 @@ trait_alias!(RealField: Field, Float);
 /// Define associating real float type
 pub trait AssociatedReal: Sized {
     type Real: Float + Mul<Self, Output = Self>;
+    fn inject(Self::Real) -> Self;
 }
 
 /// Define associating complex type
 pub trait AssociatedComplex: Sized {
     type Complex;
+    fn inject(Self) -> Self::Complex;
 }
 
 /// Define `abs()` more generally
@@ -77,18 +79,22 @@ macro_rules! impl_traits {
 
 impl AssociatedReal for $real {
     type Real = $real;
+    fn inject(r: Self::Real) -> Self { r }
 }
 
 impl AssociatedReal for $complex {
     type Real = $real;
+    fn inject(r: Self::Real) -> Self { Self::new(r, 0.0) }
 }
 
 impl AssociatedComplex for $real {
     type Complex = $complex;
+    fn inject(r: Self) -> Self::Complex { Self::Complex::new(r, 0.0) }
 }
 
 impl AssociatedComplex for $complex {
     type Complex = $complex;
+    fn inject(c: Self) -> Self::Complex { c }
 }
 
 impl Absolute for $real {

@@ -27,3 +27,29 @@ fn diagonalize() {
         assert_rclose!(e[i], s[(i, i)], 1e-7);
     }
 }
+
+#[test]
+fn ssqrt() {
+    let a: Array2<f64> = random_hpd(3);
+    let ans = a.clone();
+    let s = a.ssqrt(UPLO::Upper).unwrap();
+    println!("a = {:?}", &ans);
+    println!("s = {:?}", &s);
+    assert_close_l2!(&s.t(), &s, 1e-7);
+    let ss = s.dot(&s);
+    println!("ss = {:?}", &ss);
+    assert_close_l2!(&ss, &ans, 1e-7);
+}
+
+#[test]
+fn ssqrt_t() {
+    let a: Array2<f64> = random_hpd(3).reversed_axes();
+    let ans = a.clone();
+    let s = a.ssqrt(UPLO::Upper).unwrap();
+    println!("a = {:?}", &ans);
+    println!("s = {:?}", &s);
+    assert_close_l2!(&s.t(), &s, 1e-7);
+    let ss = s.dot(&s);
+    println!("ss = {:?}", &ss);
+    assert_close_l2!(&ss, &ans, 1e-7);
+}

@@ -2,9 +2,10 @@
 
 use ndarray::*;
 
+use super::convert::*;
 use super::error::*;
+use super::lapack_traits::LapackScalar;
 use super::layout::*;
-use lapack_traits::LapackScalar;
 
 pub trait SVD<U, S, VT> {
     fn svd(self, calc_u: bool, calc_vt: bool) -> Result<(Option<U>, S, Option<VT>)>;
@@ -58,9 +59,9 @@ where
         let l = self.layout()?;
         let svd_res = A::svd(l, calc_u, calc_vt, self.as_allocated_mut()?)?;
         let (n, m) = l.size();
-        let u = svd_res.u.map(|u| reconstruct(l.resized(n, n), u).unwrap());
+        let u = svd_res.u.map(|u| into_matrix(l.resized(n, n), u).unwrap());
         let vt = svd_res.vt.map(
-            |vt| reconstruct(l.resized(m, m), vt).unwrap(),
+            |vt| into_matrix(l.resized(m, m), vt).unwrap(),
         );
         let s = ArrayBase::from_vec(svd_res.s);
         Ok((u, s, vt))

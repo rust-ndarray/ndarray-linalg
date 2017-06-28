@@ -67,12 +67,14 @@ pub mod solve;
 pub mod svd;
 pub mod triangular;
 
+pub mod convert;
 pub mod generate;
 pub mod assert;
 pub mod norm;
 pub mod trace;
 
 pub use assert::*;
+pub use convert::*;
 pub use generate::*;
 pub use layout::*;
 pub use types::*;

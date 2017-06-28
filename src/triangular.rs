@@ -3,6 +3,7 @@
 use ndarray::*;
 use num_traits::Zero;
 
+use super::convert::*;
 use super::error::*;
 use super::lapack_traits::*;
 use super::layout::*;
@@ -42,7 +43,7 @@ where
         let a_ = self.as_allocated()?;
         let lb = b.layout()?;
         if !la.same_order(&lb) {
-            data_transpose(b)?;
+            transpose_data(b)?;
         }
         let lb = b.layout()?;
         A::solve_triangular(la, lb, uplo, diag, a_, b.as_allocated_mut()?)?;
@@ -73,9 +74,9 @@ where
     type Output = ArrayBase<So, Ix1>;
 
     fn solve_triangular(&self, uplo: UPLO, diag: Diag, b: ArrayBase<So, Ix1>) -> Result<Self::Output> {
-        let b = into_col_vec(b);
+        let b = into_col(b);
         let b = self.solve_triangular(uplo, diag, b)?;
-        Ok(into_vec(b))
+        Ok(flatten(b))
     }
 }
 

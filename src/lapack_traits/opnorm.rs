@@ -3,7 +3,7 @@
 use lapack::c;
 use lapack::c::Layout::ColumnMajor as cm;
 
-use layout::Layout;
+use layout::MatrixLayout;
 use types::*;
 
 #[repr(u8)]
@@ -24,16 +24,16 @@ impl NormType {
 }
 
 pub trait OperatorNorm_: AssociatedReal {
-    fn opnorm(NormType, Layout, &[Self]) -> Self::Real;
+    fn opnorm(NormType, MatrixLayout, &[Self]) -> Self::Real;
 }
 
 macro_rules! impl_opnorm {
     ($scalar:ty, $lange:path) => {
 impl OperatorNorm_ for $scalar {
-    fn opnorm(t: NormType, l: Layout, a: &[Self]) -> Self::Real {
+    fn opnorm(t: NormType, l: MatrixLayout, a: &[Self]) -> Self::Real {
         match l {
-            Layout::F((col, lda)) => $lange(cm, t as u8, lda, col, a, lda),
-            Layout::C((row, lda)) => $lange(cm, t.transpose() as u8, lda, row, a, lda),
+            MatrixLayout::F((col, lda)) => $lange(cm, t as u8, lda, col, a, lda),
+            MatrixLayout::C((row, lda)) => $lange(cm, t.transpose() as u8, lda, row, a, lda),
         }
     }
 }

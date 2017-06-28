@@ -11,70 +11,70 @@ pub type Col = i32;
 pub type Row = i32;
 
 #[derive(Debug, Clone, Copy, PartialEq)]
-pub enum Layout {
+pub enum MatrixLayout {
     C((Row, LDA)),
     F((Col, LDA)),
 }
 
-impl Layout {
+impl MatrixLayout {
     pub fn size(&self) -> (Row, Col) {
         match *self {
-            Layout::C((row, lda)) => (row, lda),
-            Layout::F((col, lda)) => (lda, col),
+            MatrixLayout::C((row, lda)) => (row, lda),
+            MatrixLayout::F((col, lda)) => (lda, col),
         }
     }
 
-    pub fn resized(&self, row: Row, col: Col) -> Layout {
+    pub fn resized(&self, row: Row, col: Col) -> MatrixLayout {
         match *self {
-            Layout::C(_) => Layout::C((row, col)),
-            Layout::F(_) => Layout::F((col, row)),
+            MatrixLayout::C(_) => MatrixLayout::C((row, col)),
+            MatrixLayout::F(_) => MatrixLayout::F((col, row)),
         }
     }
 
     pub fn lda(&self) -> LDA {
         match *self {
-            Layout::C((_, lda)) => lda,
-            Layout::F((_, lda)) => lda,
+            MatrixLayout::C((_, lda)) => lda,
+            MatrixLayout::F((_, lda)) => lda,
         }
     }
 
     pub fn len(&self) -> LEN {
         match *self {
-            Layout::C((row, _)) => row,
-            Layout::F((col, _)) => col,
+            MatrixLayout::C((row, _)) => row,
+            MatrixLayout::F((col, _)) => col,
         }
     }
 
     pub fn lapacke_layout(&self) -> c::Layout {
         match *self {
-            Layout::C(_) => c::Layout::RowMajor,
-            Layout::F(_) => c::Layout::ColumnMajor,
+            MatrixLayout::C(_) => c::Layout::RowMajor,
+            MatrixLayout::F(_) => c::Layout::ColumnMajor,
         }
     }
 
-    pub fn same_order(&self, other: &Layout) -> bool {
+    pub fn same_order(&self, other: &MatrixLayout) -> bool {
         self.lapacke_layout() == other.lapacke_layout()
     }
 
     pub fn as_shape(&self) -> Shape<Ix2> {
         match *self {
-            Layout::C((row, col)) => (row as usize, col as usize).into_shape(),
-            Layout::F((col, row)) => (row as usize, col as usize).f().into_shape(),
+            MatrixLayout::C((row, col)) => (row as usize, col as usize).into_shape(),
+            MatrixLayout::F((col, row)) => (row as usize, col as usize).f().into_shape(),
         }
     }
 
     pub fn toggle_order(&self) -> Self {
         match *self {
-            Layout::C((row, col)) => Layout::F((col, row)),
-            Layout::F((col, row)) => Layout::C((row, col)),
+            MatrixLayout::C((row, col)) => MatrixLayout::F((col, row)),
+            MatrixLayout::F((col, row)) => MatrixLayout::C((row, col)),
         }
     }
 }
 
 pub trait AllocatedArray {
     type Elem;
-    fn layout(&self) -> Result<Layout>;
-    fn square_layout(&self) -> Result<Layout>;
+    fn layout(&self) -> Result<MatrixLayout>;
+    fn square_layout(&self) -> Result<MatrixLayout>;
     fn as_allocated(&self) -> Result<&[Self::Elem]>;
 }
 
@@ -88,19 +88,19 @@ where
 {
     type Elem = A;
 
-    fn layout(&self) -> Result<Layout> {
+    fn layout(&self) -> Result<MatrixLayout> {
         let shape = self.shape();
         let strides = self.strides();
         if shape[0] == strides[1] as usize {
-            return Ok(Layout::F((self.cols() as i32, self.rows() as i32)));
+            return Ok(MatrixLayout::F((self.cols() as i32, self.rows() as i32)));
         }
         if shape[1] == strides[0] as usize {
-            return Ok(Layout::C((self.rows() as i32, self.cols() as i32)));
+            return Ok(MatrixLayout::C((self.rows() as i32, self.cols() as i32)));
         }
         Err(StrideError::new(strides[0], strides[1]).into())
     }
 
-    fn square_layout(&self) -> Result<Layout> {
+    fn square_layout(&self) -> Result<MatrixLayout> {
         let l = self.layout()?;
         let (n, m) = l.size();
         if n == m {
@@ -124,77 +124,4 @@ where
             MemoryContError::new(),
         )?)
     }
-}
-
-pub fn into_col_vec<S>(a: ArrayBase<S, Ix1>) -> ArrayBase<S, Ix2>
-where
-    S: Data,
-{
-    let n = a.len();
-    a.into_shape((n, 1)).unwrap()
-}
-
-pub fn into_row_vec<S>(a: ArrayBase<S, Ix1>) -> ArrayBase<S, Ix2>
-where
-    S: Data,
-{
-    let n = a.len();
-    a.into_shape((1, n)).unwrap()
-}
-
-pub fn into_vec<S>(a: ArrayBase<S, Ix2>) -> ArrayBase<S, Ix1>
-where
-    S: Data,
-{
-    let n = a.len();
-    a.into_shape((n)).unwrap()
-}
-
-pub fn reconstruct<A, S>(l: Layout, a: Vec<A>) -> Result<ArrayBase<S, Ix2>>
-where
-    S: DataOwned<Elem = A>,
-{
-    Ok(ArrayBase::from_shape_vec(l.as_shape(), a)?)
-}
-
-pub fn uninitialized<A, S>(l: Layout) -> ArrayBase<S, Ix2>
-where
-    A: Copy,
-    S: DataOwned<Elem = A>,
-{
-    unsafe { ArrayBase::uninitialized(l.as_shape()) }
-}
-
-pub fn replicate<A, Sv, So, D>(a: &ArrayBase<Sv, D>) -> ArrayBase<So, D>
-where
-    A: Copy,
-    Sv: Data<Elem = A>,
-    So: DataOwned<Elem = A> + DataMut,
-    D: Dimension,
-{
-    let mut b = unsafe { ArrayBase::uninitialized(a.dim()) };
-    b.assign(a);
-    b
-}
-
-pub fn clone_with_layout<A, Si, So>(l: Layout, a: &ArrayBase<Si, Ix2>) -> ArrayBase<So, Ix2>
-where
-    A: Copy,
-    Si: Data<Elem = A>,
-    So: DataOwned<Elem = A> + DataMut,
-{
-    let mut b = uninitialized(l);
-    b.assign(a);
-    b
-}
-
-pub fn data_transpose<A, S>(a: &mut ArrayBase<S, Ix2>) -> Result<&mut ArrayBase<S, Ix2>>
-where
-    A: Copy,
-    S: DataOwned<Elem = A> + DataMut,
-{
-    let l = a.layout()?.toggle_order();
-    let new = clone_with_layout(l, a);
-    ::std::mem::replace(a, new);
-    Ok(a)
 }

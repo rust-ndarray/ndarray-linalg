@@ -3,6 +3,7 @@
 use ndarray::*;
 use num_traits::Zero;
 
+use super::convert::*;
 use super::error::*;
 use super::layout::*;
 
@@ -67,7 +68,7 @@ where
         let k = ::std::cmp::min(n, m);
         let l = self.layout()?;
         let r = A::qr(l, self.as_allocated_mut()?)?;
-        let r: Array2<_> = reconstruct(l, r)?;
+        let r: Array2<_> = into_matrix(l, r)?;
         let q = self;
         Ok((take_slice(q, n, k), take_slice_upper(&r, k, m)))
     }
@@ -86,7 +87,7 @@ impl<'a, A, S, Sq, Sr> QR<ArrayBase<Sq, Ix2>, ArrayBase<Sr, Ix2>> for &'a ArrayB
         let l = self.layout()?;
         let mut q = self.to_owned();
         let r = A::qr(l, q.as_allocated_mut()?)?;
-        let r: Array2<_> = reconstruct(l, r)?;
+        let r: Array2<_> = into_matrix(l, r)?;
         Ok((take_slice(&q, n, k), take_slice_upper(&r, k, m)))
     }
 }

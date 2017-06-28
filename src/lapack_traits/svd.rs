@@ -4,7 +4,7 @@ use lapack::c;
 use num_traits::Zero;
 
 use error::*;
-use layout::Layout;
+use layout::MatrixLayout;
 use types::*;
 
 use super::into_result;
@@ -29,14 +29,14 @@ pub struct SVDOutput<A: AssociatedReal> {
 
 /// Wraps `*gesvd`
 pub trait SVD_: AssociatedReal {
-    fn svd(Layout, calc_u: bool, calc_vt: bool, a: &mut [Self]) -> Result<SVDOutput<Self>>;
+    fn svd(MatrixLayout, calc_u: bool, calc_vt: bool, a: &mut [Self]) -> Result<SVDOutput<Self>>;
 }
 
 macro_rules! impl_svd {
     ($scalar:ty, $gesvd:path) => {
 
 impl SVD_ for $scalar {
-    fn svd(l: Layout, calc_u: bool, calc_vt: bool, mut a: &mut [Self]) -> Result<SVDOutput<Self>> {
+    fn svd(l: MatrixLayout, calc_u: bool, calc_vt: bool, mut a: &mut [Self]) -> Result<SVDOutput<Self>> {
         let (m, n) = l.size();
         let k = ::std::cmp::min(n, m);
         let lda = l.lda();

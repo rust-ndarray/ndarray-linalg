@@ -75,3 +75,15 @@ where
     ::std::mem::replace(a, new);
     Ok(a)
 }
+
+pub fn generalize<A, S, D>(a: Array<A, D>) -> ArrayBase<S, D>
+where
+    S: DataOwned<Elem = A>,
+    D: Dimension,
+{
+    if a.is_standard_layout() {
+        ArrayBase::from_shape_vec(a.dim(), a.into_raw_vec()).unwrap()
+    } else {
+        ArrayBase::from_shape_vec(a.dim().f(), a.into_raw_vec()).unwrap()
+    }
+}

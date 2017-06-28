@@ -74,6 +74,7 @@ pub mod norm;
 pub mod trace;
 
 pub use assert::*;
+pub use convert::*;
 pub use generate::*;
 pub use layout::*;
 pub use types::*;

@@ -67,6 +67,7 @@ pub mod solve;
 pub mod svd;
 pub mod triangular;
 
+pub mod convert;
 pub mod generate;
 pub mod assert;
 pub mod norm;

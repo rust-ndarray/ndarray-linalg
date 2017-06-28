@@ -3,6 +3,7 @@
 use ndarray::*;
 use num_traits::Zero;
 
+use super::convert::*;
 use super::error::*;
 use super::layout::*;
 use super::triangular::IntoTriangular;

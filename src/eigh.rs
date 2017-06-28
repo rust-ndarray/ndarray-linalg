@@ -2,6 +2,7 @@
 
 use ndarray::*;
 
+use super::convert::*;
 use super::error::*;
 use super::layout::*;
 

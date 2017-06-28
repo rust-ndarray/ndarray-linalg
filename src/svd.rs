@@ -2,9 +2,10 @@
 
 use ndarray::*;
 
+use super::convert::*;
 use super::error::*;
+use super::lapack_traits::LapackScalar;
 use super::layout::*;
-use lapack_traits::LapackScalar;
 
 pub trait SVD<U, S, VT> {
     fn svd(self, calc_u: bool, calc_vt: bool) -> Result<(Option<U>, S, Option<VT>)>;

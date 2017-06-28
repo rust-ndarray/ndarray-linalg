@@ -4,6 +4,7 @@ use ndarray::*;
 use rand::*;
 use std::ops::*;
 
+use super::convert::*;
 use super::error::*;
 use super::layout::*;
 use super::types::*;

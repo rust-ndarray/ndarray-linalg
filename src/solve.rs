@@ -1,9 +1,12 @@
 //! Solve linear problems
 
+
+use ndarray::*;
+
+use super::convert::*;
 use super::error::*;
 use super::lapack_traits::*;
 use super::layout::*;
-use ndarray::*;
 
 pub use lapack_traits::{Pivot, Transpose};
 

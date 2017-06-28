@@ -66,6 +66,7 @@ pub mod qr;
 pub mod solve;
 pub mod svd;
 pub mod triangular;
+pub mod diagonal;
 
 pub mod operator;
 pub mod convert;

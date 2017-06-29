@@ -14,7 +14,7 @@ pub trait Trace {
 
 impl<A, S> Trace for ArrayBase<S, Ix2>
 where
-    A: Field + Sum,
+    A: Scalar + Sum,
     S: Data<Elem = A>,
 {
     type Output = A;

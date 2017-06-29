@@ -103,7 +103,7 @@ pub trait SymmetricSqrt<Output> {
 
 impl<A, S> SymmetricSqrt<ArrayBase<S, Ix2>> for ArrayBase<S, Ix2>
 where
-    A: Field,
+    A: Scalar,
     S: DataMut<Elem = A> + DataOwned,
 {
     fn ssqrt(self, uplo: UPLO) -> Result<ArrayBase<S, Ix2>> {

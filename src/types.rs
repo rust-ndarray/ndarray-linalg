@@ -13,7 +13,18 @@ use super::lapack_traits::LapackScalar;
 pub use num_complex::Complex32 as c32;
 pub use num_complex::Complex64 as c64;
 
-pub trait Field
+/// General Scalar trait. This generalizes complex and real number.
+///
+/// You can use the following operations with `A: Scalar`:
+///
+/// - [abs](trait.Absolute.html#method.abs)
+/// - [squared](trait.Absolute.html#tymethod.squared)
+/// - [sqrt](trait.SquareRoot.html#tymethod.sqrt)
+/// - [exp](trait.Exponential.html#tymethod.exp)
+/// - [conj](trait.Conjugate.html#tymethod.conj)
+/// - [randn](trait.RandNormal.html#tymethod.randn)
+///
+pub trait Scalar
     : LapackScalar
     + LinalgScalar
     + AssociatedReal
@@ -26,15 +37,15 @@ pub trait Field
     + Debug {
 }
 
-impl Field for f32 {}
-impl Field for f64 {}
-impl Field for c32 {}
-impl Field for c64 {}
+impl Scalar for f32 {}
+impl Scalar for f64 {}
+impl Scalar for c32 {}
+impl Scalar for c64 {}
 
-pub trait RealField: Field + Float + Sum {}
+pub trait RealScalar: Scalar + Float + Sum {}
 
-impl RealField for f32 {}
-impl RealField for f64 {}
+impl RealScalar for f32 {}
+impl RealScalar for f64 {}
 
 /// Define associating real float type
 pub trait AssociatedReal: Sized {
@@ -57,7 +68,7 @@ pub trait AssociatedComplex: Sized {
 
 /// Define `abs()` more generally
 pub trait Absolute {
-    type Output: RealField;
+    type Output: RealScalar;
     fn squared(&self) -> Self::Output;
     fn abs(&self) -> Self::Output {
         self.squared().sqrt()

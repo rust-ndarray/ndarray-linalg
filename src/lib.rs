@@ -15,7 +15,7 @@
 //!  -----------
 //!  - [assertions for array](index.html#macros)
 //!  - [generator functions](generate/index.html)
-//!  - [Scalar trait](types/trait.Field.html)
+//!  - [Scalar trait](types/trait.Scalar.html)
 //!
 //!  Usage
 //!  ------

@@ -24,8 +24,8 @@ pub trait Norm {
 
 impl<A, S, D, T> Norm for ArrayBase<S, D>
 where
-    A: Field + Absolute<Output = T>,
-    T: RealField,
+    A: Scalar + Absolute<Output = T>,
+    T: RealScalar,
     S: Data<Elem = A>,
     D: Dimension,
 {
@@ -52,9 +52,9 @@ pub enum NormalizeAxis {
 /// normalize in L2 norm
 pub fn normalize<A, S, T>(mut m: ArrayBase<S, Ix2>, axis: NormalizeAxis) -> (ArrayBase<S, Ix2>, Vec<T>)
 where
-    A: Field + Absolute<Output = T> + Div<T, Output = A>,
+    A: Scalar + Absolute<Output = T> + Div<T, Output = A>,
     S: DataMut<Elem = A>,
-    T: RealField,
+    T: RealScalar,
 {
     let mut ms = Vec::new();
     for mut v in m.axis_iter_mut(Axis(axis as usize)) {

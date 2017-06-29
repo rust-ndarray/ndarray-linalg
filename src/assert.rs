@@ -6,30 +6,25 @@ use super::norm::*;
 use super::types::*;
 
 /// check two values are close in terms of the relative torrence
-pub fn rclose<A, Tol>(test: A, truth: A, rtol: Tol) -> Result<Tol, Tol>
-where
-    A: Field + Absolute<Output = Tol>,
-    Tol: RealField,
-{
+pub fn rclose<A: Scalar>(test: A, truth: A, rtol: A::Real) -> Result<A::Real, A::Real> {
     let dev = (test - truth).abs() / truth.abs();
     if dev < rtol { Ok(dev) } else { Err(dev) }
 }
 
 /// check two values are close in terms of the absolute torrence
-pub fn aclose<A, Tol>(test: A, truth: A, atol: Tol) -> Result<Tol, Tol>
-where
-    A: Field + Absolute<Output = Tol>,
-    Tol: RealField,
-{
+pub fn aclose<A: Scalar>(test: A, truth: A, atol: A::Real) -> Result<A::Real, A::Real> {
     let dev = (test - truth).abs();
     if dev < atol { Ok(dev) } else { Err(dev) }
 }
 
 /// check two arrays are close in maximum norm
-pub fn close_max<A, Tol, S1, S2, D>(test: &ArrayBase<S1, D>, truth: &ArrayBase<S2, D>, atol: Tol) -> Result<Tol, Tol>
+pub fn close_max<A, S1, S2, D>(
+    test: &ArrayBase<S1, D>,
+    truth: &ArrayBase<S2, D>,
+    atol: A::Real,
+) -> Result<A::Real, A::Real>
 where
-    A: Field + Absolute<Output = Tol>,
-    Tol: RealField,
+    A: Scalar,
     S1: Data<Elem = A>,
     S2: Data<Elem = A>,
     D: Dimension,
@@ -39,10 +34,13 @@ where
 }
 
 /// check two arrays are close in L1 norm
-pub fn close_l1<A, Tol, S1, S2, D>(test: &ArrayBase<S1, D>, truth: &ArrayBase<S2, D>, rtol: Tol) -> Result<Tol, Tol>
+pub fn close_l1<A, S1, S2, D>(
+    test: &ArrayBase<S1, D>,
+    truth: &ArrayBase<S2, D>,
+    rtol: A::Real,
+) -> Result<A::Real, A::Real>
 where
-    A: Field + Absolute<Output = Tol>,
-    Tol: RealField,
+    A: Scalar,
     S1: Data<Elem = A>,
     S2: Data<Elem = A>,
     D: Dimension,
@@ -52,10 +50,13 @@ where
 }
 
 /// check two arrays are close in L2 norm
-pub fn close_l2<A, Tol, S1, S2, D>(test: &ArrayBase<S1, D>, truth: &ArrayBase<S2, D>, rtol: Tol) -> Result<Tol, Tol>
+pub fn close_l2<A, S1, S2, D>(
+    test: &ArrayBase<S1, D>,
+    truth: &ArrayBase<S2, D>,
+    rtol: A::Real,
+) -> Result<A::Real, A::Real>
 where
-    A: Field + Absolute<Output = Tol>,
-    Tol: RealField,
+    A: Scalar,
     S1: Data<Elem = A>,
     S2: Data<Elem = A>,
     D: Dimension,

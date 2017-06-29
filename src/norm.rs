@@ -1,7 +1,7 @@
 //! Norm of vectors
 
 use ndarray::*;
-use std::ops::*;
+use num_traits::Zero;
 
 use super::types::*;
 
@@ -22,22 +22,21 @@ pub trait Norm {
     fn norm_max(&self) -> Self::Output;
 }
 
-impl<A, S, D, T> Norm for ArrayBase<S, D>
+impl<A, S, D> Norm for ArrayBase<S, D>
 where
-    A: Field + Absolute<Output = T>,
-    T: RealField,
+    A: Scalar,
     S: Data<Elem = A>,
     D: Dimension,
 {
-    type Output = T;
+    type Output = A::Real;
     fn norm_l1(&self) -> Self::Output {
         self.iter().map(|x| x.abs()).sum()
     }
     fn norm_l2(&self) -> Self::Output {
-        self.iter().map(|x| x.squared()).sum::<T>().sqrt()
+        self.iter().map(|x| x.squared()).sum::<A::Real>().sqrt()
     }
     fn norm_max(&self) -> Self::Output {
-        self.iter().fold(T::zero(), |f, &val| {
+        self.iter().fold(A::Real::zero(), |f, &val| {
             let v = val.abs();
             if f > v { f } else { v }
         })
@@ -50,17 +49,16 @@ pub enum NormalizeAxis {
 }
 
 /// normalize in L2 norm
-pub fn normalize<A, S, T>(mut m: ArrayBase<S, Ix2>, axis: NormalizeAxis) -> (ArrayBase<S, Ix2>, Vec<T>)
+pub fn normalize<A, S>(mut m: ArrayBase<S, Ix2>, axis: NormalizeAxis) -> (ArrayBase<S, Ix2>, Vec<A::Real>)
 where
-    A: Field + Absolute<Output = T> + Div<T, Output = A>,
+    A: Scalar,
     S: DataMut<Elem = A>,
-    T: RealField,
 {
     let mut ms = Vec::new();
     for mut v in m.axis_iter_mut(Axis(axis as usize)) {
         let n = v.norm();
         ms.push(n);
-        v.map_inplace(|x| *x = *x / n)
+        v.map_inplace(|x| *x = x.div_real(n))
     }
     (m, ms)
 }

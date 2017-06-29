@@ -1,7 +1,6 @@
 //! Eigenvalue decomposition for Hermite matrices
 
 use ndarray::*;
-use num_traits::Float;
 
 use super::convert::*;
 use super::diagonal::*;
@@ -103,7 +102,7 @@ pub trait SymmetricSqrt<Output> {
 
 impl<A, S> SymmetricSqrt<ArrayBase<S, Ix2>> for ArrayBase<S, Ix2>
 where
-    A: Field,
+    A: Scalar,
     S: DataMut<Elem = A> + DataOwned,
 {
     fn ssqrt(self, uplo: UPLO) -> Result<ArrayBase<S, Ix2>> {

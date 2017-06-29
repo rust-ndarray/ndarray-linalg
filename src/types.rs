@@ -7,54 +7,69 @@ use rand::Rng;
 use rand::distributions::*;
 use std::fmt::Debug;
 use std::iter::Sum;
-use std::ops::*;
 
 use super::lapack_traits::LapackScalar;
 
 pub use num_complex::Complex32 as c32;
 pub use num_complex::Complex64 as c64;
 
-macro_rules! trait_alias {
-    ($name:ident: $($t:ident),*) => {
+/// General Scalar trait. This generalizes complex and real number.
+///
+/// You can use the following operations with `A: Scalar`:
+///
+/// - [abs](trait.Absolute.html#method.abs)
+/// - [squared](trait.Absolute.html#tymethod.squared)
+/// - [sqrt](trait.SquareRoot.html#tymethod.sqrt)
+/// - [exp](trait.Exponential.html#tymethod.exp)
+/// - [conj](trait.Conjugate.html#tymethod.conj)
+/// - [randn](trait.RandNormal.html#tymethod.randn)
+///
+pub trait Scalar
+    : LapackScalar
+    + LinalgScalar
+    + AssociatedReal
+    + AssociatedComplex
+    + Absolute
+    + SquareRoot
+    + Exponential
+    + Conjugate
+    + RandNormal
+    + Debug {
+}
 
-pub trait $name : $($t +)* {}
+impl Scalar for f32 {}
+impl Scalar for f64 {}
+impl Scalar for c32 {}
+impl Scalar for c64 {}
 
-impl<T> $name for T where T: $($t +)* {}
+pub trait RealScalar: Scalar + Float + Sum {}
 
-}} // trait_alias!
-
-trait_alias!(
-    Field: LapackScalar,
-    LinalgScalar,
-    AssociatedReal,
-    AssociatedComplex,
-    Absolute,
-    SquareRoot,
-    Conjugate,
-    RandNormal,
-    Sum,
-    Debug
-);
-
-trait_alias!(RealField: Field, Float);
+impl RealScalar for f32 {}
+impl RealScalar for f64 {}
 
 /// Define associating real float type
 pub trait AssociatedReal: Sized {
-    type Real: Float + Mul<Self, Output = Self>;
+    type Real: RealScalar;
     fn inject(Self::Real) -> Self;
+    fn add_real(self, Self::Real) -> Self;
+    fn sub_real(self, Self::Real) -> Self;
+    fn mul_real(self, Self::Real) -> Self;
+    fn div_real(self, Self::Real) -> Self;
 }
 
 /// Define associating complex type
 pub trait AssociatedComplex: Sized {
     type Complex;
     fn inject(Self) -> Self::Complex;
+    fn add_complex(self, Self::Complex) -> Self::Complex;
+    fn sub_complex(self, Self::Complex) -> Self::Complex;
+    fn mul_complex(self, Self::Complex) -> Self::Complex;
 }
 
 /// Define `abs()` more generally
-pub trait Absolute {
-    type Output: RealField;
-    fn squared(&self) -> Self::Output;
-    fn abs(&self) -> Self::Output {
+pub trait Absolute: AssociatedReal {
+    fn squared(&self) -> Self::Real;
+    fn abs(&self) -> Self::Real {
         self.squared().sqrt()
     }
 }
@@ -62,6 +77,11 @@ pub trait Absolute {
 /// Define `sqrt()` more generally
 pub trait SquareRoot {
     fn sqrt(&self) -> Self;
+}
+
+/// Define `exp()` more generally
+pub trait Exponential {
+    fn exp(&self) -> Self;
 }
 
 /// Complex conjugate value
@@ -80,39 +100,51 @@ macro_rules! impl_traits {
 impl AssociatedReal for $real {
     type Real = $real;
     fn inject(r: Self::Real) -> Self { r }
+    fn add_real(self, r: Self::Real) -> Self { self + r }
+    fn sub_real(self, r: Self::Real) -> Self { self - r }
+    fn mul_real(self, r: Self::Real) -> Self { self * r }
+    fn div_real(self, r: Self::Real) -> Self { self / r }
 }
 
 impl AssociatedReal for $complex {
     type Real = $real;
     fn inject(r: Self::Real) -> Self { Self::new(r, 0.0) }
+    fn add_real(self, r: Self::Real) -> Self { self + r }
+    fn sub_real(self, r: Self::Real) -> Self { self - r }
+    fn mul_real(self, r: Self::Real) -> Self { self * r }
+    fn div_real(self, r: Self::Real) -> Self { self / r }
 }
 
 impl AssociatedComplex for $real {
     type Complex = $complex;
     fn inject(r: Self) -> Self::Complex { Self::Complex::new(r, 0.0) }
+    fn add_complex(self, c: Self::Complex) -> Self::Complex { self + c }
+    fn sub_complex(self, c: Self::Complex) -> Self::Complex { self - c }
+    fn mul_complex(self, c: Self::Complex) -> Self::Complex { self * c }
 }
 
 impl AssociatedComplex for $complex {
     type Complex = $complex;
     fn inject(c: Self) -> Self::Complex { c }
+    fn add_complex(self, c: Self::Complex) -> Self::Complex { self + c }
+    fn sub_complex(self, c: Self::Complex) -> Self::Complex { self - c }
+    fn mul_complex(self, c: Self::Complex) -> Self::Complex { self * c }
 }
 
 impl Absolute for $real {
-    type Output = Self;
-    fn squared(&self) -> Self::Output {
+    fn squared(&self) -> Self::Real {
         *self * *self
     }
-    fn abs(&self) -> Self::Output {
+    fn abs(&self) -> Self::Real{
         Float::abs(*self)
     }
 }
 
 impl Absolute for $complex {
-    type Output = $real;
-    fn squared(&self) -> Self::Output {
+    fn squared(&self) -> Self::Real {
         self.norm_sqr()
     }
-    fn abs(&self) -> Self::Output {
+    fn abs(&self) -> Self::Real {
         self.norm()
     }
 }
@@ -126,6 +158,18 @@ impl SquareRoot for $real {
 impl SquareRoot for $complex {
     fn sqrt(&self) -> Self {
         Complex::sqrt(self)
+    }
+}
+
+impl Exponential for $real {
+    fn exp(&self) -> Self {
+        Float::exp(*self)
+    }
+}
+
+impl Exponential for $complex {
+    fn exp(&self) -> Self {
+        Complex::exp(self)
     }
 }
 

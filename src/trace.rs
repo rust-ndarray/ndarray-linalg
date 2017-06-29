@@ -1,6 +1,7 @@
 //! Trace calculation
 
 use ndarray::*;
+use std::iter::Sum;
 
 use super::error::*;
 use super::layout::*;
@@ -13,7 +14,7 @@ pub trait Trace {
 
 impl<A, S> Trace for ArrayBase<S, Ix2>
 where
-    A: Field,
+    A: Scalar + Sum,
     S: Data<Elem = A>,
 {
     type Output = A;

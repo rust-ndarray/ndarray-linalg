@@ -1,7 +1,6 @@
 //! Eigenvalue decomposition for Hermite matrices
 
 use ndarray::*;
-use num_traits::Float;
 
 use super::convert::*;
 use super::diagonal::*;

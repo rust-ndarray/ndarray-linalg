@@ -49,7 +49,7 @@ impl RealScalar for f64 {}
 
 /// Define associating real float type
 pub trait AssociatedReal: Sized {
-    type Real: Float;
+    type Real: RealScalar;
     fn inject(Self::Real) -> Self;
     fn add_real(self, Self::Real) -> Self;
     fn sub_real(self, Self::Real) -> Self;
@@ -67,10 +67,9 @@ pub trait AssociatedComplex: Sized {
 }
 
 /// Define `abs()` more generally
-pub trait Absolute {
-    type Output: RealScalar;
-    fn squared(&self) -> Self::Output;
-    fn abs(&self) -> Self::Output {
+pub trait Absolute: AssociatedReal {
+    fn squared(&self) -> Self::Real;
+    fn abs(&self) -> Self::Real {
         self.squared().sqrt()
     }
 }
@@ -133,21 +132,19 @@ impl AssociatedComplex for $complex {
 }
 
 impl Absolute for $real {
-    type Output = Self;
-    fn squared(&self) -> Self::Output {
+    fn squared(&self) -> Self::Real {
         *self * *self
     }
-    fn abs(&self) -> Self::Output {
+    fn abs(&self) -> Self::Real{
         Float::abs(*self)
     }
 }
 
 impl Absolute for $complex {
-    type Output = $real;
-    fn squared(&self) -> Self::Output {
+    fn squared(&self) -> Self::Real {
         self.norm_sqr()
     }
-    fn abs(&self) -> Self::Output {
+    fn abs(&self) -> Self::Real {
         self.norm()
     }
 }

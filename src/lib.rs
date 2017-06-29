@@ -53,42 +53,38 @@ extern crate enum_error_derive;
 #[macro_use]
 extern crate derive_new;
 
-#[macro_use]
-pub mod types;
-pub mod error;
-pub mod layout;
-pub mod lapack_traits;
-
+pub mod assert;
 pub mod cholesky;
+pub mod convert;
+pub mod diagonal;
 pub mod eigh;
+pub mod error;
+pub mod generate;
+pub mod lapack_traits;
+pub mod layout;
+pub mod norm;
+pub mod operator;
 pub mod opnorm;
 pub mod qr;
 pub mod solve;
 pub mod svd;
-pub mod triangular;
-pub mod diagonal;
-
-pub mod operator;
-pub mod convert;
-pub mod generate;
-pub mod assert;
-pub mod norm;
 pub mod trace;
+pub mod triangular;
+pub mod types;
 
 pub use assert::*;
-pub use convert::*;
-pub use generate::*;
-pub use layout::*;
-pub use operator::*;
-pub use types::*;
-
 pub use cholesky::*;
+pub use convert::*;
 pub use diagonal::*;
 pub use eigh::*;
+pub use generate::*;
+pub use layout::*;
 pub use norm::*;
+pub use operator::*;
 pub use opnorm::*;
 pub use qr::*;
 pub use solve::*;
 pub use svd::*;
 pub use trace::*;
 pub use triangular::*;
+pub use types::*;

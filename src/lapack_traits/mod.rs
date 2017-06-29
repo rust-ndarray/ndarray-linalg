@@ -17,16 +17,16 @@ pub use self::svd::*;
 pub use self::triangular::*;
 
 use super::error::*;
+use super::types::*;
 
-trait_alias!(
-    LapackScalar: OperatorNorm_,
-    QR_,
-    SVD_,
-    Solve_,
-    Cholesky_,
-    Eigh_,
-    Triangular_
-);
+pub trait LapackScalar
+    : OperatorNorm_ + QR_ + SVD_ + Solve_ + Cholesky_ + Eigh_ + Triangular_ {
+}
+
+impl LapackScalar for f32 {}
+impl LapackScalar for f64 {}
+impl LapackScalar for c32 {}
+impl LapackScalar for c64 {}
 
 pub fn into_result<T>(info: i32, val: T) -> Result<T> {
     if info == 0 {

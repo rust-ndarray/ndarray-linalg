@@ -13,30 +13,28 @@ use super::lapack_traits::LapackScalar;
 pub use num_complex::Complex32 as c32;
 pub use num_complex::Complex64 as c64;
 
-macro_rules! trait_alias {
-    ($name:ident: $($t:ident),*) => {
+pub trait Field
+    : LapackScalar
+    + LinalgScalar
+    + AssociatedReal
+    + AssociatedComplex
+    + Absolute
+    + SquareRoot
+    + Exponential
+    + Conjugate
+    + RandNormal
+    + Debug {
+}
 
-pub trait $name : $($t +)* {}
+impl Field for f32 {}
+impl Field for f64 {}
+impl Field for c32 {}
+impl Field for c64 {}
 
-impl<T> $name for T where T: $($t +)* {}
+pub trait RealField: Field + Float + Sum {}
 
-}} // trait_alias!
-
-trait_alias!(
-    Field: LapackScalar,
-    LinalgScalar,
-    AssociatedReal,
-    AssociatedComplex,
-    Absolute,
-    SquareRoot,
-    Exponential,
-    Conjugate,
-    RandNormal,
-    Sum,
-    Debug
-);
-
-trait_alias!(RealField: Field, Float);
+impl RealField for f32 {}
+impl RealField for f64 {}
 
 /// Define associating real float type
 pub trait AssociatedReal: Sized {

@@ -6,19 +6,13 @@ use super::norm::*;
 use super::types::*;
 
 /// check two values are close in terms of the relative torrence
-pub fn rclose<A>(test: A, truth: A, rtol: A::Real) -> Result<A::Real, A::Real>
-where
-    A: Scalar,
-{
+pub fn rclose<A: Scalar>(test: A, truth: A, rtol: A::Real) -> Result<A::Real, A::Real> {
     let dev = (test - truth).abs() / truth.abs();
     if dev < rtol { Ok(dev) } else { Err(dev) }
 }
 
 /// check two values are close in terms of the absolute torrence
-pub fn aclose<A>(test: A, truth: A, atol: A::Real) -> Result<A::Real, A::Real>
-where
-    A: Scalar,
-{
+pub fn aclose<A: Scalar>(test: A, truth: A, atol: A::Real) -> Result<A::Real, A::Real> {
     let dev = (test - truth).abs();
     if dev < atol { Ok(dev) } else { Err(dev) }
 }

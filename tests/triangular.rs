@@ -6,12 +6,11 @@ extern crate ndarray_linalg;
 use ndarray::*;
 use ndarray_linalg::*;
 
-fn test1d<A, Sa, Sb, Tol>(uplo: UPLO, a: ArrayBase<Sa, Ix2>, b: ArrayBase<Sb, Ix1>, tol: Tol)
+fn test1d<A, Sa, Sb>(uplo: UPLO, a: ArrayBase<Sa, Ix2>, b: ArrayBase<Sb, Ix1>, tol: A::Real)
 where
-    A: Scalar + Absolute<Output = Tol>,
+    A: Scalar,
     Sa: Data<Elem = A>,
     Sb: DataMut<Elem = A> + DataOwned,
-    Tol: RealScalar,
 {
     println!("a = {:?}", &a);
     println!("b = {:?}", &b);
@@ -22,12 +21,11 @@ where
     assert_close_l2!(&b_, &b, tol);
 }
 
-fn test2d<A, Sa, Sb, Tol>(uplo: UPLO, a: ArrayBase<Sa, Ix2>, b: ArrayBase<Sb, Ix2>, tol: Tol)
+fn test2d<A, Sa, Sb>(uplo: UPLO, a: ArrayBase<Sa, Ix2>, b: ArrayBase<Sb, Ix2>, tol: A::Real)
 where
-    A: Scalar + Absolute<Output = Tol>,
+    A: Scalar,
     Sa: Data<Elem = A>,
     Sb: DataMut<Elem = A> + DataOwned + DataClone,
-    Tol: RealScalar,
 {
     println!("a = {:?}", &a);
     println!("b = {:?}", &b);

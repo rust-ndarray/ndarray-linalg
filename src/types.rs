@@ -29,6 +29,7 @@ trait_alias!(
     AssociatedComplex,
     Absolute,
     SquareRoot,
+    Exponential,
     Conjugate,
     RandNormal,
     Sum,
@@ -68,6 +69,11 @@ pub trait Absolute {
 /// Define `sqrt()` more generally
 pub trait SquareRoot {
     fn sqrt(&self) -> Self;
+}
+
+/// Define `exp()` more generally
+pub trait Exponential {
+    fn exp(&self) -> Self;
 }
 
 /// Complex conjugate value
@@ -146,6 +152,18 @@ impl SquareRoot for $real {
 impl SquareRoot for $complex {
     fn sqrt(&self) -> Self {
         Complex::sqrt(self)
+    }
+}
+
+impl Exponential for $real {
+    fn exp(&self) -> Self {
+        Float::exp(*self)
+    }
+}
+
+impl Exponential for $complex {
+    fn exp(&self) -> Self {
+        Complex::exp(self)
     }
 }
 

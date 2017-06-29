@@ -7,7 +7,6 @@ use rand::Rng;
 use rand::distributions::*;
 use std::fmt::Debug;
 use std::iter::Sum;
-use std::ops::*;
 
 use super::lapack_traits::LapackScalar;
 
@@ -40,14 +39,21 @@ trait_alias!(RealField: Field, Float);
 
 /// Define associating real float type
 pub trait AssociatedReal: Sized {
-    type Real: Float + Mul<Self, Output = Self>;
+    type Real: Float;
     fn inject(Self::Real) -> Self;
+    fn add_real(self, Self::Real) -> Self;
+    fn sub_real(self, Self::Real) -> Self;
+    fn mul_real(self, Self::Real) -> Self;
+    fn div_real(self, Self::Real) -> Self;
 }
 
 /// Define associating complex type
 pub trait AssociatedComplex: Sized {
     type Complex;
     fn inject(Self) -> Self::Complex;
+    fn add_complex(self, Self::Complex) -> Self::Complex;
+    fn sub_complex(self, Self::Complex) -> Self::Complex;
+    fn mul_complex(self, Self::Complex) -> Self::Complex;
 }
 
 /// Define `abs()` more generally
@@ -80,21 +86,35 @@ macro_rules! impl_traits {
 impl AssociatedReal for $real {
     type Real = $real;
     fn inject(r: Self::Real) -> Self { r }
+    fn add_real(self, r: Self::Real) -> Self { self + r }
+    fn sub_real(self, r: Self::Real) -> Self { self - r }
+    fn mul_real(self, r: Self::Real) -> Self { self * r }
+    fn div_real(self, r: Self::Real) -> Self { self / r }
 }
 
 impl AssociatedReal for $complex {
     type Real = $real;
     fn inject(r: Self::Real) -> Self { Self::new(r, 0.0) }
+    fn add_real(self, r: Self::Real) -> Self { self + r }
+    fn sub_real(self, r: Self::Real) -> Self { self - r }
+    fn mul_real(self, r: Self::Real) -> Self { self * r }
+    fn div_real(self, r: Self::Real) -> Self { self / r }
 }
 
 impl AssociatedComplex for $real {
     type Complex = $complex;
     fn inject(r: Self) -> Self::Complex { Self::Complex::new(r, 0.0) }
+    fn add_complex(self, c: Self::Complex) -> Self::Complex { self + c }
+    fn sub_complex(self, c: Self::Complex) -> Self::Complex { self - c }
+    fn mul_complex(self, c: Self::Complex) -> Self::Complex { self * c }
 }
 
 impl AssociatedComplex for $complex {
     type Complex = $complex;
     fn inject(c: Self) -> Self::Complex { c }
+    fn add_complex(self, c: Self::Complex) -> Self::Complex { self + c }
+    fn sub_complex(self, c: Self::Complex) -> Self::Complex { self - c }
+    fn mul_complex(self, c: Self::Complex) -> Self::Complex { self * c }
 }
 
 impl Absolute for $real {

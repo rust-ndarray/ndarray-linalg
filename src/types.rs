@@ -35,36 +35,47 @@ pub trait Scalar
     + Conjugate
     + RandNormal
     + Debug {
-}
-
-impl Scalar for f32 {}
-impl Scalar for f64 {}
-impl Scalar for c32 {}
-impl Scalar for c64 {}
-
-pub trait RealScalar: Scalar + Float + Sum {
     fn from_f64(f64) -> Self;
 }
 
-impl RealScalar for f32 {
+impl Scalar for f32 {
     fn from_f64(f: f64) -> Self {
         f as f32
     }
 }
-impl RealScalar for f64 {
+
+impl Scalar for f64 {
     fn from_f64(f: f64) -> Self {
         f
     }
 }
 
-/// Convert `f64` into `RealScalar`
+impl Scalar for c32 {
+    fn from_f64(f: f64) -> Self {
+        Self::new(f as f32, 0.0)
+    }
+}
+
+impl Scalar for c64 {
+    fn from_f64(f: f64) -> Self {
+        Self::new(f, 0.0)
+    }
+}
+
+pub trait RealScalar: Scalar + Float + Sum {}
+impl RealScalar for f32 {}
+impl RealScalar for f64 {}
+
+/// Convert `f64` into `Scalar`
 ///
 /// ```rust
-/// fn mult2<A: RealScalar>(a: A) -> A {
-///     a * into_real(2.0);
+/// use ndarray_linalg::*;
+/// fn mult<A: Scalar>(a: A) -> A {
+///     // a * 2.0  // Error!
+///     a * into_scalar(2.0)
 /// }
 /// ```
-pub fn into_real<T: RealScalar>(f: f64) -> T {
+pub fn into_scalar<T: Scalar>(f: f64) -> T {
     T::from_f64(f)
 }
 

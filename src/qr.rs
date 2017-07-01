@@ -6,22 +6,94 @@ use num_traits::Zero;
 use super::convert::*;
 use super::error::*;
 use super::layout::*;
+use super::triangular::*;
 
-use lapack_traits::LapackScalar;
+use lapack_traits::{LapackScalar, UPLO};
 
-pub trait QR<Q, R> {
-    fn qr(self) -> Result<(Q, R)>;
+pub trait QR {
+    type Q;
+    type R;
+    fn qr(&self) -> Result<(Self::Q, Self::R)>;
 }
 
-impl<A, S, Sq, Sr> QR<ArrayBase<Sq, Ix2>, ArrayBase<Sr, Ix2>> for ArrayBase<S, Ix2>
+pub trait QRInto: Sized {
+    type Q;
+    type R;
+    fn qr_into(self) -> Result<(Self::Q, Self::R)>;
+}
+
+pub trait QRSquare: Sized {
+    type Q;
+    type R;
+    fn qr_square(&self) -> Result<(Self::Q, Self::R)>;
+}
+
+pub trait QRSquareInto: Sized {
+    type R;
+    fn qr_square_into(self) -> Result<(Self, Self::R)>;
+}
+
+impl<A, S> QRSquareInto for ArrayBase<S, Ix2>
 where
     A: LapackScalar + Copy + Zero,
     S: DataMut<Elem = A>,
-    Sq: DataOwned<Elem = A> + DataMut,
-    Sr: DataOwned<Elem = A> + DataMut,
 {
-    fn qr(mut self) -> Result<(ArrayBase<Sq, Ix2>, ArrayBase<Sr, Ix2>)> {
-        (&mut self).qr()
+    type R = Array2<A>;
+
+    fn qr_square_into(mut self) -> Result<(Self, Self::R)> {
+        let l = self.square_layout()?;
+        let r = A::qr(l, self.as_allocated_mut()?)?;
+        let r: Array2<_> = into_matrix(l, r)?;
+        Ok((self, r.into_triangular(UPLO::Upper)))
+    }
+}
+
+impl<A, S> QRSquare for ArrayBase<S, Ix2>
+where
+    A: LapackScalar + Copy + Zero,
+    S: Data<Elem = A>,
+{
+    type Q = Array2<A>;
+    type R = Array2<A>;
+
+    fn qr_square(&self) -> Result<(Self::Q, Self::R)> {
+        let a = self.to_owned();
+        a.qr_square_into()
+    }
+}
+
+
+impl<A, S> QRInto for ArrayBase<S, Ix2>
+where
+    A: LapackScalar + Copy + Zero,
+    S: DataMut<Elem = A>,
+{
+    type Q = Array2<A>;
+    type R = Array2<A>;
+
+    fn qr_into(mut self) -> Result<(Self::Q, Self::R)> {
+        let n = self.rows();
+        let m = self.cols();
+        let k = ::std::cmp::min(n, m);
+        let l = self.layout()?;
+        let r = A::qr(l, self.as_allocated_mut()?)?;
+        let r: Array2<_> = into_matrix(l, r)?;
+        let q = self;
+        Ok((take_slice(&q, n, k), take_slice_upper(&r, k, m)))
+    }
+}
+
+impl<A, S> QR for ArrayBase<S, Ix2>
+where
+    A: LapackScalar + Copy + Zero,
+    S: Data<Elem = A>,
+{
+    type Q = Array2<A>;
+    type R = Array2<A>;
+
+    fn qr(&self) -> Result<(Self::Q, Self::R)> {
+        let a = self.to_owned();
+        a.qr_into()
     }
 }
 
@@ -49,45 +121,4 @@ where
         *val = if i <= j { av[(i, j)] } else { A::zero() };
     }
     a
-}
-
-impl<'a, A, S, Sq, Sr> QR<ArrayBase<Sq, Ix2>, ArrayBase<Sr, Ix2>> for &'a mut ArrayBase<S, Ix2>
-where
-    A: LapackScalar
-        + Copy
-        + Zero,
-    S: DataMut<Elem = A>,
-    Sq: DataOwned<Elem = A>
-        + DataMut,
-    Sr: DataOwned<Elem = A>
-        + DataMut,
-{
-    fn qr(mut self) -> Result<(ArrayBase<Sq, Ix2>, ArrayBase<Sr, Ix2>)> {
-        let n = self.rows();
-        let m = self.cols();
-        let k = ::std::cmp::min(n, m);
-        let l = self.layout()?;
-        let r = A::qr(l, self.as_allocated_mut()?)?;
-        let r: Array2<_> = into_matrix(l, r)?;
-        let q = self;
-        Ok((take_slice(q, n, k), take_slice_upper(&r, k, m)))
-    }
-}
-
-impl<'a, A, S, Sq, Sr> QR<ArrayBase<Sq, Ix2>, ArrayBase<Sr, Ix2>> for &'a ArrayBase<S, Ix2>
-    where A: LapackScalar + Copy + Zero,
-          S: Data<Elem = A>,
-          Sq: DataOwned<Elem = A> + DataMut,
-          Sr: DataOwned<Elem = A> + DataMut
-{
-    fn qr(self) -> Result<(ArrayBase<Sq, Ix2>, ArrayBase<Sr, Ix2>)> {
-        let n = self.rows();
-        let m = self.cols();
-        let k = ::std::cmp::min(n, m);
-        let l = self.layout()?;
-        let mut q = self.to_owned();
-        let r = A::qr(l, q.as_allocated_mut()?)?;
-        let r: Array2<_> = into_matrix(l, r)?;
-        Ok((take_slice(&q, n, k), take_slice_upper(&r, k, m)))
-    }
 }

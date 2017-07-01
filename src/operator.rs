@@ -2,6 +2,8 @@
 
 use ndarray::*;
 
+use super::types::*;
+
 pub trait Operator<A, S, D>
 where
     S: Data<Elem = A>,
@@ -28,7 +30,7 @@ where
 
 impl<T, A, S, D> Operator<A, S, D> for T
 where
-    A: LinalgScalar,
+    A: Scalar,
     S: Data<Elem = A>,
     D: Dimension,
     T: linalg::Dot<ArrayBase<S, D>, Output = Array<A, D>>,

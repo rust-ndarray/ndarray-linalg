@@ -2,15 +2,13 @@
 
 use ndarray::*;
 
+use super::UPLO;
 use super::convert::*;
 use super::diagonal::*;
 use super::error::*;
 use super::layout::*;
 use super::operator::*;
 use super::types::*;
-
-use lapack_traits::LapackScalar;
-pub use lapack_traits::UPLO;
 
 /// Eigenvalue decomposition of Hermite matrix
 pub trait Eigh {
@@ -33,7 +31,7 @@ pub trait EighInto: Sized {
 
 impl<A, S> EighInto for ArrayBase<S, Ix2>
 where
-    A: LapackScalar,
+    A: Scalar,
     S: DataMut<Elem = A>,
 {
     type EigVal = Array1<A::Real>;
@@ -46,7 +44,7 @@ where
 
 impl<A, S> Eigh for ArrayBase<S, Ix2>
 where
-    A: LapackScalar + Copy,
+    A: Scalar,
     S: Data<Elem = A>,
 {
     type EigVal = Array1<A::Real>;
@@ -61,7 +59,7 @@ where
 
 impl<A, S> EighMut for ArrayBase<S, Ix2>
 where
-    A: LapackScalar,
+    A: Scalar,
     S: DataMut<Elem = A>,
 {
     type EigVal = Array1<A::Real>;
@@ -79,7 +77,7 @@ pub trait EigValsh<EigVal> {
 
 impl<A, S, Se> EigValsh<ArrayBase<Se, Ix1>> for ArrayBase<S, Ix2>
 where
-    A: LapackScalar,
+    A: Scalar,
     S: DataMut<Elem = A>,
     Se: DataOwned<Elem = A::Real>,
 {
@@ -91,7 +89,7 @@ where
 
 impl<'a, A, S, Se> EigValsh<ArrayBase<Se, Ix1>> for &'a ArrayBase<S, Ix2>
 where
-    A: LapackScalar + Copy,
+    A: Scalar,
     S: Data<Elem = A>,
     Se: DataOwned<Elem = A::Real>,
 {
@@ -104,7 +102,7 @@ where
 
 impl<'a, A, S, Se> EigValsh<ArrayBase<Se, Ix1>> for &'a mut ArrayBase<S, Ix2>
 where
-    A: LapackScalar,
+    A: Scalar,
     S: DataMut<Elem = A>,
     Se: DataOwned<Elem = A::Real>,
 {

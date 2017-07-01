@@ -52,7 +52,7 @@ where
 {
     fn op(&self, a: &ArrayBase<Sr, Ix1>) -> Array1<A> {
         let mut a = replicate(a);
-        self.op(&mut a);
+        self.op_mut(&mut a);
         a
     }
 }
@@ -92,7 +92,7 @@ where
 {
     fn op(&self, a: &ArrayBase<Sr, Ix2>) -> Array2<A> {
         let mut a = replicate(a);
-        self.op(&mut a);
+        self.op_mut(&mut a);
         a
     }
 }

@@ -13,41 +13,60 @@ use lapack_traits::LapackScalar;
 pub use lapack_traits::UPLO;
 
 /// Eigenvalue decomposition of Hermite matrix
-pub trait Eigh<EigVal, EigVec> {
-    fn eigh(self, UPLO) -> Result<(EigVal, EigVec)>;
+pub trait Eigh {
+    type EigVal;
+    type EigVec;
+    fn eigh(&self, UPLO) -> Result<(Self::EigVal, Self::EigVec)>;
 }
 
-impl<A, S, Se> Eigh<ArrayBase<Se, Ix1>, ArrayBase<S, Ix2>> for ArrayBase<S, Ix2>
+/// Eigenvalue decomposition of Hermite matrix
+pub trait EighMut {
+    type EigVal;
+    fn eigh_mut(&mut self, UPLO) -> Result<(Self::EigVal, &mut Self)>;
+}
+
+/// Eigenvalue decomposition of Hermite matrix
+pub trait EighInto: Sized {
+    type EigVal;
+    fn eigh_into(self, UPLO) -> Result<(Self::EigVal, Self)>;
+}
+
+impl<A, S> EighInto for ArrayBase<S, Ix2>
 where
     A: LapackScalar,
     S: DataMut<Elem = A>,
-    Se: DataOwned<Elem = A::Real>,
 {
-    fn eigh(mut self, uplo: UPLO) -> Result<(ArrayBase<Se, Ix1>, ArrayBase<S, Ix2>)> {
+    type EigVal = Array1<A::Real>;
+
+    fn eigh_into(mut self, uplo: UPLO) -> Result<(Self::EigVal, Self)> {
         let s = A::eigh(true, self.square_layout()?, uplo, self.as_allocated_mut()?)?;
-        Ok((ArrayBase::from_vec(s), self))
+        Ok((Array::from_vec(s), self))
     }
 }
 
-impl<'a, A, S, Se, So> Eigh<ArrayBase<Se, Ix1>, ArrayBase<So, Ix2>> for &'a ArrayBase<S, Ix2>
-    where A: LapackScalar + Copy,
-          S: Data<Elem = A>,
-          Se: DataOwned<Elem = A::Real>,
-          So: DataOwned<Elem = A> + DataMut
+impl<A, S> Eigh for ArrayBase<S, Ix2>
+where
+    A: LapackScalar + Copy,
+    S: Data<Elem = A>,
 {
-    fn eigh(self, uplo: UPLO) -> Result<(ArrayBase<Se, Ix1>, ArrayBase<So, Ix2>)> {
+    type EigVal = Array1<A::Real>;
+    type EigVec = Array2<A>;
+
+    fn eigh(&self, uplo: UPLO) -> Result<(Self::EigVal, Self::EigVec)> {
         let mut a = replicate(self);
         let s = A::eigh(true, a.square_layout()?, uplo, a.as_allocated_mut()?)?;
         Ok((ArrayBase::from_vec(s), a))
     }
 }
 
-impl<'a, A, S, Se> Eigh<ArrayBase<Se, Ix1>, &'a mut ArrayBase<S, Ix2>> for &'a mut ArrayBase<S, Ix2>
-    where A: LapackScalar,
-          S: DataMut<Elem = A>,
-          Se: DataOwned<Elem = A::Real>
+impl<A, S> EighMut for ArrayBase<S, Ix2>
+where
+    A: LapackScalar,
+    S: DataMut<Elem = A>,
 {
-    fn eigh(mut self, uplo: UPLO) -> Result<(ArrayBase<Se, Ix1>, &'a mut ArrayBase<S, Ix2>)> {
+    type EigVal = Array1<A::Real>;
+
+    fn eigh_mut(&mut self, uplo: UPLO) -> Result<(Self::EigVal, &mut Self)> {
         let s = A::eigh(true, self.square_layout()?, uplo, self.as_allocated_mut()?)?;
         Ok((ArrayBase::from_vec(s), self))
     }
@@ -96,19 +115,43 @@ where
 }
 
 /// Calculate symmetric square-root matrix using `eigh`
-pub trait SymmetricSqrt<Output> {
-    fn ssqrt(self, UPLO) -> Result<Output>;
+pub trait SymmetricSqrt {
+    type Output;
+    fn ssqrt(&self, UPLO) -> Result<Self::Output>;
 }
 
-impl<A, S> SymmetricSqrt<ArrayBase<S, Ix2>> for ArrayBase<S, Ix2>
+impl<A, S> SymmetricSqrt for ArrayBase<S, Ix2>
+where
+    A: Scalar,
+    S: Data<Elem = A>,
+{
+    type Output = Array2<A>;
+
+    fn ssqrt(&self, uplo: UPLO) -> Result<Self::Output> {
+        let (e, v) = self.eigh(uplo)?;
+        let e_sqrt = Array1::from_iter(e.iter().map(|r| AssociatedReal::inject(r.sqrt())));
+        let ev = e_sqrt.into_diagonal().op(&v.t());
+        Ok(v.op(&ev))
+    }
+}
+
+/// Calculate symmetric square-root matrix using `eigh`
+pub trait SymmetricSqrtInto {
+    type Output;
+    fn ssqrt_into(self, UPLO) -> Result<Self::Output>;
+}
+
+impl<A, S> SymmetricSqrtInto for ArrayBase<S, Ix2>
 where
     A: Scalar,
     S: DataMut<Elem = A> + DataOwned,
 {
-    fn ssqrt(self, uplo: UPLO) -> Result<ArrayBase<S, Ix2>> {
-        let (e, v): (Array1<A::Real>, _) = self.eigh(uplo)?;
+    type Output = Array2<A>;
+
+    fn ssqrt_into(self, uplo: UPLO) -> Result<Self::Output> {
+        let (e, v) = self.eigh_into(uplo)?;
         let e_sqrt = Array1::from_iter(e.iter().map(|r| AssociatedReal::inject(r.sqrt())));
-        let ev: Array2<_> = e_sqrt.into_diagonal().op(&v.t());
+        let ev = e_sqrt.into_diagonal().op(&v.t());
         Ok(v.op(&ev))
     }
 }

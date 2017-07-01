@@ -2,8 +2,6 @@
 
 use ndarray::*;
 
-use super::convert::*;
-
 pub trait Operator<A, S, D>
 where
     S: Data<Elem = A>,

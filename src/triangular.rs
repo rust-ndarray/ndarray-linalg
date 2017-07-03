@@ -47,7 +47,7 @@ where
     So: DataMut<Elem = A> + DataOwned,
 {
     fn solve_triangular_into(&self, uplo: UPLO, diag: Diag, mut b: ArrayBase<So, Ix2>) -> Result<ArrayBase<So, Ix2>> {
-        self.solve_triangular(uplo, diag, &mut b)?;
+        self.solve_triangular_mut(uplo, diag, &mut b)?;
         Ok(b)
     }
 }

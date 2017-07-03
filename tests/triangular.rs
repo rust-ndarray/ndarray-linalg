@@ -29,12 +29,11 @@ where
 {
     println!("a = {:?}", &a);
     println!("b = {:?}", &b);
-    let ans = b.clone();
-    let x = a.solve_triangular(uplo, Diag::NonUnit, b).unwrap();
+    let x = a.solve_triangular(uplo, Diag::NonUnit, &b).unwrap();
     println!("x = {:?}", &x);
     let b_ = a.dot(&x);
     println!("Ax = {:?}", &b_);
-    assert_close_l2!(&b_, &ans, tol);
+    assert_close_l2!(&b_, &b, tol);
 }
 
 #[test]

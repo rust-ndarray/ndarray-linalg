@@ -2,113 +2,164 @@
 
 use ndarray::*;
 
-use super::convert::*;
+use super::UPLO;
 use super::diagonal::*;
 use super::error::*;
 use super::layout::*;
 use super::operator::*;
 use super::types::*;
 
-use lapack_traits::LapackScalar;
-pub use lapack_traits::UPLO;
+/// Eigenvalue decomposition of Hermite matrix
+pub trait Eigh {
+    type EigVal;
+    type EigVec;
+    fn eigh(&self, UPLO) -> Result<(Self::EigVal, Self::EigVec)>;
+}
 
 /// Eigenvalue decomposition of Hermite matrix
-pub trait Eigh<EigVal, EigVec> {
-    fn eigh(self, UPLO) -> Result<(EigVal, EigVec)>;
+pub trait EighMut {
+    type EigVal;
+    fn eigh_mut(&mut self, UPLO) -> Result<(Self::EigVal, &mut Self)>;
 }
 
-impl<A, S, Se> Eigh<ArrayBase<Se, Ix1>, ArrayBase<S, Ix2>> for ArrayBase<S, Ix2>
+/// Eigenvalue decomposition of Hermite matrix
+pub trait EighInto: Sized {
+    type EigVal;
+    fn eigh_into(self, UPLO) -> Result<(Self::EigVal, Self)>;
+}
+
+impl<A, S> EighInto for ArrayBase<S, Ix2>
 where
-    A: LapackScalar,
+    A: Scalar,
     S: DataMut<Elem = A>,
-    Se: DataOwned<Elem = A::Real>,
 {
-    fn eigh(mut self, uplo: UPLO) -> Result<(ArrayBase<Se, Ix1>, ArrayBase<S, Ix2>)> {
-        let s = A::eigh(true, self.square_layout()?, uplo, self.as_allocated_mut()?)?;
-        Ok((ArrayBase::from_vec(s), self))
+    type EigVal = Array1<A::Real>;
+
+    fn eigh_into(mut self, uplo: UPLO) -> Result<(Self::EigVal, Self)> {
+        let (val, _) = self.eigh_mut(uplo)?;
+        Ok((val, self))
     }
 }
 
-impl<'a, A, S, Se, So> Eigh<ArrayBase<Se, Ix1>, ArrayBase<So, Ix2>> for &'a ArrayBase<S, Ix2>
-    where A: LapackScalar + Copy,
-          S: Data<Elem = A>,
-          Se: DataOwned<Elem = A::Real>,
-          So: DataOwned<Elem = A> + DataMut
+impl<A, S> Eigh for ArrayBase<S, Ix2>
+where
+    A: Scalar,
+    S: Data<Elem = A>,
 {
-    fn eigh(self, uplo: UPLO) -> Result<(ArrayBase<Se, Ix1>, ArrayBase<So, Ix2>)> {
-        let mut a = replicate(self);
-        let s = A::eigh(true, a.square_layout()?, uplo, a.as_allocated_mut()?)?;
-        Ok((ArrayBase::from_vec(s), a))
+    type EigVal = Array1<A::Real>;
+    type EigVec = Array2<A>;
+
+    fn eigh(&self, uplo: UPLO) -> Result<(Self::EigVal, Self::EigVec)> {
+        let a = self.to_owned();
+        a.eigh_into(uplo)
     }
 }
 
-impl<'a, A, S, Se> Eigh<ArrayBase<Se, Ix1>, &'a mut ArrayBase<S, Ix2>> for &'a mut ArrayBase<S, Ix2>
-    where A: LapackScalar,
-          S: DataMut<Elem = A>,
-          Se: DataOwned<Elem = A::Real>
+impl<A, S> EighMut for ArrayBase<S, Ix2>
+where
+    A: Scalar,
+    S: DataMut<Elem = A>,
 {
-    fn eigh(mut self, uplo: UPLO) -> Result<(ArrayBase<Se, Ix1>, &'a mut ArrayBase<S, Ix2>)> {
+    type EigVal = Array1<A::Real>;
+
+    fn eigh_mut(&mut self, uplo: UPLO) -> Result<(Self::EigVal, &mut Self)> {
         let s = A::eigh(true, self.square_layout()?, uplo, self.as_allocated_mut()?)?;
         Ok((ArrayBase::from_vec(s), self))
     }
 }
 
 /// Calculate eigenvalues without eigenvectors
-pub trait EigValsh<EigVal> {
-    fn eigvalsh(self, UPLO) -> Result<EigVal>;
+pub trait EigValsh {
+    type EigVal;
+    fn eigvalsh(&self, UPLO) -> Result<Self::EigVal>;
 }
 
-impl<A, S, Se> EigValsh<ArrayBase<Se, Ix1>> for ArrayBase<S, Ix2>
+/// Calculate eigenvalues without eigenvectors
+pub trait EigValshInto {
+    type EigVal;
+    fn eigvalsh_into(self, UPLO) -> Result<Self::EigVal>;
+}
+
+/// Calculate eigenvalues without eigenvectors
+pub trait EigValshMut {
+    type EigVal;
+    fn eigvalsh_mut(&mut self, UPLO) -> Result<Self::EigVal>;
+}
+
+impl<A, S> EigValshInto for ArrayBase<S, Ix2>
 where
-    A: LapackScalar,
+    A: Scalar,
     S: DataMut<Elem = A>,
-    Se: DataOwned<Elem = A::Real>,
 {
-    fn eigvalsh(mut self, uplo: UPLO) -> Result<ArrayBase<Se, Ix1>> {
-        let s = A::eigh(false, self.square_layout()?, uplo, self.as_allocated_mut()?)?;
-        Ok(ArrayBase::from_vec(s))
+    type EigVal = Array1<A::Real>;
+
+    fn eigvalsh_into(mut self, uplo: UPLO) -> Result<Self::EigVal> {
+        self.eigvalsh_mut(uplo)
     }
 }
 
-impl<'a, A, S, Se> EigValsh<ArrayBase<Se, Ix1>> for &'a ArrayBase<S, Ix2>
+impl<A, S> EigValsh for ArrayBase<S, Ix2>
 where
-    A: LapackScalar + Copy,
+    A: Scalar,
     S: Data<Elem = A>,
-    Se: DataOwned<Elem = A::Real>,
 {
-    fn eigvalsh(self, uplo: UPLO) -> Result<ArrayBase<Se, Ix1>> {
-        let mut a = self.to_owned();
-        let s = A::eigh(false, a.square_layout()?, uplo, a.as_allocated_mut()?)?;
-        Ok(ArrayBase::from_vec(s))
+    type EigVal = Array1<A::Real>;
+
+    fn eigvalsh(&self, uplo: UPLO) -> Result<Self::EigVal> {
+        let a = self.to_owned();
+        a.eigvalsh_into(uplo)
     }
 }
 
-impl<'a, A, S, Se> EigValsh<ArrayBase<Se, Ix1>> for &'a mut ArrayBase<S, Ix2>
+impl<A, S> EigValshMut for ArrayBase<S, Ix2>
 where
-    A: LapackScalar,
+    A: Scalar,
     S: DataMut<Elem = A>,
-    Se: DataOwned<Elem = A::Real>,
 {
-    fn eigvalsh(mut self, uplo: UPLO) -> Result<ArrayBase<Se, Ix1>> {
+    type EigVal = Array1<A::Real>;
+
+    fn eigvalsh_mut(&mut self, uplo: UPLO) -> Result<Self::EigVal> {
         let s = A::eigh(true, self.square_layout()?, uplo, self.as_allocated_mut()?)?;
         Ok(ArrayBase::from_vec(s))
     }
 }
 
 /// Calculate symmetric square-root matrix using `eigh`
-pub trait SymmetricSqrt<Output> {
-    fn ssqrt(self, UPLO) -> Result<Output>;
+pub trait SymmetricSqrt {
+    type Output;
+    fn ssqrt(&self, UPLO) -> Result<Self::Output>;
 }
 
-impl<A, S> SymmetricSqrt<ArrayBase<S, Ix2>> for ArrayBase<S, Ix2>
+impl<A, S> SymmetricSqrt for ArrayBase<S, Ix2>
+where
+    A: Scalar,
+    S: Data<Elem = A>,
+{
+    type Output = Array2<A>;
+
+    fn ssqrt(&self, uplo: UPLO) -> Result<Self::Output> {
+        let a = self.to_owned();
+        a.ssqrt_into(uplo)
+    }
+}
+
+/// Calculate symmetric square-root matrix using `eigh`
+pub trait SymmetricSqrtInto {
+    type Output;
+    fn ssqrt_into(self, UPLO) -> Result<Self::Output>;
+}
+
+impl<A, S> SymmetricSqrtInto for ArrayBase<S, Ix2>
 where
     A: Scalar,
     S: DataMut<Elem = A> + DataOwned,
 {
-    fn ssqrt(self, uplo: UPLO) -> Result<ArrayBase<S, Ix2>> {
-        let (e, v): (Array1<A::Real>, _) = self.eigh(uplo)?;
+    type Output = Array2<A>;
+
+    fn ssqrt_into(self, uplo: UPLO) -> Result<Self::Output> {
+        let (e, v) = self.eigh_into(uplo)?;
         let e_sqrt = Array1::from_iter(e.iter().map(|r| AssociatedReal::inject(r.sqrt())));
-        let ev: Array2<_> = e_sqrt.into_diagonal().op(&v.t());
+        let ev = e_sqrt.into_diagonal().op(&v.t());
         Ok(v.op(&ev))
     }
 }

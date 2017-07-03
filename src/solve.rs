@@ -7,6 +7,7 @@ use super::convert::*;
 use super::error::*;
 use super::lapack_traits::*;
 use super::layout::*;
+use super::types::*;
 
 pub use lapack_traits::{Pivot, Transpose};
 
@@ -51,15 +52,19 @@ where
 }
 
 pub trait Factorize<S: Data> {
-    fn factorize(self) -> Result<Factorized<S>>;
+    fn factorize(&self) -> Result<Factorized<S>>;
 }
 
-impl<A, S> Factorize<S> for ArrayBase<S, Ix2>
+pub trait FactorizeInto<S: Data> {
+    fn factorize_into(self) -> Result<Factorized<S>>;
+}
+
+impl<A, S> FactorizeInto<S> for ArrayBase<S, Ix2>
 where
-    A: LapackScalar,
+    A: Scalar,
     S: DataMut<Elem = A>,
 {
-    fn factorize(mut self) -> Result<Factorized<S>> {
+    fn factorize_into(mut self) -> Result<Factorized<S>> {
         let ipiv = A::lu(self.layout()?, self.as_allocated_mut()?)?;
         Ok(Factorized {
             a: self,
@@ -68,41 +73,50 @@ where
     }
 }
 
-impl<'a, A, Si, So> Factorize<So> for &'a ArrayBase<Si, Ix2>
+impl<A, Si, So> Factorize<So> for ArrayBase<Si, Ix2>
 where
-    A: LapackScalar + Copy,
+    A: Scalar,
     Si: Data<Elem = A>,
     So: DataOwned<Elem = A> + DataMut,
 {
-    fn factorize(self) -> Result<Factorized<So>> {
+    fn factorize(&self) -> Result<Factorized<So>> {
         let mut a: ArrayBase<So, Ix2> = replicate(self);
         let ipiv = A::lu(a.layout()?, a.as_allocated_mut()?)?;
         Ok(Factorized { a: a, ipiv: ipiv })
     }
 }
 
-pub trait Inverse<Inv> {
-    fn inv(self) -> Result<Inv>;
+pub trait Inverse {
+    type Output;
+    fn inv(&self) -> Result<Self::Output>;
 }
 
-impl<A, S> Inverse<ArrayBase<S, Ix2>> for ArrayBase<S, Ix2>
+pub trait InverseInto {
+    type Output;
+    fn inv_into(self) -> Result<Self::Output>;
+}
+
+impl<A, S> InverseInto for ArrayBase<S, Ix2>
 where
-    A: LapackScalar,
+    A: Scalar,
     S: DataMut<Elem = A>,
 {
-    fn inv(self) -> Result<ArrayBase<S, Ix2>> {
-        let f = self.factorize()?;
+    type Output = Self;
+
+    fn inv_into(self) -> Result<Self::Output> {
+        let f = self.factorize_into()?;
         f.into_inverse()
     }
 }
 
-impl<'a, A, Si, So> Inverse<ArrayBase<So, Ix2>> for &'a ArrayBase<Si, Ix2>
+impl<A, Si> Inverse for ArrayBase<Si, Ix2>
 where
-    A: LapackScalar + Copy,
+    A: Scalar,
     Si: Data<Elem = A>,
-    So: DataOwned<Elem = A> + DataMut,
 {
-    fn inv(self) -> Result<ArrayBase<So, Ix2>> {
+    type Output = Array2<A>;
+
+    fn inv(&self) -> Result<Self::Output> {
         let f = self.factorize()?;
         f.into_inverse()
     }

@@ -22,3 +22,12 @@ fn diag_2d() {
     println!("dm = {:?}", dm);
     assert_close_l2!(&dm, &arr2(&[[1.0, 1.0], [2.0, 2.0]]), 1e-7);
 }
+
+#[test]
+fn diag_2d_multi() {
+    let d = arr1(&[1.0, 2.0]);
+    let m = arr2(&[[1.0, 1.0], [1.0, 1.0]]);
+    let dm = d.into_diagonal().op_multi_into(m);
+    println!("dm = {:?}", dm);
+    assert_close_l2!(&dm, &arr2(&[[1.0, 1.0], [2.0, 2.0]]), 1e-7);
+}

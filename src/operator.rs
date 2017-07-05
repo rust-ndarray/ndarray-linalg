@@ -39,3 +39,67 @@ where
         self.dot(rhs)
     }
 }
+
+pub trait OperatorMulti<A, S, D>
+where
+    S: Data<Elem = A>,
+    D: Dimension,
+{
+    fn op_multi(&self, &ArrayBase<S, D>) -> Array<A, D>;
+}
+
+impl<T, A, S, D> OperatorMulti<A, S, D> for T
+where
+    A: Scalar,
+    S: DataMut<Elem = A>,
+    D: Dimension + RemoveAxis,
+    for<'a> T: OperatorMut<ViewRepr<&'a mut A>, D::Smaller>,
+{
+    fn op_multi(&self, a: &ArrayBase<S, D>) -> Array<A, D> {
+        let a = a.to_owned();
+        self.op_multi_into(a)
+    }
+}
+
+pub trait OperatorMultiInto<S, D>
+where
+    S: DataMut,
+    D: Dimension,
+{
+    fn op_multi_into(&self, ArrayBase<S, D>) -> ArrayBase<S, D>;
+}
+
+impl<T, A, S, D> OperatorMultiInto<S, D> for T
+where
+    S: DataMut<Elem = A>,
+    D: Dimension + RemoveAxis,
+    for<'a> T: OperatorMut<ViewRepr<&'a mut A>, D::Smaller>,
+{
+    fn op_multi_into(&self, mut a: ArrayBase<S, D>) -> ArrayBase<S, D> {
+        self.op_multi_mut(&mut a);
+        a
+    }
+}
+
+pub trait OperatorMultiMut<S, D>
+where
+    S: DataMut,
+    D: Dimension,
+{
+    fn op_multi_mut<'a>(&self, &'a mut ArrayBase<S, D>) -> &'a mut ArrayBase<S, D>;
+}
+
+impl<T, A, S, D> OperatorMultiMut<S, D> for T
+where
+    S: DataMut<Elem = A>,
+    D: Dimension + RemoveAxis,
+    for<'a> T: OperatorMut<ViewRepr<&'a mut A>, D::Smaller>,
+{
+    fn op_multi_mut<'a>(&self, mut a: &'a mut ArrayBase<S, D>) -> &'a mut ArrayBase<S, D> {
+        let n = a.ndim();
+        for mut col in a.axis_iter_mut(Axis(n - 1)) {
+            self.op_mut(&mut col);
+        }
+        a
+    }
+}

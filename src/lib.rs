@@ -16,30 +16,6 @@
 //!  - [assertions for array](index.html#macros)
 //!  - [generator functions](generate/index.html)
 //!  - [Scalar trait](types/trait.Scalar.html)
-//!
-//!  Usage
-//!  ------
-//!  Most functions in this crate is defined as [self-consuming trait technique][sct] like [serde]
-//!  does.
-//!
-//!  For example, we can execute [eigh][eigh] using three types of interfaces:
-//!
-//!  ```rust,ignore
-//!  let a = random((3, 3));
-//!  let (eval, evec) = a.eigh(UPLO::Upper)?;
-//!  let (eval, evec) = (&a).eigh(UPLO::Upper)?;
-//!  let (eval, evec) = (&mut a).eigh(UPLO::Upper)?;
-//!  ```
-//!
-//!  The first type `a.eigh()` consumes `a`, and the memory of `a` is used for `evec`.
-//!  The second type `(&a).eigh()` consumes the reference (not `a` itself),
-//!  and the memory for `evec` is newly allocated.
-//!  The last one `(&mut a).eigh()` is similar to the first one;
-//!  It borrows `a` mutably, and rewrite it to contains `evec`.
-//!  In all cases, the array `eval` is newly allocated.
-//!
-//!  [sct]:https://github.com/serde-rs/serde/releases/tag/v0.9.0
-//!  [serde]:https://github.com/serde-rs/serde
 
 extern crate blas;
 extern crate lapack;

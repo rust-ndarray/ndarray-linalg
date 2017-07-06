@@ -6,18 +6,15 @@ ndarray-linalg
 
 Linear algebra package for [rust-ndarray](https://github.com/bluss/rust-ndarray) using LAPACK via [stainless-steel/lapack](https://github.com/stainless-steel/lapack)
 
+Dependencies
+-------------
+
+- [bluss/rust-ndarray](https://github.com/bluss/rust-ndarray)
+- [stainless-steel/lapack](https://github.com/stainless-steel/lapack)
+
+and more (See Cargo.toml).
+
 Examples
 ---------
 See [examples](https://github.com/termoshtt/ndarray-linalg/tree/master/examples) directory.
 
-Versions
----------
-
-- v0.5.0
-    - **Breaking Change** Rewrite all algorithms to support complex numbers and general `ArrayBase`
-
-- v0.4.1
-    - ADD: assertion [#31](https://github.com/termoshtt/ndarray-linalg/pull/31)
-
-- v0.4.0
-    - MOD: use ndarray v0.9

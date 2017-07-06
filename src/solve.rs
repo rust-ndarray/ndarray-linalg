@@ -1,11 +1,9 @@
 //! Solve linear problems
 
-
 use ndarray::*;
 
 use super::convert::*;
 use super::error::*;
-use super::lapack_traits::*;
 use super::layout::*;
 use super::types::*;
 
@@ -18,7 +16,7 @@ pub struct Factorized<S: Data> {
 
 impl<A, S> Factorized<S>
 where
-    A: LapackScalar,
+    A: Scalar,
     S: Data<Elem = A>,
 {
     pub fn solve<Sb>(&self, t: Transpose, mut rhs: ArrayBase<Sb, Ix1>) -> Result<ArrayBase<Sb, Ix1>>
@@ -38,7 +36,7 @@ where
 
 impl<A, S> Factorized<S>
 where
-    A: LapackScalar,
+    A: Scalar,
     S: DataMut<Elem = A>,
 {
     pub fn into_inverse(mut self) -> Result<ArrayBase<S, Ix2>> {

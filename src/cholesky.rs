@@ -1,4 +1,6 @@
 //! Cholesky decomposition
+//!
+//! https://en.wikipedia.org/wiki/Cholesky_decomposition
 
 use ndarray::*;
 
@@ -10,15 +12,18 @@ use super::types::*;
 
 pub use lapack_traits::UPLO;
 
+/// Cholesky decomposition of matrix reference
 pub trait Cholesky {
     type Output;
     fn cholesky(&self, UPLO) -> Result<Self::Output>;
 }
 
+/// Cholesky decomposition
 pub trait CholeskyInto: Sized {
     fn cholesky_into(self, UPLO) -> Result<Self>;
 }
 
+/// Cholesky decomposition of mutable reference of matrix
 pub trait CholeskyMut {
     fn cholesky_mut(&mut self, UPLO) -> Result<&mut Self>;
 }

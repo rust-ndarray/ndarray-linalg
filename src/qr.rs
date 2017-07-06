@@ -1,4 +1,6 @@
 //! QR decomposition
+//!
+//! https://en.wikipedia.org/wiki/QR_decomposition
 
 use ndarray::*;
 use num_traits::Zero;
@@ -7,40 +9,57 @@ use super::convert::*;
 use super::error::*;
 use super::layout::*;
 use super::triangular::*;
+use super::types::*;
 
-use lapack_traits::{LapackScalar, UPLO};
+pub use lapack_traits::UPLO;
 
+/// QR decomposition for matrix reference
+///
+/// This creates copy due for reshaping array.
+/// To avoid copy and the matrix is square, please use `QRSquare*` traits.
 pub trait QR {
     type Q;
     type R;
     fn qr(&self) -> Result<(Self::Q, Self::R)>;
 }
 
+/// QR decomposition
+///
+/// This creates copy due for reshaping array.
+/// To avoid copy and the matrix is square, please use `QRSquare*` traits.
 pub trait QRInto: Sized {
     type Q;
     type R;
     fn qr_into(self) -> Result<(Self::Q, Self::R)>;
 }
 
+/// QR decomposition for square matrix reference
 pub trait QRSquare: Sized {
     type Q;
     type R;
     fn qr_square(&self) -> Result<(Self::Q, Self::R)>;
 }
 
+/// QR decomposition for square matrix
 pub trait QRSquareInto: Sized {
     type R;
     fn qr_square_into(self) -> Result<(Self, Self::R)>;
 }
 
-impl<A, S> QRSquareInto for ArrayBase<S, Ix2>
+/// QR decomposition for mutable reference of square matrix
+pub trait QRSquareMut: Sized {
+    type R;
+    fn qr_square_mut<'a>(&'a mut self) -> Result<(&'a mut Self, Self::R)>;
+}
+
+impl<A, S> QRSquareMut for ArrayBase<S, Ix2>
 where
-    A: LapackScalar + Copy + Zero,
+    A: Scalar,
     S: DataMut<Elem = A>,
 {
     type R = Array2<A>;
 
-    fn qr_square_into(mut self) -> Result<(Self, Self::R)> {
+    fn qr_square_mut<'a>(&'a mut self) -> Result<(&'a mut Self, Self::R)> {
         let l = self.square_layout()?;
         let r = A::qr(l, self.as_allocated_mut()?)?;
         let r: Array2<_> = into_matrix(l, r)?;
@@ -48,9 +67,22 @@ where
     }
 }
 
+impl<A, S> QRSquareInto for ArrayBase<S, Ix2>
+where
+    A: Scalar,
+    S: DataMut<Elem = A>,
+{
+    type R = Array2<A>;
+
+    fn qr_square_into(mut self) -> Result<(Self, Self::R)> {
+        let (_, r) = self.qr_square_mut()?;
+        Ok((self, r))
+    }
+}
+
 impl<A, S> QRSquare for ArrayBase<S, Ix2>
 where
-    A: LapackScalar + Copy + Zero,
+    A: Scalar,
     S: Data<Elem = A>,
 {
     type Q = Array2<A>;
@@ -65,7 +97,7 @@ where
 
 impl<A, S> QRInto for ArrayBase<S, Ix2>
 where
-    A: LapackScalar + Copy + Zero,
+    A: Scalar,
     S: DataMut<Elem = A>,
 {
     type Q = Array2<A>;
@@ -85,7 +117,7 @@ where
 
 impl<A, S> QR for ArrayBase<S, Ix2>
 where
-    A: LapackScalar + Copy + Zero,
+    A: Scalar,
     S: Data<Elem = A>,
 {
     type Q = Array2<A>;

@@ -9,14 +9,14 @@ use super::layout::*;
 use super::operator::*;
 use super::types::*;
 
-/// Eigenvalue decomposition of Hermite matrix
+/// Eigenvalue decomposition of Hermite matrix reference
 pub trait Eigh {
     type EigVal;
     type EigVec;
     fn eigh(&self, UPLO) -> Result<(Self::EigVal, Self::EigVec)>;
 }
 
-/// Eigenvalue decomposition of Hermite matrix
+/// Eigenvalue decomposition of mutable reference of Hermite matrix
 pub trait EighMut {
     type EigVal;
     fn eigh_mut(&mut self, UPLO) -> Result<(Self::EigVal, &mut Self)>;

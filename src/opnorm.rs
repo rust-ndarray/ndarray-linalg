@@ -6,31 +6,41 @@ use super::error::*;
 use super::layout::*;
 use super::types::*;
 
-use lapack_traits::LapackScalar;
 pub use lapack_traits::NormType;
 
+/// Operator norm using `*lange` LAPACK routines
+///
+/// https://en.wikipedia.org/wiki/Operator_norm
 pub trait OperationNorm {
-    type Output;
-    fn opnorm(&self, t: NormType) -> Self::Output;
-    fn opnorm_one(&self) -> Self::Output {
+    /// the value of norm
+    type Output: RealScalar;
+
+    fn opnorm(&self, t: NormType) -> Result<Self::Output>;
+
+    /// the one norm of a matrix (maximum column sum)
+    fn opnorm_one(&self) -> Result<Self::Output> {
         self.opnorm(NormType::One)
     }
-    fn opnorm_inf(&self) -> Self::Output {
+
+    /// the infinity norm of a matrix (maximum row sum)
+    fn opnorm_inf(&self) -> Result<Self::Output> {
         self.opnorm(NormType::Infinity)
     }
-    fn opnorm_fro(&self) -> Self::Output {
+
+    /// the Frobenius norm of a matrix (square root of sum of squares)
+    fn opnorm_fro(&self) -> Result<Self::Output> {
         self.opnorm(NormType::Frobenius)
     }
 }
 
 impl<A, S> OperationNorm for ArrayBase<S, Ix2>
 where
-    A: LapackScalar + AssociatedReal,
+    A: Scalar,
     S: Data<Elem = A>,
 {
-    type Output = Result<A::Real>;
+    type Output = A::Real;
 
-    fn opnorm(&self, t: NormType) -> Self::Output {
+    fn opnorm(&self, t: NormType) -> Result<Self::Output> {
         let l = self.layout()?;
         let a = self.as_allocated()?;
         Ok(A::opnorm(t, l, a))

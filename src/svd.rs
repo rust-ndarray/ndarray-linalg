@@ -1,4 +1,6 @@
 //! singular-value decomposition
+//!
+//! https://en.wikipedia.org/wiki/Singular_value_decomposition
 
 use ndarray::*;
 
@@ -7,6 +9,7 @@ use super::error::*;
 use super::layout::*;
 use super::types::*;
 
+/// singular-value decomposition of matrix reference
 pub trait SVD {
     type U;
     type VT;
@@ -14,6 +17,7 @@ pub trait SVD {
     fn svd(&self, calc_u: bool, calc_vt: bool) -> Result<(Option<Self::U>, Self::Sigma, Option<Self::VT>)>;
 }
 
+/// singular-value decomposition
 pub trait SVDInto {
     type U;
     type VT;
@@ -21,6 +25,7 @@ pub trait SVDInto {
     fn svd_into(self, calc_u: bool, calc_vt: bool) -> Result<(Option<Self::U>, Self::Sigma, Option<Self::VT>)>;
 }
 
+/// singular-value decomposition for mutable reference of matrix
 pub trait SVDMut {
     type U;
     type VT;

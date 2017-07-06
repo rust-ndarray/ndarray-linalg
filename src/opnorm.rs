@@ -6,7 +6,6 @@ use super::error::*;
 use super::layout::*;
 use super::types::*;
 
-use lapack_traits::LapackScalar;
 pub use lapack_traits::NormType;
 
 pub trait OperationNorm {
@@ -25,7 +24,7 @@ pub trait OperationNorm {
 
 impl<A, S> OperationNorm for ArrayBase<S, Ix2>
 where
-    A: LapackScalar + AssociatedReal,
+    A: Scalar,
     S: Data<Elem = A>,
 {
     type Output = Result<A::Real>;

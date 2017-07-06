@@ -1,4 +1,6 @@
 //! QR decomposition
+//!
+//! https://en.wikipedia.org/wiki/QR_decomposition
 
 use ndarray::*;
 use num_traits::Zero;

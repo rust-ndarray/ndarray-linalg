@@ -17,7 +17,7 @@ macro_rules! impl_cholesky {
 impl Cholesky_ for $scalar {
     fn cholesky(l: MatrixLayout, uplo: UPLO, mut a: &mut [Self]) -> Result<()> {
         let (n, _) = l.size();
-        let info = $potrf(l.lapacke_layout(), uplo as u8, n, &mut a, n);
+        let info = unsafe { $potrf(l.lapacke_layout(), uplo as u8, n, &mut a, n) };
         into_result(info, ())
     }
 }

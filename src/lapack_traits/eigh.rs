@@ -21,7 +21,7 @@ impl Eigh_ for $scalar {
         let (n, _) = l.size();
         let jobz = if calc_v { b'V' } else { b'N' };
         let mut w = vec![Self::Real::zero(); n as usize];
-        let info = $ev(l.lapacke_layout(), jobz, uplo as u8, n, &mut a, n, &mut w);
+        let info = unsafe { $ev(l.lapacke_layout(), jobz, uplo as u8, n, &mut a, n, &mut w) };
         into_result(info, w)
     }
 }

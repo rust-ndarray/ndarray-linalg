@@ -24,14 +24,14 @@ impl QR_ for $scalar {
         let (row, col) = l.size();
         let k = min(row, col);
         let mut tau = vec![Self::zero(); k as usize];
-        let info = $qrf(l.lapacke_layout(), row, col, &mut a, l.lda(), &mut tau);
+        let info = unsafe { $qrf(l.lapacke_layout(), row, col, &mut a, l.lda(), &mut tau) };
         into_result(info, tau)
     }
 
     fn q(l: MatrixLayout, mut a: &mut [Self], tau: &[Self]) -> Result<()> {
         let (row, col) = l.size();
         let k = min(row, col);
-        let info = $gqr(l.lapacke_layout(), row, k, k, &mut a, l.lda(), &tau);
+        let info = unsafe { $gqr(l.lapacke_layout(), row, k, k, &mut a, l.lda(), &tau) };
         into_result(info, ())
     }
 

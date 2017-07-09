@@ -52,7 +52,7 @@ impl SVD_ for $scalar {
         };
         let mut s = vec![Self::Real::zero(); k as usize];
         let mut superb = vec![Self::Real::zero(); (k-2) as usize];
-        let info = $gesvd(l.lapacke_layout(), ju as u8, jvt as u8, m, n, &mut a, lda, &mut s, &mut u, ldu, &mut vt, ldvt, &mut superb);
+        let info = unsafe { $gesvd(l.lapacke_layout(), ju as u8, jvt as u8, m, n, &mut a, lda, &mut s, &mut u, ldu, &mut vt, ldvt, &mut superb) };
         into_result(info, SVDOutput {
             s: s,
             u: if ldu > 0 { Some(u) } else { None },

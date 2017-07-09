@@ -25,13 +25,13 @@ impl Solve_ for $scalar {
         let (row, col) = l.size();
         let k = ::std::cmp::min(row, col);
         let mut ipiv = vec![0; k as usize];
-        let info = $getrf(l.lapacke_layout(), row, col, a, l.lda(), &mut ipiv);
+        let info = unsafe { $getrf(l.lapacke_layout(), row, col, a, l.lda(), &mut ipiv) };
         into_result(info, ipiv)
     }
 
     fn inv(l: MatrixLayout, a: &mut [Self], ipiv: &Pivot) -> Result<()> {
         let (n, _) = l.size();
-        let info = $getri(l.lapacke_layout(), n, a, l.lda(), ipiv);
+        let info = unsafe { $getri(l.lapacke_layout(), n, a, l.lda(), ipiv) };
         into_result(info, ())
     }
 
@@ -39,7 +39,7 @@ impl Solve_ for $scalar {
         let (n, _) = l.size();
         let nrhs = 1;
         let ldb = 1;
-        let info = $getrs(l.lapacke_layout(), t as u8, n, nrhs, a, l.lda(), ipiv, b, ldb);
+        let info = unsafe { $getrs(l.lapacke_layout(), t as u8, n, nrhs, a, l.lda(), ipiv, b, ldb) };
         into_result(info, ())
     }
 }

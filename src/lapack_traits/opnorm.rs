@@ -32,8 +32,8 @@ macro_rules! impl_opnorm {
 impl OperatorNorm_ for $scalar {
     fn opnorm(t: NormType, l: MatrixLayout, a: &[Self]) -> Self::Real {
         match l {
-            MatrixLayout::F((col, lda)) => $lange(cm, t as u8, lda, col, a, lda),
-            MatrixLayout::C((row, lda)) => $lange(cm, t.transpose() as u8, lda, row, a, lda),
+            MatrixLayout::F((col, lda)) => unsafe { $lange(cm, t as u8, lda, col, a, lda) },
+            MatrixLayout::C((row, lda)) => unsafe { $lange(cm, t.transpose() as u8, lda, row, a, lda) },
         }
     }
 }

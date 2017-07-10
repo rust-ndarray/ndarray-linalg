@@ -29,14 +29,14 @@ pub struct SVDOutput<A: AssociatedReal> {
 
 /// Wraps `*gesvd`
 pub trait SVD_: AssociatedReal {
-    fn svd(MatrixLayout, calc_u: bool, calc_vt: bool, a: &mut [Self]) -> Result<SVDOutput<Self>>;
+    unsafe fn svd(MatrixLayout, calc_u: bool, calc_vt: bool, a: &mut [Self]) -> Result<SVDOutput<Self>>;
 }
 
 macro_rules! impl_svd {
     ($scalar:ty, $gesvd:path) => {
 
 impl SVD_ for $scalar {
-    fn svd(l: MatrixLayout, calc_u: bool, calc_vt: bool, mut a: &mut [Self]) -> Result<SVDOutput<Self>> {
+    unsafe fn svd(l: MatrixLayout, calc_u: bool, calc_vt: bool, mut a: &mut [Self]) -> Result<SVDOutput<Self>> {
         let (m, n) = l.size();
         let k = ::std::cmp::min(n, m);
         let lda = l.lda();

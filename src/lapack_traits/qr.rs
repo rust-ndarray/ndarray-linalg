@@ -12,15 +12,15 @@ use super::into_result;
 
 /// Wraps `*geqrf` and `*orgqr` (`*ungqr` for complex numbers)
 pub trait QR_: Sized {
-    fn householder(MatrixLayout, a: &mut [Self]) -> Result<Vec<Self>>;
-    fn q(MatrixLayout, a: &mut [Self], tau: &[Self]) -> Result<()>;
-    fn qr(MatrixLayout, a: &mut [Self]) -> Result<Vec<Self>>;
+    unsafe fn householder(MatrixLayout, a: &mut [Self]) -> Result<Vec<Self>>;
+    unsafe fn q(MatrixLayout, a: &mut [Self], tau: &[Self]) -> Result<()>;
+    unsafe fn qr(MatrixLayout, a: &mut [Self]) -> Result<Vec<Self>>;
 }
 
 macro_rules! impl_qr {
     ($scalar:ty, $qrf:path, $gqr:path) => {
 impl QR_ for $scalar {
-    fn householder(l: MatrixLayout, mut a: &mut [Self]) -> Result<Vec<Self>> {
+    unsafe fn householder(l: MatrixLayout, mut a: &mut [Self]) -> Result<Vec<Self>> {
         let (row, col) = l.size();
         let k = min(row, col);
         let mut tau = vec![Self::zero(); k as usize];
@@ -28,14 +28,14 @@ impl QR_ for $scalar {
         into_result(info, tau)
     }
 
-    fn q(l: MatrixLayout, mut a: &mut [Self], tau: &[Self]) -> Result<()> {
+    unsafe fn q(l: MatrixLayout, mut a: &mut [Self], tau: &[Self]) -> Result<()> {
         let (row, col) = l.size();
         let k = min(row, col);
         let info = $gqr(l.lapacke_layout(), row, k, k, &mut a, l.lda(), &tau);
         into_result(info, ())
     }
 
-    fn qr(l: MatrixLayout, mut a: &mut [Self]) -> Result<Vec<Self>> {
+    unsafe fn qr(l: MatrixLayout, mut a: &mut [Self]) -> Result<Vec<Self>> {
         let tau = Self::householder(l, a)?;
         let r = Vec::from(&*a);
         Self::q(l, a, &tau)?;

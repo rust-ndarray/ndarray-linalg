@@ -12,16 +12,16 @@ pub type Pivot = Vec<i32>;
 
 /// Wraps `*getrf`, `*getri`, and `*getrs`
 pub trait Solve_: Sized {
-    fn lu(MatrixLayout, a: &mut [Self]) -> Result<Pivot>;
-    fn inv(MatrixLayout, a: &mut [Self], &Pivot) -> Result<()>;
-    fn solve(MatrixLayout, Transpose, a: &[Self], &Pivot, b: &mut [Self]) -> Result<()>;
+    unsafe fn lu(MatrixLayout, a: &mut [Self]) -> Result<Pivot>;
+    unsafe fn inv(MatrixLayout, a: &mut [Self], &Pivot) -> Result<()>;
+    unsafe fn solve(MatrixLayout, Transpose, a: &[Self], &Pivot, b: &mut [Self]) -> Result<()>;
 }
 
 macro_rules! impl_solve {
     ($scalar:ty, $getrf:path, $getri:path, $getrs:path) => {
 
 impl Solve_ for $scalar {
-    fn lu(l: MatrixLayout, a: &mut [Self]) -> Result<Pivot> {
+    unsafe fn lu(l: MatrixLayout, a: &mut [Self]) -> Result<Pivot> {
         let (row, col) = l.size();
         let k = ::std::cmp::min(row, col);
         let mut ipiv = vec![0; k as usize];
@@ -29,13 +29,13 @@ impl Solve_ for $scalar {
         into_result(info, ipiv)
     }
 
-    fn inv(l: MatrixLayout, a: &mut [Self], ipiv: &Pivot) -> Result<()> {
+    unsafe fn inv(l: MatrixLayout, a: &mut [Self], ipiv: &Pivot) -> Result<()> {
         let (n, _) = l.size();
         let info = $getri(l.lapacke_layout(), n, a, l.lda(), ipiv);
         into_result(info, ())
     }
 
-    fn solve(l: MatrixLayout, t: Transpose, a: &[Self], ipiv: &Pivot, b: &mut [Self]) -> Result<()> {
+    unsafe fn solve(l: MatrixLayout, t: Transpose, a: &[Self], ipiv: &Pivot, b: &mut [Self]) -> Result<()> {
         let (n, _) = l.size();
         let nrhs = 1;
         let ldb = 1;

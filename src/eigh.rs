@@ -63,7 +63,7 @@ where
     type EigVal = Array1<A::Real>;
 
     fn eigh_mut(&mut self, uplo: UPLO) -> Result<(Self::EigVal, &mut Self)> {
-        let s = A::eigh(true, self.square_layout()?, uplo, self.as_allocated_mut()?)?;
+        let s = unsafe { A::eigh(true, self.square_layout()?, uplo, self.as_allocated_mut()?)? };
         Ok((ArrayBase::from_vec(s), self))
     }
 }
@@ -119,7 +119,7 @@ where
     type EigVal = Array1<A::Real>;
 
     fn eigvalsh_mut(&mut self, uplo: UPLO) -> Result<Self::EigVal> {
-        let s = A::eigh(true, self.square_layout()?, uplo, self.as_allocated_mut()?)?;
+        let s = unsafe { A::eigh(true, self.square_layout()?, uplo, self.as_allocated_mut()?)? };
         Ok(ArrayBase::from_vec(s))
     }
 }

@@ -34,7 +34,7 @@ where
     S: DataMut<Elem = A>,
 {
     fn cholesky_into(mut self, uplo: UPLO) -> Result<Self> {
-        A::cholesky(self.square_layout()?, uplo, self.as_allocated_mut()?)?;
+        unsafe { A::cholesky(self.square_layout()?, uplo, self.as_allocated_mut()?)? };
         Ok(self.into_triangular(uplo))
     }
 }
@@ -45,7 +45,7 @@ where
     S: DataMut<Elem = A>,
 {
     fn cholesky_mut(&mut self, uplo: UPLO) -> Result<&mut Self> {
-        A::cholesky(self.square_layout()?, uplo, self.as_allocated_mut()?)?;
+        unsafe { A::cholesky(self.square_layout()?, uplo, self.as_allocated_mut()?)? };
         Ok(self.into_triangular(uplo))
     }
 }
@@ -59,7 +59,7 @@ where
 
     fn cholesky(&self, uplo: UPLO) -> Result<Self::Output> {
         let mut a = replicate(self);
-        A::cholesky(a.square_layout()?, uplo, a.as_allocated_mut()?)?;
+        unsafe { A::cholesky(a.square_layout()?, uplo, a.as_allocated_mut()?)? };
         Ok(a.into_triangular(uplo))
     }
 }

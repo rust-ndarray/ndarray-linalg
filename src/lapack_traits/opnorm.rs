@@ -24,13 +24,13 @@ impl NormType {
 }
 
 pub trait OperatorNorm_: AssociatedReal {
-    fn opnorm(NormType, MatrixLayout, &[Self]) -> Self::Real;
+    unsafe fn opnorm(NormType, MatrixLayout, &[Self]) -> Self::Real;
 }
 
 macro_rules! impl_opnorm {
     ($scalar:ty, $lange:path) => {
 impl OperatorNorm_ for $scalar {
-    fn opnorm(t: NormType, l: MatrixLayout, a: &[Self]) -> Self::Real {
+    unsafe fn opnorm(t: NormType, l: MatrixLayout, a: &[Self]) -> Self::Real {
         match l {
             MatrixLayout::F((col, lda)) => $lange(cm, t as u8, lda, col, a, lda),
             MatrixLayout::C((row, lda)) => $lange(cm, t.transpose() as u8, lda, row, a, lda),

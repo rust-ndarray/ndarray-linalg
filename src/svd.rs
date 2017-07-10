@@ -73,7 +73,7 @@ where
 
     fn svd_mut(&mut self, calc_u: bool, calc_vt: bool) -> Result<(Option<Self::U>, Self::Sigma, Option<Self::VT>)> {
         let l = self.layout()?;
-        let svd_res = A::svd(l, calc_u, calc_vt, self.as_allocated_mut()?)?;
+        let svd_res = unsafe { A::svd(l, calc_u, calc_vt, self.as_allocated_mut()?)? };
         let (n, m) = l.size();
         let u = svd_res.u.map(|u| into_matrix(l.resized(n, n), u).unwrap());
         let vt = svd_res.vt.map(

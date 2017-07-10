@@ -11,8 +11,8 @@ license       = "MIT"
 
 [features]
 default  = ["openblas"]
-openblas = ["blas/openblas", "lapack/openblas"]
-netlib   = ["blas/netlib", "lapack/netlib"]
+openblas = ["lapack/openblas"]
+netlib   = ["lapack/netlib"]
 
 [dependencies]
 rand = "0.3"
@@ -21,5 +21,4 @@ enum-error-derive = "0.1"
 num-traits  = "0.1"
 num-complex = "0.1"
 ndarray = { version = "0.9",  default-features = false, features = ["blas"] }
-lapack  = { version = "0.11", default-features = false }
-blas    = { version = "0.15", default-features = false }
+lapack  = { version = "0.13", default-features = false }

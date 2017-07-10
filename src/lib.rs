@@ -17,7 +17,6 @@
 //!  - [generator functions](generate/index.html)
 //!  - [Scalar trait](types/trait.Scalar.html)
 
-extern crate blas;
 extern crate lapack;
 extern crate num_traits;
 extern crate num_complex;

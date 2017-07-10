@@ -23,13 +23,15 @@ where
     where
         Sb: DataMut<Elem = A>,
     {
-        A::solve(
-            self.a.square_layout()?,
-            t,
-            self.a.as_allocated()?,
-            &self.ipiv,
-            rhs.as_slice_mut().unwrap(),
-        )?;
+        unsafe {
+            A::solve(
+                self.a.square_layout()?,
+                t,
+                self.a.as_allocated()?,
+                &self.ipiv,
+                rhs.as_slice_mut().unwrap(),
+            )?
+        };
         Ok(rhs)
     }
 }
@@ -40,11 +42,13 @@ where
     S: DataMut<Elem = A>,
 {
     pub fn into_inverse(mut self) -> Result<ArrayBase<S, Ix2>> {
-        A::inv(
-            self.a.square_layout()?,
-            self.a.as_allocated_mut()?,
-            &self.ipiv,
-        )?;
+        unsafe {
+            A::inv(
+                self.a.square_layout()?,
+                self.a.as_allocated_mut()?,
+                &self.ipiv,
+            )?
+        };
         Ok(self.a)
     }
 }
@@ -63,7 +67,7 @@ where
     S: DataMut<Elem = A>,
 {
     fn factorize_into(mut self) -> Result<Factorized<S>> {
-        let ipiv = A::lu(self.layout()?, self.as_allocated_mut()?)?;
+        let ipiv = unsafe { A::lu(self.layout()?, self.as_allocated_mut()?)? };
         Ok(Factorized {
             a: self,
             ipiv: ipiv,
@@ -79,7 +83,7 @@ where
 {
     fn factorize(&self) -> Result<Factorized<So>> {
         let mut a: ArrayBase<So, Ix2> = replicate(self);
-        let ipiv = A::lu(a.layout()?, a.as_allocated_mut()?)?;
+        let ipiv = unsafe { A::lu(a.layout()?, a.as_allocated_mut()?)? };
         Ok(Factorized { a: a, ipiv: ipiv })
     }
 }

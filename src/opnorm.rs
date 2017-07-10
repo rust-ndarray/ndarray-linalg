@@ -43,6 +43,6 @@ where
     fn opnorm(&self, t: NormType) -> Result<Self::Output> {
         let l = self.layout()?;
         let a = self.as_allocated()?;
-        Ok(A::opnorm(t, l, a))
+        Ok(unsafe { A::opnorm(t, l, a) })
     }
 }

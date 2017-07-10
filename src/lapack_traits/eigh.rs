@@ -11,17 +11,17 @@ use super::{UPLO, into_result};
 
 /// Wraps `*syev` for real and `*heev` for complex
 pub trait Eigh_: AssociatedReal {
-    fn eigh(calc_eigenvec: bool, MatrixLayout, UPLO, a: &mut [Self]) -> Result<Vec<Self::Real>>;
+    unsafe fn eigh(calc_eigenvec: bool, MatrixLayout, UPLO, a: &mut [Self]) -> Result<Vec<Self::Real>>;
 }
 
 macro_rules! impl_eigh {
     ($scalar:ty, $ev:path) => {
 impl Eigh_ for $scalar {
-    fn eigh(calc_v: bool, l: MatrixLayout, uplo: UPLO, mut a: &mut [Self]) -> Result<Vec<Self::Real>> {
+    unsafe fn eigh(calc_v: bool, l: MatrixLayout, uplo: UPLO, mut a: &mut [Self]) -> Result<Vec<Self::Real>> {
         let (n, _) = l.size();
         let jobz = if calc_v { b'V' } else { b'N' };
         let mut w = vec![Self::Real::zero(); n as usize];
-        let info = unsafe { $ev(l.lapacke_layout(), jobz, uplo as u8, n, &mut a, n, &mut w) };
+        let info = $ev(l.lapacke_layout(), jobz, uplo as u8, n, &mut a, n, &mut w);
         into_result(info, w)
     }
 }

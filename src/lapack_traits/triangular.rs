@@ -16,33 +16,34 @@ pub enum Diag {
 
 /// Wraps `*trtri` and `*trtrs`
 pub trait Triangular_: Sized {
-    fn inv_triangular(l: MatrixLayout, UPLO, Diag, a: &mut [Self]) -> Result<()>;
-    fn solve_triangular(al: MatrixLayout, bl: MatrixLayout, UPLO, Diag, a: &[Self], b: &mut [Self]) -> Result<()>;
+    unsafe fn inv_triangular(l: MatrixLayout, UPLO, Diag, a: &mut [Self]) -> Result<()>;
+    unsafe fn solve_triangular(
+        al: MatrixLayout,
+        bl: MatrixLayout,
+        UPLO,
+        Diag,
+        a: &[Self],
+        b: &mut [Self],
+    ) -> Result<()>;
 }
 
 macro_rules! impl_triangular {
     ($scalar:ty, $trtri:path, $trtrs:path) => {
 
 impl Triangular_ for $scalar {
-    fn inv_triangular(l: MatrixLayout, uplo: UPLO, diag: Diag, a: &mut [Self]) -> Result<()> {
+    unsafe fn inv_triangular(l: MatrixLayout, uplo: UPLO, diag: Diag, a: &mut [Self]) -> Result<()> {
         let (n, _) = l.size();
         let lda = l.lda();
-        let info = unsafe { $trtri(l.lapacke_layout(), uplo as u8, diag as u8, n, a, lda) };
+        let info = $trtri(l.lapacke_layout(), uplo as u8, diag as u8, n, a, lda);
         into_result(info, ())
     }
 
-    fn solve_triangular(al: MatrixLayout, bl: MatrixLayout, uplo: UPLO, diag: Diag, a: &[Self], mut b: &mut [Self]) -> Result<()> {
+    unsafe fn solve_triangular(al: MatrixLayout, bl: MatrixLayout, uplo: UPLO, diag: Diag, a: &[Self], mut b: &mut [Self]) -> Result<()> {
         let (n, _) = al.size();
         let lda = al.lda();
         let (_, nrhs) = bl.size();
         let ldb = bl.lda();
-        println!("al = {:?}", al);
-        println!("bl = {:?}", bl);
-        println!("n = {}", n);
-        println!("lda = {}", lda);
-        println!("nrhs = {}", nrhs);
-        println!("ldb = {}", ldb);
-        let info = unsafe { $trtrs(al.lapacke_layout(), uplo as u8, Transpose::No as u8, diag as u8, n, nrhs, a, lda, &mut b, ldb) };
+        let info = $trtrs(al.lapacke_layout(), uplo as u8, Transpose::No as u8, diag as u8, n, nrhs, a, lda, &mut b, ldb);
         into_result(info, ())
     }
 }

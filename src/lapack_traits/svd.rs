@@ -29,14 +29,14 @@ pub struct SVDOutput<A: AssociatedReal> {
 
 /// Wraps `*gesvd`
 pub trait SVD_: AssociatedReal {
-    fn svd(MatrixLayout, calc_u: bool, calc_vt: bool, a: &mut [Self]) -> Result<SVDOutput<Self>>;
+    unsafe fn svd(MatrixLayout, calc_u: bool, calc_vt: bool, a: &mut [Self]) -> Result<SVDOutput<Self>>;
 }
 
 macro_rules! impl_svd {
     ($scalar:ty, $gesvd:path) => {
 
 impl SVD_ for $scalar {
-    fn svd(l: MatrixLayout, calc_u: bool, calc_vt: bool, mut a: &mut [Self]) -> Result<SVDOutput<Self>> {
+    unsafe fn svd(l: MatrixLayout, calc_u: bool, calc_vt: bool, mut a: &mut [Self]) -> Result<SVDOutput<Self>> {
         let (m, n) = l.size();
         let k = ::std::cmp::min(n, m);
         let lda = l.lda();
@@ -52,7 +52,7 @@ impl SVD_ for $scalar {
         };
         let mut s = vec![Self::Real::zero(); k as usize];
         let mut superb = vec![Self::Real::zero(); (k-2) as usize];
-        let info = unsafe { $gesvd(l.lapacke_layout(), ju as u8, jvt as u8, m, n, &mut a, lda, &mut s, &mut u, ldu, &mut vt, ldvt, &mut superb) };
+        let info = $gesvd(l.lapacke_layout(), ju as u8, jvt as u8, m, n, &mut a, lda, &mut s, &mut u, ldu, &mut vt, ldvt, &mut superb);
         into_result(info, SVDOutput {
             s: s,
             u: if ldu > 0 { Some(u) } else { None },

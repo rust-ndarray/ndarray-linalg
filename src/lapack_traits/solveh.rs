@@ -14,9 +14,9 @@ pub trait Solveh_: Sized {
     /// Bunch-Kaufman: wrapper of `*sytrf` and `*hetrf`
     unsafe fn bk(MatrixLayout, UPLO, a: &mut [Self]) -> Result<Pivot>;
     /// Wrapper of `*sytri` and `*hetri`
-    unsafe fn inv(MatrixLayout, UPLO, a: &mut [Self], &Pivot) -> Result<()>;
+    unsafe fn invh(MatrixLayout, UPLO, a: &mut [Self], &Pivot) -> Result<()>;
     /// Wrapper of `*sytrs` and `*hetrs`
-    unsafe fn solve(MatrixLayout, UPLO, a: &[Self], &Pivot, b: &mut [Self]) -> Result<()>;
+    unsafe fn solveh(MatrixLayout, UPLO, a: &[Self], &Pivot, b: &mut [Self]) -> Result<()>;
 }
 
 macro_rules! impl_solveh {
@@ -30,13 +30,13 @@ impl Solveh_ for $scalar {
         into_result(info, ipiv)
     }
 
-    unsafe fn inv(l: MatrixLayout, uplo: UPLO, a: &mut [Self], ipiv: &Pivot) -> Result<()> {
+    unsafe fn invh(l: MatrixLayout, uplo: UPLO, a: &mut [Self], ipiv: &Pivot) -> Result<()> {
         let (n, _) = l.size();
         let info = $tri(l.lapacke_layout(), uplo as u8, n, a, l.lda(), ipiv);
         into_result(info, ())
     }
 
-    unsafe fn solve(l: MatrixLayout, uplo: UPLO, a: &[Self], ipiv: &Pivot, b: &mut [Self]) -> Result<()> {
+    unsafe fn solveh(l: MatrixLayout, uplo: UPLO, a: &[Self], ipiv: &Pivot, b: &mut [Self]) -> Result<()> {
         let (n, _) = l.size();
         let nrhs = 1;
         let ldb = 1;

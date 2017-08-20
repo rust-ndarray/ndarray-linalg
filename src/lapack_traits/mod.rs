@@ -24,7 +24,8 @@ use super::types::*;
 pub type Pivot = Vec<i32>;
 
 pub trait LapackScalar
-    : OperatorNorm_ + QR_ + SVD_ + Solve_ + Cholesky_ + Eigh_ + Triangular_ {
+    : OperatorNorm_ + QR_ + SVD_ + Solve_ + Solveh_ + Cholesky_ + Eigh_ + Triangular_
+    {
 }
 
 impl LapackScalar for f32 {}

@@ -75,14 +75,13 @@ where
     }
 }
 
-impl<A, Si, So> Factorize<So> for ArrayBase<Si, Ix2>
+impl<A, Si> Factorize<OwnedRepr<A>> for ArrayBase<Si, Ix2>
 where
     A: Scalar,
     Si: Data<Elem = A>,
-    So: DataOwned<Elem = A> + DataMut,
 {
-    fn factorize(&self) -> Result<Factorized<So>> {
-        let mut a: ArrayBase<So, Ix2> = replicate(self);
+    fn factorize(&self) -> Result<Factorized<OwnedRepr<A>>> {
+        let mut a: Array2<A> = replicate(self);
         let ipiv = unsafe { A::lu(a.layout()?, a.as_allocated_mut()?)? };
         Ok(Factorized { a: a, ipiv: ipiv })
     }

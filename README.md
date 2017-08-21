@@ -14,6 +14,18 @@ Dependencies
 
 and more (See Cargo.toml).
 
+Feature flags
+--------------
+
+- OpenBLAS
+  - `openblas-static`: use OpenBLAS with static link (default)
+  - `openblas-shared`: use OpenBLAS with shared link
+  - `openblas-system`: use system OpenBLAS (experimental)
+- Netlib
+  - `netlib-static`: use Netlib with static link (default)
+  - `netlib-shared`: use Netlib with shared link
+  - `netlib-system`: use system Netlib (experimental)
+
 Examples
 ---------
 See [examples](https://github.com/termoshtt/ndarray-linalg/tree/master/examples) directory.

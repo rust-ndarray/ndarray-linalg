@@ -49,6 +49,21 @@ where
     }
 }
 
+impl<A, S> SolveH<A> for ArrayBase<S, Ix2>
+where
+    A: Scalar,
+    S: Data<Elem = A>,
+{
+    fn solveh_mut<'a, Sb>(&self, mut rhs: &'a mut ArrayBase<Sb, Ix1>) -> Result<&'a mut ArrayBase<Sb, Ix1>>
+    where
+        Sb: DataMut<Elem = A>,
+    {
+        let f = self.factorizeh()?;
+        f.solveh_mut(rhs)
+    }
+}
+
+
 impl<A, S> FactorizedH<S>
 where
     A: Scalar,

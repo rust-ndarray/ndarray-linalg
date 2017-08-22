@@ -9,17 +9,30 @@ use super::types::*;
 
 pub use lapack_traits::{Pivot, UPLO};
 
+pub trait SolveH<A: Scalar> {
+    fn solveh<S: Data<Elem = A>>(&self, a: &ArrayBase<S, Ix1>) -> Result<Array1<A>> {
+        let mut a = replicate(a);
+        self.solveh_mut(&mut a)?;
+        Ok(a)
+    }
+    fn solveh_into<S: DataMut<Elem = A>>(&self, mut a: ArrayBase<S, Ix1>) -> Result<ArrayBase<S, Ix1>> {
+        self.solveh_mut(&mut a)?;
+        Ok(a)
+    }
+    fn solveh_mut<'a, S: DataMut<Elem = A>>(&self, &'a mut ArrayBase<S, Ix1>) -> Result<&'a mut ArrayBase<S, Ix1>>;
+}
+
 pub struct FactorizedH<S: Data> {
     pub a: ArrayBase<S, Ix2>,
     pub ipiv: Pivot,
 }
 
-impl<A, S> FactorizedH<S>
+impl<A, S> SolveH<A> for FactorizedH<S>
 where
     A: Scalar,
     S: Data<Elem = A>,
 {
-    pub fn solveh<Sb>(&self, mut rhs: ArrayBase<Sb, Ix1>) -> Result<ArrayBase<Sb, Ix1>>
+    fn solveh_mut<'a, Sb>(&self, rhs: &'a mut ArrayBase<Sb, Ix1>) -> Result<&'a mut ArrayBase<Sb, Ix1>>
     where
         Sb: DataMut<Elem = A>,
     {

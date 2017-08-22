@@ -101,6 +101,34 @@ where
     }
 }
 
+impl<A, S> Solve<A> for ArrayBase<S, Ix2>
+where
+    A: Scalar,
+    S: Data<Elem = A>,
+{
+    fn solve_mut<'a, Sb>(&self, mut rhs: &'a mut ArrayBase<Sb, Ix1>) -> Result<&'a mut ArrayBase<Sb, Ix1>>
+    where
+        Sb: DataMut<Elem = A>,
+    {
+        let f = self.factorize()?;
+        f.solve_mut(rhs)
+    }
+    fn solve_t_mut<'a, Sb>(&self, mut rhs: &'a mut ArrayBase<Sb, Ix1>) -> Result<&'a mut ArrayBase<Sb, Ix1>>
+    where
+        Sb: DataMut<Elem = A>,
+    {
+        let f = self.factorize()?;
+        f.solve_t_mut(rhs)
+    }
+    fn solve_h_mut<'a, Sb>(&self, mut rhs: &'a mut ArrayBase<Sb, Ix1>) -> Result<&'a mut ArrayBase<Sb, Ix1>>
+    where
+        Sb: DataMut<Elem = A>,
+    {
+        let f = self.factorize()?;
+        f.solve_h_mut(rhs)
+    }
+}
+
 impl<A, S> Factorized<S>
 where
     A: Scalar,

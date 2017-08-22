@@ -4,6 +4,7 @@ pub mod opnorm;
 pub mod qr;
 pub mod svd;
 pub mod solve;
+pub mod solveh;
 pub mod cholesky;
 pub mod eigh;
 pub mod triangular;
@@ -13,14 +14,18 @@ pub use self::eigh::*;
 pub use self::opnorm::*;
 pub use self::qr::*;
 pub use self::solve::*;
+pub use self::solveh::*;
 pub use self::svd::*;
 pub use self::triangular::*;
 
 use super::error::*;
 use super::types::*;
 
+pub type Pivot = Vec<i32>;
+
 pub trait LapackScalar
-    : OperatorNorm_ + QR_ + SVD_ + Solve_ + Cholesky_ + Eigh_ + Triangular_ {
+    : OperatorNorm_ + QR_ + SVD_ + Solve_ + Solveh_ + Cholesky_ + Eigh_ + Triangular_
+    {
 }
 
 impl LapackScalar for f32 {}

@@ -6,9 +6,7 @@ use error::*;
 use layout::MatrixLayout;
 use types::*;
 
-use super::{Transpose, into_result};
-
-pub type Pivot = Vec<i32>;
+use super::{Pivot, Transpose, into_result};
 
 /// Wraps `*getrf`, `*getri`, and `*getrs`
 pub trait Solve_: Sized {

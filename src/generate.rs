@@ -35,16 +35,12 @@ where
 }
 
 /// Random Hermite matrix
-pub fn random_hermite<A, S>(n: usize, c_order: bool) -> ArrayBase<S, Ix2>
+pub fn random_hermite<A, S>(n: usize) -> ArrayBase<S, Ix2>
 where
     A: RandNormal + Conjugate + Add<Output = A>,
     S: DataOwned<Elem = A> + DataMut,
 {
-    let mut a = if c_order {
-        random((n, n))
-    } else {
-        random((n, n).f())
-    };
+    let mut a = random((n, n));
     for i in 0..n {
         a[(i, i)] = a[(i, i)] + Conjugate::conj(a[(i, i)]);
         for j in (i + 1)..n {

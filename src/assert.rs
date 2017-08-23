@@ -70,10 +70,10 @@ macro_rules! generate_assert {
 #[macro_export]
 macro_rules! $assert {
     ($test:expr, $truth:expr, $tol:expr) => {
-        $close($test, $truth, $tol).unwrap();
+        $crate::$close($test, $truth, $tol).unwrap();
     };
     ($test:expr, $truth:expr, $tol:expr; $comment:expr) => {
-        $close($test, $truth, $tol).expect($comment);
+        $crate::$close($test, $truth, $tol).expect($comment);
     };
 }
 }} // generate_assert!

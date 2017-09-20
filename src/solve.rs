@@ -59,8 +59,8 @@ pub use lapack_traits::{Pivot, Transpose};
 /// There are three groups of methods:
 ///
 /// * `solve*` (normal) methods solve `A * x = b` for `x`.
-/// * `solve_t*` (tranpose) methods solve `A^T * x = b` for `x`.
-/// * `solve_h*` (conjugate transpose) methods solve `A^H * x = b` for `x`.
+/// * `solve_t*` (transpose) methods solve `A^T * x = b` for `x`.
+/// * `solve_h*` (Hermitian conjugate) methods solve `A^H * x = b` for `x`.
 ///
 /// Within each group, there are three methods that handle ownership differently:
 ///

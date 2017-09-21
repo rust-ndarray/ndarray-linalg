@@ -33,7 +33,7 @@ where
         self.iter().map(|x| x.abs()).sum()
     }
     fn norm_l2(&self) -> Self::Output {
-        self.iter().map(|x| x.squared()).sum::<A::Real>().sqrt()
+        self.iter().map(|x| x.abs_sqr()).sum::<A::Real>().sqrt()
     }
     fn norm_max(&self) -> Self::Output {
         self.iter().fold(A::Real::zero(), |f, &val| {

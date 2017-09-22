@@ -10,8 +10,12 @@ use super::{UPLO, into_result};
 
 pub trait Cholesky_: Sized {
     /// Cholesky: wrapper of `*potrf`
+    ///
+    /// **Warning: Only the portion of `a` corresponding to `UPLO` is written.**
     unsafe fn cholesky(MatrixLayout, UPLO, a: &mut [Self]) -> Result<()>;
     /// Wrapper of `*potri`
+    ///
+    /// **Warning: Only the portion of `a` corresponding to `UPLO` is written.**
     unsafe fn inv_cholesky(MatrixLayout, UPLO, a: &mut [Self]) -> Result<()>;
     /// Wrapper of `*potrs`
     unsafe fn solve_cholesky(MatrixLayout, UPLO, a: &[Self], b: &mut [Self]) -> Result<()>;

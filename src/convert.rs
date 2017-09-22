@@ -3,7 +3,9 @@
 use ndarray::*;
 
 use super::error::*;
+use super::lapack_traits::UPLO;
 use super::layout::*;
+use super::types::Conjugate;
 
 pub fn into_col<S>(a: ArrayBase<S, Ix1>) -> ArrayBase<S, Ix2>
 where
@@ -97,4 +99,36 @@ where
         "Custom stride is not supported"
     );
     new
+}
+
+/// Fills in the remainder of a Hermitian matrix that's represented by only one
+/// triangle.
+///
+/// LAPACK methods on Hermitian matrices usually read/write only one triangular
+/// portion of the matrix. This function fills in the other half based on the
+/// data in the triangular portion corresponding to `uplo`.
+///
+/// ***Panics*** if `a` is not square.
+pub(crate) fn triangular_fill_hermitian<A, S>(a: &mut ArrayBase<S, Ix2>, uplo: UPLO)
+where
+    A: Conjugate,
+    S: DataMut<Elem = A>,
+{
+    assert!(a.is_square());
+    match uplo {
+        UPLO::Upper => {
+            for row in 0..a.rows() {
+                for col in 0..row {
+                    a[(row, col)] = a[(col, row)].conj();
+                }
+            }
+        }
+        UPLO::Lower => {
+            for col in 0..a.cols() {
+                for row in 0..col {
+                    a[(row, col)] = a[(col, row)].conj();
+                }
+            }
+        }
+    }
 }

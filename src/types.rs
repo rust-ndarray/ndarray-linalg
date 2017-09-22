@@ -7,6 +7,7 @@ use rand::Rng;
 use rand::distributions::*;
 use std::fmt::Debug;
 use std::iter::Sum;
+use std::ops::Neg;
 
 use super::lapack_traits::LapackScalar;
 
@@ -34,6 +35,7 @@ pub trait Scalar
     + Exponential
     + Conjugate
     + RandNormal
+    + Neg<Output = Self>
     + Debug {
     fn from_f64(f64) -> Self;
 }

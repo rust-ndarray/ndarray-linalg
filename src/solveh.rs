@@ -88,7 +88,7 @@ pub trait SolveH<A: Scalar> {
 }
 
 /// Represents the Bunch–Kaufman factorization of a Hermitian (or real
-/// symmetric) matrix as `A = P * U * D * U^T * P^T`.
+/// symmetric) matrix as `A = P * U * D * U^H * P^T`.
 pub struct FactorizedH<S: Data> {
     pub a: ArrayBase<S, Ix2>,
     pub ipiv: Pivot,

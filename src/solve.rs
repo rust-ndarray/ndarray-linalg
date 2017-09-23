@@ -70,7 +70,7 @@ pub use lapack_traits::{Pivot, Transpose};
 ///
 /// If you plan to solve many equations with the same `A` matrix but different
 /// `b` vectors, it's faster to factor the `A` matrix once using the
-/// `Factorize` trait, and then solve using the `Factorized` struct.
+/// `Factorize` trait, and then solve using the `LUFactorized` struct.
 pub trait Solve<A: Scalar> {
     /// Solves a system of linear equations `A * x = b` where `A` is `self`, `b`
     /// is the argument, and `x` is the successful result.
@@ -125,7 +125,7 @@ pub trait Solve<A: Scalar> {
 }
 
 /// Represents the LU factorization of a matrix `A` as `A = P*L*U`.
-pub struct Factorized<S: Data> {
+pub struct LUFactorized<S: Data> {
     /// The factors `L` and `U`; the unit diagonal elements of `L` are not
     /// stored.
     pub a: ArrayBase<S, Ix2>,
@@ -133,7 +133,7 @@ pub struct Factorized<S: Data> {
     pub ipiv: Pivot,
 }
 
-impl<A, S> Solve<A> for Factorized<S>
+impl<A, S> Solve<A> for LUFactorized<S>
 where
     A: Scalar,
     S: Data<Elem = A>,
@@ -218,14 +218,14 @@ where
 pub trait Factorize<S: Data> {
     /// Computes the LU factorization `A = P*L*U`, where `P` is a permutation
     /// matrix.
-    fn factorize(&self) -> Result<Factorized<S>>;
+    fn factorize(&self) -> Result<LUFactorized<S>>;
 }
 
 /// An interface for computing LU factorizations of matrices.
 pub trait FactorizeInto<S: Data> {
     /// Computes the LU factorization `A = P*L*U`, where `P` is a permutation
     /// matrix.
-    fn factorize_into(self) -> Result<Factorized<S>>;
+    fn factorize_into(self) -> Result<LUFactorized<S>>;
 }
 
 impl<A, S> FactorizeInto<S> for ArrayBase<S, Ix2>
@@ -233,9 +233,9 @@ where
     A: Scalar,
     S: DataMut<Elem = A>,
 {
-    fn factorize_into(mut self) -> Result<Factorized<S>> {
+    fn factorize_into(mut self) -> Result<LUFactorized<S>> {
         let ipiv = unsafe { A::lu(self.layout()?, self.as_allocated_mut()?)? };
-        Ok(Factorized {
+        Ok(LUFactorized {
             a: self,
             ipiv: ipiv,
         })
@@ -247,10 +247,10 @@ where
     A: Scalar,
     Si: Data<Elem = A>,
 {
-    fn factorize(&self) -> Result<Factorized<OwnedRepr<A>>> {
+    fn factorize(&self) -> Result<LUFactorized<OwnedRepr<A>>> {
         let mut a: Array2<A> = replicate(self);
         let ipiv = unsafe { A::lu(a.layout()?, a.as_allocated_mut()?)? };
-        Ok(Factorized { a: a, ipiv: ipiv })
+        Ok(LUFactorized { a: a, ipiv: ipiv })
     }
 }
 
@@ -268,7 +268,7 @@ pub trait InverseInto {
     fn inv_into(self) -> Result<Self::Output>;
 }
 
-impl<A, S> InverseInto for Factorized<S>
+impl<A, S> InverseInto for LUFactorized<S>
 where
     A: Scalar,
     S: DataMut<Elem = A>,
@@ -287,7 +287,7 @@ where
     }
 }
 
-impl<A, S> Inverse for Factorized<S>
+impl<A, S> Inverse for LUFactorized<S>
 where
     A: Scalar,
     S: Data<Elem = A>,
@@ -295,7 +295,7 @@ where
     type Output = Array2<A>;
 
     fn inv(&self) -> Result<Array2<A>> {
-        let f = Factorized {
+        let f = LUFactorized {
             a: replicate(&self.a),
             ipiv: self.ipiv.clone(),
         };

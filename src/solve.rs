@@ -213,23 +213,6 @@ where
     }
 }
 
-impl<A, S> Factorized<S>
-where
-    A: Scalar,
-    S: DataMut<Elem = A>,
-{
-    /// Computes the inverse of the factorized matrix.
-    pub fn into_inverse(mut self) -> Result<ArrayBase<S, Ix2>> {
-        unsafe {
-            A::inv(
-                self.a.square_layout()?,
-                self.a.as_allocated_mut()?,
-                &self.ipiv,
-            )?
-        };
-        Ok(self.a)
-    }
-}
 
 /// An interface for computing LU factorizations of matrix refs.
 pub trait Factorize<S: Data> {
@@ -285,6 +268,41 @@ pub trait InverseInto {
     fn inv_into(self) -> Result<Self::Output>;
 }
 
+impl<A, S> InverseInto for Factorized<S>
+where
+    A: Scalar,
+    S: DataMut<Elem = A>,
+{
+    type Output = ArrayBase<S, Ix2>;
+
+    fn inv_into(mut self) -> Result<ArrayBase<S, Ix2>> {
+        unsafe {
+            A::inv(
+                self.a.square_layout()?,
+                self.a.as_allocated_mut()?,
+                &self.ipiv,
+            )?
+        };
+        Ok(self.a)
+    }
+}
+
+impl<A, S> Inverse for Factorized<S>
+where
+    A: Scalar,
+    S: Data<Elem = A>,
+{
+    type Output = Array2<A>;
+
+    fn inv(&self) -> Result<Array2<A>> {
+        let f = Factorized {
+            a: replicate(&self.a),
+            ipiv: self.ipiv.clone(),
+        };
+        f.inv_into()
+    }
+}
+
 impl<A, S> InverseInto for ArrayBase<S, Ix2>
 where
     A: Scalar,
@@ -294,7 +312,7 @@ where
 
     fn inv_into(self) -> Result<Self::Output> {
         let f = self.factorize_into()?;
-        f.into_inverse()
+        f.inv_into()
     }
 }
 
@@ -307,6 +325,6 @@ where
 
     fn inv(&self) -> Result<Self::Output> {
         let f = self.factorize()?;
-        f.into_inverse()
+        f.inv_into()
     }
 }

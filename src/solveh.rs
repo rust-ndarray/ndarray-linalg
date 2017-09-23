@@ -131,30 +131,6 @@ where
 }
 
 
-impl<A, S> FactorizedH<S>
-where
-    A: Scalar,
-    S: DataMut<Elem = A>,
-{
-    /// Computes the inverse of the factorized matrix.
-    ///
-    /// **Warning: The inverse is stored only in the upper triangular portion
-    /// of the result matrix!** If you want the lower triangular portion to be
-    /// correct, you must fill it in according to the results in the upper
-    /// triangular portion.
-    pub fn into_inverseh(mut self) -> Result<ArrayBase<S, Ix2>> {
-        unsafe {
-            A::invh(
-                self.a.square_layout()?,
-                UPLO::Upper,
-                self.a.as_allocated_mut()?,
-                &self.ipiv,
-            )?
-        };
-        Ok(self.a)
-    }
-}
-
 /// An interface for computing the Bunch–Kaufman factorization of Hermitian (or
 /// real symmetric) matrix refs.
 pub trait FactorizeH<S: Data> {
@@ -221,6 +197,42 @@ pub trait InverseHInto {
     fn invh_into(self) -> Result<Self::Output>;
 }
 
+impl<A, S> InverseHInto for FactorizedH<S>
+where
+    A: Scalar,
+    S: DataMut<Elem = A>,
+{
+    type Output = ArrayBase<S, Ix2>;
+
+    fn invh_into(mut self) -> Result<ArrayBase<S, Ix2>> {
+        unsafe {
+            A::invh(
+                self.a.square_layout()?,
+                UPLO::Upper,
+                self.a.as_allocated_mut()?,
+                &self.ipiv,
+            )?
+        };
+        Ok(self.a)
+    }
+}
+
+impl<A, S> InverseH for FactorizedH<S>
+where
+    A: Scalar,
+    S: Data<Elem = A>,
+{
+    type Output = Array2<A>;
+
+    fn invh(&self) -> Result<Self::Output> {
+        let f = FactorizedH {
+            a: replicate(&self.a),
+            ipiv: self.ipiv.clone(),
+        };
+        f.invh_into()
+    }
+}
+
 impl<A, S> InverseHInto for ArrayBase<S, Ix2>
 where
     A: Scalar,
@@ -230,7 +242,7 @@ where
 
     fn invh_into(self) -> Result<Self::Output> {
         let f = self.factorizeh_into()?;
-        f.into_inverseh()
+        f.invh_into()
     }
 }
 
@@ -243,6 +255,6 @@ where
 
     fn invh(&self) -> Result<Self::Output> {
         let f = self.factorizeh()?;
-        f.into_inverseh()
+        f.invh_into()
     }
 }

@@ -63,7 +63,7 @@ pub use lapack_traits::{Pivot, UPLO};
 /// If you plan to solve many equations with the same Hermitian (or real
 /// symmetric) coefficient matrix `A` but different `b` vectors, it's faster to
 /// factor the `A` matrix once using the `FactorizeH` trait, and then solve
-/// using the `FactorizedH` struct.
+/// using the `BKFactorized` struct.
 pub trait SolveH<A: Scalar> {
     /// Solves a system of linear equations `A * x = b` with Hermitian (or real
     /// symmetric) matrix `A`, where `A` is `self`, `b` is the argument, and
@@ -89,12 +89,12 @@ pub trait SolveH<A: Scalar> {
 
 /// Represents the Bunch–Kaufman factorization of a Hermitian (or real
 /// symmetric) matrix as `A = P * U * D * U^H * P^T`.
-pub struct FactorizedH<S: Data> {
+pub struct BKFactorized<S: Data> {
     pub a: ArrayBase<S, Ix2>,
     pub ipiv: Pivot,
 }
 
-impl<A, S> SolveH<A> for FactorizedH<S>
+impl<A, S> SolveH<A> for BKFactorized<S>
 where
     A: Scalar,
     S: Data<Elem = A>,
@@ -131,36 +131,12 @@ where
 }
 
 
-impl<A, S> FactorizedH<S>
-where
-    A: Scalar,
-    S: DataMut<Elem = A>,
-{
-    /// Computes the inverse of the factorized matrix.
-    ///
-    /// **Warning: The inverse is stored only in the upper triangular portion
-    /// of the result matrix!** If you want the lower triangular portion to be
-    /// correct, you must fill it in according to the results in the upper
-    /// triangular portion.
-    pub fn into_inverseh(mut self) -> Result<ArrayBase<S, Ix2>> {
-        unsafe {
-            A::invh(
-                self.a.square_layout()?,
-                UPLO::Upper,
-                self.a.as_allocated_mut()?,
-                &self.ipiv,
-            )?
-        };
-        Ok(self.a)
-    }
-}
-
 /// An interface for computing the Bunch–Kaufman factorization of Hermitian (or
 /// real symmetric) matrix refs.
 pub trait FactorizeH<S: Data> {
     /// Computes the Bunch–Kaufman factorization of a Hermitian (or real
     /// symmetric) matrix.
-    fn factorizeh(&self) -> Result<FactorizedH<S>>;
+    fn factorizeh(&self) -> Result<BKFactorized<S>>;
 }
 
 /// An interface for computing the Bunch–Kaufman factorization of Hermitian (or
@@ -168,7 +144,7 @@ pub trait FactorizeH<S: Data> {
 pub trait FactorizeHInto<S: Data> {
     /// Computes the Bunch–Kaufman factorization of a Hermitian (or real
     /// symmetric) matrix.
-    fn factorizeh_into(self) -> Result<FactorizedH<S>>;
+    fn factorizeh_into(self) -> Result<BKFactorized<S>>;
 }
 
 impl<A, S> FactorizeHInto<S> for ArrayBase<S, Ix2>
@@ -176,9 +152,9 @@ where
     A: Scalar,
     S: DataMut<Elem = A>,
 {
-    fn factorizeh_into(mut self) -> Result<FactorizedH<S>> {
+    fn factorizeh_into(mut self) -> Result<BKFactorized<S>> {
         let ipiv = unsafe { A::bk(self.layout()?, UPLO::Upper, self.as_allocated_mut()?)? };
-        Ok(FactorizedH {
+        Ok(BKFactorized {
             a: self,
             ipiv: ipiv,
         })
@@ -190,10 +166,10 @@ where
     A: Scalar,
     Si: Data<Elem = A>,
 {
-    fn factorizeh(&self) -> Result<FactorizedH<OwnedRepr<A>>> {
+    fn factorizeh(&self) -> Result<BKFactorized<OwnedRepr<A>>> {
         let mut a: Array2<A> = replicate(self);
         let ipiv = unsafe { A::bk(a.layout()?, UPLO::Upper, a.as_allocated_mut()?)? };
-        Ok(FactorizedH { a: a, ipiv: ipiv })
+        Ok(BKFactorized { a: a, ipiv: ipiv })
     }
 }
 
@@ -221,6 +197,42 @@ pub trait InverseHInto {
     fn invh_into(self) -> Result<Self::Output>;
 }
 
+impl<A, S> InverseHInto for BKFactorized<S>
+where
+    A: Scalar,
+    S: DataMut<Elem = A>,
+{
+    type Output = ArrayBase<S, Ix2>;
+
+    fn invh_into(mut self) -> Result<ArrayBase<S, Ix2>> {
+        unsafe {
+            A::invh(
+                self.a.square_layout()?,
+                UPLO::Upper,
+                self.a.as_allocated_mut()?,
+                &self.ipiv,
+            )?
+        };
+        Ok(self.a)
+    }
+}
+
+impl<A, S> InverseH for BKFactorized<S>
+where
+    A: Scalar,
+    S: Data<Elem = A>,
+{
+    type Output = Array2<A>;
+
+    fn invh(&self) -> Result<Self::Output> {
+        let f = BKFactorized {
+            a: replicate(&self.a),
+            ipiv: self.ipiv.clone(),
+        };
+        f.invh_into()
+    }
+}
+
 impl<A, S> InverseHInto for ArrayBase<S, Ix2>
 where
     A: Scalar,
@@ -230,7 +242,7 @@ where
 
     fn invh_into(self) -> Result<Self::Output> {
         let f = self.factorizeh_into()?;
-        f.into_inverseh()
+        f.invh_into()
     }
 }
 
@@ -243,6 +255,6 @@ where
 
     fn invh(&self) -> Result<Self::Output> {
         let f = self.factorizeh()?;
-        f.into_inverseh()
+        f.invh_into()
     }
 }

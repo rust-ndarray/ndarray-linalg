@@ -328,3 +328,100 @@ where
         f.inv_into()
     }
 }
+
+/// An interface for calculating determinants of matrix refs.
+pub trait Determinant<A: Scalar> {
+    /// Computes the determinant of the matrix.
+    fn det(&self) -> Result<A>;
+}
+
+/// An interface for calculating determinants of matrices.
+pub trait DeterminantInto<A: Scalar> {
+    /// Computes the determinant of the matrix.
+    fn det_into(self) -> Result<A>;
+}
+
+fn lu_det<'a, A, P, U>(ipiv_iter: P, u_diag_iter: U) -> A
+where
+    A: Scalar,
+    P: Iterator<Item = i32>,
+    U: Iterator<Item = &'a A>,
+{
+    let pivot_sign = if ipiv_iter
+        .enumerate()
+        .filter(|&(i, pivot)| pivot != i as i32 + 1)
+        .count() % 2 == 0
+    {
+        A::one()
+    } else {
+        -A::one()
+    };
+    let (upper_sign, ln_det) = u_diag_iter.fold((A::one(), A::zero()), |(upper_sign, ln_det), &elem| {
+        let abs_elem = elem.abs();
+        (
+            upper_sign * elem.div_real(abs_elem),
+            ln_det.add_real(abs_elem.ln()),
+        )
+    });
+    pivot_sign * upper_sign * ln_det.exp()
+}
+
+fn check_square<S: Data>(a: &ArrayBase<S, Ix2>) -> Result<()> {
+    if a.is_square() {
+        Ok(())
+    } else {
+        Err(NotSquareError::new(a.rows() as i32, a.cols() as i32).into())
+    }
+}
+
+impl<A, S> Determinant<A> for LUFactorized<S>
+where
+    A: Scalar,
+    S: Data<Elem = A>,
+{
+    fn det(&self) -> Result<A> {
+        check_square(&self.a)?;
+        Ok(lu_det(self.ipiv.iter().cloned(), self.a.diag().iter()))
+    }
+}
+
+impl<A, S> DeterminantInto<A> for LUFactorized<S>
+where
+    A: Scalar,
+    S: Data<Elem = A>,
+{
+    fn det_into(self) -> Result<A> {
+        check_square(&self.a)?;
+        Ok(lu_det(self.ipiv.into_iter(), self.a.into_diag().iter()))
+    }
+}
+
+impl<A, S> Determinant<A> for ArrayBase<S, Ix2>
+where
+    A: Scalar,
+    S: Data<Elem = A>,
+{
+    fn det(&self) -> Result<A> {
+        check_square(&self)?;
+        match self.factorize() {
+            Ok(fac) => fac.det(),
+            Err(LinalgError::Lapack(LapackError { return_code })) if return_code > 0 => Ok(A::zero()),
+            Err(err) => Err(err),
+        }
+    }
+}
+
+impl<A, S> DeterminantInto<A> for ArrayBase<S, Ix2>
+where
+    A: Scalar,
+    S: DataMut<Elem = A>,
+{
+    fn det_into(self) -> Result<A> {
+        check_square(&self)?;
+        match self.factorize_into() {
+            Ok(fac) => fac.det_into(),
+            Err(LinalgError::Lapack(LapackError { return_code })) if return_code > 0 => Ok(A::zero()),
+            Err(err) => Err(err),
+        }
+    }
+}

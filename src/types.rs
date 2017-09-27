@@ -19,7 +19,7 @@ pub use num_complex::Complex64 as c64;
 /// You can use the following operations with `A: Scalar`:
 ///
 /// - [abs](trait.Absolute.html#method.abs)
-/// - [squared](trait.Absolute.html#tymethod.squared)
+/// - [abs_sqr](trait.Absolute.html#tymethod.abs_sqr)
 /// - [sqrt](trait.SquareRoot.html#tymethod.sqrt)
 /// - [exp](trait.Exponential.html#tymethod.exp)
 /// - [conj](trait.Conjugate.html#tymethod.conj)
@@ -102,9 +102,9 @@ pub trait AssociatedComplex: Sized {
 
 /// Define `abs()` more generally
 pub trait Absolute: AssociatedReal {
-    fn squared(&self) -> Self::Real;
+    fn abs_sqr(&self) -> Self::Real;
     fn abs(&self) -> Self::Real {
-        self.squared().sqrt()
+        self.abs_sqr().sqrt()
     }
 }
 
@@ -166,7 +166,7 @@ impl AssociatedComplex for $complex {
 }
 
 impl Absolute for $real {
-    fn squared(&self) -> Self::Real {
+    fn abs_sqr(&self) -> Self::Real {
         *self * *self
     }
     fn abs(&self) -> Self::Real{
@@ -175,7 +175,7 @@ impl Absolute for $real {
 }
 
 impl Absolute for $complex {
-    fn squared(&self) -> Self::Real {
+    fn abs_sqr(&self) -> Self::Real {
         self.norm_sqr()
     }
     fn abs(&self) -> Self::Real {

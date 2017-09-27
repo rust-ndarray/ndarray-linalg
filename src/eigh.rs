@@ -17,9 +17,9 @@ pub trait Eigh {
 }
 
 /// Eigenvalue decomposition of mutable reference of Hermite matrix
-pub trait EighMut {
+pub trait EighInplace {
     type EigVal;
-    fn eigh_mut(&mut self, UPLO) -> Result<(Self::EigVal, &mut Self)>;
+    fn eigh_inplace(&mut self, UPLO) -> Result<(Self::EigVal, &mut Self)>;
 }
 
 /// Eigenvalue decomposition of Hermite matrix
@@ -36,7 +36,7 @@ where
     type EigVal = Array1<A::Real>;
 
     fn eigh_into(mut self, uplo: UPLO) -> Result<(Self::EigVal, Self)> {
-        let (val, _) = self.eigh_mut(uplo)?;
+        let (val, _) = self.eigh_inplace(uplo)?;
         Ok((val, self))
     }
 }
@@ -55,14 +55,14 @@ where
     }
 }
 
-impl<A, S> EighMut for ArrayBase<S, Ix2>
+impl<A, S> EighInplace for ArrayBase<S, Ix2>
 where
     A: Scalar,
     S: DataMut<Elem = A>,
 {
     type EigVal = Array1<A::Real>;
 
-    fn eigh_mut(&mut self, uplo: UPLO) -> Result<(Self::EigVal, &mut Self)> {
+    fn eigh_inplace(&mut self, uplo: UPLO) -> Result<(Self::EigVal, &mut Self)> {
         let s = unsafe { A::eigh(true, self.square_layout()?, uplo, self.as_allocated_mut()?)? };
         Ok((ArrayBase::from_vec(s), self))
     }
@@ -81,9 +81,9 @@ pub trait EigValshInto {
 }
 
 /// Calculate eigenvalues without eigenvectors
-pub trait EigValshMut {
+pub trait EigValshInplace {
     type EigVal;
-    fn eigvalsh_mut(&mut self, UPLO) -> Result<Self::EigVal>;
+    fn eigvalsh_inplace(&mut self, UPLO) -> Result<Self::EigVal>;
 }
 
 impl<A, S> EigValshInto for ArrayBase<S, Ix2>
@@ -94,7 +94,7 @@ where
     type EigVal = Array1<A::Real>;
 
     fn eigvalsh_into(mut self, uplo: UPLO) -> Result<Self::EigVal> {
-        self.eigvalsh_mut(uplo)
+        self.eigvalsh_inplace(uplo)
     }
 }
 
@@ -111,14 +111,14 @@ where
     }
 }
 
-impl<A, S> EigValshMut for ArrayBase<S, Ix2>
+impl<A, S> EigValshInplace for ArrayBase<S, Ix2>
 where
     A: Scalar,
     S: DataMut<Elem = A>,
 {
     type EigVal = Array1<A::Real>;
 
-    fn eigvalsh_mut(&mut self, uplo: UPLO) -> Result<Self::EigVal> {
+    fn eigvalsh_inplace(&mut self, uplo: UPLO) -> Result<Self::EigVal> {
         let s = unsafe { A::eigh(true, self.square_layout()?, uplo, self.as_allocated_mut()?)? };
         Ok(ArrayBase::from_vec(s))
     }

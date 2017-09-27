@@ -66,7 +66,7 @@ pub use lapack_traits::{Pivot, Transpose};
 ///
 /// * `*` methods take a reference to `b` and return `x` as a new array.
 /// * `*_into` methods take ownership of `b`, store the result in it, and return it.
-/// * `*_mut` methods take a mutable reference to `b` and store the result in that array.
+/// * `*_inplace` methods take a mutable reference to `b` and store the result in that array.
 ///
 /// If you plan to solve many equations with the same `A` matrix but different
 /// `b` vectors, it's faster to factor the `A` matrix once using the
@@ -76,52 +76,54 @@ pub trait Solve<A: Scalar> {
     /// is the argument, and `x` is the successful result.
     fn solve<S: Data<Elem = A>>(&self, b: &ArrayBase<S, Ix1>) -> Result<Array1<A>> {
         let mut b = replicate(b);
-        self.solve_mut(&mut b)?;
+        self.solve_inplace(&mut b)?;
         Ok(b)
     }
     /// Solves a system of linear equations `A * x = b` where `A` is `self`, `b`
     /// is the argument, and `x` is the successful result.
     fn solve_into<S: DataMut<Elem = A>>(&self, mut b: ArrayBase<S, Ix1>) -> Result<ArrayBase<S, Ix1>> {
-        self.solve_mut(&mut b)?;
+        self.solve_inplace(&mut b)?;
         Ok(b)
     }
     /// Solves a system of linear equations `A * x = b` where `A` is `self`, `b`
     /// is the argument, and `x` is the successful result.
-    fn solve_mut<'a, S: DataMut<Elem = A>>(&self, &'a mut ArrayBase<S, Ix1>) -> Result<&'a mut ArrayBase<S, Ix1>>;
+    fn solve_inplace<'a, S: DataMut<Elem = A>>(&self, &'a mut ArrayBase<S, Ix1>) -> Result<&'a mut ArrayBase<S, Ix1>>;
 
     /// Solves a system of linear equations `A^T * x = b` where `A` is `self`, `b`
     /// is the argument, and `x` is the successful result.
     fn solve_t<S: Data<Elem = A>>(&self, b: &ArrayBase<S, Ix1>) -> Result<Array1<A>> {
         let mut b = replicate(b);
-        self.solve_t_mut(&mut b)?;
+        self.solve_t_inplace(&mut b)?;
         Ok(b)
     }
     /// Solves a system of linear equations `A^T * x = b` where `A` is `self`, `b`
     /// is the argument, and `x` is the successful result.
     fn solve_t_into<S: DataMut<Elem = A>>(&self, mut b: ArrayBase<S, Ix1>) -> Result<ArrayBase<S, Ix1>> {
-        self.solve_t_mut(&mut b)?;
+        self.solve_t_inplace(&mut b)?;
         Ok(b)
     }
     /// Solves a system of linear equations `A^T * x = b` where `A` is `self`, `b`
     /// is the argument, and `x` is the successful result.
-    fn solve_t_mut<'a, S: DataMut<Elem = A>>(&self, &'a mut ArrayBase<S, Ix1>) -> Result<&'a mut ArrayBase<S, Ix1>>;
+    fn solve_t_inplace<'a, S: DataMut<Elem = A>>(&self, &'a mut ArrayBase<S, Ix1>)
+        -> Result<&'a mut ArrayBase<S, Ix1>>;
 
     /// Solves a system of linear equations `A^H * x = b` where `A` is `self`, `b`
     /// is the argument, and `x` is the successful result.
     fn solve_h<S: Data<Elem = A>>(&self, b: &ArrayBase<S, Ix1>) -> Result<Array1<A>> {
         let mut b = replicate(b);
-        self.solve_h_mut(&mut b)?;
+        self.solve_h_inplace(&mut b)?;
         Ok(b)
     }
     /// Solves a system of linear equations `A^H * x = b` where `A` is `self`, `b`
     /// is the argument, and `x` is the successful result.
     fn solve_h_into<S: DataMut<Elem = A>>(&self, mut b: ArrayBase<S, Ix1>) -> Result<ArrayBase<S, Ix1>> {
-        self.solve_h_mut(&mut b)?;
+        self.solve_h_inplace(&mut b)?;
         Ok(b)
     }
     /// Solves a system of linear equations `A^H * x = b` where `A` is `self`, `b`
     /// is the argument, and `x` is the successful result.
-    fn solve_h_mut<'a, S: DataMut<Elem = A>>(&self, &'a mut ArrayBase<S, Ix1>) -> Result<&'a mut ArrayBase<S, Ix1>>;
+    fn solve_h_inplace<'a, S: DataMut<Elem = A>>(&self, &'a mut ArrayBase<S, Ix1>)
+        -> Result<&'a mut ArrayBase<S, Ix1>>;
 }
 
 /// Represents the LU factorization of a matrix `A` as `A = P*L*U`.
@@ -138,7 +140,7 @@ where
     A: Scalar,
     S: Data<Elem = A>,
 {
-    fn solve_mut<'a, Sb>(&self, mut rhs: &'a mut ArrayBase<Sb, Ix1>) -> Result<&'a mut ArrayBase<Sb, Ix1>>
+    fn solve_inplace<'a, Sb>(&self, mut rhs: &'a mut ArrayBase<Sb, Ix1>) -> Result<&'a mut ArrayBase<Sb, Ix1>>
     where
         Sb: DataMut<Elem = A>,
     {
@@ -153,7 +155,7 @@ where
         };
         Ok(rhs)
     }
-    fn solve_t_mut<'a, Sb>(&self, mut rhs: &'a mut ArrayBase<Sb, Ix1>) -> Result<&'a mut ArrayBase<Sb, Ix1>>
+    fn solve_t_inplace<'a, Sb>(&self, mut rhs: &'a mut ArrayBase<Sb, Ix1>) -> Result<&'a mut ArrayBase<Sb, Ix1>>
     where
         Sb: DataMut<Elem = A>,
     {
@@ -168,7 +170,7 @@ where
         };
         Ok(rhs)
     }
-    fn solve_h_mut<'a, Sb>(&self, mut rhs: &'a mut ArrayBase<Sb, Ix1>) -> Result<&'a mut ArrayBase<Sb, Ix1>>
+    fn solve_h_inplace<'a, Sb>(&self, mut rhs: &'a mut ArrayBase<Sb, Ix1>) -> Result<&'a mut ArrayBase<Sb, Ix1>>
     where
         Sb: DataMut<Elem = A>,
     {
@@ -190,26 +192,26 @@ where
     A: Scalar,
     S: Data<Elem = A>,
 {
-    fn solve_mut<'a, Sb>(&self, mut rhs: &'a mut ArrayBase<Sb, Ix1>) -> Result<&'a mut ArrayBase<Sb, Ix1>>
+    fn solve_inplace<'a, Sb>(&self, mut rhs: &'a mut ArrayBase<Sb, Ix1>) -> Result<&'a mut ArrayBase<Sb, Ix1>>
     where
         Sb: DataMut<Elem = A>,
     {
         let f = self.factorize()?;
-        f.solve_mut(rhs)
+        f.solve_inplace(rhs)
     }
-    fn solve_t_mut<'a, Sb>(&self, mut rhs: &'a mut ArrayBase<Sb, Ix1>) -> Result<&'a mut ArrayBase<Sb, Ix1>>
+    fn solve_t_inplace<'a, Sb>(&self, mut rhs: &'a mut ArrayBase<Sb, Ix1>) -> Result<&'a mut ArrayBase<Sb, Ix1>>
     where
         Sb: DataMut<Elem = A>,
     {
         let f = self.factorize()?;
-        f.solve_t_mut(rhs)
+        f.solve_t_inplace(rhs)
     }
-    fn solve_h_mut<'a, Sb>(&self, mut rhs: &'a mut ArrayBase<Sb, Ix1>) -> Result<&'a mut ArrayBase<Sb, Ix1>>
+    fn solve_h_inplace<'a, Sb>(&self, mut rhs: &'a mut ArrayBase<Sb, Ix1>) -> Result<&'a mut ArrayBase<Sb, Ix1>>
     where
         Sb: DataMut<Elem = A>,
     {
         let f = self.factorize()?;
-        f.solve_h_mut(rhs)
+        f.solve_h_inplace(rhs)
     }
 }
 

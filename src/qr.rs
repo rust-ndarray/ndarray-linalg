@@ -47,19 +47,19 @@ pub trait QRSquareInto: Sized {
 }
 
 /// QR decomposition for mutable reference of square matrix
-pub trait QRSquareMut: Sized {
+pub trait QRSquareInplace: Sized {
     type R;
-    fn qr_square_mut<'a>(&'a mut self) -> Result<(&'a mut Self, Self::R)>;
+    fn qr_square_inplace<'a>(&'a mut self) -> Result<(&'a mut Self, Self::R)>;
 }
 
-impl<A, S> QRSquareMut for ArrayBase<S, Ix2>
+impl<A, S> QRSquareInplace for ArrayBase<S, Ix2>
 where
     A: Scalar,
     S: DataMut<Elem = A>,
 {
     type R = Array2<A>;
 
-    fn qr_square_mut<'a>(&'a mut self) -> Result<(&'a mut Self, Self::R)> {
+    fn qr_square_inplace<'a>(&'a mut self) -> Result<(&'a mut Self, Self::R)> {
         let l = self.square_layout()?;
         let r = unsafe { A::qr(l, self.as_allocated_mut()?)? };
         let r: Array2<_> = into_matrix(l, r)?;
@@ -75,7 +75,7 @@ where
     type R = Array2<A>;
 
     fn qr_square_into(mut self) -> Result<(Self, Self::R)> {
-        let (_, r) = self.qr_square_mut()?;
+        let (_, r) = self.qr_square_inplace()?;
         Ok((self, r))
     }
 }

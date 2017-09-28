@@ -10,6 +10,14 @@ use super::{Pivot, Transpose, into_result};
 
 /// Wraps `*getrf`, `*getri`, and `*getrs`
 pub trait Solve_: Sized {
+    /// Computes the LU factorization of a general `m x n` matrix `a` using
+    /// partial pivoting with row interchanges.
+    ///
+    /// If the result matches `Err(LinalgError::Lapack(LapackError {
+    /// return_code )) if return_code > 0`, then `U[(return_code-1,
+    /// return_code-1)]` is exactly zero. The factorization has been completed,
+    /// but the factor `U` is exactly singular, and division by zero will occur
+    /// if it is used to solve a system of equations.
     unsafe fn lu(MatrixLayout, a: &mut [Self]) -> Result<Pivot>;
     unsafe fn inv(MatrixLayout, a: &mut [Self], &Pivot) -> Result<()>;
     unsafe fn solve(MatrixLayout, Transpose, a: &[Self], &Pivot, b: &mut [Self]) -> Result<()>;

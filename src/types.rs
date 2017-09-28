@@ -22,6 +22,7 @@ pub use num_complex::Complex64 as c64;
 /// - [abs_sqr](trait.Absolute.html#tymethod.abs_sqr)
 /// - [sqrt](trait.SquareRoot.html#tymethod.sqrt)
 /// - [exp](trait.Exponential.html#tymethod.exp)
+/// - [ln](trait.NaturalLogarithm.html#tymethod.ln)
 /// - [conj](trait.Conjugate.html#tymethod.conj)
 /// - [randn](trait.RandNormal.html#tymethod.randn)
 ///
@@ -33,6 +34,7 @@ pub trait Scalar
     + Absolute
     + SquareRoot
     + Exponential
+    + NaturalLogarithm
     + Conjugate
     + RandNormal
     + Neg<Output = Self>
@@ -116,6 +118,11 @@ pub trait SquareRoot {
 /// Define `exp()` more generally
 pub trait Exponential {
     fn exp(&self) -> Self;
+}
+
+/// Define `ln()` more generally
+pub trait NaturalLogarithm {
+    fn ln(&self) -> Self;
 }
 
 /// Complex conjugate value
@@ -204,6 +211,18 @@ impl Exponential for $real {
 impl Exponential for $complex {
     fn exp(&self) -> Self {
         Complex::exp(self)
+    }
+}
+
+impl NaturalLogarithm for $real {
+    fn ln(&self) -> Self {
+        Float::ln(*self)
+    }
+}
+
+impl NaturalLogarithm for $complex {
+    fn ln(&self) -> Self {
+        Complex::ln(self)
     }
 }
 

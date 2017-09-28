@@ -131,13 +131,7 @@ fn det_nonsquare() {
         }
     }
     for &dims in &[(1, 0), (1, 2), (2, 1), (2, 3)] {
-        // Work around bug in ndarray: https://github.com/bluss/rust-ndarray/issues/361
-        let shapes = if dims == (1, 0) {
-            vec![dims.clone().into_shape()]
-        } else {
-            vec![dims.clone().into_shape(), dims.clone().f()]
-        };
-        for &shape in &shapes {
+        for &shape in &[dims.clone().into_shape(), dims.clone().f()] {
             det_nonsquare!(f64, shape);
             det_nonsquare!(f32, shape);
             det_nonsquare!(c64, shape);

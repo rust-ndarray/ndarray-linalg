@@ -14,8 +14,8 @@ pub trait Solve_: Sized {
     /// partial pivoting with row interchanges.
     ///
     /// If the result matches `Err(LinalgError::Lapack(LapackError {
-    /// return_code )) if return_code > 0`, then `U[(return_code,
-    /// return_code)]` is exactly zero. The factorization has been completed,
+    /// return_code )) if return_code > 0`, then `U[(return_code-1,
+    /// return_code-1)]` is exactly zero. The factorization has been completed,
     /// but the factor `U` is exactly singular, and division by zero will occur
     /// if it is used to solve a system of equations.
     unsafe fn lu(MatrixLayout, a: &mut [Self]) -> Result<Pivot>;

@@ -75,6 +75,8 @@ pub trait AllocatedArray {
     type Elem;
     fn layout(&self) -> Result<MatrixLayout>;
     fn square_layout(&self) -> Result<MatrixLayout>;
+    /// Returns Ok iff the matrix is square (without computing the layout).
+    fn ensure_square(&self) -> Result<()>;
     fn as_allocated(&self) -> Result<&[Self::Elem]>;
 }
 
@@ -107,6 +109,14 @@ where
             Ok(l)
         } else {
             Err(NotSquareError::new(n, m).into())
+        }
+    }
+
+    fn ensure_square(&self) -> Result<()> {
+        if self.is_square() {
+            Ok(())
+        } else {
+            Err(NotSquareError::new(self.rows() as i32, self.cols() as i32).into())
         }
     }
 

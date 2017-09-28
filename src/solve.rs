@@ -366,21 +366,13 @@ where
     pivot_sign * upper_sign * ln_det.exp()
 }
 
-fn check_square<S: Data>(a: &ArrayBase<S, Ix2>) -> Result<()> {
-    if a.is_square() {
-        Ok(())
-    } else {
-        Err(NotSquareError::new(a.rows() as i32, a.cols() as i32).into())
-    }
-}
-
 impl<A, S> Determinant<A> for LUFactorized<S>
 where
     A: Scalar,
     S: Data<Elem = A>,
 {
     fn det(&self) -> Result<A> {
-        check_square(&self.a)?;
+        self.a.ensure_square()?;
         Ok(lu_det(self.ipiv.iter().cloned(), self.a.diag().iter()))
     }
 }
@@ -391,7 +383,7 @@ where
     S: Data<Elem = A>,
 {
     fn det_into(self) -> Result<A> {
-        check_square(&self.a)?;
+        self.a.ensure_square()?;
         Ok(lu_det(self.ipiv.into_iter(), self.a.into_diag().iter()))
     }
 }
@@ -402,7 +394,7 @@ where
     S: Data<Elem = A>,
 {
     fn det(&self) -> Result<A> {
-        check_square(&self)?;
+        self.ensure_square()?;
         match self.factorize() {
             Ok(fac) => fac.det(),
             Err(LinalgError::Lapack(LapackError { return_code })) if return_code > 0 => Ok(A::zero()),
@@ -417,7 +409,7 @@ where
     S: DataMut<Elem = A>,
 {
     fn det_into(self) -> Result<A> {
-        check_square(&self)?;
+        self.ensure_square()?;
         match self.factorize_into() {
             Ok(fac) => fac.det_into(),
             Err(LinalgError::Lapack(LapackError { return_code })) if return_code > 0 => Ok(A::zero()),

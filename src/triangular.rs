@@ -32,12 +32,12 @@ where
 }
 
 /// solve a triangular system with upper triangular matrix
-pub trait SolveTriangularMut<S, D>
+pub trait SolveTriangularInplace<S, D>
 where
     S: DataMut,
     D: Dimension,
 {
-    fn solve_triangular_mut<'a>(&self, UPLO, Diag, &'a mut ArrayBase<S, D>) -> Result<&'a mut ArrayBase<S, D>>;
+    fn solve_triangular_inplace<'a>(&self, UPLO, Diag, &'a mut ArrayBase<S, D>) -> Result<&'a mut ArrayBase<S, D>>;
 }
 
 impl<A, Si, So> SolveTriangularInto<So, Ix2> for ArrayBase<Si, Ix2>
@@ -47,18 +47,18 @@ where
     So: DataMut<Elem = A> + DataOwned,
 {
     fn solve_triangular_into(&self, uplo: UPLO, diag: Diag, mut b: ArrayBase<So, Ix2>) -> Result<ArrayBase<So, Ix2>> {
-        self.solve_triangular_mut(uplo, diag, &mut b)?;
+        self.solve_triangular_inplace(uplo, diag, &mut b)?;
         Ok(b)
     }
 }
 
-impl<A, Si, So> SolveTriangularMut<So, Ix2> for ArrayBase<Si, Ix2>
+impl<A, Si, So> SolveTriangularInplace<So, Ix2> for ArrayBase<Si, Ix2>
 where
     A: Scalar,
     Si: Data<Elem = A>,
     So: DataMut<Elem = A> + DataOwned,
 {
-    fn solve_triangular_mut<'a>(
+    fn solve_triangular_inplace<'a>(
         &self,
         uplo: UPLO,
         diag: Diag,

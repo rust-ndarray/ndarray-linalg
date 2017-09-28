@@ -70,21 +70,21 @@ pub trait SolveH<A: Scalar> {
     /// `x` is the successful result.
     fn solveh<S: Data<Elem = A>>(&self, b: &ArrayBase<S, Ix1>) -> Result<Array1<A>> {
         let mut b = replicate(b);
-        self.solveh_mut(&mut b)?;
+        self.solveh_inplace(&mut b)?;
         Ok(b)
     }
     /// Solves a system of linear equations `A * x = b` with Hermitian (or real
     /// symmetric) matrix `A`, where `A` is `self`, `b` is the argument, and
     /// `x` is the successful result.
     fn solveh_into<S: DataMut<Elem = A>>(&self, mut b: ArrayBase<S, Ix1>) -> Result<ArrayBase<S, Ix1>> {
-        self.solveh_mut(&mut b)?;
+        self.solveh_inplace(&mut b)?;
         Ok(b)
     }
     /// Solves a system of linear equations `A * x = b` with Hermitian (or real
     /// symmetric) matrix `A`, where `A` is `self`, `b` is the argument, and
     /// `x` is the successful result. The value of `x` is also assigned to the
     /// argument.
-    fn solveh_mut<'a, S: DataMut<Elem = A>>(&self, &'a mut ArrayBase<S, Ix1>) -> Result<&'a mut ArrayBase<S, Ix1>>;
+    fn solveh_inplace<'a, S: DataMut<Elem = A>>(&self, &'a mut ArrayBase<S, Ix1>) -> Result<&'a mut ArrayBase<S, Ix1>>;
 }
 
 /// Represents the Bunch–Kaufman factorization of a Hermitian (or real
@@ -99,7 +99,7 @@ where
     A: Scalar,
     S: Data<Elem = A>,
 {
-    fn solveh_mut<'a, Sb>(&self, rhs: &'a mut ArrayBase<Sb, Ix1>) -> Result<&'a mut ArrayBase<Sb, Ix1>>
+    fn solveh_inplace<'a, Sb>(&self, rhs: &'a mut ArrayBase<Sb, Ix1>) -> Result<&'a mut ArrayBase<Sb, Ix1>>
     where
         Sb: DataMut<Elem = A>,
     {
@@ -121,12 +121,12 @@ where
     A: Scalar,
     S: Data<Elem = A>,
 {
-    fn solveh_mut<'a, Sb>(&self, mut rhs: &'a mut ArrayBase<Sb, Ix1>) -> Result<&'a mut ArrayBase<Sb, Ix1>>
+    fn solveh_inplace<'a, Sb>(&self, mut rhs: &'a mut ArrayBase<Sb, Ix1>) -> Result<&'a mut ArrayBase<Sb, Ix1>>
     where
         Sb: DataMut<Elem = A>,
     {
         let f = self.factorizeh()?;
-        f.solveh_mut(rhs)
+        f.solveh_inplace(rhs)
     }
 }
 

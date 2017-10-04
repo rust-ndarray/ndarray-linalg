@@ -24,7 +24,7 @@ extern crate rand;
 #[macro_use(s)]
 extern crate ndarray;
 #[macro_use]
-extern crate enum_error_derive;
+extern crate procedurals;
 #[macro_use]
 extern crate derive_new;
 

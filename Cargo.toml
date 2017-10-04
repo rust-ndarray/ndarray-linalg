@@ -23,7 +23,7 @@ netlib-system   = ["lapack/netlib", "netlib-src/system"]
 [dependencies]
 rand = "0.3"
 derive-new = "0.4"
-enum-error-derive = "0.1"
+procedurals = "0.2"
 num-traits  = "0.1"
 num-complex = "0.1"
 

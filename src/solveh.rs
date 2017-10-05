@@ -50,6 +50,7 @@
 //! ```
 
 use ndarray::*;
+use num_traits::{Float, One, Zero};
 
 use super::convert::*;
 use super::error::*;
@@ -256,5 +257,123 @@ where
     fn invh(&self) -> Result<Self::Output> {
         let f = self.factorizeh()?;
         f.invh_into()
+    }
+}
+
+/// An interface for calculating determinants of Hermitian (or real symmetric) matrix refs.
+pub trait DeterminantH {
+    type Output;
+
+    /// Computes the determinant of the Hermitian (or real symmetric) matrix.
+    fn deth(&self) -> Self::Output;
+}
+
+/// An interface for calculating determinants of Hermitian (or real symmetric) matrices.
+pub trait DeterminantHInto {
+    type Output;
+
+    /// Computes the determinant of the Hermitian (or real symmetric) matrix.
+    fn deth_into(self) -> Self::Output;
+}
+
+fn bk_det<P, S, A>(uplo: UPLO, ipiv_iter: P, a: &ArrayBase<S, Ix2>) -> A::Real
+where
+    P: Iterator<Item = i32>,
+    S: Data<Elem = A>,
+    A: Scalar,
+{
+    let mut sign = A::Real::one();
+    let mut ln_det = A::Real::zero();
+    let mut ipiv_enum = ipiv_iter.enumerate();
+    while let Some((k, ipiv_k)) = ipiv_enum.next() {
+        debug_assert!(k < a.rows() && k < a.cols());
+        if ipiv_k > 0 {
+            // 1x1 block at k, must be real.
+            let elem = unsafe { a.uget((k, k)) }.real();
+            debug_assert_eq!(elem.imag(), Zero::zero());
+            sign = sign * elem.signum();
+            ln_det = ln_det + elem.abs().ln();
+        } else {
+            // 2x2 block at k..k+2.
+
+            // Upper left diagonal elem, must be real.
+            let upper_diag = unsafe { a.uget((k, k)) }.real();
+            debug_assert_eq!(upper_diag.imag(), Zero::zero());
+
+            // Lower right diagonal elem, must be real.
+            let lower_diag = unsafe { a.uget((k + 1, k + 1)) }.real();
+            debug_assert_eq!(lower_diag.imag(), Zero::zero());
+
+            // Off-diagonal elements, can be complex.
+            let off_diag = match uplo {
+                UPLO::Upper => unsafe { a.uget((k, k + 1)) },
+                UPLO::Lower => unsafe { a.uget((k + 1, k)) },
+            };
+
+            // Determinant of 2x2 block.
+            let block_det = upper_diag * lower_diag - off_diag.abs_sqr();
+            sign = sign * block_det.signum();
+            ln_det = ln_det + block_det.abs().ln();
+
+            // Skip the k+1 ipiv value.
+            ipiv_enum.next();
+        }
+    }
+    sign * ln_det.exp()
+}
+
+impl<A, S> DeterminantH for BKFactorized<S>
+where
+    A: Scalar,
+    S: Data<Elem = A>,
+{
+    type Output = A::Real;
+
+    fn deth(&self) -> A::Real {
+        bk_det(UPLO::Upper, self.ipiv.iter().cloned(), &self.a)
+    }
+}
+
+impl<A, S> DeterminantHInto for BKFactorized<S>
+where
+    A: Scalar,
+    S: Data<Elem = A>,
+{
+    type Output = A::Real;
+
+    fn deth_into(self) -> A::Real {
+        bk_det(UPLO::Upper, self.ipiv.into_iter(), &self.a)
+    }
+}
+
+impl<A, S> DeterminantH for ArrayBase<S, Ix2>
+where
+    A: Scalar,
+    S: Data<Elem = A>,
+{
+    type Output = Result<A::Real>;
+
+    fn deth(&self) -> Result<A::Real> {
+        match self.factorizeh() {
+            Ok(fac) => Ok(fac.deth()),
+            Err(LinalgError::Lapack(LapackError { return_code })) if return_code > 0 => Ok(A::Real::zero()),
+            Err(err) => Err(err),
+        }
+    }
+}
+
+impl<A, S> DeterminantHInto for ArrayBase<S, Ix2>
+where
+    A: Scalar,
+    S: DataMut<Elem = A>,
+{
+    type Output = Result<A::Real>;
+
+    fn deth_into(self) -> Result<A::Real> {
+        match self.factorizeh_into() {
+            Ok(fac) => Ok(fac.deth_into()),
+            Err(LinalgError::Lapack(LapackError { return_code })) if return_code > 0 => Ok(A::Real::zero()),
+            Err(err) => Err(err),
+        }
     }
 }

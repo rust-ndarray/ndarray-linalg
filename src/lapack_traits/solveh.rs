@@ -26,8 +26,13 @@ impl Solveh_ for $scalar {
     unsafe fn bk(l: MatrixLayout, uplo: UPLO, a: &mut [Self]) -> Result<Pivot> {
         let (n, _) = l.size();
         let mut ipiv = vec![0; n as usize];
-        let info = $trf(l.lapacke_layout(), uplo as u8, n, a, l.lda(), &mut ipiv);
-        into_result(info, ipiv)
+        if n == 0 {
+            // Work around bug in LAPACKE functions.
+            Ok(ipiv)
+        } else {
+            let info = $trf(l.lapacke_layout(), uplo as u8, n, a, l.lda(), &mut ipiv);
+            into_result(info, ipiv)
+        }
     }
 
     unsafe fn invh(l: MatrixLayout, uplo: UPLO, a: &mut [Self], ipiv: &Pivot) -> Result<()> {

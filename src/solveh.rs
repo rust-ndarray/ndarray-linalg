@@ -153,7 +153,7 @@ where
     S: DataMut<Elem = A>,
 {
     fn factorizeh_into(mut self) -> Result<BKFactorized<S>> {
-        let ipiv = unsafe { A::bk(self.layout()?, UPLO::Upper, self.as_allocated_mut()?)? };
+        let ipiv = unsafe { A::bk(self.square_layout()?, UPLO::Upper, self.as_allocated_mut()?)? };
         Ok(BKFactorized {
             a: self,
             ipiv: ipiv,
@@ -168,7 +168,7 @@ where
 {
     fn factorizeh(&self) -> Result<BKFactorized<OwnedRepr<A>>> {
         let mut a: Array2<A> = replicate(self);
-        let ipiv = unsafe { A::bk(a.layout()?, UPLO::Upper, a.as_allocated_mut()?)? };
+        let ipiv = unsafe { A::bk(a.square_layout()?, UPLO::Upper, a.as_allocated_mut()?)? };
         Ok(BKFactorized { a: a, ipiv: ipiv })
     }
 }

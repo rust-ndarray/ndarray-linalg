@@ -39,7 +39,10 @@ impl Solveh_ for $scalar {
     unsafe fn solveh(l: MatrixLayout, uplo: UPLO, a: &[Self], ipiv: &Pivot, b: &mut [Self]) -> Result<()> {
         let (n, _) = l.size();
         let nrhs = 1;
-        let ldb = 1;
+        let ldb = match l {
+            MatrixLayout::C(_) => 1,
+            MatrixLayout::F(_) => n,
+        };
         let info = $trs(l.lapacke_layout(), uplo as u8, n, nrhs, a, l.lda(), ipiv, b, ldb);
         into_result(info, ())
     }

@@ -94,7 +94,7 @@ where
     }
 }
 
-impl<A, S> CholeskyDeterminant for CholeskyFactorized<S>
+impl<A, S> DeterminantC for CholeskyFactorized<S>
 where
     A: Absolute,
     S: Data<Elem = A>,
@@ -111,7 +111,7 @@ where
     }
 }
 
-impl<A, S> CholeskyDeterminantInto for CholeskyFactorized<S>
+impl<A, S> DeterminantCInto for CholeskyFactorized<S>
 where
     A: Absolute,
     S: Data<Elem = A>,
@@ -123,7 +123,7 @@ where
     }
 }
 
-impl<A, S> CholeskyInverse for CholeskyFactorized<S>
+impl<A, S> InverseC for CholeskyFactorized<S>
 where
     A: Scalar,
     S: Data<Elem = A>,
@@ -139,7 +139,7 @@ where
     }
 }
 
-impl<A, S> CholeskyInverseInto for CholeskyFactorized<S>
+impl<A, S> InverseCInto for CholeskyFactorized<S>
 where
     A: Scalar,
     S: DataMut<Elem = A>,
@@ -154,7 +154,7 @@ where
     }
 }
 
-impl<A, S> CholeskySolve<A> for CholeskyFactorized<S>
+impl<A, S> SolveC<A> for CholeskyFactorized<S>
 where
     A: Scalar,
     S: Data<Elem = A>,
@@ -255,7 +255,7 @@ where
 }
 
 /// Cholesky decomposition of Hermitian (or real symmetric) positive definite matrix reference
-pub trait CholeskyFactorize<S: Data> {
+pub trait FactorizeC<S: Data> {
     /// Computes the Cholesky decomposition of the Hermitian (or real
     /// symmetric) positive definite matrix.
     ///
@@ -268,7 +268,7 @@ pub trait CholeskyFactorize<S: Data> {
 }
 
 /// Cholesky decomposition of Hermitian (or real symmetric) positive definite matrix
-pub trait CholeskyFactorizeInto<S: Data> {
+pub trait FactorizeCInto<S: Data> {
     /// Computes the Cholesky decomposition of the Hermitian (or real
     /// symmetric) positive definite matrix.
     ///
@@ -280,7 +280,7 @@ pub trait CholeskyFactorizeInto<S: Data> {
     fn factorizec_into(self, UPLO) -> Result<CholeskyFactorized<S>>;
 }
 
-impl<A, S> CholeskyFactorizeInto<S> for ArrayBase<S, Ix2>
+impl<A, S> FactorizeCInto<S> for ArrayBase<S, Ix2>
 where
     A: Scalar,
     S: DataMut<Elem = A>,
@@ -293,7 +293,7 @@ where
     }
 }
 
-impl<A, Si> CholeskyFactorize<OwnedRepr<A>> for ArrayBase<Si, Ix2>
+impl<A, Si> FactorizeC<OwnedRepr<A>> for ArrayBase<Si, Ix2>
 where
     A: Scalar,
     Si: Data<Elem = A>,
@@ -308,7 +308,7 @@ where
 
 /// Solve systems of linear equations with Hermitian (or real symmetric)
 /// positive definite coefficient matrices
-pub trait CholeskySolve<A: Scalar> {
+pub trait SolveC<A: Scalar> {
     /// Solves a system of linear equations `A * x = b` with Hermitian (or real
     /// symmetric) positive definite matrix `A`, where `A` is `self`, `b` is
     /// the argument, and `x` is the successful result.
@@ -331,7 +331,7 @@ pub trait CholeskySolve<A: Scalar> {
     fn solvec_inplace<'a, S: DataMut<Elem = A>>(&self, &'a mut ArrayBase<S, Ix1>) -> Result<&'a mut ArrayBase<S, Ix1>>;
 }
 
-impl<A, S> CholeskySolve<A> for ArrayBase<S, Ix2>
+impl<A, S> SolveC<A> for ArrayBase<S, Ix2>
 where
     A: Scalar,
     S: Data<Elem = A>,
@@ -345,7 +345,7 @@ where
 }
 
 /// Inverse of Hermitian (or real symmetric) positive definite matrix ref
-pub trait CholeskyInverse {
+pub trait InverseC {
     type Output;
     /// Computes the inverse of the Hermitian (or real symmetric) positive
     /// definite matrix.
@@ -353,14 +353,14 @@ pub trait CholeskyInverse {
 }
 
 /// Inverse of Hermitian (or real symmetric) positive definite matrix
-pub trait CholeskyInverseInto {
+pub trait InverseCInto {
     type Output;
     /// Computes the inverse of the Hermitian (or real symmetric) positive
     /// definite matrix.
     fn invc_into(self) -> Result<Self::Output>;
 }
 
-impl<A, S> CholeskyInverse for ArrayBase<S, Ix2>
+impl<A, S> InverseC for ArrayBase<S, Ix2>
 where
     A: Scalar,
     S: Data<Elem = A>,
@@ -372,7 +372,7 @@ where
     }
 }
 
-impl<A, S> CholeskyInverseInto for ArrayBase<S, Ix2>
+impl<A, S> InverseCInto for ArrayBase<S, Ix2>
 where
     A: Scalar,
     S: DataMut<Elem = A>,
@@ -385,7 +385,7 @@ where
 }
 
 /// Determinant of Hermitian (or real symmetric) positive definite matrix ref
-pub trait CholeskyDeterminant {
+pub trait DeterminantC {
     type Output;
 
     /// Computes the determinant of the Hermitian (or real symmetric) positive
@@ -395,7 +395,7 @@ pub trait CholeskyDeterminant {
 
 
 /// Determinant of Hermitian (or real symmetric) positive definite matrix
-pub trait CholeskyDeterminantInto {
+pub trait DeterminantCInto {
     type Output;
 
     /// Computes the determinant of the Hermitian (or real symmetric) positive
@@ -403,7 +403,7 @@ pub trait CholeskyDeterminantInto {
     fn detc_into(self) -> Self::Output;
 }
 
-impl<A, S> CholeskyDeterminant for ArrayBase<S, Ix2>
+impl<A, S> DeterminantC for ArrayBase<S, Ix2>
 where
     A: Scalar,
     S: Data<Elem = A>,
@@ -415,7 +415,7 @@ where
     }
 }
 
-impl<A, S> CholeskyDeterminantInto for ArrayBase<S, Ix2>
+impl<A, S> DeterminantCInto for ArrayBase<S, Ix2>
 where
     A: Scalar,
     S: DataMut<Elem = A>,

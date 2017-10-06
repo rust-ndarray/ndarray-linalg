@@ -87,6 +87,10 @@ pub fn into_scalar<T: Scalar>(f: f64) -> T {
 pub trait AssociatedReal: Sized {
     type Real: RealScalar;
     fn inject(Self::Real) -> Self;
+    /// Returns the real part of `self`.
+    fn real(self) -> Self::Real;
+    /// Returns the imaginary part of `self`.
+    fn imag(self) -> Self::Real;
     fn add_real(self, Self::Real) -> Self;
     fn sub_real(self, Self::Real) -> Self;
     fn mul_real(self, Self::Real) -> Self;
@@ -141,6 +145,8 @@ macro_rules! impl_traits {
 impl AssociatedReal for $real {
     type Real = $real;
     fn inject(r: Self::Real) -> Self { r }
+    fn real(self) -> Self::Real { self }
+    fn imag(self) -> Self::Real { 0. }
     fn add_real(self, r: Self::Real) -> Self { self + r }
     fn sub_real(self, r: Self::Real) -> Self { self - r }
     fn mul_real(self, r: Self::Real) -> Self { self * r }
@@ -150,6 +156,8 @@ impl AssociatedReal for $real {
 impl AssociatedReal for $complex {
     type Real = $real;
     fn inject(r: Self::Real) -> Self { Self::new(r, 0.0) }
+    fn real(self) -> Self::Real { self.re }
+    fn imag(self) -> Self::Real { self.im }
     fn add_real(self, r: Self::Real) -> Self { self + r }
     fn sub_real(self, r: Self::Real) -> Self { self - r }
     fn mul_real(self, r: Self::Real) -> Self { self * r }

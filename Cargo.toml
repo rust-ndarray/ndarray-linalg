@@ -1,6 +1,6 @@
 [package]
 name    = "ndarray-linalg"
-version = "0.6.2"
+version = "0.7.0"
 authors = ["Toshiki Teramura <toshiki.teramura@gmail.com>"]
 
 description   = "Linear algebra package for rust-ndarray using LAPACK"
@@ -9,7 +9,7 @@ repository    = "https://github.com/termoshtt/ndarray-linalg"
 keywords      = ["ndarray", "lapack", "matrix"]
 license       = "MIT"
 readme        = "README.md"
-categories    = ["Science"]
+categories    = ["algorithms", "science"]
 
 [features]
 default  = ["openblas-static"]

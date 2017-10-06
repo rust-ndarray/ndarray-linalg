@@ -101,19 +101,19 @@ fn cholesky_inverse() {
 #[test]
 fn cholesky_det() {
     macro_rules! cholesky_det {
-        ($elem:ty, $rtol:expr) => {
+        ($elem:ty, $atol:expr) => {
             let a: Array2<$elem> = random_hpd(3);
             println!("a = \n{:?}", a);
             let det = a.eigvalsh(UPLO::Upper).unwrap().mapv(|elem| elem.ln()).scalar_sum().exp();
-            assert_rclose!(a.detc().unwrap(), det, $rtol);
-            assert_rclose!(a.factorizec(UPLO::Upper).unwrap().detc(), det, $rtol);
-            assert_rclose!(a.factorizec(UPLO::Lower).unwrap().detc(), det, $rtol);
+            assert_aclose!(a.detc().unwrap(), det, $atol);
+            assert_aclose!(a.factorizec(UPLO::Upper).unwrap().detc(), det, $atol);
+            assert_aclose!(a.factorizec(UPLO::Lower).unwrap().detc(), det, $atol);
         }
     }
     cholesky_det!(f64, 1e-9);
-    cholesky_det!(f32, 1e-4);
+    cholesky_det!(f32, 1e-3);
     cholesky_det!(c64, 1e-9);
-    cholesky_det!(c32, 1e-4);
+    cholesky_det!(c32, 1e-3);
 }
 
 #[test]

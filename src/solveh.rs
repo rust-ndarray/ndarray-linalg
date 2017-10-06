@@ -177,11 +177,6 @@ where
 pub trait InverseH {
     type Output;
     /// Computes the inverse of the Hermitian (or real symmetric) matrix.
-    ///
-    /// **Warning: The inverse is stored only in the upper triangular portion
-    /// of the result matrix!** If you want the lower triangular portion to be
-    /// correct, you must fill it in according to the results in the upper
-    /// triangular portion.
     fn invh(&self) -> Result<Self::Output>;
 }
 
@@ -189,11 +184,6 @@ pub trait InverseH {
 pub trait InverseHInto {
     type Output;
     /// Computes the inverse of the Hermitian (or real symmetric) matrix.
-    ///
-    /// **Warning: The inverse is stored only in the upper triangular portion
-    /// of the result matrix!** If you want the lower triangular portion to be
-    /// correct, you must fill it in according to the results in the upper
-    /// triangular portion.
     fn invh_into(self) -> Result<Self::Output>;
 }
 
@@ -213,6 +203,7 @@ where
                 &self.ipiv,
             )?
         };
+        triangular_fill_hermitian(&mut self.a, UPLO::Upper);
         Ok(self.a)
     }
 }

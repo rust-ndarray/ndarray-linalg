@@ -49,7 +49,9 @@ use ndarray::*;
 
 use super::convert::*;
 use super::error::*;
+use super::lapack_traits::opnorm::NormType;
 use super::layout::*;
+use super::opnorm::OperationNorm;
 use super::types::*;
 
 pub use lapack_traits::{Pivot, Transpose};
@@ -417,5 +419,79 @@ where
             Err(LinalgError::Lapack(LapackError { return_code })) if return_code > 0 => Ok(A::zero()),
             Err(err) => Err(err),
         }
+    }
+}
+
+/// An interface for *estimating* the reciprocal condition number of matrix refs.
+pub trait ReciprocalConditionNum<A: Scalar> {
+    /// *Estimates* the reciprocal of the condition number of the matrix in
+    /// 1-norm.
+    ///
+    /// This method uses the LAPACK `*gecon` routines, which *estimate*
+    /// `self.inv().opnorm(One)` and then compute `rcond = 1. /
+    /// (self.opnorm(One) * self.inv().opnorm(One))`.
+    ///
+    /// * If `rcond` is near `0.`, the matrix is badly conditioned.
+    /// * If `rcond` is near `1.`, the matrix is well conditioned.
+    fn rcond(&self) -> Result<A::Real>;
+}
+
+/// An interface for *estimating* the reciprocal condition number of matrices.
+pub trait ReciprocalConditionNumInto<A: Scalar> {
+    /// *Estimates* the reciprocal of the condition number of the matrix in
+    /// 1-norm.
+    ///
+    /// This method uses the LAPACK `*gecon` routines, which *estimate*
+    /// `self.inv().opnorm(One)` and then compute `rcond = 1. /
+    /// (self.opnorm(One) * self.inv().opnorm(One))`.
+    ///
+    /// * If `rcond` is near `0.`, the matrix is badly conditioned.
+    /// * If `rcond` is near `1.`, the matrix is well conditioned.
+    fn rcond_into(self) -> Result<A::Real>;
+}
+
+impl<A, S> ReciprocalConditionNum<A> for LUFactorized<S>
+where
+    A: Scalar,
+    S: Data<Elem = A>,
+{
+    fn rcond(&self) -> Result<A::Real> {
+        unsafe {
+            A::rcond(
+                self.a.layout()?,
+                self.a.as_allocated()?,
+                self.a.opnorm(NormType::One)?,
+            )
+        }
+    }
+}
+
+impl<A, S> ReciprocalConditionNumInto<A> for LUFactorized<S>
+where
+    A: Scalar,
+    S: Data<Elem = A>,
+{
+    fn rcond_into(self) -> Result<A::Real> {
+        self.rcond()
+    }
+}
+
+impl<A, S> ReciprocalConditionNum<A> for ArrayBase<S, Ix2>
+where
+    A: Scalar,
+    S: Data<Elem = A>,
+{
+    fn rcond(&self) -> Result<A::Real> {
+        self.factorize()?.rcond_into()
+    }
+}
+
+impl<A, S> ReciprocalConditionNumInto<A> for ArrayBase<S, Ix2>
+where
+    A: Scalar,
+    S: DataMut<Elem = A>,
+{
+    fn rcond_into(self) -> Result<A::Real> {
+        self.factorize_into()?.rcond_into()
     }
 }

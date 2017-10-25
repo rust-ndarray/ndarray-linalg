@@ -8,9 +8,9 @@ use types::*;
 
 #[repr(u8)]
 pub enum NormType {
-    One = b'o',
-    Infinity = b'i',
-    Frobenius = b'f',
+    One = b'O',
+    Infinity = b'I',
+    Frobenius = b'F',
 }
 
 impl NormType {

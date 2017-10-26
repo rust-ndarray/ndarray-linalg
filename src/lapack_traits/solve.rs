@@ -22,6 +22,9 @@ pub trait Solve_: AssociatedReal + Sized {
     /// if it is used to solve a system of equations.
     unsafe fn lu(MatrixLayout, a: &mut [Self]) -> Result<Pivot>;
     unsafe fn inv(MatrixLayout, a: &mut [Self], &Pivot) -> Result<()>;
+    /// Estimates the the reciprocal of the condition number of the matrix in 1-norm.
+    ///
+    /// `anorm` should be the 1-norm of the matrix `a`.
     unsafe fn rcond(MatrixLayout, a: &[Self], anorm: Self::Real) -> Result<Self::Real>;
     unsafe fn solve(MatrixLayout, Transpose, a: &[Self], &Pivot, b: &mut [Self]) -> Result<()>;
 }

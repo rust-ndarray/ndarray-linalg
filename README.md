@@ -25,6 +25,8 @@ Feature flags
   - `netlib-static`: use Netlib with static link (default)
   - `netlib-shared`: use Netlib with shared link
   - `netlib-system`: use system Netlib (experimental)
+- Intel MKL
+  - `intel-mkl`: use Intel MKL shared link (experimental)
 
 Examples
 ---------

@@ -6,22 +6,7 @@ use lapack::c::Layout::ColumnMajor as cm;
 use layout::MatrixLayout;
 use types::*;
 
-#[repr(u8)]
-pub enum NormType {
-    One = b'o',
-    Infinity = b'i',
-    Frobenius = b'f',
-}
-
-impl NormType {
-    fn transpose(self) -> Self {
-        match self {
-            NormType::One => NormType::Infinity,
-            NormType::Infinity => NormType::One,
-            NormType::Frobenius => NormType::Frobenius,
-        }
-    }
-}
+use super::NormType;
 
 pub trait OperatorNorm_: AssociatedReal {
     unsafe fn opnorm(NormType, MatrixLayout, &[Self]) -> Self::Real;

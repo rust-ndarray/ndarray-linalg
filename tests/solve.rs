@@ -5,7 +5,6 @@ extern crate num_traits;
 
 use ndarray::*;
 use ndarray_linalg::*;
-use ndarray_linalg::lapack_traits::opnorm::NormType;
 
 #[test]
 fn solve_random() {
@@ -30,7 +29,7 @@ fn rcond() {
     macro_rules! rcond {
         ($elem:ty, $rows:expr, $atol:expr) => {
             let a: Array2<$elem> = random(($rows, $rows));
-            let rcond = 1. / (a.opnorm(NormType::One).unwrap() * a.inv().unwrap().opnorm(NormType::One).unwrap());
+            let rcond = 1. / (a.opnorm_one().unwrap() * a.inv().unwrap().opnorm_one().unwrap());
             assert_aclose!(a.rcond().unwrap(), rcond, $atol);
             assert_aclose!(a.rcond_into().unwrap(), rcond, $atol);
         }

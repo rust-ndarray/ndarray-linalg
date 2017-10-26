@@ -49,7 +49,6 @@ use ndarray::*;
 
 use super::convert::*;
 use super::error::*;
-use super::lapack_traits::opnorm::NormType;
 use super::layout::*;
 use super::opnorm::OperationNorm;
 use super::types::*;
@@ -428,8 +427,8 @@ pub trait ReciprocalConditionNum<A: Scalar> {
     /// 1-norm.
     ///
     /// This method uses the LAPACK `*gecon` routines, which *estimate*
-    /// `self.inv().opnorm(One)` and then compute `rcond = 1. /
-    /// (self.opnorm(One) * self.inv().opnorm(One))`.
+    /// `self.inv().opnorm_one()` and then compute `rcond = 1. /
+    /// (self.opnorm_one() * self.inv().opnorm_one())`.
     ///
     /// * If `rcond` is near `0.`, the matrix is badly conditioned.
     /// * If `rcond` is near `1.`, the matrix is well conditioned.
@@ -442,8 +441,8 @@ pub trait ReciprocalConditionNumInto<A: Scalar> {
     /// 1-norm.
     ///
     /// This method uses the LAPACK `*gecon` routines, which *estimate*
-    /// `self.inv().opnorm(One)` and then compute `rcond = 1. /
-    /// (self.opnorm(One) * self.inv().opnorm(One))`.
+    /// `self.inv().opnorm_one()` and then compute `rcond = 1. /
+    /// (self.opnorm_one() * self.inv().opnorm_one())`.
     ///
     /// * If `rcond` is near `0.`, the matrix is badly conditioned.
     /// * If `rcond` is near `1.`, the matrix is well conditioned.
@@ -460,7 +459,7 @@ where
             A::rcond(
                 self.a.layout()?,
                 self.a.as_allocated()?,
-                self.a.opnorm(NormType::One)?,
+                self.a.opnorm_one()?,
             )
         }
     }

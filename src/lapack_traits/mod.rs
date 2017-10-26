@@ -56,3 +56,21 @@ pub enum Transpose {
     Transpose = b'T',
     Hermite = b'C',
 }
+
+#[derive(Debug, Clone, Copy)]
+#[repr(u8)]
+pub enum NormType {
+    One = b'O',
+    Infinity = b'I',
+    Frobenius = b'F',
+}
+
+impl NormType {
+    pub(crate) fn transpose(self) -> Self {
+        match self {
+            NormType::One => NormType::Infinity,
+            NormType::Infinity => NormType::One,
+            NormType::Frobenius => NormType::Frobenius,
+        }
+    }
+}

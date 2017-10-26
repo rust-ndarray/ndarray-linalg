@@ -8,7 +8,7 @@ use num_traits::Zero;
 use types::*;
 
 use super::{Pivot, Transpose, into_result};
-use super::opnorm::NormType;
+use super::NormType;
 
 /// Wraps `*getrf`, `*getri`, and `*getrs`
 pub trait Solve_: AssociatedReal + Sized {

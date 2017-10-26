@@ -6,7 +6,7 @@ use lapack::c::Layout::ColumnMajor as cm;
 use layout::MatrixLayout;
 use types::*;
 
-use super::NormType;
+pub use super::NormType;
 
 pub trait OperatorNorm_: AssociatedReal {
     unsafe fn opnorm(NormType, MatrixLayout, &[Self]) -> Self::Real;

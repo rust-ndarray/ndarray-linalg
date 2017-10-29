@@ -17,14 +17,16 @@ and more (See Cargo.toml).
 Feature flags
 --------------
 
-- OpenBLAS
+- [OpenBLAS](https://github.com/cmr/openblas-src)
   - `openblas-static`: use OpenBLAS with static link (default)
   - `openblas-shared`: use OpenBLAS with shared link
   - `openblas-system`: use system OpenBLAS (experimental)
-- Netlib
+- [Netlib](https://github.com/cmr/netlib-src)
   - `netlib-static`: use Netlib with static link (default)
   - `netlib-shared`: use Netlib with shared link
   - `netlib-system`: use system Netlib (experimental)
+- [Intel MKL](https://github.com/termoshtt/rust-intel-mkl) (non-free license, see the linked page)
+  - `intel-mkl`: use Intel MKL shared link (experimental)
 
 Examples
 ---------

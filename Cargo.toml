@@ -19,6 +19,7 @@ openblas-system = ["lapack/openblas", "openblas-src/system"]
 netlib-shared   = ["lapack/netlib"]
 netlib-static   = ["lapack/netlib", "netlib-src/static"]
 netlib-system   = ["lapack/netlib", "netlib-src/system"]
+intel-mkl       = ["intel-mkl-src"]
 
 [dependencies]
 rand = "0.3"
@@ -26,14 +27,11 @@ derive-new = "0.4"
 procedurals = "0.2"
 num-traits  = "0.1"
 num-complex = "0.1"
+lapack = { version = "0.13", default-features = false }
+lapack-sys = { version = "0.11", default-features = false }
 
 [dependencies.ndarray]
 version = "0.10"
-default-features = false
-features = ["blas"]
-
-[dependencies.lapack]
-version = "0.13"
 default-features = false
 
 [dependencies.openblas-src]
@@ -43,5 +41,10 @@ optional = true
 
 [dependencies.netlib-src]
 version = "0.7.0"
+default-features = false
+optional = true
+
+[dependencies.intel-mkl-src]
+version = "0.2.5"
 default-features = false
 optional = true

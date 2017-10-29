@@ -116,7 +116,9 @@ where
         if self.is_square() {
             Ok(())
         } else {
-            Err(NotSquareError::new(self.rows() as i32, self.cols() as i32).into())
+            Err(
+                NotSquareError::new(self.rows() as i32, self.cols() as i32).into(),
+            )
         }
     }
 

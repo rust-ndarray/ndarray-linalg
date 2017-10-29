@@ -11,3 +11,9 @@ test-netlib:
     - script:
       name: test NetLib backend
       code: cargo test --no-default-features --features=netlib-static
+
+test-intel-mkl:
+  steps:
+    - script:
+      name: test Intel MKL backend
+      code: cargo test --no-default-features --features=intel-mkl

@@ -95,7 +95,7 @@ where
     D: Dimension + RemoveAxis,
     for<'a> T: OperatorInplace<ViewRepr<&'a mut A>, D::Smaller>,
 {
-    fn op_multi_inplace<'a>(&self, mut a: &'a mut ArrayBase<S, D>) -> &'a mut ArrayBase<S, D> {
+    fn op_multi_inplace<'a>(&self, a: &'a mut ArrayBase<S, D>) -> &'a mut ArrayBase<S, D> {
         let n = a.ndim();
         for mut col in a.axis_iter_mut(Axis(n - 1)) {
             self.op_inplace(&mut col);

@@ -10,7 +10,7 @@ pub use lapack_traits::NormType;
 
 /// Operator norm using `*lange` LAPACK routines
 ///
-/// https://en.wikipedia.org/wiki/Operator_norm
+/// [Wikipedia article on operator norm](https://en.wikipedia.org/wiki/Operator_norm)
 pub trait OperationNorm {
     /// the value of norm
     type Output: RealScalar;

@@ -15,7 +15,7 @@ pub trait IntoDiagonal<S: Data> {
 }
 
 pub trait AsDiagonal<A> {
-    fn as_diagonal<'a>(&'a self) -> Diagonal<ViewRepr<&'a A>>;
+    fn as_diagonal(&self) -> Diagonal<ViewRepr<&A>>;
 }
 
 impl<S: Data> IntoDiagonal<S> for ArrayBase<S, Ix1> {
@@ -25,7 +25,7 @@ impl<S: Data> IntoDiagonal<S> for ArrayBase<S, Ix1> {
 }
 
 impl<A, S: Data<Elem = A>> AsDiagonal<A> for ArrayBase<S, Ix1> {
-    fn as_diagonal<'a>(&'a self) -> Diagonal<ViewRepr<&'a A>> {
+    fn as_diagonal(&self) -> Diagonal<ViewRepr<&A>> {
         Diagonal { diag: self.view() }
     }
 }
@@ -36,7 +36,7 @@ where
     S: Data<Elem = A>,
     Sr: DataMut<Elem = A>,
 {
-    fn op_inplace<'a>(&self, mut a: &'a mut ArrayBase<Sr, Ix1>) -> &'a mut ArrayBase<Sr, Ix1> {
+    fn op_inplace<'a>(&self, a: &'a mut ArrayBase<Sr, Ix1>) -> &'a mut ArrayBase<Sr, Ix1> {
         for (val, d) in a.iter_mut().zip(self.diag.iter()) {
             *val = *val * *d;
         }
@@ -64,7 +64,7 @@ where
     Sr: DataOwned<Elem = A> + DataMut,
 {
     fn op_into(&self, mut a: ArrayBase<Sr, Ix1>) -> ArrayBase<Sr, Ix1> {
-        self.op(&mut a);
+        self.op_inplace(&mut a);
         a
     }
 }
@@ -75,8 +75,8 @@ where
     S: Data<Elem = A>,
     Sr: DataMut<Elem = A>,
 {
-    fn op_inplace<'a>(&self, mut a: &'a mut ArrayBase<Sr, Ix2>) -> &'a mut ArrayBase<Sr, Ix2> {
-        let ref d = self.diag;
+    fn op_inplace<'a>(&self, a: &'a mut ArrayBase<Sr, Ix2>) -> &'a mut ArrayBase<Sr, Ix2> {
+        let d = &self.diag;
         for ((i, _), val) in a.indexed_iter_mut() {
             *val = *val * d[i];
         }
@@ -104,7 +104,7 @@ where
     Sr: DataOwned<Elem = A> + DataMut,
 {
     fn op_into(&self, mut a: ArrayBase<Sr, Ix2>) -> ArrayBase<Sr, Ix2> {
-        self.op(&mut a);
+        self.op_inplace(&mut a);
         a
     }
 }

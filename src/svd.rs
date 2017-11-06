@@ -1,6 +1,6 @@
-//! singular-value decomposition
+//! Singular-value decomposition (SVD)
 //!
-//! https://en.wikipedia.org/wiki/Singular_value_decomposition
+//! [Wikipedia article on SVD](https://en.wikipedia.org/wiki/Singular_value_decomposition)
 
 use ndarray::*;
 

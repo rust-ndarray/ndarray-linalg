@@ -89,7 +89,7 @@ fn deth_nonsquare() {
         }
     }
     for &dims in &[(1, 0), (1, 2), (2, 1), (2, 3)] {
-        for &shape in &[dims.clone().into_shape(), dims.clone().f()] {
+        for &shape in &[dims.into_shape(), dims.f()] {
             deth_nonsquare!(f64, shape);
             deth_nonsquare!(f32, shape);
             deth_nonsquare!(c64, shape);

@@ -62,7 +62,7 @@ where
         &self,
         uplo: UPLO,
         diag: Diag,
-        mut b: &'a mut ArrayBase<So, Ix2>,
+        b: &'a mut ArrayBase<So, Ix2>,
     ) -> Result<&'a mut ArrayBase<So, Ix2>> {
         let la = self.layout()?;
         let a_ = self.as_allocated()?;

@@ -33,8 +33,7 @@ impl MatrixLayout {
 
     pub fn lda(&self) -> LDA {
         match *self {
-            MatrixLayout::C((_, lda)) => lda,
-            MatrixLayout::F((_, lda)) => lda,
+            MatrixLayout::C((_, lda)) | MatrixLayout::F((_, lda)) => lda,
         }
     }
 
@@ -123,7 +122,7 @@ where
     }
 
     fn as_allocated(&self) -> Result<&[A]> {
-        Ok(self.as_slice_memory_order().ok_or(MemoryContError::new())?)
+        Ok(self.as_slice_memory_order().ok_or_else(MemoryContError::new)?)
     }
 }
 
@@ -132,8 +131,8 @@ where
     S: DataMut<Elem = A>,
 {
     fn as_allocated_mut(&mut self) -> Result<&mut [A]> {
-        Ok(self.as_slice_memory_order_mut().ok_or(
-            MemoryContError::new(),
+        Ok(self.as_slice_memory_order_mut().ok_or_else(
+            MemoryContError::new,
         )?)
     }
 }

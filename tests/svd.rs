@@ -7,9 +7,9 @@ use ndarray::*;
 use ndarray_linalg::*;
 use std::cmp::min;
 
-fn test(a: Array2<f64>, n: usize, m: usize) {
+fn test(a: &Array2<f64>, n: usize, m: usize) {
     let answer = a.clone();
-    println!("a = \n{:?}", &a);
+    println!("a = \n{:?}", a);
     let (u, s, vt): (_, Array1<_>, _) = a.svd(true, true).unwrap();
     let u: Array2<_> = u.unwrap();
     let vt: Array2<_> = vt.unwrap();
@@ -26,35 +26,35 @@ fn test(a: Array2<f64>, n: usize, m: usize) {
 #[test]
 fn svd_square() {
     let a = random((3, 3));
-    test(a, 3, 3);
+    test(&a, 3, 3);
 }
 
 #[test]
 fn svd_square_t() {
     let a = random((3, 3).f());
-    test(a, 3, 3);
+    test(&a, 3, 3);
 }
 
 #[test]
 fn svd_3x4() {
     let a = random((3, 4));
-    test(a, 3, 4);
+    test(&a, 3, 4);
 }
 
 #[test]
 fn svd_3x4_t() {
     let a = random((3, 4).f());
-    test(a, 3, 4);
+    test(&a, 3, 4);
 }
 
 #[test]
 fn svd_4x3() {
     let a = random((4, 3));
-    test(a, 4, 3);
+    test(&a, 4, 3);
 }
 
 #[test]
 fn svd_4x3_t() {
     let a = random((4, 3).f());
-    test(a, 4, 3);
+    test(&a, 4, 3);
 }

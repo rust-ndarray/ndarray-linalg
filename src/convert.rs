@@ -28,7 +28,7 @@ where
     S: Data,
 {
     let n = a.len();
-    a.into_shape((n)).unwrap()
+    a.into_shape(n).unwrap()
 }
 
 pub fn into_matrix<A, S>(l: MatrixLayout, a: Vec<A>) -> Result<ArrayBase<S, Ix2>>

@@ -8,7 +8,7 @@ use ndarray_linalg::*;
 use num_traits::{One, Zero};
 
 /// Returns the matrix with the specified `row` and `col` removed.
-fn matrix_minor<A, S>(a: ArrayBase<S, Ix2>, (row, col): (usize, usize)) -> Array2<A>
+fn matrix_minor<A, S>(a: &ArrayBase<S, Ix2>, (row, col): (usize, usize)) -> Array2<A>
 where
     A: Scalar,
     S: Data<Elem = A>,
@@ -27,7 +27,7 @@ where
 ///
 /// Note: This implementation is written to be clearly correct so that it's
 /// useful for verification, but it's very inefficient.
-fn det_naive<A, S>(a: ArrayBase<S, Ix2>) -> A
+fn det_naive<A, S>(a: &ArrayBase<S, Ix2>) -> A
 where
     A: Scalar,
     S: Data<Elem = A>,
@@ -40,7 +40,7 @@ where
             (0..cols)
                 .map(|col| {
                     let sign = if col % 2 == 0 { A::one() } else { -A::one() };
-                    sign * a[(0, col)] * det_naive(matrix_minor(a.view(), (0, col)))
+                    sign * a[(0, col)] * det_naive(&matrix_minor(a, (0, col)))
                 })
                 .fold(A::zero(), |sum, subdet| sum + subdet)
         }
@@ -102,7 +102,7 @@ fn det() {
         ($elem:ty, $shape:expr, $rtol:expr) => {
             let a: Array2<$elem> = random($shape);
             println!("a = \n{:?}", a);
-            let det = det_naive(a.view());
+            let det = det_naive(&a);
             assert_rclose!(a.factorize().unwrap().det().unwrap(), det, $rtol);
             assert_rclose!(a.factorize().unwrap().det_into().unwrap(), det, $rtol);
             assert_rclose!(a.det().unwrap(), det, $rtol);
@@ -131,7 +131,7 @@ fn det_nonsquare() {
         }
     }
     for &dims in &[(1, 0), (1, 2), (2, 1), (2, 3)] {
-        for &shape in &[dims.clone().into_shape(), dims.clone().f()] {
+        for &shape in &[dims.into_shape(), dims.f()] {
             det_nonsquare!(f64, shape);
             det_nonsquare!(f32, shape);
             det_nonsquare!(c64, shape);

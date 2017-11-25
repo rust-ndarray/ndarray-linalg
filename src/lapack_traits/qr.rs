@@ -35,7 +35,7 @@ impl QR_ for $scalar {
         into_result(info, ())
     }
 
-    unsafe fn qr(l: MatrixLayout, mut a: &mut [Self]) -> Result<Vec<Self>> {
+    unsafe fn qr(l: MatrixLayout, a: &mut [Self]) -> Result<Vec<Self>> {
         let tau = Self::householder(l, a)?;
         let r = Vec::from(&*a);
         Self::q(l, a, &tau)?;

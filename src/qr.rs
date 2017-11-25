@@ -1,6 +1,6 @@
 //! QR decomposition
 //!
-//! https://en.wikipedia.org/wiki/QR_decomposition
+//! [Wikipedia article on QR decomposition](https://en.wikipedia.org/wiki/QR_decomposition)
 
 use ndarray::*;
 use num_traits::Zero;
@@ -49,7 +49,7 @@ pub trait QRSquareInto: Sized {
 /// QR decomposition for mutable reference of square matrix
 pub trait QRSquareInplace: Sized {
     type R;
-    fn qr_square_inplace<'a>(&'a mut self) -> Result<(&'a mut Self, Self::R)>;
+    fn qr_square_inplace(&mut self) -> Result<(&mut Self, Self::R)>;
 }
 
 impl<A, S> QRSquareInplace for ArrayBase<S, Ix2>
@@ -59,7 +59,7 @@ where
 {
     type R = Array2<A>;
 
-    fn qr_square_inplace<'a>(&'a mut self) -> Result<(&'a mut Self, Self::R)> {
+    fn qr_square_inplace(&mut self) -> Result<(&mut Self, Self::R)> {
         let l = self.square_layout()?;
         let r = unsafe { A::qr(l, self.as_allocated_mut()?)? };
         let r: Array2<_> = into_matrix(l, r)?;

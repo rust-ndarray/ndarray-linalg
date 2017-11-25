@@ -18,13 +18,13 @@ pub use num_complex::Complex64 as c64;
 ///
 /// You can use the following operations with `A: Scalar`:
 ///
-/// - [abs](trait.Absolute.html#method.abs)
-/// - [abs_sqr](trait.Absolute.html#tymethod.abs_sqr)
-/// - [sqrt](trait.SquareRoot.html#tymethod.sqrt)
-/// - [exp](trait.Exponential.html#tymethod.exp)
-/// - [ln](trait.NaturalLogarithm.html#tymethod.ln)
-/// - [conj](trait.Conjugate.html#tymethod.conj)
-/// - [randn](trait.RandNormal.html#tymethod.randn)
+/// - [`abs`](trait.Absolute.html#method.abs)
+/// - [`abs_sqr`](trait.Absolute.html#tymethod.abs_sqr)
+/// - [`sqrt`](trait.SquareRoot.html#tymethod.sqrt)
+/// - [`exp`](trait.Exponential.html#tymethod.exp)
+/// - [`ln`](trait.NaturalLogarithm.html#tymethod.ln)
+/// - [`conj`](trait.Conjugate.html#tymethod.conj)
+/// - [`randn`](trait.RandNormal.html#tymethod.randn)
 ///
 pub trait Scalar
     : LapackScalar

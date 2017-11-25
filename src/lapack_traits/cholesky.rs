@@ -24,7 +24,7 @@ pub trait Cholesky_: Sized {
 macro_rules! impl_cholesky {
     ($scalar:ty, $trf:path, $tri:path, $trs:path) => {
 impl Cholesky_ for $scalar {
-    unsafe fn cholesky(l: MatrixLayout, uplo: UPLO, mut a: &mut [Self]) -> Result<()> {
+    unsafe fn cholesky(l: MatrixLayout, uplo: UPLO, a: &mut [Self]) -> Result<()> {
         let (n, _) = l.size();
         let info = $trf(l.lapacke_layout(), uplo as u8, n, a, n);
         into_result(info, ())

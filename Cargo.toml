@@ -23,7 +23,7 @@ intel-mkl       = ["intel-mkl-src"]
 
 [dependencies]
 rand = "0.3"
-derive-new = "0.4"
+derive-new = "0.5"
 procedurals = "0.2"
 num-traits  = "0.1"
 num-complex = "0.1"

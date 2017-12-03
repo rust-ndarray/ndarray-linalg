@@ -10,23 +10,38 @@ Dependencies
 -------------
 
 - [bluss/rust-ndarray](https://github.com/bluss/rust-ndarray)
-- [stainless-steel/lapack](https://github.com/stainless-steel/lapack)
+- [blas-lapack-rs/lapacke](https://github.com/blas-lapack-rs/lapacke)
 
 and more (See Cargo.toml).
 
-Feature flags
---------------
+Choosing LAPACKE implementation
+--------------------------------
+
+For the sake of linking flexibility, you must provide LAPACKE implementation (as an `extern crate`) yourself.
+Currently three LAPACKE implementations are supported and tested:
 
 - [OpenBLAS](https://github.com/cmr/openblas-src)
-  - `openblas-static`: use OpenBLAS with static link (default)
-  - `openblas-shared`: use OpenBLAS with shared link
-  - `openblas-system`: use system OpenBLAS (experimental)
 - [Netlib](https://github.com/cmr/netlib-src)
-  - `netlib-static`: use Netlib with static link (default)
-  - `netlib-shared`: use Netlib with shared link
-  - `netlib-system`: use system Netlib (experimental)
 - [Intel MKL](https://github.com/termoshtt/rust-intel-mkl) (non-free license, see the linked page)
-  - `intel-mkl`: use Intel MKL shared link (experimental)
+
+You should link a LAPACKE implementation to a final crate (like binary executable or dylib) only, not to a Rust library.
+Example:
+
+`Cargo.toml`:
+```toml
+[depencdencies]
+ndarray = "0.10"
+ndarray-linalg = "0.8"
+openblas-src = "0.5" # or another backend of your choice
+
+```
+
+`main.rs`:
+```rust
+extern crate ndarray;
+extern crate ndarray_linalg;
+extern crate openblas_src; // or another backend of your choice
+```
 
 Examples
 ---------

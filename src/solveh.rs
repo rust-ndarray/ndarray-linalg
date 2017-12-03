@@ -7,7 +7,7 @@
 //!
 //! Solve `A * x = b`, where `A` is a Hermitian (or real symmetric) matrix:
 //!
-//! ```
+//! ```no_run
 //! #[macro_use]
 //! extern crate ndarray;
 //! extern crate ndarray_linalg;
@@ -32,7 +32,7 @@
 //! Hermitian or real symmetric coefficient matrix `A`, it's faster to compute
 //! the factorization once at the beginning than solving directly using `A`:
 //!
-//! ```
+//! ```no_run
 //! # extern crate ndarray;
 //! # extern crate ndarray_linalg;
 //! use ndarray::prelude::*;

@@ -1,7 +1,7 @@
 //! Operator norms of matrices
 
-use lapack::c;
-use lapack::c::Layout::ColumnMajor as cm;
+use lapacke;
+use lapacke::Layout::ColumnMajor as cm;
 
 use layout::MatrixLayout;
 use types::*;
@@ -24,7 +24,7 @@ impl OperatorNorm_ for $scalar {
 }
 }} // impl_opnorm!
 
-impl_opnorm!(f64, c::dlange);
-impl_opnorm!(f32, c::slange);
-impl_opnorm!(c64, c::zlange);
-impl_opnorm!(c32, c::clange);
+impl_opnorm!(f64, lapacke::dlange);
+impl_opnorm!(f32, lapacke::slange);
+impl_opnorm!(c64, lapacke::zlange);
+impl_opnorm!(c32, lapacke::clange);

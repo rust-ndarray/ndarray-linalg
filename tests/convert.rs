@@ -1,6 +1,8 @@
 
 extern crate ndarray;
 extern crate ndarray_linalg;
+#[cfg(feature = "lapack-src")]
+extern crate lapack_src;
 
 use ndarray::*;
 use ndarray_linalg::*;

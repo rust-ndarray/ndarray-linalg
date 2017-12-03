@@ -1,6 +1,6 @@
 //! Singular-value decomposition
 
-use lapack::c;
+use lapacke;
 use num_traits::Zero;
 
 use error::*;
@@ -63,7 +63,7 @@ impl SVD_ for $scalar {
 
 }} // impl_svd!
 
-impl_svd!(f64, c::dgesvd);
-impl_svd!(f32, c::sgesvd);
-impl_svd!(c64, c::zgesvd);
-impl_svd!(c32, c::cgesvd);
+impl_svd!(f64, lapacke::dgesvd);
+impl_svd!(f32, lapacke::sgesvd);
+impl_svd!(c64, lapacke::zgesvd);
+impl_svd!(c32, lapacke::cgesvd);

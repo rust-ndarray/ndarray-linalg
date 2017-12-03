@@ -1,6 +1,6 @@
 //! Solve linear problem using LU decomposition
 
-use lapack::c;
+use lapacke;
 
 use error::*;
 use layout::MatrixLayout;
@@ -65,7 +65,7 @@ impl Solve_ for $scalar {
 
 }} // impl_solve!
 
-impl_solve!(f64, c::dgetrf, c::dgetri, c::dgecon, c::dgetrs);
-impl_solve!(f32, c::sgetrf, c::sgetri, c::sgecon, c::sgetrs);
-impl_solve!(c64, c::zgetrf, c::zgetri, c::zgecon, c::zgetrs);
-impl_solve!(c32, c::cgetrf, c::cgetri, c::cgecon, c::cgetrs);
+impl_solve!(f64, lapacke::dgetrf, lapacke::dgetri, lapacke::dgecon, lapacke::dgetrs);
+impl_solve!(f32, lapacke::sgetrf, lapacke::sgetri, lapacke::sgecon, lapacke::sgetrs);
+impl_solve!(c64, lapacke::zgetrf, lapacke::zgetri, lapacke::zgecon, lapacke::zgetrs);
+impl_solve!(c32, lapacke::cgetrf, lapacke::cgetri, lapacke::cgecon, lapacke::cgetrs);

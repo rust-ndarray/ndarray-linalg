@@ -1,6 +1,6 @@
 //! Memory layout of matrices
 
-use lapack::c;
+use lapacke;
 use ndarray::*;
 
 use super::error::*;
@@ -44,10 +44,10 @@ impl MatrixLayout {
         }
     }
 
-    pub fn lapacke_layout(&self) -> c::Layout {
+    pub fn lapacke_layout(&self) -> lapacke::Layout {
         match *self {
-            MatrixLayout::C(_) => c::Layout::RowMajor,
-            MatrixLayout::F(_) => c::Layout::ColumnMajor,
+            MatrixLayout::C(_) => lapacke::Layout::RowMajor,
+            MatrixLayout::F(_) => lapacke::Layout::ColumnMajor,
         }
     }
 

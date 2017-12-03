@@ -17,8 +17,7 @@
 //!  - [generator functions](generate/index.html)
 //!  - [Scalar trait](types/trait.Scalar.html)
 
-extern crate lapack;
-extern crate lapack_sys;
+extern crate lapacke;
 extern crate num_traits;
 extern crate num_complex;
 extern crate rand;
@@ -29,8 +28,8 @@ extern crate procedurals;
 #[macro_use]
 extern crate derive_new;
 
-#[cfg(feature = "intel-mkl")]
-extern crate intel_mkl_src;
+//#[cfg(feature = "intel-mkl")]
+//extern crate intel_mkl_src;
 
 pub mod assert;
 pub mod cholesky;

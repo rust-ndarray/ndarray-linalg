@@ -1,6 +1,6 @@
 //! Cholesky decomposition
 
-use lapack::c;
+use lapacke;
 
 use error::*;
 use layout::MatrixLayout;
@@ -46,7 +46,7 @@ impl Cholesky_ for $scalar {
 }
 }} // end macro_rules
 
-impl_cholesky!(f64, c::dpotrf, c::dpotri, c::dpotrs);
-impl_cholesky!(f32, c::spotrf, c::spotri, c::spotrs);
-impl_cholesky!(c64, c::zpotrf, c::zpotri, c::zpotrs);
-impl_cholesky!(c32, c::cpotrf, c::cpotri, c::cpotrs);
+impl_cholesky!(f64, lapacke::dpotrf, lapacke::dpotri, lapacke::dpotrs);
+impl_cholesky!(f32, lapacke::spotrf, lapacke::spotri, lapacke::spotrs);
+impl_cholesky!(c64, lapacke::zpotrf, lapacke::zpotri, lapacke::zpotrs);
+impl_cholesky!(c32, lapacke::cpotrf, lapacke::cpotri, lapacke::cpotrs);

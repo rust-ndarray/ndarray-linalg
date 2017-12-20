@@ -28,8 +28,8 @@ extern crate procedurals;
 #[macro_use]
 extern crate derive_new;
 
-//#[cfg(feature = "intel-mkl")]
-//extern crate intel_mkl_src;
+#[cfg(feature = "intel-mkl")]
+extern crate intel_mkl_src;
 
 pub mod assert;
 pub mod cholesky;

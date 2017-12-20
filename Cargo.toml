@@ -18,13 +18,15 @@ procedurals = "0.2"
 num-traits  = "0.1"
 num-complex = { version = "0.1", default-features = false }
 lapacke = "0.1.4"
-lapack-src = { git = "https://github.com/alexbool/lapack-src", rev = "da33354", optional = true }
+lapack-src = { version = "0.1", default-features = false, optional = true }
+intel-mkl-src = { version = "0.2", optional = true }
 
 [dependencies.ndarray]
 version = "0.10"
 default-features = false
 
 [features]
-openblas = ["lapack-src", "lapack-src/openblas"]
-netlib = ["lapack-src", "lapack-src/netlib"]
-intel-mkl = ["lapack-src", "lapack-src/intel-mkl"]
+default   = []
+openblas  = ["lapack-src/openblas"]
+netlib    = ["lapack-src/netlib"]
+intel-mkl = ["intel-mkl-src"]

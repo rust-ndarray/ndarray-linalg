@@ -18,8 +18,10 @@ procedurals = "0.2"
 num-traits  = "0.1"
 num-complex = { version = "0.1", default-features = false }
 lapacke = "0.1.4"
-lapack-src = { version = "0.1", default-features = false, optional = true }
+
 intel-mkl-src = { version = "0.2", optional = true }
+openblas-src = { version = "*", optional = true }
+netlib-src = { version = "*", optional = true }
 
 [dependencies.ndarray]
 version = "0.10"
@@ -27,6 +29,6 @@ default-features = false
 
 [features]
 default   = []
-openblas  = ["lapack-src/openblas"]
-netlib    = ["lapack-src/netlib"]
+openblas  = ["openblas-src"]
+netlib    = ["netlib-src"]
 intel-mkl = ["intel-mkl-src"]

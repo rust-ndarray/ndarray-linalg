@@ -2,8 +2,6 @@
 extern crate ndarray;
 #[macro_use]
 extern crate ndarray_linalg;
-#[cfg(feature = "lapack-src")]
-extern crate lapack_src;
 
 #[test]
 fn assert() {

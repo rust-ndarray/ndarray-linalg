@@ -11,6 +11,12 @@ license       = "MIT"
 readme        = "README.md"
 categories    = ["algorithms", "science"]
 
+[features]
+default   = []
+openblas  = ["openblas-src"]
+netlib    = ["netlib-src"]
+intel-mkl = ["intel-mkl-src"]
+
 [dependencies]
 rand = "0.3"
 derive-new = "0.5"
@@ -19,16 +25,21 @@ num-traits  = "0.1"
 num-complex = { version = "0.1", default-features = false }
 lapacke = "0.1.4"
 
-intel-mkl-src = { version = "0.2", optional = true }
-openblas-src = { version = "*", optional = true }
-netlib-src = { version = "*", optional = true }
-
 [dependencies.ndarray]
 version = "0.10"
 default-features = false
 
-[features]
-default   = []
-openblas  = ["openblas-src"]
-netlib    = ["netlib-src"]
-intel-mkl = ["intel-mkl-src"]
+[dependencies.openblas-src]
+version = "0.5.3"
+default-features = false
+optional = true
+
+[dependencies.netlib-src]
+version = "0.7.0"
+default-features = false
+optional = true
+
+[dependencies.intel-mkl-src]
+version = "0.2.5"
+default-features = false
+optional = true

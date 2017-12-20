@@ -4,7 +4,7 @@
 //!
 //! Solve `A * x = b`:
 //!
-//! ```no_run
+//! ```
 //! #[macro_use]
 //! extern crate ndarray;
 //! extern crate ndarray_linalg;
@@ -28,7 +28,7 @@
 //! coefficient matrix `A`, it's faster to compute the LU factorization once at
 //! the beginning than solving directly using `A`:
 //!
-//! ```no_run
+//! ```
 //! # extern crate ndarray;
 //! # extern crate ndarray_linalg;
 //!

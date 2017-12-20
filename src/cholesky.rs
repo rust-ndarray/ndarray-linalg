@@ -9,7 +9,7 @@
 //! Using the Cholesky decomposition of `A` for various operations, where `A`
 //! is a Hermitian (or real symmetric) positive definite matrix:
 //!
-//! ```no_run
+//! ```
 //! #[macro_use]
 //! extern crate ndarray;
 //! extern crate ndarray_linalg;

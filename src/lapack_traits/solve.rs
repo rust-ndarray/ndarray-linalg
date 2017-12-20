@@ -65,7 +65,31 @@ impl Solve_ for $scalar {
 
 }} // impl_solve!
 
-impl_solve!(f64, lapacke::dgetrf, lapacke::dgetri, lapacke::dgecon, lapacke::dgetrs);
-impl_solve!(f32, lapacke::sgetrf, lapacke::sgetri, lapacke::sgecon, lapacke::sgetrs);
-impl_solve!(c64, lapacke::zgetrf, lapacke::zgetri, lapacke::zgecon, lapacke::zgetrs);
-impl_solve!(c32, lapacke::cgetrf, lapacke::cgetri, lapacke::cgecon, lapacke::cgetrs);
+impl_solve!(
+    f64,
+    lapacke::dgetrf,
+    lapacke::dgetri,
+    lapacke::dgecon,
+    lapacke::dgetrs
+);
+impl_solve!(
+    f32,
+    lapacke::sgetrf,
+    lapacke::sgetri,
+    lapacke::sgecon,
+    lapacke::sgetrs
+);
+impl_solve!(
+    c64,
+    lapacke::zgetrf,
+    lapacke::zgetri,
+    lapacke::zgecon,
+    lapacke::zgetrs
+);
+impl_solve!(
+    c32,
+    lapacke::cgetrf,
+    lapacke::cgetri,
+    lapacke::cgecon,
+    lapacke::cgetrs
+);

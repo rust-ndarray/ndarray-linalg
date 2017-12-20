@@ -31,11 +31,13 @@ default-features = false
 
 [dependencies.openblas-src]
 version = "0.5.3"
+features = ["static", "cblas", "lapacke"]
 default-features = false
 optional = true
 
 [dependencies.netlib-src]
 version = "0.7.0"
+features = ["static", "cblas", "lapacke", "tmg"]
 default-features = false
 optional = true
 

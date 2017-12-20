@@ -1,6 +1,6 @@
 //! QR decomposition
 
-use lapack::c;
+use lapacke;
 use num_traits::Zero;
 use std::cmp::min;
 
@@ -44,7 +44,7 @@ impl QR_ for $scalar {
 }
 }} // endmacro
 
-impl_qr!(f64, c::dgeqrf, c::dorgqr);
-impl_qr!(f32, c::sgeqrf, c::sorgqr);
-impl_qr!(c64, c::zgeqrf, c::zungqr);
-impl_qr!(c32, c::cgeqrf, c::cungqr);
+impl_qr!(f64, lapacke::dgeqrf, lapacke::dorgqr);
+impl_qr!(f32, lapacke::sgeqrf, lapacke::sorgqr);
+impl_qr!(c64, lapacke::zgeqrf, lapacke::zungqr);
+impl_qr!(c32, lapacke::cgeqrf, lapacke::cungqr);

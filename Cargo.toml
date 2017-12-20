@@ -1,6 +1,6 @@
 [package]
 name    = "ndarray-linalg"
-version = "0.7.1"
+version = "0.8.0"
 authors = ["Toshiki Teramura <toshiki.teramura@gmail.com>"]
 
 description   = "Linear algebra package for rust-ndarray using LAPACK"
@@ -12,23 +12,18 @@ readme        = "README.md"
 categories    = ["algorithms", "science"]
 
 [features]
-default  = ["openblas-static"]
-openblas-shared = ["lapack/openblas"]
-openblas-static = ["lapack/openblas", "openblas-src/static"]
-openblas-system = ["lapack/openblas", "openblas-src/system"]
-netlib-shared   = ["lapack/netlib"]
-netlib-static   = ["lapack/netlib", "netlib-src/static"]
-netlib-system   = ["lapack/netlib", "netlib-src/system"]
-intel-mkl       = ["intel-mkl-src"]
+default   = []
+openblas  = ["openblas-src"]
+netlib    = ["netlib-src"]
+intel-mkl = ["intel-mkl-src"]
 
 [dependencies]
 rand = "0.3"
-derive-new = "0.4"
+derive-new = "0.5"
 procedurals = "0.2"
 num-traits  = "0.1"
-num-complex = "0.1"
-lapack = { version = "0.13", default-features = false }
-lapack-sys = { version = "0.11", default-features = false }
+num-complex = { version = "0.1", default-features = false }
+lapacke = "0.1.4"
 
 [dependencies.ndarray]
 version = "0.10"
@@ -36,11 +31,13 @@ default-features = false
 
 [dependencies.openblas-src]
 version = "0.5.3"
+features = ["static", "cblas", "lapacke"]
 default-features = false
 optional = true
 
 [dependencies.netlib-src]
 version = "0.7.0"
+features = ["static", "cblas", "lapacke", "tmg"]
 default-features = false
 optional = true
 

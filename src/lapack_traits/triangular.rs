@@ -1,6 +1,6 @@
 //! Implement linear solver and inverse matrix
 
-use lapack::c;
+use lapacke;
 
 use super::{Transpose, UPLO, into_result};
 use error::*;
@@ -50,7 +50,7 @@ impl Triangular_ for $scalar {
 
 }} // impl_triangular!
 
-impl_triangular!(f64, c::dtrtri, c::dtrtrs);
-impl_triangular!(f32, c::strtri, c::strtrs);
-impl_triangular!(c64, c::ztrtri, c::ztrtrs);
-impl_triangular!(c32, c::ctrtri, c::ctrtrs);
+impl_triangular!(f64, lapacke::dtrtri, lapacke::dtrtrs);
+impl_triangular!(f32, lapacke::strtri, lapacke::strtrs);
+impl_triangular!(c64, lapacke::ztrtri, lapacke::ztrtrs);
+impl_triangular!(c32, lapacke::ctrtri, lapacke::ctrtrs);

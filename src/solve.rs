@@ -31,6 +31,7 @@
 //! ```
 //! # extern crate ndarray;
 //! # extern crate ndarray_linalg;
+//!
 //! use ndarray::prelude::*;
 //! use ndarray_linalg::*;
 //! # fn main() {

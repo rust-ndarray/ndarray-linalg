@@ -1,6 +1,6 @@
 //! Eigenvalue decomposition for Hermite matrices
 
-use lapack::c;
+use lapacke;
 use num_traits::Zero;
 
 use error::*;
@@ -27,7 +27,7 @@ impl Eigh_ for $scalar {
 }
 }} // impl_eigh!
 
-impl_eigh!(f64, c::dsyev);
-impl_eigh!(f32, c::ssyev);
-impl_eigh!(c64, c::zheev);
-impl_eigh!(c32, c::cheev);
+impl_eigh!(f64, lapacke::dsyev);
+impl_eigh!(f32, lapacke::ssyev);
+impl_eigh!(c64, lapacke::zheev);
+impl_eigh!(c32, lapacke::cheev);

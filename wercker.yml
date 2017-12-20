@@ -4,13 +4,13 @@ test-openblas:
   steps:
     - script:
       name: test OpenBLAS backend
-      code: cargo test --no-default-features --features=openblas-static
+      code: cargo test --no-default-features --features=openblas
 
 test-netlib:
   steps:
     - script:
       name: test NetLib backend
-      code: cargo test --no-default-features --features=netlib-static
+      code: cargo test --no-default-features --features=netlib
 
 test-intel-mkl:
   steps:

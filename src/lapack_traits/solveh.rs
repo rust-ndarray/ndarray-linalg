@@ -2,7 +2,7 @@
 //!
 //! See also [the manual of dsytrf](http://www.netlib.org/lapack/lapack-3.1.1/html/dsytrf.f.html)
 
-use lapack::c;
+use lapacke;
 
 use error::*;
 use layout::MatrixLayout;
@@ -55,7 +55,7 @@ impl Solveh_ for $scalar {
 
 }} // impl_solveh!
 
-impl_solveh!(f64, c::dsytrf, c::dsytri, c::dsytrs);
-impl_solveh!(f32, c::ssytrf, c::ssytri, c::ssytrs);
-impl_solveh!(c64, c::zhetrf, c::zhetri, c::zhetrs);
-impl_solveh!(c32, c::chetrf, c::chetri, c::chetrs);
+impl_solveh!(f64, lapacke::dsytrf, lapacke::dsytri, lapacke::dsytrs);
+impl_solveh!(f32, lapacke::ssytrf, lapacke::ssytri, lapacke::ssytrs);
+impl_solveh!(c64, lapacke::zhetrf, lapacke::zhetri, lapacke::zhetrs);
+impl_solveh!(c32, lapacke::chetrf, lapacke::chetri, lapacke::chetrs);

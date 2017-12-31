@@ -1,4 +1,4 @@
-box: termoshtt/rust:latest
+box: termoshtt/rust-dev:latest
 
 test-openblas:
   steps:
@@ -17,3 +17,9 @@ test-intel-mkl:
     - script:
       name: test Intel MKL backend
       code: cargo test --no-default-features --features=intel-mkl
+
+codecov:
+  steps:
+    - script:
+      name: Calc coverage and submit result to codecov.io
+      code: ./kcov.bash

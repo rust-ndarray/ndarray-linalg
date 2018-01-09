@@ -1,6 +1,6 @@
 [package]
 name    = "ndarray-linalg"
-version = "0.8.0"
+version = "0.9.0"
 authors = ["Toshiki Teramura <toshiki.teramura@gmail.com>"]
 
 description   = "Linear algebra package for rust-ndarray using LAPACK"
@@ -26,7 +26,7 @@ num-complex = { version = "0.1", default-features = false }
 lapacke = "0.1.4"
 
 [dependencies.ndarray]
-version = "0.10"
+version = "0.11"
 default-features = false
 
 [dependencies.openblas-src]

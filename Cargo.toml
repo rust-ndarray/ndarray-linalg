@@ -12,26 +12,24 @@ readme        = "README.md"
 categories    = ["algorithms", "science"]
 
 [features]
-default   = []
-openblas  = ["openblas-src"]
-netlib    = ["netlib-src"]
-intel-mkl = ["intel-mkl-src"]
+default    = []
+accelerate = ["lapack-src/accelerate"]
+openblas   = ["lapack-src/openblas", "openblas-src"]
+netlib     = ["lapack-src/netlib", "netlib-src"]
+intel-mkl  = ["intel-mkl-src"]
 
 [dependencies]
-rand = "0.3"
+rand = "0.4"
 derive-new = "0.5"
 procedurals = "0.2"
 num-traits  = "0.1"
 num-complex = { version = "0.1", default-features = false }
+ndarray = { version = "0.11", default-features = false }
 lapacke = "0.1.4"
+lapack-src = { version = "0.1", default-features = false }
 
-[dependencies.ndarray]
-version = "0.10"
-default-features = false
-
-[dependencies.openblas-src]
-version = "0.5.3"
-features = ["static", "cblas", "lapacke"]
+[dependencies.intel-mkl-src]
+version = "0.2"
 default-features = false
 optional = true
 
@@ -41,7 +39,8 @@ features = ["static", "cblas", "lapacke", "tmg"]
 default-features = false
 optional = true
 
-[dependencies.intel-mkl-src]
-version = "0.2.5"
+[dependencies.openblas-src]
+version = "0.5.3"
+features = ["static", "cblas", "lapacke"]
 default-features = false
 optional = true

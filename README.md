@@ -22,8 +22,8 @@ There are three features corresponding to the backend implementations (`openblas
 
 ```toml
 [depencdencies]
-ndarray = "0.10"
-ndarray-linalg = { version = "0.8", features = ["openblas"] }
+ndarray = "0.11"
+ndarray-linalg = { version = "0.9", features = ["openblas"] }
 ```
 
 ### link backend crate manually
@@ -32,8 +32,8 @@ You should link a LAPACKE implementation to a final crate (like binary executabl
 
 ```toml
 [depencdencies]
-ndarray = "0.10"
-ndarray-linalg = "0.8"
+ndarray = "0.11"
+ndarray-linalg = "0.9"
 openblas-src = "0.5" # or another backend of your choice
 
 ```
@@ -51,8 +51,8 @@ If you creating a library depending on this crate, we encourage you not to link 
 
 ```toml
 [depencdencies]
-ndarray = "0.10"
-ndarray-linalg = { version = "0.8", default-features = false }
+ndarray = "0.11"
+ndarray-linalg = { version = "0.9", default-features = false }
 ```
 
 However, if you hope simplicity instead of the flexibility, you can link your favorite backend in the way described above.

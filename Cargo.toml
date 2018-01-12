@@ -14,7 +14,7 @@ categories    = ["algorithms", "science"]
 [features]
 default    = []
 accelerate = ["lapack-src/accelerate", "blas-src/accelerate"]
-intel-mkl  = ["intel-mkl-src"]
+intel-mkl  = ["lapack-src/intel-mkl", "blas-src/intel-mkl"]
 netlib     = ["lapack-src/netlib", "blas-src/netlib", "netlib-src"]
 openblas   = ["lapack-src/openblas", "blas-src/openblas", "openblas-src"]
 
@@ -38,11 +38,6 @@ optional = true
 
 [dependencies.lapack-src]
 version = "0.1"
-default-features = false
-optional = true
-
-[dependencies.intel-mkl-src]
-version = "0.2"
 default-features = false
 optional = true
 

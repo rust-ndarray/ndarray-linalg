@@ -21,10 +21,13 @@ openblas   = ["lapack-src/openblas", "blas-src/openblas", "openblas-src"]
 [dependencies]
 derive-new = "0.5"
 lapacke = "0.1.4"
-num-complex = "0.1"
 num-traits  = "0.1"
 procedurals = "0.2"
 rand = "0.4"
+
+[dependencies.num-complex]
+version = "0.1"
+default-features = false
 
 [dependencies.ndarray]
 version = "0.11"

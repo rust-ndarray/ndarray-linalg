@@ -254,20 +254,53 @@ where
 /// An interface for calculating determinants of Hermitian (or real symmetric) matrix refs.
 pub trait DeterminantH {
     type Output;
+    type SignLnOutput;
 
     /// Computes the determinant of the Hermitian (or real symmetric) matrix.
     fn deth(&self) -> Self::Output;
+
+    /// Computes the `(sign, natural_log)` of the determinant of the Hermitian
+    /// (or real symmetric) matrix.
+    ///
+    /// The `natural_log` is the natural logarithm of the absolute value of the
+    /// determinant. If the determinant is zero, `sign` is 0 and `natural_log`
+    /// is negative infinity.
+    ///
+    /// To obtain the determinant, you can compute `sign * natural_log.exp()`
+    /// or just call `.deth()` instead.
+    ///
+    /// This method is more robust than `.deth()` to very small or very large
+    /// determinants since it returns the natural logarithm of the determinant
+    /// rather than the determinant itself.
+    fn sln_deth(&self) -> Self::SignLnOutput;
 }
 
 /// An interface for calculating determinants of Hermitian (or real symmetric) matrices.
 pub trait DeterminantHInto {
     type Output;
+    type SignLnOutput;
 
     /// Computes the determinant of the Hermitian (or real symmetric) matrix.
     fn deth_into(self) -> Self::Output;
+
+    /// Computes the `(sign, natural_log)` of the determinant of the Hermitian
+    /// (or real symmetric) matrix.
+    ///
+    /// The `natural_log` is the natural logarithm of the absolute value of the
+    /// determinant. If the determinant is zero, `sign` is 0 and `natural_log`
+    /// is negative infinity.
+    ///
+    /// To obtain the determinant, you can compute `sign * natural_log.exp()`
+    /// or just call `.deth_into()` instead.
+    ///
+    /// This method is more robust than `.deth_into()` to very small or very
+    /// large determinants since it returns the natural logarithm of the
+    /// determinant rather than the determinant itself.
+    fn sln_deth_into(self) -> Self::SignLnOutput;
 }
 
-fn bk_det<P, S, A>(uplo: UPLO, ipiv_iter: P, a: &ArrayBase<S, Ix2>) -> A::Real
+/// Returns the sign and natural log of the determinant.
+fn bk_sln_det<P, S, A>(uplo: UPLO, ipiv_iter: P, a: &ArrayBase<S, Ix2>) -> (A::Real, A::Real)
 where
     P: Iterator<Item = i32>,
     S: Data<Elem = A>,
@@ -310,7 +343,7 @@ where
             ipiv_enum.next();
         }
     }
-    sign * ln_det.exp()
+    (sign, ln_det)
 }
 
 impl<A, S> DeterminantH for BKFactorized<S>
@@ -319,9 +352,15 @@ where
     S: Data<Elem = A>,
 {
     type Output = A::Real;
+    type SignLnOutput = (A::Real, A::Real);
 
     fn deth(&self) -> A::Real {
-        bk_det(UPLO::Upper, self.ipiv.iter().cloned(), &self.a)
+        let (sign, ln_det) = self.sln_deth();
+        sign * ln_det.exp()
+    }
+
+    fn sln_deth(&self) -> (A::Real, A::Real) {
+        bk_sln_det(UPLO::Upper, self.ipiv.iter().cloned(), &self.a)
     }
 }
 
@@ -331,9 +370,15 @@ where
     S: Data<Elem = A>,
 {
     type Output = A::Real;
+    type SignLnOutput = (A::Real, A::Real);
 
     fn deth_into(self) -> A::Real {
-        bk_det(UPLO::Upper, self.ipiv.into_iter(), &self.a)
+        let (sign, ln_det) = self.sln_deth_into();
+        sign * ln_det.exp()
+    }
+
+    fn sln_deth_into(self) -> (A::Real, A::Real) {
+        bk_sln_det(UPLO::Upper, self.ipiv.into_iter(), &self.a)
     }
 }
 
@@ -343,11 +388,20 @@ where
     S: Data<Elem = A>,
 {
     type Output = Result<A::Real>;
+    type SignLnOutput = Result<(A::Real, A::Real)>;
 
     fn deth(&self) -> Result<A::Real> {
+        let (sign, ln_det) = self.sln_deth()?;
+        Ok(sign * ln_det.exp())
+    }
+
+    fn sln_deth(&self) -> Result<(A::Real, A::Real)> {
         match self.factorizeh() {
-            Ok(fac) => Ok(fac.deth()),
-            Err(LinalgError::Lapack(LapackError { return_code })) if return_code > 0 => Ok(A::Real::zero()),
+            Ok(fac) => Ok(fac.sln_deth()),
+            Err(LinalgError::Lapack(LapackError { return_code })) if return_code > 0 => {
+                // Determinant is zero.
+                Ok((A::Real::zero(), A::Real::neg_infinity()))
+            }
             Err(err) => Err(err),
         }
     }
@@ -359,11 +413,20 @@ where
     S: DataMut<Elem = A>,
 {
     type Output = Result<A::Real>;
+    type SignLnOutput = Result<(A::Real, A::Real)>;
 
     fn deth_into(self) -> Result<A::Real> {
+        let (sign, ln_det) = self.sln_deth_into()?;
+        Ok(sign * ln_det.exp())
+    }
+
+    fn sln_deth_into(self) -> Result<(A::Real, A::Real)> {
         match self.factorizeh_into() {
-            Ok(fac) => Ok(fac.deth_into()),
-            Err(LinalgError::Lapack(LapackError { return_code })) if return_code > 0 => Ok(A::Real::zero()),
+            Ok(fac) => Ok(fac.sln_deth_into()),
+            Err(LinalgError::Lapack(LapackError { return_code })) if return_code > 0 => {
+                // Determinant is zero.
+                Ok((A::Real::zero(), A::Real::neg_infinity()))
+            }
             Err(err) => Err(err),
         }
     }

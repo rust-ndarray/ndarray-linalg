@@ -55,3 +55,8 @@ version = "0.5.3"
 features = ["static", "cblas", "lapacke"]
 default-features = false
 optional = true
+
+# Use OpenBLAS backend for examples, tests, and benchmarks.
+[dev-dependencies.blas-src]
+version = "0.1"
+features = ["openblas"]

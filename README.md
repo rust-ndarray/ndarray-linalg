@@ -57,7 +57,23 @@ ndarray-linalg = { version = "0.9", default-features = false }
 
 However, if you hope simplicity instead of the flexibility, you can link your favorite backend in the way described above.
 
+### Tests and Examples
+
+To run tests or examples for `ndarray-linalg`, you must specify the desired
+backend. For example, you can run the tests with the OpenBLAS backend like
+this:
+
+```sh
+cargo test --features=openblas
+```
+
 Examples
 ---------
 See [examples](https://github.com/termoshtt/ndarray-linalg/tree/master/examples) directory.
 
+Note that to run an example, you must specify the desired backend. For example,
+you can run the the `solve` example with the OpenBLAS backend like this:
+
+```sh
+cargo run --example solve --features=openblas
+```

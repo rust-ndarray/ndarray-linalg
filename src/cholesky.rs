@@ -102,12 +102,15 @@ where
     type Output = <A as AssociatedReal>::Real;
 
     fn detc(&self) -> Self::Output {
+        self.ln_detc().exp()
+    }
+
+    fn ln_detc(&self) -> Self::Output {
         self.factor
             .diag()
             .iter()
             .map(|elem| elem.abs_sqr().ln())
             .sum::<Self::Output>()
-            .exp()
     }
 }
 
@@ -120,6 +123,10 @@ where
 
     fn detc_into(self) -> Self::Output {
         self.detc()
+    }
+
+    fn ln_detc_into(self) -> Self::Output {
+        self.ln_detc()
     }
 }
 
@@ -391,6 +398,14 @@ pub trait DeterminantC {
     /// Computes the determinant of the Hermitian (or real symmetric) positive
     /// definite matrix.
     fn detc(&self) -> Self::Output;
+
+    /// Computes the natural log of the determinant of the Hermitian (or real
+    /// symmetric) positive definite matrix.
+    ///
+    /// This method is more robust than `.detc()` to very small or very large
+    /// determinants since it returns the natural logarithm of the determinant
+    /// rather than the determinant itself.
+    fn ln_detc(&self) -> Self::Output;
 }
 
 
@@ -401,6 +416,14 @@ pub trait DeterminantCInto {
     /// Computes the determinant of the Hermitian (or real symmetric) positive
     /// definite matrix.
     fn detc_into(self) -> Self::Output;
+
+    /// Computes the natural log of the determinant of the Hermitian (or real
+    /// symmetric) positive definite matrix.
+    ///
+    /// This method is more robust than `.detc_into()` to very small or very
+    /// large determinants since it returns the natural logarithm of the
+    /// determinant rather than the determinant itself.
+    fn ln_detc_into(self) -> Self::Output;
 }
 
 impl<A, S> DeterminantC for ArrayBase<S, Ix2>
@@ -411,7 +434,11 @@ where
     type Output = Result<<A as AssociatedReal>::Real>;
 
     fn detc(&self) -> Self::Output {
-        Ok(self.factorizec(UPLO::Upper)?.detc())
+        Ok(self.ln_detc()?.exp())
+    }
+
+    fn ln_detc(&self) -> Self::Output {
+        Ok(self.factorizec(UPLO::Upper)?.ln_detc())
     }
 }
 
@@ -423,6 +450,10 @@ where
     type Output = Result<<A as AssociatedReal>::Real>;
 
     fn detc_into(self) -> Self::Output {
-        Ok(self.factorizec_into(UPLO::Upper)?.detc_into())
+        Ok(self.ln_detc_into()?.exp())
+    }
+
+    fn ln_detc_into(self) -> Self::Output {
+        Ok(self.factorizec_into(UPLO::Upper)?.ln_detc_into())
     }
 }

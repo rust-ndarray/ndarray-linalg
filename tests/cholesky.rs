@@ -104,10 +104,16 @@ fn cholesky_det() {
         ($elem:ty, $atol:expr) => {
             let a: Array2<$elem> = random_hpd(3);
             println!("a = \n{:?}", a);
-            let det = a.eigvalsh(UPLO::Upper).unwrap().mapv(|elem| elem.ln()).scalar_sum().exp();
-            assert_aclose!(a.detc().unwrap(), det, $atol);
+            let ln_det = a.eigvalsh(UPLO::Upper).unwrap().mapv(|elem| elem.ln()).scalar_sum();
+            let det = ln_det.exp();
             assert_aclose!(a.factorizec(UPLO::Upper).unwrap().detc(), det, $atol);
-            assert_aclose!(a.factorizec(UPLO::Lower).unwrap().detc(), det, $atol);
+            assert_aclose!(a.factorizec(UPLO::Upper).unwrap().ln_detc(), ln_det, $atol);
+            assert_aclose!(a.factorizec(UPLO::Lower).unwrap().detc_into(), det, $atol);
+            assert_aclose!(a.factorizec(UPLO::Lower).unwrap().ln_detc_into(), ln_det, $atol);
+            assert_aclose!(a.detc().unwrap(), det, $atol);
+            assert_aclose!(a.ln_detc().unwrap(), ln_det, $atol);
+            assert_aclose!(a.clone().detc_into().unwrap(), det, $atol);
+            assert_aclose!(a.ln_detc_into().unwrap(), ln_det, $atol);
         }
     }
     cholesky_det!(f64, 1e-9);

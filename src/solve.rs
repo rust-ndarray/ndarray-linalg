@@ -47,6 +47,7 @@
 //! ```
 
 use ndarray::*;
+use num_traits::{Float, Zero};
 
 use super::convert::*;
 use super::error::*;
@@ -336,16 +337,54 @@ where
 /// An interface for calculating determinants of matrix refs.
 pub trait Determinant<A: Scalar> {
     /// Computes the determinant of the matrix.
-    fn det(&self) -> Result<A>;
+    fn det(&self) -> Result<A> {
+        let (sign, ln_det) = self.sln_det()?;
+        Ok(sign.mul_real(ln_det.exp()))
+    }
+
+    /// Computes the `(sign, natural_log)` of the determinant of the matrix.
+    ///
+    /// For real matrices, `sign` is `1`, `0`, or `-1`. For complex matrices,
+    /// `sign` is `0` or a complex number with absolute value 1. The
+    /// `natural_log` is the natural logarithm of the absolute value of the
+    /// determinant. If the determinant is zero, `sign` is 0 and `natural_log`
+    /// is negative infinity.
+    ///
+    /// To obtain the determinant, you can compute `sign * natural_log.exp()`
+    /// or just call `.det()` instead.
+    ///
+    /// This method is more robust than `.det()` to very small or very large
+    /// determinants since it returns the natural logarithm of the determinant
+    /// rather than the determinant itself.
+    fn sln_det(&self) -> Result<(A, A::Real)>;
 }
 
 /// An interface for calculating determinants of matrices.
-pub trait DeterminantInto<A: Scalar> {
+pub trait DeterminantInto<A: Scalar>: Sized {
     /// Computes the determinant of the matrix.
-    fn det_into(self) -> Result<A>;
+    fn det_into(self) -> Result<A> {
+        let (sign, ln_det) = self.sln_det_into()?;
+        Ok(sign.mul_real(ln_det.exp()))
+    }
+
+    /// Computes the `(sign, natural_log)` of the determinant of the matrix.
+    ///
+    /// For real matrices, `sign` is `1`, `0`, or `-1`. For complex matrices,
+    /// `sign` is `0` or a complex number with absolute value 1. The
+    /// `natural_log` is the natural logarithm of the absolute value of the
+    /// determinant. If the determinant is zero, `sign` is 0 and `natural_log`
+    /// is negative infinity.
+    ///
+    /// To obtain the determinant, you can compute `sign * natural_log.exp()`
+    /// or just call `.det_into()` instead.
+    ///
+    /// This method is more robust than `.det()` to very small or very large
+    /// determinants since it returns the natural logarithm of the determinant
+    /// rather than the determinant itself.
+    fn sln_det_into(self) -> Result<(A, A::Real)>;
 }
 
-fn lu_det<'a, A, P, U>(ipiv_iter: P, u_diag_iter: U) -> A
+fn lu_sln_det<'a, A, P, U>(ipiv_iter: P, u_diag_iter: U) -> (A, A::Real)
 where
     A: Scalar,
     P: Iterator<Item = i32>,
@@ -360,14 +399,14 @@ where
     } else {
         -A::one()
     };
-    let (upper_sign, ln_det) = u_diag_iter.fold((A::one(), A::zero()), |(upper_sign, ln_det), &elem| {
-        let abs_elem = elem.abs();
-        (
-            upper_sign * elem.div_real(abs_elem),
-            ln_det.add_real(abs_elem.ln()),
-        )
-    });
-    pivot_sign * upper_sign * ln_det.exp()
+    let (upper_sign, ln_det) = u_diag_iter.fold(
+        (A::one(), A::Real::zero()),
+        |(upper_sign, ln_det), &elem| {
+            let abs_elem: A::Real = elem.abs();
+            (upper_sign * elem.div_real(abs_elem), ln_det + abs_elem.ln())
+        },
+    );
+    (pivot_sign * upper_sign, ln_det)
 }
 
 impl<A, S> Determinant<A> for LUFactorized<S>
@@ -375,9 +414,12 @@ where
     A: Scalar,
     S: Data<Elem = A>,
 {
-    fn det(&self) -> Result<A> {
+    fn sln_det(&self) -> Result<(A, A::Real)> {
         self.a.ensure_square()?;
-        Ok(lu_det(self.ipiv.iter().cloned(), self.a.diag().iter()))
+        Ok(lu_sln_det(
+            self.ipiv.iter().cloned(),
+            self.a.diag().iter(),
+        ))
     }
 }
 
@@ -386,9 +428,12 @@ where
     A: Scalar,
     S: Data<Elem = A>,
 {
-    fn det_into(self) -> Result<A> {
+    fn sln_det_into(self) -> Result<(A, A::Real)> {
         self.a.ensure_square()?;
-        Ok(lu_det(self.ipiv.into_iter(), self.a.into_diag().iter()))
+        Ok(lu_sln_det(
+            self.ipiv.into_iter(),
+            self.a.into_diag().iter(),
+        ))
     }
 }
 
@@ -397,11 +442,14 @@ where
     A: Scalar,
     S: Data<Elem = A>,
 {
-    fn det(&self) -> Result<A> {
+    fn sln_det(&self) -> Result<(A, A::Real)> {
         self.ensure_square()?;
         match self.factorize() {
-            Ok(fac) => fac.det(),
-            Err(LinalgError::Lapack(LapackError { return_code })) if return_code > 0 => Ok(A::zero()),
+            Ok(fac) => fac.sln_det(),
+            Err(LinalgError::Lapack(LapackError { return_code })) if return_code > 0 => {
+                // The determinant is zero.
+                Ok((A::zero(), A::Real::neg_infinity()))
+            }
             Err(err) => Err(err),
         }
     }
@@ -412,11 +460,14 @@ where
     A: Scalar,
     S: DataMut<Elem = A>,
 {
-    fn det_into(self) -> Result<A> {
+    fn sln_det_into(self) -> Result<(A, A::Real)> {
         self.ensure_square()?;
         match self.factorize_into() {
-            Ok(fac) => fac.det_into(),
-            Err(LinalgError::Lapack(LapackError { return_code })) if return_code > 0 => Ok(A::zero()),
+            Ok(fac) => fac.sln_det_into(),
+            Err(LinalgError::Lapack(LapackError { return_code })) if return_code > 0 => {
+                // The determinant is zero.
+                Ok((A::zero(), A::Real::neg_infinity()))
+            }
             Err(err) => Err(err),
         }
     }

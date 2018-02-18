@@ -5,7 +5,7 @@ extern crate num_traits;
 
 use ndarray::*;
 use ndarray_linalg::*;
-use num_traits::{One, Zero};
+use num_traits::{Float, One, Zero};
 
 /// Returns the matrix with the specified `row` and `col` removed.
 fn matrix_minor<A, S>(a: &ArrayBase<S, Ix2>, (row, col): (usize, usize)) -> Array2<A>
@@ -52,10 +52,16 @@ fn det_empty() {
     macro_rules! det_empty {
         ($elem:ty) => {
             let a: Array2<$elem> = Array2::zeros((0, 0));
-            assert_eq!(a.factorize().unwrap().det().unwrap(), One::one());
-            assert_eq!(a.factorize().unwrap().det_into().unwrap(), One::one());
-            assert_eq!(a.det().unwrap(), One::one());
-            assert_eq!(a.det_into().unwrap(), One::one());
+            let det = One::one();
+            let (sign, ln_det) = (One::one(), Zero::zero());
+            assert_eq!(a.factorize().unwrap().det().unwrap(), det);
+            assert_eq!(a.factorize().unwrap().sln_det().unwrap(), (sign, ln_det));
+            assert_eq!(a.factorize().unwrap().det_into().unwrap(), det);
+            assert_eq!(a.factorize().unwrap().sln_det_into().unwrap(), (sign, ln_det));
+            assert_eq!(a.det().unwrap(), det);
+            assert_eq!(a.sln_det().unwrap(), (sign, ln_det));
+            assert_eq!(a.clone().det_into().unwrap(), det);
+            assert_eq!(a.sln_det_into().unwrap(), (sign, ln_det));
         }
     }
     det_empty!(f64);
@@ -69,8 +75,12 @@ fn det_zero() {
     macro_rules! det_zero {
         ($elem:ty) => {
             let a: Array2<$elem> = Array2::zeros((1, 1));
-            assert_eq!(a.det().unwrap(), Zero::zero());
-            assert_eq!(a.det_into().unwrap(), Zero::zero());
+            let det = Zero::zero();
+            let (sign, ln_det) = (Zero::zero(), Float::neg_infinity());
+            assert_eq!(a.det().unwrap(), det);
+            assert_eq!(a.sln_det().unwrap(), (sign, ln_det));
+            assert_eq!(a.clone().det_into().unwrap(), det);
+            assert_eq!(a.sln_det_into().unwrap(), (sign, ln_det));
         }
     }
     det_zero!(f64);
@@ -85,7 +95,9 @@ fn det_zero_nonsquare() {
         ($elem:ty, $shape:expr) => {
             let a: Array2<$elem> = Array2::zeros($shape);
             assert!(a.det().is_err());
-            assert!(a.det_into().is_err());
+            assert!(a.sln_det().is_err());
+            assert!(a.clone().det_into().is_err());
+            assert!(a.sln_det_into().is_err());
         }
     }
     for &shape in &[(1, 2).into_shape(), (1, 2).f()] {
@@ -103,10 +115,32 @@ fn det() {
             let a: Array2<$elem> = random($shape);
             println!("a = \n{:?}", a);
             let det = det_naive(&a);
+            let sign = det.div_real(det.abs());
+            let ln_det = det.abs().ln();
             assert_rclose!(a.factorize().unwrap().det().unwrap(), det, $rtol);
+            {
+                let result = a.factorize().unwrap().sln_det().unwrap();
+                assert_rclose!(result.0, sign, $rtol);
+                assert_rclose!(result.1, ln_det, $rtol);
+            }
             assert_rclose!(a.factorize().unwrap().det_into().unwrap(), det, $rtol);
+            {
+                let result = a.factorize().unwrap().sln_det_into().unwrap();
+                assert_rclose!(result.0, sign, $rtol);
+                assert_rclose!(result.1, ln_det, $rtol);
+            }
             assert_rclose!(a.det().unwrap(), det, $rtol);
-            assert_rclose!(a.det_into().unwrap(), det, $rtol);
+            {
+                let result = a.sln_det().unwrap();
+                assert_rclose!(result.0, sign, $rtol);
+                assert_rclose!(result.1, ln_det, $rtol);
+            }
+            assert_rclose!(a.clone().det_into().unwrap(), det, $rtol);
+            {
+                let result = a.sln_det_into().unwrap();
+                assert_rclose!(result.0, sign, $rtol);
+                assert_rclose!(result.1, ln_det, $rtol);
+            }
         }
     }
     for rows in 1..5 {
@@ -125,9 +159,13 @@ fn det_nonsquare() {
         ($elem:ty, $shape:expr) => {
             let a: Array2<$elem> = random($shape);
             assert!(a.factorize().unwrap().det().is_err());
+            assert!(a.factorize().unwrap().sln_det().is_err());
             assert!(a.factorize().unwrap().det_into().is_err());
+            assert!(a.factorize().unwrap().sln_det_into().is_err());
             assert!(a.det().is_err());
-            assert!(a.det_into().is_err());
+            assert!(a.sln_det().is_err());
+            assert!(a.clone().det_into().is_err());
+            assert!(a.sln_det_into().is_err());
         }
     }
     for &dims in &[(1, 0), (1, 2), (2, 1), (2, 3)] {

@@ -253,11 +253,11 @@ where
 
 /// An interface for calculating determinants of Hermitian (or real symmetric) matrix refs.
 pub trait DeterminantH {
-    type Output;
-    type SignLnOutput;
+    /// The element type of the matrix.
+    type Elem: Scalar;
 
     /// Computes the determinant of the Hermitian (or real symmetric) matrix.
-    fn deth(&self) -> Self::Output;
+    fn deth(&self) -> Result<<Self::Elem as AssociatedReal>::Real>;
 
     /// Computes the `(sign, natural_log)` of the determinant of the Hermitian
     /// (or real symmetric) matrix.
@@ -272,16 +272,23 @@ pub trait DeterminantH {
     /// This method is more robust than `.deth()` to very small or very large
     /// determinants since it returns the natural logarithm of the determinant
     /// rather than the determinant itself.
-    fn sln_deth(&self) -> Self::SignLnOutput;
+    fn sln_deth(
+        &self
+    ) -> Result<
+        (
+            <Self::Elem as AssociatedReal>::Real,
+            <Self::Elem as AssociatedReal>::Real
+        ),
+    >;
 }
 
 /// An interface for calculating determinants of Hermitian (or real symmetric) matrices.
 pub trait DeterminantHInto {
-    type Output;
-    type SignLnOutput;
+    /// The element type of the matrix.
+    type Elem: Scalar;
 
     /// Computes the determinant of the Hermitian (or real symmetric) matrix.
-    fn deth_into(self) -> Self::Output;
+    fn deth_into(self) -> Result<<Self::Elem as AssociatedReal>::Real>;
 
     /// Computes the `(sign, natural_log)` of the determinant of the Hermitian
     /// (or real symmetric) matrix.
@@ -296,7 +303,14 @@ pub trait DeterminantHInto {
     /// This method is more robust than `.deth_into()` to very small or very
     /// large determinants since it returns the natural logarithm of the
     /// determinant rather than the determinant itself.
-    fn sln_deth_into(self) -> Self::SignLnOutput;
+    fn sln_deth_into(
+        self
+    ) -> Result<
+        (
+            <Self::Elem as AssociatedReal>::Real,
+            <Self::Elem as AssociatedReal>::Real
+        ),
+    >;
 }
 
 /// Returns the sign and natural log of the determinant.
@@ -346,38 +360,56 @@ where
     (sign, ln_det)
 }
 
-impl<A, S> DeterminantH for BKFactorized<S>
+impl<A, S> BKFactorized<S>
 where
     A: Scalar,
     S: Data<Elem = A>,
 {
-    type Output = A::Real;
-    type SignLnOutput = (A::Real, A::Real);
-
-    fn deth(&self) -> A::Real {
+    /// Computes the determinant of the factorized Hermitian (or real
+    /// symmetric) matrix.
+    pub fn deth(&self) -> A::Real {
         let (sign, ln_det) = self.sln_deth();
         sign * ln_det.exp()
     }
 
-    fn sln_deth(&self) -> (A::Real, A::Real) {
+    /// Computes the `(sign, natural_log)` of the determinant of the factorized
+    /// Hermitian (or real symmetric) matrix.
+    ///
+    /// The `natural_log` is the natural logarithm of the absolute value of the
+    /// determinant. If the determinant is zero, `sign` is 0 and `natural_log`
+    /// is negative infinity.
+    ///
+    /// To obtain the determinant, you can compute `sign * natural_log.exp()`
+    /// or just call `.deth()` instead.
+    ///
+    /// This method is more robust than `.deth()` to very small or very large
+    /// determinants since it returns the natural logarithm of the determinant
+    /// rather than the determinant itself.
+    pub fn sln_deth(&self) -> (A::Real, A::Real) {
         bk_sln_det(UPLO::Upper, self.ipiv.iter().cloned(), &self.a)
     }
-}
 
-impl<A, S> DeterminantHInto for BKFactorized<S>
-where
-    A: Scalar,
-    S: Data<Elem = A>,
-{
-    type Output = A::Real;
-    type SignLnOutput = (A::Real, A::Real);
-
-    fn deth_into(self) -> A::Real {
+    /// Computes the determinant of the factorized Hermitian (or real
+    /// symmetric) matrix.
+    pub fn deth_into(self) -> A::Real {
         let (sign, ln_det) = self.sln_deth_into();
         sign * ln_det.exp()
     }
 
-    fn sln_deth_into(self) -> (A::Real, A::Real) {
+    /// Computes the `(sign, natural_log)` of the determinant of the factorized
+    /// Hermitian (or real symmetric) matrix.
+    ///
+    /// The `natural_log` is the natural logarithm of the absolute value of the
+    /// determinant. If the determinant is zero, `sign` is 0 and `natural_log`
+    /// is negative infinity.
+    ///
+    /// To obtain the determinant, you can compute `sign * natural_log.exp()`
+    /// or just call `.deth_into()` instead.
+    ///
+    /// This method is more robust than `.deth_into()` to very small or very
+    /// large determinants since it returns the natural logarithm of the
+    /// determinant rather than the determinant itself.
+    pub fn sln_deth_into(self) -> (A::Real, A::Real) {
         bk_sln_det(UPLO::Upper, self.ipiv.into_iter(), &self.a)
     }
 }
@@ -387,8 +419,7 @@ where
     A: Scalar,
     S: Data<Elem = A>,
 {
-    type Output = Result<A::Real>;
-    type SignLnOutput = Result<(A::Real, A::Real)>;
+    type Elem = A;
 
     fn deth(&self) -> Result<A::Real> {
         let (sign, ln_det) = self.sln_deth()?;
@@ -412,8 +443,7 @@ where
     A: Scalar,
     S: DataMut<Elem = A>,
 {
-    type Output = Result<A::Real>;
-    type SignLnOutput = Result<(A::Real, A::Real)>;
+    type Elem = A;
 
     fn deth_into(self) -> Result<A::Real> {
         let (sign, ln_det) = self.sln_deth_into()?;

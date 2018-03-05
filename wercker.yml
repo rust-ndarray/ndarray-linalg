@@ -1,19 +1,25 @@
-box: termoshtt/rust:latest
+box: termoshtt/rust-dev:latest
 
 test-openblas:
   steps:
     - script:
       name: test OpenBLAS backend
       code: cargo test --no-default-features --features=openblas
+  after-steps:
+    - termoshtt/rust-kcov-codecov: {}
 
 test-netlib:
   steps:
     - script:
       name: test NetLib backend
       code: cargo test --no-default-features --features=netlib
+  after-steps:
+    - termoshtt/rust-kcov-codecov: {}
 
 test-intel-mkl:
   steps:
     - script:
       name: test Intel MKL backend
       code: cargo test --no-default-features --features=intel-mkl
+  after-steps:
+    - termoshtt/rust-kcov-codecov: {}

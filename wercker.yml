@@ -1,5 +1,11 @@
 box: termoshtt/rust:latest
 
+check-format:
+  steps:
+    - script:
+      name: Check format
+      code: cargo fmt --all -- --write-mode=diff
+
 test-openblas:
   steps:
     - script:

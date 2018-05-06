@@ -17,10 +17,7 @@ where
     select_rows.remove(row);
     let mut select_cols = (0..a.cols()).collect::<Vec<_>>();
     select_cols.remove(col);
-    a.select(Axis(0), &select_rows).select(
-        Axis(1),
-        &select_cols,
-    )
+    a.select(Axis(0), &select_rows).select(Axis(1), &select_cols)
 }
 
 /// Computes the determinant of matrix `a`.
@@ -36,14 +33,12 @@ where
     match a.cols() {
         0 => A::one(),
         1 => a[(0, 0)],
-        cols => {
-            (0..cols)
-                .map(|col| {
-                    let sign = if col % 2 == 0 { A::one() } else { -A::one() };
-                    sign * a[(0, col)] * det_naive(&matrix_minor(a, (0, col)))
-                })
-                .fold(A::zero(), |sum, subdet| sum + subdet)
-        }
+        cols => (0..cols)
+            .map(|col| {
+                let sign = if col % 2 == 0 { A::one() } else { -A::one() };
+                sign * a[(0, col)] * det_naive(&matrix_minor(a, (0, col)))
+            })
+            .fold(A::zero(), |sum, subdet| sum + subdet),
     }
 }
 
@@ -62,7 +57,7 @@ fn det_empty() {
             assert_eq!(a.sln_det().unwrap(), (sign, ln_det));
             assert_eq!(a.clone().det_into().unwrap(), det);
             assert_eq!(a.sln_det_into().unwrap(), (sign, ln_det));
-        }
+        };
     }
     det_empty!(f64);
     det_empty!(f32);
@@ -81,7 +76,7 @@ fn det_zero() {
             assert_eq!(a.sln_det().unwrap(), (sign, ln_det));
             assert_eq!(a.clone().det_into().unwrap(), det);
             assert_eq!(a.sln_det_into().unwrap(), (sign, ln_det));
-        }
+        };
     }
     det_zero!(f64);
     det_zero!(f32);
@@ -98,7 +93,7 @@ fn det_zero_nonsquare() {
             assert!(a.sln_det().is_err());
             assert!(a.clone().det_into().is_err());
             assert!(a.sln_det_into().is_err());
-        }
+        };
     }
     for &shape in &[(1, 2).into_shape(), (1, 2).f()] {
         det_zero_nonsquare!(f64, shape);
@@ -141,7 +136,7 @@ fn det() {
                 assert_rclose!(result.0, sign, $rtol);
                 assert_rclose!(result.1, ln_det, $rtol);
             }
-        }
+        };
     }
     for rows in 1..5 {
         for &shape in &[(rows, rows).into_shape(), (rows, rows).f()] {
@@ -166,7 +161,7 @@ fn det_nonsquare() {
             assert!(a.sln_det().is_err());
             assert!(a.clone().det_into().is_err());
             assert!(a.sln_det_into().is_err());
-        }
+        };
     }
     for &dims in &[(1, 0), (1, 2), (2, 1), (2, 3)] {
         for &shape in &[dims.into_shape(), dims.f()] {

@@ -94,7 +94,6 @@ where
     }
 }
 
-
 impl<A, S> QRInto for ArrayBase<S, Ix2>
 where
     A: Scalar,

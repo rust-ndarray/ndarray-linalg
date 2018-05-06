@@ -131,7 +131,6 @@ where
     }
 }
 
-
 /// An interface for computing the Bunch–Kaufman factorization of Hermitian (or
 /// real symmetric) matrix refs.
 pub trait FactorizeH<S: Data> {
@@ -155,10 +154,7 @@ where
 {
     fn factorizeh_into(mut self) -> Result<BKFactorized<S>> {
         let ipiv = unsafe { A::bk(self.square_layout()?, UPLO::Upper, self.as_allocated_mut()?)? };
-        Ok(BKFactorized {
-            a: self,
-            ipiv: ipiv,
-        })
+        Ok(BKFactorized { a: self, ipiv: ipiv })
     }
 }
 
@@ -273,13 +269,11 @@ pub trait DeterminantH {
     /// determinants since it returns the natural logarithm of the determinant
     /// rather than the determinant itself.
     fn sln_deth(
-        &self
-    ) -> Result<
-        (
-            <Self::Elem as AssociatedReal>::Real,
-            <Self::Elem as AssociatedReal>::Real
-        ),
-    >;
+        &self,
+    ) -> Result<(
+        <Self::Elem as AssociatedReal>::Real,
+        <Self::Elem as AssociatedReal>::Real,
+    )>;
 }
 
 /// An interface for calculating determinants of Hermitian (or real symmetric) matrices.
@@ -304,13 +298,11 @@ pub trait DeterminantHInto {
     /// large determinants since it returns the natural logarithm of the
     /// determinant rather than the determinant itself.
     fn sln_deth_into(
-        self
-    ) -> Result<
-        (
-            <Self::Elem as AssociatedReal>::Real,
-            <Self::Elem as AssociatedReal>::Real
-        ),
-    >;
+        self,
+    ) -> Result<(
+        <Self::Elem as AssociatedReal>::Real,
+        <Self::Elem as AssociatedReal>::Real,
+    )>;
 }
 
 /// Returns the sign and natural log of the determinant.

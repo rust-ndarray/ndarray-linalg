@@ -20,7 +20,7 @@ fn deth_empty() {
             assert_eq!(a.sln_deth().unwrap(), (One::one(), Zero::zero()));
             assert_eq!(a.clone().deth_into().unwrap(), One::one());
             assert_eq!(a.sln_deth_into().unwrap(), (One::one(), Zero::zero()));
-        }
+        };
     }
     deth_empty!(f64);
     deth_empty!(f32);
@@ -37,7 +37,7 @@ fn deth_zero() {
             assert_eq!(a.sln_deth().unwrap(), (Zero::zero(), Float::neg_infinity()));
             assert_eq!(a.clone().deth_into().unwrap(), Zero::zero());
             assert_eq!(a.sln_deth_into().unwrap(), (Zero::zero(), Float::neg_infinity()));
-        }
+        };
     }
     deth_zero!(f64);
     deth_zero!(f32);
@@ -54,7 +54,7 @@ fn deth_zero_nonsquare() {
             assert!(a.sln_deth().is_err());
             assert!(a.clone().deth_into().is_err());
             assert!(a.sln_deth_into().is_err());
-        }
+        };
     }
     for &shape in &[(1, 2).into_shape(), (1, 2).f()] {
         deth_zero_nonsquare!(f64, shape);
@@ -73,8 +73,11 @@ fn deth() {
 
             // Compute determinant from eigenvalues.
             let (sign, ln_det) = a.eigvalsh(UPLO::Upper).unwrap().iter().fold(
-                (<$elem as AssociatedReal>::Real::one(), <$elem as AssociatedReal>::Real::zero()),
-                |(sign, ln_det), eigval| (sign * eigval.signum(), ln_det + eigval.abs().ln())
+                (
+                    <$elem as AssociatedReal>::Real::one(),
+                    <$elem as AssociatedReal>::Real::zero(),
+                ),
+                |(sign, ln_det), eigval| (sign * eigval.signum(), ln_det + eigval.abs().ln()),
             );
             let det = sign * ln_det.exp();
             assert_aclose!(det, a.eigvalsh(UPLO::Upper).unwrap().iter().product(), $atol);
@@ -103,7 +106,7 @@ fn deth() {
                 assert_aclose!(result.0, sign, $atol);
                 assert_aclose!(result.1, ln_det, $atol);
             }
-        }
+        };
     }
     for rows in 1..6 {
         deth!(f64, rows, 1e-9);
@@ -123,7 +126,7 @@ fn deth_nonsquare() {
             assert!(a.sln_deth().is_err());
             assert!(a.clone().deth_into().is_err());
             assert!(a.sln_deth_into().is_err());
-        }
+        };
     }
     for &dims in &[(1, 0), (1, 2), (2, 1), (2, 3)] {
         for &shape in &[dims.into_shape(), dims.f()] {

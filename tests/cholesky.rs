@@ -1,4 +1,3 @@
-
 extern crate ndarray;
 #[macro_use]
 extern crate ndarray_linalg;
@@ -40,7 +39,7 @@ fn cholesky() {
                 assert_close_l2!(&lower.dot(&lower.t().mapv(|elem| elem.conj())), &a_orig, $rtol);
             }
             assert_close_l2!(&a.dot(&lower.t().mapv(|elem| elem.conj())), &a_orig, $rtol);
-        }
+        };
     }
     cholesky!(f64, 1e-9);
     cholesky!(f32, 1e-5);
@@ -64,7 +63,7 @@ fn cholesky_into_lower_upper() {
             let fac_lower = a.factorizec(UPLO::Lower).unwrap();
             assert_close_l2!(&lower, &fac_lower.into_lower(), $rtol);
             assert_close_l2!(&lower, &fac_upper.into_lower(), $rtol);
-        }
+        };
     }
     cholesky_into_lower_upper!(f64, 1e-9);
     cholesky_into_lower_upper!(f32, 1e-5);
@@ -90,7 +89,7 @@ fn cholesky_inverse() {
             assert_close_l2!(&a.dot(&inv_lower), &Array2::eye(3), $rtol);
             let inv_lower_into = a.factorizec(UPLO::Lower).unwrap().invc_into().unwrap();
             assert_close_l2!(&a.dot(&inv_lower_into), &Array2::eye(3), $rtol);
-        }
+        };
     }
     cholesky_into_inverse!(f64, 1e-9);
     cholesky_into_inverse!(f32, 1e-3);
@@ -114,7 +113,7 @@ fn cholesky_det() {
             assert_aclose!(a.ln_detc().unwrap(), ln_det, $atol);
             assert_aclose!(a.clone().detc_into().unwrap(), det, $atol);
             assert_aclose!(a.ln_detc_into().unwrap(), ln_det, $atol);
-        }
+        };
     }
     cholesky_det!(f64, 1e-9);
     cholesky_det!(f32, 1e-3);
@@ -136,11 +135,33 @@ fn cholesky_solve() {
             assert_close_l2!(&a.solvec_inplace(&mut b.clone()).unwrap(), &x, $rtol);
             assert_close_l2!(&a.factorizec(UPLO::Upper).unwrap().solvec(&b).unwrap(), &x, $rtol);
             assert_close_l2!(&a.factorizec(UPLO::Lower).unwrap().solvec(&b).unwrap(), &x, $rtol);
-            assert_close_l2!(&a.factorizec(UPLO::Upper).unwrap().solvec_into(b.clone()).unwrap(), &x, $rtol);
-            assert_close_l2!(&a.factorizec(UPLO::Lower).unwrap().solvec_into(b.clone()).unwrap(), &x, $rtol);
-            assert_close_l2!(&a.factorizec(UPLO::Upper).unwrap().solvec_inplace(&mut b.clone()).unwrap(), &x, $rtol);
-            assert_close_l2!(&a.factorizec(UPLO::Lower).unwrap().solvec_inplace(&mut b.clone()).unwrap(), &x, $rtol);
-        }
+            assert_close_l2!(
+                &a.factorizec(UPLO::Upper).unwrap().solvec_into(b.clone()).unwrap(),
+                &x,
+                $rtol
+            );
+            assert_close_l2!(
+                &a.factorizec(UPLO::Lower).unwrap().solvec_into(b.clone()).unwrap(),
+                &x,
+                $rtol
+            );
+            assert_close_l2!(
+                &a.factorizec(UPLO::Upper)
+                    .unwrap()
+                    .solvec_inplace(&mut b.clone())
+                    .unwrap(),
+                &x,
+                $rtol
+            );
+            assert_close_l2!(
+                &a.factorizec(UPLO::Lower)
+                    .unwrap()
+                    .solvec_inplace(&mut b.clone())
+                    .unwrap(),
+                &x,
+                $rtol
+            );
+        };
     }
     cholesky_solve!(f64, 1e-9);
     cholesky_solve!(f32, 1e-3);

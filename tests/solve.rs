@@ -32,7 +32,7 @@ fn rcond() {
             let rcond = 1. / (a.opnorm_one().unwrap() * a.inv().unwrap().opnorm_one().unwrap());
             assert_aclose!(a.rcond().unwrap(), rcond, $atol);
             assert_aclose!(a.rcond_into().unwrap(), rcond, $atol);
-        }
+        };
     }
     for rows in 1..6 {
         rcond!(f64, rows, 0.2);
@@ -49,7 +49,7 @@ fn rcond_hilbert() {
             let a = Array2::<$elem>::from_shape_fn(($rows, $rows), |(i, j)| 1. / (i as $elem + j as $elem - 1.));
             assert_aclose!(a.rcond().unwrap(), 0., $atol);
             assert_aclose!(a.rcond_into().unwrap(), 0., $atol);
-        }
+        };
     }
     rcond_hilbert!(f64, 10, 1e-9);
     rcond_hilbert!(f32, 10, 1e-3);
@@ -62,7 +62,7 @@ fn rcond_identity() {
             let a = Array2::<$elem>::eye($rows);
             assert_aclose!(a.rcond().unwrap(), 1., $atol);
             assert_aclose!(a.rcond_into().unwrap(), 1., $atol);
-        }
+        };
     }
     for rows in 1..6 {
         rcond_identity!(f64, rows, 1e-9);

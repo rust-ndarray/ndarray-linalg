@@ -8,13 +8,21 @@ use super::types::*;
 /// check two values are close in terms of the relative torrence
 pub fn rclose<A: Scalar>(test: A, truth: A, rtol: A::Real) -> Result<A::Real, A::Real> {
     let dev = (test - truth).abs() / truth.abs();
-    if dev < rtol { Ok(dev) } else { Err(dev) }
+    if dev < rtol {
+        Ok(dev)
+    } else {
+        Err(dev)
+    }
 }
 
 /// check two values are close in terms of the absolute torrence
 pub fn aclose<A: Scalar>(test: A, truth: A, atol: A::Real) -> Result<A::Real, A::Real> {
     let dev = (test - truth).abs();
-    if dev < atol { Ok(dev) } else { Err(dev) }
+    if dev < atol {
+        Ok(dev)
+    } else {
+        Err(dev)
+    }
 }
 
 /// check two arrays are close in maximum norm
@@ -30,7 +38,11 @@ where
     D: Dimension,
 {
     let tol = (test - truth).norm_max();
-    if tol < atol { Ok(tol) } else { Err(tol) }
+    if tol < atol {
+        Ok(tol)
+    } else {
+        Err(tol)
+    }
 }
 
 /// check two arrays are close in L1 norm
@@ -46,7 +58,11 @@ where
     D: Dimension,
 {
     let tol = (test - truth).norm_l1() / truth.norm_l1();
-    if tol < rtol { Ok(tol) } else { Err(tol) }
+    if tol < rtol {
+        Ok(tol)
+    } else {
+        Err(tol)
+    }
 }
 
 /// check two arrays are close in L2 norm
@@ -62,21 +78,26 @@ where
     D: Dimension,
 {
     let tol = (test - truth).norm_l2() / truth.norm_l2();
-    if tol < rtol { Ok(tol) } else { Err(tol) }
+    if tol < rtol {
+        Ok(tol)
+    } else {
+        Err(tol)
+    }
 }
 
 macro_rules! generate_assert {
     ($assert:ident, $close:path) => {
-#[macro_export]
-macro_rules! $assert {
-    ($test:expr, $truth:expr, $tol:expr) => {
-        $crate::$close($test, $truth, $tol).unwrap();
+        #[macro_export]
+        macro_rules! $assert {
+            ($test: expr,$truth: expr,$tol: expr) => {
+                $crate::$close($test, $truth, $tol).unwrap();
+            };
+            ($test: expr,$truth: expr,$tol: expr; $comment: expr) => {
+                $crate::$close($test, $truth, $tol).expect($comment);
+            };
+        }
     };
-    ($test:expr, $truth:expr, $tol:expr; $comment:expr) => {
-        $crate::$close($test, $truth, $tol).expect($comment);
-    };
-}
-}} // generate_assert!
+} // generate_assert!
 
 generate_assert!(assert_rclose, rclose);
 generate_assert!(assert_aclose, aclose);

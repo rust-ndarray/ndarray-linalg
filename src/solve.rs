@@ -218,7 +218,6 @@ where
     }
 }
 
-
 /// An interface for computing LU factorizations of matrix refs.
 pub trait Factorize<S: Data> {
     /// Computes the LU factorization `A = P*L*U`, where `P` is a permutation
@@ -240,10 +239,7 @@ where
 {
     fn factorize_into(mut self) -> Result<LUFactorized<S>> {
         let ipiv = unsafe { A::lu(self.layout()?, self.as_allocated_mut()?)? };
-        Ok(LUFactorized {
-            a: self,
-            ipiv: ipiv,
-        })
+        Ok(LUFactorized { a: self, ipiv: ipiv })
     }
 }
 
@@ -281,13 +277,7 @@ where
     type Output = ArrayBase<S, Ix2>;
 
     fn inv_into(mut self) -> Result<ArrayBase<S, Ix2>> {
-        unsafe {
-            A::inv(
-                self.a.square_layout()?,
-                self.a.as_allocated_mut()?,
-                &self.ipiv,
-            )?
-        };
+        unsafe { A::inv(self.a.square_layout()?, self.a.as_allocated_mut()?, &self.ipiv)? };
         Ok(self.a)
     }
 }
@@ -399,13 +389,10 @@ where
     } else {
         -A::one()
     };
-    let (upper_sign, ln_det) = u_diag_iter.fold(
-        (A::one(), A::Real::zero()),
-        |(upper_sign, ln_det), &elem| {
-            let abs_elem: A::Real = elem.abs();
-            (upper_sign * elem.div_real(abs_elem), ln_det + abs_elem.ln())
-        },
-    );
+    let (upper_sign, ln_det) = u_diag_iter.fold((A::one(), A::Real::zero()), |(upper_sign, ln_det), &elem| {
+        let abs_elem: A::Real = elem.abs();
+        (upper_sign * elem.div_real(abs_elem), ln_det + abs_elem.ln())
+    });
     (pivot_sign * upper_sign, ln_det)
 }
 
@@ -416,10 +403,7 @@ where
 {
     fn sln_det(&self) -> Result<(A, A::Real)> {
         self.a.ensure_square()?;
-        Ok(lu_sln_det(
-            self.ipiv.iter().cloned(),
-            self.a.diag().iter(),
-        ))
+        Ok(lu_sln_det(self.ipiv.iter().cloned(), self.a.diag().iter()))
     }
 }
 
@@ -430,10 +414,7 @@ where
 {
     fn sln_det_into(self) -> Result<(A, A::Real)> {
         self.a.ensure_square()?;
-        Ok(lu_sln_det(
-            self.ipiv.into_iter(),
-            self.a.into_diag().iter(),
-        ))
+        Ok(lu_sln_det(self.ipiv.into_iter(), self.a.into_diag().iter()))
     }
 }
 
@@ -507,13 +488,7 @@ where
     S: Data<Elem = A>,
 {
     fn rcond(&self) -> Result<A::Real> {
-        unsafe {
-            A::rcond(
-                self.a.layout()?,
-                self.a.as_allocated()?,
-                self.a.opnorm_one()?,
-            )
-        }
+        unsafe { A::rcond(self.a.layout()?, self.a.as_allocated()?, self.a.opnorm_one()?) }
     }
 }
 

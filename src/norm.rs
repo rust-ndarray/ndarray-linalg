@@ -38,7 +38,11 @@ where
     fn norm_max(&self) -> Self::Output {
         self.iter().fold(A::Real::zero(), |f, &val| {
             let v = val.abs();
-            if f > v { f } else { v }
+            if f > v {
+                f
+            } else {
+                v
+            }
         })
     }
 }

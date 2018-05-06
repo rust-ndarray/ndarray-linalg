@@ -1,5 +1,13 @@
 box: termoshtt/rust:latest
 
+check-format:
+  steps:
+    - script:
+      name: Check format
+      code:
+        - rustup component add rustfmt-preview
+        - cargo fmt --all -- --write-mode=diff
+
 test-openblas:
   steps:
     - script:

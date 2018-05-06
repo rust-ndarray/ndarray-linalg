@@ -408,7 +408,6 @@ pub trait DeterminantC {
     fn ln_detc(&self) -> Self::Output;
 }
 
-
 /// Determinant of Hermitian (or real symmetric) positive definite matrix
 pub trait DeterminantCInto {
     type Output;

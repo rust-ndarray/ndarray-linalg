@@ -93,11 +93,7 @@ where
     } else {
         ArrayBase::from_shape_vec(a.dim().f(), a.into_raw_vec()).unwrap()
     };
-    assert_eq!(
-        new.strides(),
-        strides.as_slice(),
-        "Custom stride is not supported"
-    );
+    assert_eq!(new.strides(), strides.as_slice(), "Custom stride is not supported");
     new
 }
 

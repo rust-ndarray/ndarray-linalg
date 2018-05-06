@@ -1,4 +1,3 @@
-
 extern crate ndarray;
 #[macro_use]
 extern crate ndarray_linalg;
@@ -20,10 +19,7 @@ fn test(a: Array2<f64>, one: f64, inf: f64, fro: f64) {
 fn gen(i: usize, j: usize, rev: bool) -> Array2<f64> {
     let n = (i * j + 1) as f64;
     if rev {
-        Array::range(1., n, 1.)
-            .into_shape((j, i))
-            .unwrap()
-            .reversed_axes()
+        Array::range(1., n, 1.).into_shape((j, i)).unwrap().reversed_axes()
     } else {
         Array::range(1., n, 1.).into_shape((i, j)).unwrap()
     }

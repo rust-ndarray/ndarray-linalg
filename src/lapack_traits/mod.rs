@@ -1,12 +1,12 @@
 //! Define traits wrapping LAPACK routines
 
-pub mod opnorm;
-pub mod qr;
-pub mod svd;
-pub mod solve;
-pub mod solveh;
 pub mod cholesky;
 pub mod eigh;
+pub mod opnorm;
+pub mod qr;
+pub mod solve;
+pub mod solveh;
+pub mod svd;
 pub mod triangular;
 
 pub use self::cholesky::*;
@@ -23,10 +23,7 @@ use super::types::*;
 
 pub type Pivot = Vec<i32>;
 
-pub trait LapackScalar
-    : OperatorNorm_ + QR_ + SVD_ + Solve_ + Solveh_ + Cholesky_ + Eigh_ + Triangular_
-    {
-}
+pub trait LapackScalar: OperatorNorm_ + QR_ + SVD_ + Solve_ + Solveh_ + Cholesky_ + Eigh_ + Triangular_ {}
 
 impl LapackScalar for f32 {}
 impl LapackScalar for f64 {}

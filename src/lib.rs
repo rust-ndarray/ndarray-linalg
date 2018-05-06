@@ -18,8 +18,8 @@
 //!  - [Scalar trait](types/trait.Scalar.html)
 
 extern crate lapacke;
-extern crate num_traits;
 extern crate num_complex;
+extern crate num_traits;
 extern crate rand;
 #[macro_use(s)]
 extern crate ndarray;

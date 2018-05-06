@@ -11,7 +11,6 @@ use super::types::*;
 
 pub use super::lapack_traits::Diag;
 
-
 /// solve a triangular system with upper triangular matrix
 pub trait SolveTriangular<A, S, D>
 where

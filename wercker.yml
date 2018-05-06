@@ -4,7 +4,9 @@ check-format:
   steps:
     - script:
       name: Check format
-      code: cargo fmt --all -- --write-mode=diff
+      code:
+        - rustup component add rustfmt-preview
+        - cargo fmt --all -- --write-mode=diff
 
 test-openblas:
   steps:

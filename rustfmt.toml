@@ -22,7 +22,6 @@ ignore = []
 imports_indent = "Visual"
 imports_layout = "Mixed"
 indent_style = "Block"
-license_template_path = ""
 match_arm_blocks = true
 match_block_trailing_comma = false
 max_width = 120

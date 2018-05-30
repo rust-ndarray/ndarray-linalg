@@ -23,10 +23,10 @@ derive-new = "0.5"
 lapacke = "0.1.4"
 num-traits  = "0.1"
 procedurals = "0.2"
-rand = "0.4"
+rand = "0.5"
 
 [dependencies.num-complex]
-version = "0.1"
+version = "0.2"
 default-features = false
 
 [dependencies.ndarray]
@@ -51,7 +51,7 @@ default-features = false
 optional = true
 
 [dependencies.openblas-src]
-version = "0.5.3"
+version = "0.6.0"
 features = ["static", "cblas", "lapacke"]
 default-features = false
 optional = true

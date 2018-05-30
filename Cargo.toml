@@ -20,8 +20,8 @@ openblas   = ["lapack-src/openblas", "blas-src/openblas", "openblas-src"]
 
 [dependencies]
 derive-new = "0.5"
-lapacke = "0.1.4"
-num-traits  = "0.1"
+lapacke = "0.2"
+num-traits  = "0.2"
 procedurals = "0.2"
 rand = "0.5"
 

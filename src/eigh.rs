@@ -2,12 +2,12 @@
 
 use ndarray::*;
 
+use super::UPLO;
 use super::diagonal::*;
 use super::error::*;
 use super::layout::*;
 use super::operator::*;
 use super::types::*;
-use super::UPLO;
 
 /// Eigenvalue decomposition of Hermite matrix reference
 pub trait Eigh {

@@ -41,6 +41,7 @@ jobs:
       - run:
           name: check format
           command: |
+            rustup component add rustfmt-preview --toolchain stable
             cargo fmt -- --write-mode=diff
 
 workflows:

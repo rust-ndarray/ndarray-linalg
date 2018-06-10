@@ -41,7 +41,7 @@ jobs:
       - run:
           name: check format
           command: |
-            rustup component add rustfmt-preview --toolchain stable
+            rustup component add rustfmt-preview
             cargo fmt -- --write-mode=diff
 
 workflows:

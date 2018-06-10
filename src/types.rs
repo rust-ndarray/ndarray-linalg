@@ -3,8 +3,8 @@
 use ndarray::LinalgScalar;
 use num_complex::Complex;
 use num_traits::*;
-use rand::Rng;
 use rand::distributions::*;
+use rand::Rng;
 use std::fmt::Debug;
 use std::iter::Sum;
 use std::ops::Neg;

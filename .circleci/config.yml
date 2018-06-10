@@ -34,6 +34,15 @@ jobs:
           name: test Intel MKL backend
           command: cargo test --no-default-features --features=intel-mkl
 
+  format:
+    <<: *rust_cfg
+    steps:
+      - checkout
+      - run:
+          name: check format
+          command: |
+            cargo fmt -- --write-mode=diff
+
 workflows:
   version: 2
   tests:
@@ -41,3 +50,4 @@ workflows:
       - test-openblas
       - test-netlib
       - test-intel-mkl
+      - format

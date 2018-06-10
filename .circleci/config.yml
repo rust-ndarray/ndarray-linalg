@@ -13,7 +13,7 @@ jobs:
       - run:
           name: test OpenBLAS backend
           command: |
-            apt update && apt install -y libgfortran-6-dev
+            apt update && apt install -y gfortran
             cargo test --no-default-features --features=openblas
 
   test-netlib:

@@ -23,7 +23,7 @@ jobs:
       - run:
           name: test NetLib backend
           command: |
-            apt update && apt install -y cmake
+            apt update && apt install -y cmake gfortran
             cargo test --no-default-features --features=netlib
 
   test-intel-mkl:

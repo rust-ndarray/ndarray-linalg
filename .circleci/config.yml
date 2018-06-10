@@ -3,7 +3,7 @@ version: 2.0
 references:
   rust_cfg: &rust_cfg
     docker:
-      - image: rust:1.26
+      - image: rust:1.26.2
 
 jobs:
   test-openblas:
@@ -12,7 +12,9 @@ jobs:
       - checkout
       - run:
           name: test OpenBLAS backend
-          command: cargo test --no-default-features --features=openblas
+          command: |
+            apt update && apt install -y libgfortran-6-dev
+            cargo test --no-default-features --features=openblas
 
   test-netlib:
     <<: *rust_cfg
@@ -20,7 +22,9 @@ jobs:
       - checkout
       - run:
           name: test NetLib backend
-          command: cargo test --no-default-features --features=netlib
+          command: |
+            apt update && apt install -y cmake
+            cargo test --no-default-features --features=netlib
 
   test-intel-mkl:
     <<: *rust_cfg

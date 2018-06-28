@@ -2,9 +2,8 @@ ndarray-linalg
 ===============
 [![Crate](http://meritbadge.herokuapp.com/ndarray-linalg)](https://crates.io/crates/ndarray-linalg)
 [![docs.rs](https://docs.rs/ndarray-linalg/badge.svg)](https://docs.rs/ndarray-linalg)
-[![wercker status](https://app.wercker.com/status/f04aeba682ea6e79577e15bd946344a5/s/master "wercker status")](https://app.wercker.com/project/byKey/f04aeba682ea6e79577e15bd946344a5)
+[![CircleCI](https://circleci.com/gh/termoshtt/ndarray-linalg.svg?style=shield)](https://circleci.com/gh/termoshtt/ndarray-linalg)
 [![Gitter chat](https://badges.gitter.im/termoshtt-scirust/ndarray-linalg.png)](https://gitter.im/termoshtt-scirust/ndarray-linalg)
-
 
 Linear algebra package for Rust with [rust-ndarray](https://github.com/bluss/rust-ndarray).
 
@@ -14,9 +13,11 @@ LAPACKE Backend
 Currently three LAPACKE implementations are supported and tested:
 
 - [OpenBLAS](https://github.com/cmr/openblas-src)
+  - needs `gfortran` (or other Fortran compiler)
 - [Netlib](https://github.com/cmr/netlib-src)
+  - needs `cmake` and `gfortran`
 - [Intel MKL](https://github.com/termoshtt/rust-intel-mkl) (non-free license, see the linked page)
-
+  - needs `curl`
 There are two ways to link LAPACKE backend:
 
 ### backend features (recommended)

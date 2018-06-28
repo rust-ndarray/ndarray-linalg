@@ -1,0 +1,54 @@
+version: 2.0
+
+references:
+  rust_cfg: &rust_cfg
+    docker:
+      - image: rust:1.26.2
+
+jobs:
+  test-openblas:
+    <<: *rust_cfg
+    steps:
+      - checkout
+      - run:
+          name: test OpenBLAS backend
+          command: |
+            apt update && apt install -y gfortran
+            cargo test --no-default-features --features=openblas
+
+  test-netlib:
+    <<: *rust_cfg
+    steps:
+      - checkout
+      - run:
+          name: test NetLib backend
+          command: |
+            apt update && apt install -y cmake gfortran
+            cargo test --no-default-features --features=netlib
+
+  test-intel-mkl:
+    <<: *rust_cfg
+    steps:
+      - checkout
+      - run:
+          name: test Intel MKL backend
+          command: cargo test --no-default-features --features=intel-mkl
+
+  format:
+    <<: *rust_cfg
+    steps:
+      - checkout
+      - run:
+          name: check format
+          command: |
+            rustup component add rustfmt-preview
+            cargo fmt -- --write-mode=diff
+
+workflows:
+  version: 2
+  tests:
+    jobs:
+      - test-openblas
+      - test-netlib
+      - test-intel-mkl
+      - format

@@ -20,27 +20,28 @@ openblas   = ["lapack-src/openblas", "blas-src/openblas", "openblas-src"]
 
 [dependencies]
 derive-new = "0.5"
-lapacke = "0.1.4"
-num-traits  = "0.1"
+lapacke = "0.2"
+num-traits  = "0.2"
 procedurals = "0.2"
-rand = "0.4"
+rand = "0.5"
 
 [dependencies.num-complex]
-version = "0.1"
+version = "0.2"
 default-features = false
 
 [dependencies.ndarray]
-version = "0.11"
+version = "0.11.2"
+git = "https://github.com/bluss/ndarray"
 features = ["blas"]
 default-features = false
 
 [dependencies.blas-src]
-version = "0.1"
+version = "0.2"
 default-features = false
 optional = true
 
 [dependencies.lapack-src]
-version = "0.1"
+version = "0.2"
 default-features = false
 optional = true
 
@@ -51,7 +52,7 @@ default-features = false
 optional = true
 
 [dependencies.openblas-src]
-version = "0.5.3"
+version = "0.6.0"
 features = ["static", "cblas", "lapacke"]
 default-features = false
 optional = true

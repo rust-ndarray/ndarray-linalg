@@ -293,15 +293,15 @@ macro_rules! impl_traits {
         impl RandNormal for $real {
             fn randn<R: Rng>(rng: &mut R) -> Self {
                 let dist = Normal::new(0., 1.);
-                dist.ind_sample(rng) as $real
+                dist.sample(rng) as $real
             }
         }
 
         impl RandNormal for $complex {
             fn randn<R: Rng>(rng: &mut R) -> Self {
                 let dist = Normal::new(0., 1.);
-                let re = dist.ind_sample(rng) as $real;
-                let im = dist.ind_sample(rng) as $real;
+                let re = dist.sample(rng) as $real;
+                let im = dist.sample(rng) as $real;
                 Self::new(re, im)
             }
         }

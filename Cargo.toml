@@ -36,12 +36,12 @@ features = ["blas"]
 default-features = false
 
 [dependencies.blas-src]
-version = "0.1"
+version = "0.2"
 default-features = false
 optional = true
 
 [dependencies.lapack-src]
-version = "0.1"
+version = "0.2"
 default-features = false
 optional = true
 

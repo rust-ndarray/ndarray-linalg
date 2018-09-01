@@ -18,7 +18,6 @@ Currently three LAPACKE implementations are supported and tested:
   - needs `cmake` and `gfortran`
 - [Intel MKL](https://github.com/termoshtt/rust-intel-mkl) (non-free license, see the linked page)
   - needs `curl`
-
 There are two ways to link LAPACKE backend:
 
 ### backend features (recommended)
@@ -27,7 +26,7 @@ There are three features corresponding to the backend implementations (`openblas
 ```toml
 [dependencies]
 ndarray = "0.12"
-ndarray-linalg = { version = "0.10", features = ["openblas"] }
+ndarray-linalg = { version = "0.9", features = ["openblas"] }
 ```
 
 ### link backend crate manually
@@ -37,7 +36,7 @@ You should link a LAPACKE implementation to a final crate (like binary executabl
 ```toml
 [dependencies]
 ndarray = "0.12"
-ndarray-linalg = "0.10"
+ndarray-linalg = "0.9"
 openblas-src = "0.5" # or another backend of your choice
 
 ```
@@ -47,14 +46,7 @@ You must add `extern crate` to your code in this case:
 ```rust
 extern crate ndarray;
 extern crate ndarray_linalg;
-extern crate openblas_src;  // or another backend of your choice
-```
-
-You will get a "undefined reference" link error if you forget to add any backend:
-
-```
-undefined reference to `cblas_dgemm'
-undefined reference to `LAPACKE_dsyev'
+extern crate openblas_src; // or another backend of your choice
 ```
 
 ### For librarian
@@ -63,7 +55,7 @@ If you creating a library depending on this crate, we encourage you not to link 
 ```toml
 [dependencies]
 ndarray = "0.12"
-ndarray-linalg = { version = "0.10", default-features = false }
+ndarray-linalg = { version = "0.9", default-features = false }
 ```
 
 However, if you hope simplicity instead of the flexibility, you can link your favorite backend in the way described above.

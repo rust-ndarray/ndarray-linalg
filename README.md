@@ -10,14 +10,14 @@ Examples
 ---------
 See [examples](https://github.com/termoshtt/ndarray-linalg/tree/master/examples) directory.
 
-Note that to run an example, you must specify the desired backend (as described below).
-For example, you can run the the `solve` example with the OpenBLAS backend like this:
+**Note**: To run examples, you must specify which backend will be used (as described below).
+For example, you can execute the [solve](examples/solve.rs) example with the OpenBLAS backend like this:
 
 ```sh
 cargo run --example solve --features=openblas
 ```
 
-and test of ndarray-linalg:
+and run all tests of ndarray-linalg with OpenBLAS
 
 ```sh
 cargo test --features=openblas

@@ -13,14 +13,22 @@ fn cholesky() {
             println!("a = \n{:?}", a_orig);
 
             let upper = a_orig.cholesky(UPLO::Upper).unwrap();
-            assert_close_l2!(&upper.t().mapv(|elem| elem.conj()).dot(&upper.view()), &a_orig, $rtol);
+            assert_close_l2!(
+                &upper.t().mapv(|elem| elem.conj()).dot(&upper.view()),
+                &a_orig,
+                $rtol
+            );
 
             let lower = a_orig.cholesky(UPLO::Lower).unwrap();
             assert_close_l2!(&lower.dot(&lower.t().mapv(|elem| elem.conj())), &a_orig, $rtol);
 
             let a: Array2<$elem> = replicate(&a_orig);
             let upper = a.cholesky_into(UPLO::Upper).unwrap();
-            assert_close_l2!(&upper.t().mapv(|elem| elem.conj()).dot(&upper.view()), &a_orig, $rtol);
+            assert_close_l2!(
+                &upper.t().mapv(|elem| elem.conj()).dot(&upper.view()),
+                &a_orig,
+                $rtol
+            );
 
             let a: Array2<$elem> = replicate(&a_orig);
             let lower = a.cholesky_into(UPLO::Lower).unwrap();
@@ -29,7 +37,11 @@ fn cholesky() {
             let mut a: Array2<$elem> = replicate(&a_orig);
             {
                 let upper = a.cholesky_inplace(UPLO::Upper).unwrap();
-                assert_close_l2!(&upper.t().mapv(|elem| elem.conj()).dot(&upper.view()), &a_orig, $rtol);
+                assert_close_l2!(
+                    &upper.t().mapv(|elem| elem.conj()).dot(&upper.view()),
+                    &a_orig,
+                    $rtol
+                );
             }
             assert_close_l2!(&a.t().mapv(|elem| elem.conj()).dot(&upper.view()), &a_orig, $rtol);
 
@@ -103,7 +115,11 @@ fn cholesky_det() {
         ($elem:ty, $atol:expr) => {
             let a: Array2<$elem> = random_hpd(3);
             println!("a = \n{:?}", a);
-            let ln_det = a.eigvalsh(UPLO::Upper).unwrap().mapv(|elem| elem.ln()).scalar_sum();
+            let ln_det = a
+                .eigvalsh(UPLO::Upper)
+                .unwrap()
+                .mapv(|elem| elem.ln())
+                .scalar_sum();
             let det = ln_det.exp();
             assert_aclose!(a.factorizec(UPLO::Upper).unwrap().detc(), det, $atol);
             assert_aclose!(a.factorizec(UPLO::Upper).unwrap().ln_detc(), ln_det, $atol);

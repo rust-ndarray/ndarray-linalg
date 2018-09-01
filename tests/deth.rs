@@ -15,7 +15,10 @@ fn deth_empty() {
             assert_eq!(a.factorizeh().unwrap().deth(), One::one());
             assert_eq!(a.factorizeh().unwrap().sln_deth(), (One::one(), Zero::zero()));
             assert_eq!(a.factorizeh().unwrap().deth_into(), One::one());
-            assert_eq!(a.factorizeh().unwrap().sln_deth_into(), (One::one(), Zero::zero()));
+            assert_eq!(
+                a.factorizeh().unwrap().sln_deth_into(),
+                (One::one(), Zero::zero())
+            );
             assert_eq!(a.deth().unwrap(), One::one());
             assert_eq!(a.sln_deth().unwrap(), (One::one(), Zero::zero()));
             assert_eq!(a.clone().deth_into().unwrap(), One::one());

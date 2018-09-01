@@ -80,7 +80,8 @@ where
     A: LinalgScalar,
     S: Data<Elem = A>,
 {
-    let views: Vec<_> = xs.iter()
+    let views: Vec<_> = xs
+        .iter()
         .map(|x| {
             let n = x.len();
             x.view().into_shape((n, 1)).unwrap()
@@ -95,7 +96,8 @@ where
     A: LinalgScalar,
     S: Data<Elem = A>,
 {
-    let views: Vec<_> = xs.iter()
+    let views: Vec<_> = xs
+        .iter()
         .map(|x| {
             let n = x.len();
             x.view().into_shape((1, n)).unwrap()

@@ -15,6 +15,7 @@ jobs:
           command: |
             apt update && apt install -y gfortran
             cargo test --no-default-features --features=openblas
+            cargo test --no-default-features --features=openblas,serde-1
 
   test-netlib:
     <<: *rust_cfg
@@ -25,6 +26,7 @@ jobs:
           command: |
             apt update && apt install -y cmake gfortran
             cargo test --no-default-features --features=netlib
+            cargo test --no-default-features --features=netlib,serde-1
 
   test-intel-mkl:
     <<: *rust_cfg
@@ -32,7 +34,9 @@ jobs:
       - checkout
       - run:
           name: test Intel MKL backend
-          command: cargo test --no-default-features --features=intel-mkl
+          command: |
+            cargo test --no-default-features --features=intel-mkl
+            cargo test --no-default-features --features=intel-mkl,serde-1
 
   format:
     <<: *rust_cfg

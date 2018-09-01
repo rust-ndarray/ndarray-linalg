@@ -30,8 +30,7 @@ version = "0.2"
 default-features = false
 
 [dependencies.ndarray]
-version = "0.11.2"
-git = "https://github.com/bluss/ndarray"
+version = "0.12"
 features = ["blas"]
 default-features = false
 

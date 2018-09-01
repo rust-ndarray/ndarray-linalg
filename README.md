@@ -24,8 +24,8 @@ There are two ways to link LAPACKE backend:
 There are three features corresponding to the backend implementations (`openblas` / `netlib` / `intel-mkl`):
 
 ```toml
-[depencdencies]
-ndarray = "0.11"
+[dependencies]
+ndarray = "0.12"
 ndarray-linalg = { version = "0.9", features = ["openblas"] }
 ```
 
@@ -34,8 +34,8 @@ For the sake of linking flexibility, you can provide LAPACKE implementation (as 
 You should link a LAPACKE implementation to a final crate (like binary executable or dylib) only, not to a Rust library.
 
 ```toml
-[depencdencies]
-ndarray = "0.11"
+[dependencies]
+ndarray = "0.12"
 ndarray-linalg = "0.9"
 openblas-src = "0.5" # or another backend of your choice
 
@@ -53,8 +53,8 @@ extern crate openblas_src; // or another backend of your choice
 If you creating a library depending on this crate, we encourage you not to link any backend for flexibility:
 
 ```toml
-[depencdencies]
-ndarray = "0.11"
+[dependencies]
+ndarray = "0.12"
 ndarray-linalg = { version = "0.9", default-features = false }
 ```
 

@@ -17,6 +17,7 @@ accelerate = ["lapack-src/accelerate", "blas-src/accelerate"]
 intel-mkl  = ["lapack-src/intel-mkl", "blas-src/intel-mkl"]
 netlib     = ["lapack-src/netlib", "blas-src/netlib", "netlib-src"]
 openblas   = ["lapack-src/openblas", "blas-src/openblas", "openblas-src"]
+serde-1    = ["ndarray/serde-1", "num-complex/serde"]
 
 [dependencies]
 derive-new = "0.5"

@@ -38,16 +38,6 @@ jobs:
             cargo test --no-default-features --features=intel-mkl
             cargo test --no-default-features --features=intel-mkl,serde-1
 
-  format:
-    <<: *rust_cfg
-    steps:
-      - checkout
-      - run:
-          name: check format
-          command: |
-            rustup component add rustfmt-preview
-            cargo fmt -- --write-mode=diff
-
 workflows:
   version: 2
   tests:
@@ -55,4 +45,3 @@ workflows:
       - test-openblas
       - test-netlib
       - test-intel-mkl
-      - format

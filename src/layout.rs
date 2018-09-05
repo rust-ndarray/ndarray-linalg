@@ -98,7 +98,10 @@ where
         if shape[1] == strides[0] as usize {
             return Ok(MatrixLayout::C((self.rows() as i32, self.cols() as i32)));
         }
-        Err(StrideError::new(strides[0], strides[1]).into())
+        Err(LinalgError::InvalidStride {
+            s0: strides[0],
+            s1: strides[1],
+        })
     }
 
     fn square_layout(&self) -> Result<MatrixLayout> {
@@ -107,7 +110,7 @@ where
         if n == m {
             Ok(l)
         } else {
-            Err(NotSquareError::new(n, m).into())
+            Err(LinalgError::NotSquare { rows: n, cols: m })
         }
     }
 
@@ -115,12 +118,17 @@ where
         if self.is_square() {
             Ok(())
         } else {
-            Err(NotSquareError::new(self.rows() as i32, self.cols() as i32).into())
+            Err(LinalgError::NotSquare {
+                rows: self.rows() as i32,
+                cols: self.cols() as i32,
+            })
         }
     }
 
     fn as_allocated(&self) -> Result<&[A]> {
-        Ok(self.as_slice_memory_order().ok_or_else(MemoryContError::new)?)
+        Ok(self
+            .as_slice_memory_order()
+            .ok_or_else(|| LinalgError::MemoryNotCont {})?)
     }
 }
 
@@ -129,6 +137,8 @@ where
     S: DataMut<Elem = A>,
 {
     fn as_allocated_mut(&mut self) -> Result<&mut [A]> {
-        Ok(self.as_slice_memory_order_mut().ok_or_else(MemoryContError::new)?)
+        Ok(self
+            .as_slice_memory_order_mut()
+            .ok_or_else(|| LinalgError::MemoryNotCont {})?)
     }
 }

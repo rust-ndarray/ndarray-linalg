@@ -421,7 +421,7 @@ where
     fn sln_deth(&self) -> Result<(A::Real, A::Real)> {
         match self.factorizeh() {
             Ok(fac) => Ok(fac.sln_deth()),
-            Err(LinalgError::Lapack(LapackError { return_code })) if return_code > 0 => {
+            Err(LinalgError::LapackFailure { return_code }) if return_code > 0 => {
                 // Determinant is zero.
                 Ok((A::Real::zero(), A::Real::neg_infinity()))
             }
@@ -445,7 +445,7 @@ where
     fn sln_deth_into(self) -> Result<(A::Real, A::Real)> {
         match self.factorizeh_into() {
             Ok(fac) => Ok(fac.sln_deth_into()),
-            Err(LinalgError::Lapack(LapackError { return_code })) if return_code > 0 => {
+            Err(LinalgError::LapackFailure { return_code }) if return_code > 0 => {
                 // Determinant is zero.
                 Ok((A::Real::zero(), A::Real::neg_infinity()))
             }

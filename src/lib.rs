@@ -21,12 +21,10 @@ extern crate lapacke;
 extern crate num_complex;
 extern crate num_traits;
 extern crate rand;
+#[macro_use]
+extern crate failure;
 #[macro_use(s)]
 extern crate ndarray;
-#[macro_use]
-extern crate procedurals;
-#[macro_use]
-extern crate derive_new;
 
 pub mod assert;
 pub mod cholesky;

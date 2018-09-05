@@ -30,11 +30,11 @@ impl LapackScalar for f64 {}
 impl LapackScalar for c32 {}
 impl LapackScalar for c64 {}
 
-pub fn into_result<T>(info: i32, val: T) -> Result<T> {
-    if info == 0 {
+pub fn into_result<T>(return_code: i32, val: T) -> Result<T> {
+    if return_code == 0 {
         Ok(val)
     } else {
-        Err(LapackError::new(info).into())
+        Err(LinalgError::LapackFailure { return_code })
     }
 }
 

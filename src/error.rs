@@ -1,95 +1,35 @@
 //! Define Errors
 
 use ndarray::{Ixs, ShapeError};
-use std::error;
-use std::fmt;
 
 pub type Result<T> = ::std::result::Result<T, LinalgError>;
 
 /// Master Error type of this crate
-#[derive(Debug, EnumError)]
+#[derive(Fail, Debug)]
 pub enum LinalgError {
-    NotSquare(NotSquareError),
-    Lapack(LapackError),
-    Stride(StrideError),
-    MemoryCont(MemoryContError),
-    Shape(ShapeError),
+    /// Matrix is not square
+    #[fail(display = "Not square: rows({}) != cols({})", rows, cols)]
+    NotSquare { rows: i32, cols: i32 },
+
+    /// LAPACK subroutine returns non-zero code
+    #[fail(display = "LAPACK: return_code = {}", return_code)]
+    LapackFailure { return_code: i32 },
+
+    /// Strides of the array is not supported
+    #[fail(display = "invalid stride: s0={}, s1={}", s0, s1)]
+    InvalidStride { s0: Ixs, s1: Ixs },
+
+    /// Memory is not aligned continously
+    #[fail(display = "Memory is not contiguous")]
+    MemoryNotCont {},
+
+    /// Strides of the array is not supported
+    #[fail(display = "Shape Error: {}", error)]
+    ShapeFailure { error: ShapeError },
 }
 
-/// Error from LAPACK
-#[derive(Debug, new)]
-pub struct LapackError {
-    pub return_code: i32,
-}
-
-impl fmt::Display for LapackError {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "LAPACK: return_code = {}", self.return_code)
-    }
-}
-
-impl error::Error for LapackError {
-    fn description(&self) -> &str {
-        "LAPACK subroutine returns non-zero code"
-    }
-}
-
-impl From<i32> for LapackError {
-    fn from(code: i32) -> LapackError {
-        LapackError { return_code: code }
-    }
-}
-
-/// Error that matrix is not square
-#[derive(Debug, new)]
-pub struct NotSquareError {
-    pub rows: i32,
-    pub cols: i32,
-}
-
-impl fmt::Display for NotSquareError {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "Not square: rows({}) != cols({})", self.rows, self.cols)
-    }
-}
-
-impl error::Error for NotSquareError {
-    fn description(&self) -> &str {
-        "Matrix is not square"
-    }
-}
-
-/// Error that strides of the array is not supported
-#[derive(Debug, new)]
-pub struct StrideError {
-    pub s0: Ixs,
-    pub s1: Ixs,
-}
-
-impl fmt::Display for StrideError {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "invalid stride: s0={}, s1={}", self.s0, self.s1)
-    }
-}
-
-impl error::Error for StrideError {
-    fn description(&self) -> &str {
-        "invalid stride"
-    }
-}
-
-/// Error that the memory is not aligned continously
-#[derive(Debug, new)]
-pub struct MemoryContError {}
-
-impl fmt::Display for MemoryContError {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "Memory is not contiguous")
-    }
-}
-
-impl error::Error for MemoryContError {
-    fn description(&self) -> &str {
-        "Memory is not contiguous"
+impl From<ShapeError> for LinalgError {
+    fn from(error: ShapeError) -> LinalgError {
+        LinalgError::ShapeFailure { error }
     }
 }

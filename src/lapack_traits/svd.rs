@@ -50,7 +50,7 @@ macro_rules! impl_svd {
                     (FlagSVD::No, 0, Vec::new())
                 };
                 let mut s = vec![Self::Real::zero(); k as usize];
-                let mut superb = vec![Self::Real::zero(); (k - 2) as usize];
+                let mut superb = vec![Self::Real::zero(); (k - 1) as usize];
                 let info = $gesvd(
                     l.lapacke_layout(),
                     ju as u8,

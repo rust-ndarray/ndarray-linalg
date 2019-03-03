@@ -32,9 +32,12 @@ impl MatrixLayout {
     }
 
     pub fn lda(&self) -> LDA {
-        match *self {
-            MatrixLayout::C((_, lda)) | MatrixLayout::F((_, lda)) => lda,
-        }
+        std::cmp::max(
+            1,
+            match *self {
+                MatrixLayout::C((_, lda)) | MatrixLayout::F((_, lda)) => lda,
+            },
+        )
     }
 
     pub fn len(&self) -> LEN {

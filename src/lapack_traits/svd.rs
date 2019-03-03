@@ -3,9 +3,9 @@
 use lapacke;
 use num_traits::Zero;
 
-use error::*;
-use layout::MatrixLayout;
-use types::*;
+use crate::error::*;
+use crate::layout::MatrixLayout;
+use crate::types::*;
 
 use super::into_result;
 
@@ -29,7 +29,7 @@ pub struct SVDOutput<A: AssociatedReal> {
 
 /// Wraps `*gesvd`
 pub trait SVD_: AssociatedReal {
-    unsafe fn svd(MatrixLayout, calc_u: bool, calc_vt: bool, a: &mut [Self]) -> Result<SVDOutput<Self>>;
+    unsafe fn svd(l: MatrixLayout, calc_u: bool, calc_vt: bool, a: &mut [Self]) -> Result<SVDOutput<Self>>;
 }
 
 macro_rules! impl_svd {

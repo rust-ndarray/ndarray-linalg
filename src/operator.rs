@@ -9,7 +9,7 @@ where
     S: Data<Elem = A>,
     D: Dimension,
 {
-    fn op(&self, &ArrayBase<S, D>) -> Array<A, D>;
+    fn op(&self, a: &ArrayBase<S, D>) -> Array<A, D>;
 }
 
 pub trait OperatorInto<S, D>
@@ -17,7 +17,7 @@ where
     S: DataMut,
     D: Dimension,
 {
-    fn op_into(&self, ArrayBase<S, D>) -> ArrayBase<S, D>;
+    fn op_into(&self, a: ArrayBase<S, D>) -> ArrayBase<S, D>;
 }
 
 pub trait OperatorInplace<S, D>
@@ -25,7 +25,7 @@ where
     S: DataMut,
     D: Dimension,
 {
-    fn op_inplace<'a>(&self, &'a mut ArrayBase<S, D>) -> &'a mut ArrayBase<S, D>;
+    fn op_inplace<'a>(&self, a: &'a mut ArrayBase<S, D>) -> &'a mut ArrayBase<S, D>;
 }
 
 impl<T, A, S, D> Operator<A, S, D> for T
@@ -45,7 +45,7 @@ where
     S: Data<Elem = A>,
     D: Dimension,
 {
-    fn op_multi(&self, &ArrayBase<S, D>) -> Array<A, D>;
+    fn op_multi(&self, a: &ArrayBase<S, D>) -> Array<A, D>;
 }
 
 impl<T, A, S, D> OperatorMulti<A, S, D> for T
@@ -66,7 +66,7 @@ where
     S: DataMut,
     D: Dimension,
 {
-    fn op_multi_into(&self, ArrayBase<S, D>) -> ArrayBase<S, D>;
+    fn op_multi_into(&self, a: ArrayBase<S, D>) -> ArrayBase<S, D>;
 }
 
 impl<T, A, S, D> OperatorMultiInto<S, D> for T
@@ -86,7 +86,7 @@ where
     S: DataMut,
     D: Dimension,
 {
-    fn op_multi_inplace<'a>(&self, &'a mut ArrayBase<S, D>) -> &'a mut ArrayBase<S, D>;
+    fn op_multi_inplace<'a>(&self, a: &'a mut ArrayBase<S, D>) -> &'a mut ArrayBase<S, D>;
 }
 
 impl<T, A, S, D> OperatorMultiInplace<S, D> for T

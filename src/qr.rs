@@ -5,13 +5,13 @@
 use ndarray::*;
 use num_traits::Zero;
 
-use super::convert::*;
-use super::error::*;
-use super::layout::*;
-use super::triangular::*;
-use super::types::*;
+use crate::convert::*;
+use crate::error::*;
+use crate::layout::*;
+use crate::triangular::*;
+use crate::types::*;
 
-pub use lapack_traits::UPLO;
+pub use crate::lapack_traits::UPLO;
 
 /// QR decomposition for matrix reference
 ///

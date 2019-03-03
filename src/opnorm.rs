@@ -2,11 +2,11 @@
 
 use ndarray::*;
 
-use super::error::*;
-use super::layout::*;
-use super::types::*;
+use crate::error::*;
+use crate::layout::*;
+use crate::types::*;
 
-pub use lapack_traits::NormType;
+pub use crate::lapack_traits::NormType;
 
 /// Operator norm using `*lange` LAPACK routines
 ///

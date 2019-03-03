@@ -3,9 +3,10 @@
 use lapacke;
 
 use super::{into_result, Transpose, UPLO};
-use error::*;
-use layout::MatrixLayout;
-use types::*;
+
+use crate::error::*;
+use crate::layout::MatrixLayout;
+use crate::types::*;
 
 #[derive(Debug, Clone, Copy)]
 #[repr(u8)]
@@ -16,12 +17,12 @@ pub enum Diag {
 
 /// Wraps `*trtri` and `*trtrs`
 pub trait Triangular_: Sized {
-    unsafe fn inv_triangular(l: MatrixLayout, UPLO, Diag, a: &mut [Self]) -> Result<()>;
+    unsafe fn inv_triangular(l: MatrixLayout, uplo: UPLO, d: Diag, a: &mut [Self]) -> Result<()>;
     unsafe fn solve_triangular(
         al: MatrixLayout,
         bl: MatrixLayout,
-        UPLO,
-        Diag,
+        uplo: UPLO,
+        d: Diag,
         a: &[Self],
         b: &mut [Self],
     ) -> Result<()>;

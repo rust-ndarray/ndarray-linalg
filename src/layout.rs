@@ -90,6 +90,9 @@ where
     type Elem = A;
 
     fn layout(&self) -> Result<MatrixLayout> {
+        if self.len() == 0 {
+            return Err(LinalgError::NullArray);
+        }
         let shape = self.shape();
         let strides = self.strides();
         if shape[0] == strides[1] as usize {
@@ -126,9 +129,7 @@ where
     }
 
     fn as_allocated(&self) -> Result<&[A]> {
-        Ok(self
-            .as_slice_memory_order()
-            .ok_or_else(|| LinalgError::MemoryNotCont)?)
+        Ok(self.as_slice_memory_order().ok_or_else(|| LinalgError::MemoryNotCont)?)
     }
 }
 

@@ -22,7 +22,7 @@ serde-1    = ["ndarray/serde-1", "num-complex/serde"]
 [dependencies]
 lapacke = "0.2"
 num-traits  = "0.2"
-rand = "0.5"
+rand = "0.6"
 
 [dependencies.num-complex]
 version = "0.2"

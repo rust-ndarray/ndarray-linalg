@@ -1,7 +1,3 @@
-extern crate ndarray;
-#[macro_use]
-extern crate ndarray_linalg;
-
 use ndarray::*;
 use ndarray_linalg::*;
 use std::cmp::min;

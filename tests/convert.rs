@@ -1,6 +1,3 @@
-extern crate ndarray;
-extern crate ndarray_linalg;
-
 use ndarray::*;
 use ndarray_linalg::*;
 

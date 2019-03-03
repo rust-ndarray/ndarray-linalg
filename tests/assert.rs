@@ -1,6 +1,4 @@
-extern crate ndarray;
-#[macro_use]
-extern crate ndarray_linalg;
+use ndarray_linalg::assert_rclose;
 
 #[test]
 fn assert() {

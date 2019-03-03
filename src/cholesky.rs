@@ -49,8 +49,8 @@ use num_traits::Float;
 use crate::convert::*;
 use crate::error::*;
 use crate::layout::*;
-use crate::types::*;
 use crate::triangular::IntoTriangular;
+use crate::types::*;
 
 pub use crate::lapack_traits::UPLO;
 

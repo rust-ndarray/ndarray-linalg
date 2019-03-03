@@ -5,9 +5,9 @@ use ndarray::*;
 use crate::diagonal::*;
 use crate::error::*;
 use crate::layout::*;
+use crate::operator::Operator;
 use crate::types::*;
 use crate::UPLO;
-use crate::operator::Operator;
 
 /// Eigenvalue decomposition of Hermite matrix reference
 pub trait Eigh {

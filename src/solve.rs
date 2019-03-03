@@ -49,13 +49,13 @@
 use ndarray::*;
 use num_traits::{Float, Zero};
 
-use super::convert::*;
-use super::error::*;
-use super::layout::*;
-use super::opnorm::OperationNorm;
-use super::types::*;
+use crate::convert::*;
+use crate::error::*;
+use crate::layout::*;
+use crate::opnorm::OperationNorm;
+use crate::types::*;
 
-pub use lapack_traits::{Pivot, Transpose};
+pub use crate::lapack_traits::{Pivot, Transpose};
 
 /// An interface for solving systems of linear equations.
 ///
@@ -90,7 +90,10 @@ pub trait Solve<A: Scalar> {
     }
     /// Solves a system of linear equations `A * x = b` where `A` is `self`, `b`
     /// is the argument, and `x` is the successful result.
-    fn solve_inplace<'a, S: DataMut<Elem = A>>(&self, &'a mut ArrayBase<S, Ix1>) -> Result<&'a mut ArrayBase<S, Ix1>>;
+    fn solve_inplace<'a, S: DataMut<Elem = A>>(
+        &self,
+        b: &'a mut ArrayBase<S, Ix1>,
+    ) -> Result<&'a mut ArrayBase<S, Ix1>>;
 
     /// Solves a system of linear equations `A^T * x = b` where `A` is `self`, `b`
     /// is the argument, and `x` is the successful result.
@@ -107,8 +110,10 @@ pub trait Solve<A: Scalar> {
     }
     /// Solves a system of linear equations `A^T * x = b` where `A` is `self`, `b`
     /// is the argument, and `x` is the successful result.
-    fn solve_t_inplace<'a, S: DataMut<Elem = A>>(&self, &'a mut ArrayBase<S, Ix1>)
-        -> Result<&'a mut ArrayBase<S, Ix1>>;
+    fn solve_t_inplace<'a, S: DataMut<Elem = A>>(
+        &self,
+        b: &'a mut ArrayBase<S, Ix1>,
+    ) -> Result<&'a mut ArrayBase<S, Ix1>>;
 
     /// Solves a system of linear equations `A^H * x = b` where `A` is `self`, `b`
     /// is the argument, and `x` is the successful result.
@@ -125,8 +130,10 @@ pub trait Solve<A: Scalar> {
     }
     /// Solves a system of linear equations `A^H * x = b` where `A` is `self`, `b`
     /// is the argument, and `x` is the successful result.
-    fn solve_h_inplace<'a, S: DataMut<Elem = A>>(&self, &'a mut ArrayBase<S, Ix1>)
-        -> Result<&'a mut ArrayBase<S, Ix1>>;
+    fn solve_h_inplace<'a, S: DataMut<Elem = A>>(
+        &self,
+        b: &'a mut ArrayBase<S, Ix1>,
+    ) -> Result<&'a mut ArrayBase<S, Ix1>>;
 }
 
 /// Represents the LU factorization of a matrix `A` as `A = P*L*U`.
@@ -383,7 +390,9 @@ where
     let pivot_sign = if ipiv_iter
         .enumerate()
         .filter(|&(i, pivot)| pivot != i as i32 + 1)
-        .count() % 2 == 0
+        .count()
+        % 2
+        == 0
     {
         A::one()
     } else {

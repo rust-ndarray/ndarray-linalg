@@ -18,7 +18,7 @@ where
     S: Data<Elem = A>,
     D: Dimension,
 {
-    fn solve_triangular(&self, UPLO, Diag, &ArrayBase<S, D>) -> Result<Array<A, D>>;
+    fn solve_triangular(&self, uplo: UPLO, diag: Diag, b: &ArrayBase<S, D>) -> Result<Array<A, D>>;
 }
 
 /// solve a triangular system with upper triangular matrix
@@ -27,7 +27,7 @@ where
     S: DataMut,
     D: Dimension,
 {
-    fn solve_triangular_into(&self, UPLO, Diag, ArrayBase<S, D>) -> Result<ArrayBase<S, D>>;
+    fn solve_triangular_into(&self, uplo: UPLO, diag: Diag, b: ArrayBase<S, D>) -> Result<ArrayBase<S, D>>;
 }
 
 /// solve a triangular system with upper triangular matrix
@@ -36,7 +36,12 @@ where
     S: DataMut,
     D: Dimension,
 {
-    fn solve_triangular_inplace<'a>(&self, UPLO, Diag, &'a mut ArrayBase<S, D>) -> Result<&'a mut ArrayBase<S, D>>;
+    fn solve_triangular_inplace<'a>(
+        &self,
+        uplo: UPLO,
+        diag: Diag,
+        b: &'a mut ArrayBase<S, D>,
+    ) -> Result<&'a mut ArrayBase<S, D>>;
 }
 
 impl<A, Si, So> SolveTriangularInto<So, Ix2> for ArrayBase<Si, Ix2>
@@ -113,7 +118,7 @@ where
 }
 
 pub trait IntoTriangular<T> {
-    fn into_triangular(self, UPLO) -> T;
+    fn into_triangular(self, uplo: UPLO) -> T;
 }
 
 impl<'a, A, S> IntoTriangular<&'a mut ArrayBase<S, Ix2>> for &'a mut ArrayBase<S, Ix2>

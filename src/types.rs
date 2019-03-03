@@ -40,7 +40,7 @@ pub trait Scalar:
     + Neg<Output = Self>
     + Debug
 {
-    fn from_f64(f64) -> Self;
+    fn from_f64(a: f64) -> Self;
 }
 
 impl Scalar for f32 {
@@ -87,24 +87,24 @@ pub fn into_scalar<T: Scalar>(f: f64) -> T {
 /// Define associating real float type
 pub trait AssociatedReal: Sized {
     type Real: RealScalar;
-    fn inject(Self::Real) -> Self;
+    fn inject(x: Self::Real) -> Self;
     /// Returns the real part of `self`.
     fn real(self) -> Self::Real;
     /// Returns the imaginary part of `self`.
     fn imag(self) -> Self::Real;
-    fn add_real(self, Self::Real) -> Self;
-    fn sub_real(self, Self::Real) -> Self;
-    fn mul_real(self, Self::Real) -> Self;
-    fn div_real(self, Self::Real) -> Self;
+    fn add_real(self, re: Self::Real) -> Self;
+    fn sub_real(self, re: Self::Real) -> Self;
+    fn mul_real(self, re: Self::Real) -> Self;
+    fn div_real(self, re: Self::Real) -> Self;
 }
 
 /// Define associating complex type
 pub trait AssociatedComplex: Sized {
     type Complex;
-    fn inject(Self) -> Self::Complex;
-    fn add_complex(self, Self::Complex) -> Self::Complex;
-    fn sub_complex(self, Self::Complex) -> Self::Complex;
-    fn mul_complex(self, Self::Complex) -> Self::Complex;
+    fn inject(self) -> Self::Complex;
+    fn add_complex(self, c: Self::Complex) -> Self::Complex;
+    fn sub_complex(self, c: Self::Complex) -> Self::Complex;
+    fn mul_complex(self, c: Self::Complex) -> Self::Complex;
 }
 
 /// Define `abs()` more generally
@@ -137,7 +137,7 @@ pub trait Conjugate: Copy {
 
 /// Scalars which can be initialized from Gaussian random number
 pub trait RandNormal {
-    fn randn<R: Rng>(&mut R) -> Self;
+    fn randn<R: Rng>(rng: &mut R) -> Self;
 }
 
 macro_rules! impl_traits {
@@ -194,8 +194,8 @@ macro_rules! impl_traits {
 
         impl AssociatedComplex for $real {
             type Complex = $complex;
-            fn inject(r: Self) -> Self::Complex {
-                Self::Complex::new(r, 0.0)
+            fn inject(self) -> Self::Complex {
+                Self::Complex::new(self, 0.0)
             }
             fn add_complex(self, c: Self::Complex) -> Self::Complex {
                 self + c
@@ -210,8 +210,8 @@ macro_rules! impl_traits {
 
         impl AssociatedComplex for $complex {
             type Complex = $complex;
-            fn inject(c: Self) -> Self::Complex {
-                c
+            fn inject(self) -> Self::Complex {
+                self
             }
             fn add_complex(self, c: Self::Complex) -> Self::Complex {
                 self + c

@@ -46,13 +46,13 @@
 use ndarray::*;
 use num_traits::Float;
 
-use super::convert::*;
-use super::error::*;
-use super::layout::*;
-use super::triangular::IntoTriangular;
-use super::types::*;
+use crate::convert::*;
+use crate::error::*;
+use crate::layout::*;
+use crate::types::*;
+use crate::triangular::IntoTriangular;
 
-pub use lapack_traits::UPLO;
+pub use crate::lapack_traits::UPLO;
 
 /// Cholesky decomposition of Hermitian (or real symmetric) positive definite matrix
 pub struct CholeskyFactorized<S: Data> {
@@ -194,7 +194,7 @@ pub trait Cholesky {
     /// Otherwise, if the argument is `UPLO::Lower`, computes the decomposition
     /// `A = L * L^H` using the lower triangular portion of `A` and returns
     /// `L`.
-    fn cholesky(&self, UPLO) -> Result<Self::Output>;
+    fn cholesky(&self, uplo: UPLO) -> Result<Self::Output>;
 }
 
 /// Cholesky decomposition of Hermitian (or real symmetric) positive definite matrix
@@ -208,7 +208,7 @@ pub trait CholeskyInto {
     /// Otherwise, if the argument is `UPLO::Lower`, computes the decomposition
     /// `A = L * L^H` using the lower triangular portion of `A` and returns
     /// `L`.
-    fn cholesky_into(self, UPLO) -> Result<Self::Output>;
+    fn cholesky_into(self, uplo: UPLO) -> Result<Self::Output>;
 }
 
 /// Cholesky decomposition of Hermitian (or real symmetric) positive definite mutable reference of matrix
@@ -221,7 +221,7 @@ pub trait CholeskyInplace {
     /// U^H * U` using the upper triangular portion of `A` and writes `U`.
     /// Otherwise, if the argument is `UPLO::Lower`, computes the decomposition
     /// `A = L * L^H` using the lower triangular portion of `A` and writes `L`.
-    fn cholesky_inplace(&mut self, UPLO) -> Result<&mut Self>;
+    fn cholesky_inplace(&mut self, uplo: UPLO) -> Result<&mut Self>;
 }
 
 impl<A, S> Cholesky for ArrayBase<S, Ix2>
@@ -271,7 +271,7 @@ pub trait FactorizeC<S: Data> {
     /// factorization containing `U`. Otherwise, if the argument is
     /// `UPLO::Lower`, computes the decomposition `A = L * L^H` using the lower
     /// triangular portion of `A` and returns the factorization containing `L`.
-    fn factorizec(&self, UPLO) -> Result<CholeskyFactorized<S>>;
+    fn factorizec(&self, uplo: UPLO) -> Result<CholeskyFactorized<S>>;
 }
 
 /// Cholesky decomposition of Hermitian (or real symmetric) positive definite matrix
@@ -284,7 +284,7 @@ pub trait FactorizeCInto<S: Data> {
     /// factorization containing `U`. Otherwise, if the argument is
     /// `UPLO::Lower`, computes the decomposition `A = L * L^H` using the lower
     /// triangular portion of `A` and returns the factorization containing `L`.
-    fn factorizec_into(self, UPLO) -> Result<CholeskyFactorized<S>>;
+    fn factorizec_into(self, uplo: UPLO) -> Result<CholeskyFactorized<S>>;
 }
 
 impl<A, S> FactorizeCInto<S> for ArrayBase<S, Ix2>
@@ -335,7 +335,10 @@ pub trait SolveC<A: Scalar> {
     /// symmetric) positive definite matrix `A`, where `A` is `self`, `b` is
     /// the argument, and `x` is the successful result. The value of `x` is
     /// also assigned to the argument.
-    fn solvec_inplace<'a, S: DataMut<Elem = A>>(&self, &'a mut ArrayBase<S, Ix1>) -> Result<&'a mut ArrayBase<S, Ix1>>;
+    fn solvec_inplace<'a, S: DataMut<Elem = A>>(
+        &self,
+        b: &'a mut ArrayBase<S, Ix1>,
+    ) -> Result<&'a mut ArrayBase<S, Ix1>>;
 }
 
 impl<A, S> SolveC<A> for ArrayBase<S, Ix2>

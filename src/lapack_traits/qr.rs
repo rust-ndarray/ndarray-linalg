@@ -4,17 +4,17 @@ use lapacke;
 use num_traits::Zero;
 use std::cmp::min;
 
-use error::*;
-use layout::MatrixLayout;
-use types::*;
+use crate::error::*;
+use crate::layout::MatrixLayout;
+use crate::types::*;
 
 use super::into_result;
 
 /// Wraps `*geqrf` and `*orgqr` (`*ungqr` for complex numbers)
 pub trait QR_: Sized {
-    unsafe fn householder(MatrixLayout, a: &mut [Self]) -> Result<Vec<Self>>;
-    unsafe fn q(MatrixLayout, a: &mut [Self], tau: &[Self]) -> Result<()>;
-    unsafe fn qr(MatrixLayout, a: &mut [Self]) -> Result<Vec<Self>>;
+    unsafe fn householder(l: MatrixLayout, a: &mut [Self]) -> Result<Vec<Self>>;
+    unsafe fn q(l: MatrixLayout, a: &mut [Self], tau: &[Self]) -> Result<()>;
+    unsafe fn qr(l: MatrixLayout, a: &mut [Self]) -> Result<Vec<Self>>;
 }
 
 macro_rules! impl_qr {

@@ -3,13 +3,13 @@
 use lapacke;
 use lapacke::Layout::ColumnMajor as cm;
 
-use layout::MatrixLayout;
-use types::*;
+use crate::layout::MatrixLayout;
+use crate::types::*;
 
 pub use super::NormType;
 
 pub trait OperatorNorm_: AssociatedReal {
-    unsafe fn opnorm(NormType, MatrixLayout, &[Self]) -> Self::Real;
+    unsafe fn opnorm(t: NormType, l: MatrixLayout, a: &[Self]) -> Self::Real;
 }
 
 macro_rules! impl_opnorm {

@@ -2,30 +2,30 @@
 
 use ndarray::*;
 
-use super::diagonal::*;
-use super::error::*;
-use super::layout::*;
-use super::operator::*;
-use super::types::*;
-use super::UPLO;
+use crate::diagonal::*;
+use crate::error::*;
+use crate::layout::*;
+use crate::types::*;
+use crate::UPLO;
+use crate::operator::Operator;
 
 /// Eigenvalue decomposition of Hermite matrix reference
 pub trait Eigh {
     type EigVal;
     type EigVec;
-    fn eigh(&self, UPLO) -> Result<(Self::EigVal, Self::EigVec)>;
+    fn eigh(&self, uplo: UPLO) -> Result<(Self::EigVal, Self::EigVec)>;
 }
 
 /// Eigenvalue decomposition of mutable reference of Hermite matrix
 pub trait EighInplace {
     type EigVal;
-    fn eigh_inplace(&mut self, UPLO) -> Result<(Self::EigVal, &mut Self)>;
+    fn eigh_inplace(&mut self, uplo: UPLO) -> Result<(Self::EigVal, &mut Self)>;
 }
 
 /// Eigenvalue decomposition of Hermite matrix
 pub trait EighInto: Sized {
     type EigVal;
-    fn eigh_into(self, UPLO) -> Result<(Self::EigVal, Self)>;
+    fn eigh_into(self, uplo: UPLO) -> Result<(Self::EigVal, Self)>;
 }
 
 impl<A, S> EighInto for ArrayBase<S, Ix2>
@@ -71,19 +71,19 @@ where
 /// Calculate eigenvalues without eigenvectors
 pub trait EigValsh {
     type EigVal;
-    fn eigvalsh(&self, UPLO) -> Result<Self::EigVal>;
+    fn eigvalsh(&self, uplo: UPLO) -> Result<Self::EigVal>;
 }
 
 /// Calculate eigenvalues without eigenvectors
 pub trait EigValshInto {
     type EigVal;
-    fn eigvalsh_into(self, UPLO) -> Result<Self::EigVal>;
+    fn eigvalsh_into(self, uplo: UPLO) -> Result<Self::EigVal>;
 }
 
 /// Calculate eigenvalues without eigenvectors
 pub trait EigValshInplace {
     type EigVal;
-    fn eigvalsh_inplace(&mut self, UPLO) -> Result<Self::EigVal>;
+    fn eigvalsh_inplace(&mut self, uplo: UPLO) -> Result<Self::EigVal>;
 }
 
 impl<A, S> EigValshInto for ArrayBase<S, Ix2>
@@ -127,7 +127,7 @@ where
 /// Calculate symmetric square-root matrix using `eigh`
 pub trait SymmetricSqrt {
     type Output;
-    fn ssqrt(&self, UPLO) -> Result<Self::Output>;
+    fn ssqrt(&self, uplo: UPLO) -> Result<Self::Output>;
 }
 
 impl<A, S> SymmetricSqrt for ArrayBase<S, Ix2>
@@ -146,7 +146,7 @@ where
 /// Calculate symmetric square-root matrix using `eigh`
 pub trait SymmetricSqrtInto {
     type Output;
-    fn ssqrt_into(self, UPLO) -> Result<Self::Output>;
+    fn ssqrt_into(self, uplo: UPLO) -> Result<Self::Output>;
 }
 
 impl<A, S> SymmetricSqrtInto for ArrayBase<S, Ix2>

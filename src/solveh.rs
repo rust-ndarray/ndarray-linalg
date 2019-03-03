@@ -52,12 +52,12 @@
 use ndarray::*;
 use num_traits::{Float, One, Zero};
 
-use super::convert::*;
-use super::error::*;
-use super::layout::*;
-use super::types::*;
+use crate::convert::*;
+use crate::error::*;
+use crate::layout::*;
+use crate::types::*;
 
-pub use lapack_traits::{Pivot, UPLO};
+pub use crate::lapack_traits::{Pivot, UPLO};
 
 /// An interface for solving systems of Hermitian (or real symmetric) linear equations.
 ///
@@ -85,7 +85,10 @@ pub trait SolveH<A: Scalar> {
     /// symmetric) matrix `A`, where `A` is `self`, `b` is the argument, and
     /// `x` is the successful result. The value of `x` is also assigned to the
     /// argument.
-    fn solveh_inplace<'a, S: DataMut<Elem = A>>(&self, &'a mut ArrayBase<S, Ix1>) -> Result<&'a mut ArrayBase<S, Ix1>>;
+    fn solveh_inplace<'a, S: DataMut<Elem = A>>(
+        &self,
+        b: &'a mut ArrayBase<S, Ix1>,
+    ) -> Result<&'a mut ArrayBase<S, Ix1>>;
 }
 
 /// Represents the Bunch–Kaufman factorization of a Hermitian (or real

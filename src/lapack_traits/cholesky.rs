@@ -2,9 +2,9 @@
 
 use lapacke;
 
-use error::*;
-use layout::MatrixLayout;
-use types::*;
+use crate::error::*;
+use crate::layout::MatrixLayout;
+use crate::types::*;
 
 use super::{into_result, UPLO};
 
@@ -12,13 +12,13 @@ pub trait Cholesky_: Sized {
     /// Cholesky: wrapper of `*potrf`
     ///
     /// **Warning: Only the portion of `a` corresponding to `UPLO` is written.**
-    unsafe fn cholesky(MatrixLayout, UPLO, a: &mut [Self]) -> Result<()>;
+    unsafe fn cholesky(l: MatrixLayout, uplo: UPLO, a: &mut [Self]) -> Result<()>;
     /// Wrapper of `*potri`
     ///
     /// **Warning: Only the portion of `a` corresponding to `UPLO` is written.**
-    unsafe fn inv_cholesky(MatrixLayout, UPLO, a: &mut [Self]) -> Result<()>;
+    unsafe fn inv_cholesky(l: MatrixLayout, uplo: UPLO, a: &mut [Self]) -> Result<()>;
     /// Wrapper of `*potrs`
-    unsafe fn solve_cholesky(MatrixLayout, UPLO, a: &[Self], b: &mut [Self]) -> Result<()>;
+    unsafe fn solve_cholesky(l: MatrixLayout, uplo: UPLO, a: &[Self], b: &mut [Self]) -> Result<()>;
 }
 
 macro_rules! impl_cholesky {

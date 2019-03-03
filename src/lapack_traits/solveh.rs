@@ -4,19 +4,19 @@
 
 use lapacke;
 
-use error::*;
-use layout::MatrixLayout;
-use types::*;
+use crate::error::*;
+use crate::layout::MatrixLayout;
+use crate::types::*;
 
 use super::{into_result, Pivot, UPLO};
 
 pub trait Solveh_: Sized {
     /// Bunch-Kaufman: wrapper of `*sytrf` and `*hetrf`
-    unsafe fn bk(MatrixLayout, UPLO, a: &mut [Self]) -> Result<Pivot>;
+    unsafe fn bk(l: MatrixLayout, uplo: UPLO, a: &mut [Self]) -> Result<Pivot>;
     /// Wrapper of `*sytri` and `*hetri`
-    unsafe fn invh(MatrixLayout, UPLO, a: &mut [Self], &Pivot) -> Result<()>;
+    unsafe fn invh(l: MatrixLayout, uplo: UPLO, a: &mut [Self], ipiv: &Pivot) -> Result<()>;
     /// Wrapper of `*sytrs` and `*hetrs`
-    unsafe fn solveh(MatrixLayout, UPLO, a: &[Self], &Pivot, b: &mut [Self]) -> Result<()>;
+    unsafe fn solveh(l: MatrixLayout, uplo: UPLO, a: &[Self], ipiv: &Pivot, b: &mut [Self]) -> Result<()>;
 }
 
 macro_rules! impl_solveh {

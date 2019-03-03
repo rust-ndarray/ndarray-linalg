@@ -3,15 +3,15 @@
 use lapacke;
 use num_traits::Zero;
 
-use error::*;
-use layout::MatrixLayout;
-use types::*;
+use crate::error::*;
+use crate::layout::MatrixLayout;
+use crate::types::*;
 
 use super::{into_result, UPLO};
 
 /// Wraps `*syev` for real and `*heev` for complex
 pub trait Eigh_: AssociatedReal {
-    unsafe fn eigh(calc_eigenvec: bool, MatrixLayout, UPLO, a: &mut [Self]) -> Result<Vec<Self::Real>>;
+    unsafe fn eigh(calc_eigenvec: bool, l: MatrixLayout, uplo: UPLO, a: &mut [Self]) -> Result<Vec<Self::Real>>;
 }
 
 macro_rules! impl_eigh {

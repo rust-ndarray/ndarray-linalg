@@ -1,11 +1,11 @@
 //! Solve linear problem using LU decomposition
 
 use lapacke;
-
-use error::*;
-use layout::MatrixLayout;
 use num_traits::Zero;
-use types::*;
+
+use crate::error::*;
+use crate::layout::MatrixLayout;
+use crate::types::*;
 
 use super::NormType;
 use super::{into_result, Pivot, Transpose};
@@ -20,13 +20,13 @@ pub trait Solve_: AssociatedReal + Sized {
     /// return_code-1)]` is exactly zero. The factorization has been completed,
     /// but the factor `U` is exactly singular, and division by zero will occur
     /// if it is used to solve a system of equations.
-    unsafe fn lu(MatrixLayout, a: &mut [Self]) -> Result<Pivot>;
-    unsafe fn inv(MatrixLayout, a: &mut [Self], &Pivot) -> Result<()>;
+    unsafe fn lu(l: MatrixLayout, a: &mut [Self]) -> Result<Pivot>;
+    unsafe fn inv(l: MatrixLayout, a: &mut [Self], p: &Pivot) -> Result<()>;
     /// Estimates the the reciprocal of the condition number of the matrix in 1-norm.
     ///
     /// `anorm` should be the 1-norm of the matrix `a`.
-    unsafe fn rcond(MatrixLayout, a: &[Self], anorm: Self::Real) -> Result<Self::Real>;
-    unsafe fn solve(MatrixLayout, Transpose, a: &[Self], &Pivot, b: &mut [Self]) -> Result<()>;
+    unsafe fn rcond(l: MatrixLayout, a: &[Self], anorm: Self::Real) -> Result<Self::Real>;
+    unsafe fn solve(l: MatrixLayout, t: Transpose, a: &[Self], p: &Pivot, b: &mut [Self]) -> Result<()>;
 }
 
 macro_rules! impl_solve {

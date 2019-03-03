@@ -17,13 +17,6 @@
 //!  - [generator functions](generate/index.html)
 //!  - [Scalar trait](types/trait.Scalar.html)
 
-extern crate lapacke;
-extern crate num_complex;
-extern crate num_traits;
-extern crate rand;
-#[macro_use(s)]
-extern crate ndarray;
-
 pub mod assert;
 pub mod cholesky;
 pub mod convert;

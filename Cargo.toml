@@ -2,6 +2,7 @@
 name    = "ndarray-linalg"
 version = "0.10.1-alpha.0"
 authors = ["Toshiki Teramura <toshiki.teramura@gmail.com>"]
+edition = "2018"
 
 description   = "Linear algebra package for rust-ndarray using LAPACK"
 documentation = "https://docs.rs/ndarray-linalg/"

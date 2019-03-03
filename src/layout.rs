@@ -128,7 +128,7 @@ where
     fn as_allocated(&self) -> Result<&[A]> {
         Ok(self
             .as_slice_memory_order()
-            .ok_or_else(|| LinalgError::MemoryNotCont {})?)
+            .ok_or_else(|| LinalgError::MemoryNotCont)?)
     }
 }
 
@@ -139,6 +139,6 @@ where
     fn as_allocated_mut(&mut self) -> Result<&mut [A]> {
         Ok(self
             .as_slice_memory_order_mut()
-            .ok_or_else(|| LinalgError::MemoryNotCont {})?)
+            .ok_or_else(|| LinalgError::MemoryNotCont)?)
     }
 }

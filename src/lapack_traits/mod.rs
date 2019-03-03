@@ -34,7 +34,7 @@ pub fn into_result<T>(return_code: i32, val: T) -> Result<T> {
     if return_code == 0 {
         Ok(val)
     } else {
-        Err(LinalgError::LapackFailure { return_code })
+        Err(LinalgError::Lapack { return_code })
     }
 }
 

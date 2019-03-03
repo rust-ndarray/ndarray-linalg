@@ -21,8 +21,6 @@ extern crate lapacke;
 extern crate num_complex;
 extern crate num_traits;
 extern crate rand;
-#[macro_use]
-extern crate failure;
 #[macro_use(s)]
 extern crate ndarray;
 

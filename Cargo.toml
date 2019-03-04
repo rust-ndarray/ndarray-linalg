@@ -16,8 +16,8 @@ categories    = ["algorithms", "science"]
 default    = []
 accelerate = ["lapack-src/accelerate", "blas-src/accelerate"]
 intel-mkl  = ["lapack-src/intel-mkl", "blas-src/intel-mkl"]
-netlib     = ["lapack-src/netlib", "blas-src/netlib", "netlib-src"]
-openblas   = ["lapack-src/openblas", "blas-src/openblas", "openblas-src"]
+netlib     = ["lapack-src/netlib", "blas-src/netlib"]
+openblas   = ["lapack-src/openblas", "blas-src/openblas"]
 serde-1    = ["ndarray/serde-1", "num-complex/serde"]
 
 [dependencies]
@@ -41,17 +41,5 @@ optional = true
 
 [dependencies.lapack-src]
 version = "0.2"
-default-features = false
-optional = true
-
-[dependencies.netlib-src]
-version = "0.7.0"
-features = ["static", "cblas", "lapacke", "tmg"]
-default-features = false
-optional = true
-
-[dependencies.openblas-src]
-version = "0.6.0"
-features = ["static", "cblas", "lapacke"]
 default-features = false
 optional = true

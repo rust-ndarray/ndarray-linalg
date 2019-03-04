@@ -51,6 +51,9 @@ where
 }
 
 /// Random Hermite Positive-definite matrix
+///
+/// - Eigenvalue of matrix must be larger than 1 (thus non-singular)
+///
 pub fn random_hpd<A, S>(n: usize) -> ArrayBase<S, Ix2>
 where
     A: RandNormal + Conjugate + LinalgScalar,
@@ -58,7 +61,7 @@ where
 {
     let a: Array2<A> = random((n, n));
     let ah: Array2<A> = conjugate(&a);
-    replicate(&ah.dot(&a))
+    ArrayBase::eye(n) + &ah.dot(&a)
 }
 
 /// construct matrix from diag

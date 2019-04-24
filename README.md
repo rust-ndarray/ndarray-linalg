@@ -60,7 +60,7 @@ You should link a LAPACKE implementation to a final crate (like binary executabl
 [dependencies]
 ndarray = "0.12"
 ndarray-linalg = "0.10"
-openblas-src = "0.5" # or another backend of your choice
+openblas-src = "0.7" # or another backend of your choice
 
 ```
 
@@ -71,3 +71,14 @@ extern crate ndarray;
 extern crate ndarray_linalg;
 extern crate openblas_src; // or another backend of your choice
 ```
+
+### Link statically
+
+If you needs to link the backend (OpenBLAS/Netlib) statically, please add following to your Cargo.toml
+
+```toml
+[dependencies]
+openblas-src = { version = "0.7.0", features = ["static"] }
+```
+
+Intel-MKL backend does not support static linking.

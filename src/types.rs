@@ -9,7 +9,7 @@ use std::fmt::Debug;
 use std::iter::Sum;
 use std::ops::Neg;
 
-use super::lapack_traits::LapackScalar;
+use super::lapack_traits::Lapack;
 
 pub use num_complex::Complex32 as c32;
 pub use num_complex::Complex64 as c64;
@@ -27,7 +27,7 @@ pub use num_complex::Complex64 as c64;
 /// - [`randn`](trait.RandNormal.html#tymethod.randn)
 ///
 pub trait Scalar:
-    LapackScalar
+    Lapack
     + LinalgScalar
     + AssociatedReal
     + AssociatedComplex

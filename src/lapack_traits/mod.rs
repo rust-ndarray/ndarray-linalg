@@ -23,12 +23,12 @@ use super::types::*;
 
 pub type Pivot = Vec<i32>;
 
-pub trait LapackScalar: OperatorNorm_ + QR_ + SVD_ + Solve_ + Solveh_ + Cholesky_ + Eigh_ + Triangular_ {}
+pub trait Lapack: OperatorNorm_ + QR_ + SVD_ + Solve_ + Solveh_ + Cholesky_ + Eigh_ + Triangular_ {}
 
-impl LapackScalar for f32 {}
-impl LapackScalar for f64 {}
-impl LapackScalar for c32 {}
-impl LapackScalar for c64 {}
+impl Lapack for f32 {}
+impl Lapack for f64 {}
+impl Lapack for c32 {}
+impl Lapack for c64 {}
 
 pub fn into_result<T>(return_code: i32, val: T) -> Result<T> {
     if return_code == 0 {

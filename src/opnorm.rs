@@ -13,7 +13,7 @@ pub use crate::lapack_traits::NormType;
 /// [Wikipedia article on operator norm](https://en.wikipedia.org/wiki/Operator_norm)
 pub trait OperationNorm {
     /// the value of norm
-    type Output: RealScalar;
+    type Output: Scalar;
 
     fn opnorm(&self, t: NormType) -> Result<Self::Output>;
 
@@ -35,7 +35,7 @@ pub trait OperationNorm {
 
 impl<A, S> OperationNorm for ArrayBase<S, Ix2>
 where
-    A: Scalar,
+    A: Scalar + Lapack,
     S: Data<Elem = A>,
 {
     type Output = A::Real;

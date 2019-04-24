@@ -10,7 +10,7 @@ use crate::types::*;
 use super::{into_result, UPLO};
 
 /// Wraps `*syev` for real and `*heev` for complex
-pub trait Eigh_: AssociatedReal {
+pub trait Eigh_: Scalar {
     unsafe fn eigh(calc_eigenvec: bool, l: MatrixLayout, uplo: UPLO, a: &mut [Self]) -> Result<Vec<Self::Real>>;
 }
 

@@ -66,7 +66,7 @@ pub struct CholeskyFactorized<S: Data> {
 
 impl<A, S> CholeskyFactorized<S>
 where
-    A: Scalar,
+    A: Scalar + Lapack,
     S: DataMut<Elem = A>,
 {
     /// Returns `L` from the Cholesky decomposition `A = L * L^H`.
@@ -96,10 +96,10 @@ where
 
 impl<A, S> DeterminantC for CholeskyFactorized<S>
 where
-    A: Absolute,
+    A: Scalar + Lapack,
     S: Data<Elem = A>,
 {
-    type Output = <A as AssociatedReal>::Real;
+    type Output = <A as Scalar>::Real;
 
     fn detc(&self) -> Self::Output {
         self.ln_detc().exp()
@@ -109,17 +109,17 @@ where
         self.factor
             .diag()
             .iter()
-            .map(|elem| elem.abs_sqr().ln())
+            .map(|elem| elem.square().ln())
             .sum::<Self::Output>()
     }
 }
 
 impl<A, S> DeterminantCInto for CholeskyFactorized<S>
 where
-    A: Absolute,
+    A: Scalar + Lapack,
     S: Data<Elem = A>,
 {
-    type Output = <A as AssociatedReal>::Real;
+    type Output = <A as Scalar>::Real;
 
     fn detc_into(self) -> Self::Output {
         self.detc()
@@ -132,7 +132,7 @@ where
 
 impl<A, S> InverseC for CholeskyFactorized<S>
 where
-    A: Scalar,
+    A: Scalar + Lapack,
     S: Data<Elem = A>,
 {
     type Output = Array2<A>;
@@ -148,7 +148,7 @@ where
 
 impl<A, S> InverseCInto for CholeskyFactorized<S>
 where
-    A: Scalar,
+    A: Scalar + Lapack,
     S: DataMut<Elem = A>,
 {
     type Output = ArrayBase<S, Ix2>;
@@ -163,7 +163,7 @@ where
 
 impl<A, S> SolveC<A> for CholeskyFactorized<S>
 where
-    A: Scalar,
+    A: Scalar + Lapack,
     S: Data<Elem = A>,
 {
     fn solvec_inplace<'a, Sb>(&self, b: &'a mut ArrayBase<Sb, Ix1>) -> Result<&'a mut ArrayBase<Sb, Ix1>>
@@ -226,7 +226,7 @@ pub trait CholeskyInplace {
 
 impl<A, S> Cholesky for ArrayBase<S, Ix2>
 where
-    A: Scalar,
+    A: Scalar + Lapack,
     S: Data<Elem = A>,
 {
     type Output = Array2<A>;
@@ -239,7 +239,7 @@ where
 
 impl<A, S> CholeskyInto for ArrayBase<S, Ix2>
 where
-    A: Scalar,
+    A: Scalar + Lapack,
     S: DataMut<Elem = A>,
 {
     type Output = Self;
@@ -252,7 +252,7 @@ where
 
 impl<A, S> CholeskyInplace for ArrayBase<S, Ix2>
 where
-    A: Scalar,
+    A: Scalar + Lapack,
     S: DataMut<Elem = A>,
 {
     fn cholesky_inplace(&mut self, uplo: UPLO) -> Result<&mut Self> {
@@ -289,7 +289,7 @@ pub trait FactorizeCInto<S: Data> {
 
 impl<A, S> FactorizeCInto<S> for ArrayBase<S, Ix2>
 where
-    A: Scalar,
+    A: Scalar + Lapack,
     S: DataMut<Elem = A>,
 {
     fn factorizec_into(self, uplo: UPLO) -> Result<CholeskyFactorized<S>> {
@@ -302,7 +302,7 @@ where
 
 impl<A, Si> FactorizeC<OwnedRepr<A>> for ArrayBase<Si, Ix2>
 where
-    A: Scalar,
+    A: Scalar + Lapack,
     Si: Data<Elem = A>,
 {
     fn factorizec(&self, uplo: UPLO) -> Result<CholeskyFactorized<OwnedRepr<A>>> {
@@ -343,7 +343,7 @@ pub trait SolveC<A: Scalar> {
 
 impl<A, S> SolveC<A> for ArrayBase<S, Ix2>
 where
-    A: Scalar,
+    A: Scalar + Lapack,
     S: Data<Elem = A>,
 {
     fn solvec_inplace<'a, Sb>(&self, b: &'a mut ArrayBase<Sb, Ix1>) -> Result<&'a mut ArrayBase<Sb, Ix1>>
@@ -372,7 +372,7 @@ pub trait InverseCInto {
 
 impl<A, S> InverseC for ArrayBase<S, Ix2>
 where
-    A: Scalar,
+    A: Scalar + Lapack,
     S: Data<Elem = A>,
 {
     type Output = Array2<A>;
@@ -384,7 +384,7 @@ where
 
 impl<A, S> InverseCInto for ArrayBase<S, Ix2>
 where
-    A: Scalar,
+    A: Scalar + Lapack,
     S: DataMut<Elem = A>,
 {
     type Output = Self;
@@ -430,10 +430,10 @@ pub trait DeterminantCInto {
 
 impl<A, S> DeterminantC for ArrayBase<S, Ix2>
 where
-    A: Scalar,
+    A: Scalar + Lapack,
     S: Data<Elem = A>,
 {
-    type Output = Result<<A as AssociatedReal>::Real>;
+    type Output = Result<<A as Scalar>::Real>;
 
     fn detc(&self) -> Self::Output {
         Ok(self.ln_detc()?.exp())
@@ -446,10 +446,10 @@ where
 
 impl<A, S> DeterminantCInto for ArrayBase<S, Ix2>
 where
-    A: Scalar,
+    A: Scalar + Lapack,
     S: DataMut<Elem = A>,
 {
-    type Output = Result<<A as AssociatedReal>::Real>;
+    type Output = Result<<A as Scalar>::Real>;
 
     fn detc_into(self) -> Self::Output {
         Ok(self.ln_detc_into()?.exp())

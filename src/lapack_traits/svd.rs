@@ -18,7 +18,7 @@ enum FlagSVD {
 }
 
 /// Result of SVD
-pub struct SVDOutput<A: AssociatedReal> {
+pub struct SVDOutput<A: Scalar> {
     /// diagonal values
     pub s: Vec<A::Real>,
     /// Unitary matrix for destination space
@@ -28,7 +28,7 @@ pub struct SVDOutput<A: AssociatedReal> {
 }
 
 /// Wraps `*gesvd`
-pub trait SVD_: AssociatedReal {
+pub trait SVD_: Scalar {
     unsafe fn svd(l: MatrixLayout, calc_u: bool, calc_vt: bool, a: &mut [Self]) -> Result<SVDOutput<Self>>;
 }
 

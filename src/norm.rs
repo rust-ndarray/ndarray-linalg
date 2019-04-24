@@ -24,7 +24,7 @@ pub trait Norm {
 
 impl<A, S, D> Norm for ArrayBase<S, D>
 where
-    A: Scalar,
+    A: Scalar + Lapack,
     S: Data<Elem = A>,
     D: Dimension,
 {
@@ -33,7 +33,7 @@ where
         self.iter().map(|x| x.abs()).sum()
     }
     fn norm_l2(&self) -> Self::Output {
-        self.iter().map(|x| x.abs_sqr()).sum::<A::Real>().sqrt()
+        self.iter().map(|x| x.square()).sum::<A::Real>().sqrt()
     }
     fn norm_max(&self) -> Self::Output {
         self.iter().fold(A::Real::zero(), |f, &val| {
@@ -55,14 +55,14 @@ pub enum NormalizeAxis {
 /// normalize in L2 norm
 pub fn normalize<A, S>(mut m: ArrayBase<S, Ix2>, axis: NormalizeAxis) -> (ArrayBase<S, Ix2>, Vec<A::Real>)
 where
-    A: Scalar,
+    A: Scalar + Lapack,
     S: DataMut<Elem = A>,
 {
     let mut ms = Vec::new();
     for mut v in m.axis_iter_mut(Axis(axis as usize)) {
         let n = v.norm();
         ms.push(n);
-        v.map_inplace(|x| *x = x.div_real(n))
+        v.map_inplace(|x| *x = *x / A::from_real(n))
     }
     (m, ms)
 }

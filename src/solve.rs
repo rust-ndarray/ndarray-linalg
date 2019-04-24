@@ -147,7 +147,7 @@ pub struct LUFactorized<S: Data> {
 
 impl<A, S> Solve<A> for LUFactorized<S>
 where
-    A: Scalar,
+    A: Scalar + Lapack,
     S: Data<Elem = A>,
 {
     fn solve_inplace<'a, Sb>(&self, rhs: &'a mut ArrayBase<Sb, Ix1>) -> Result<&'a mut ArrayBase<Sb, Ix1>>
@@ -199,7 +199,7 @@ where
 
 impl<A, S> Solve<A> for ArrayBase<S, Ix2>
 where
-    A: Scalar,
+    A: Scalar + Lapack,
     S: Data<Elem = A>,
 {
     fn solve_inplace<'a, Sb>(&self, rhs: &'a mut ArrayBase<Sb, Ix1>) -> Result<&'a mut ArrayBase<Sb, Ix1>>
@@ -241,7 +241,7 @@ pub trait FactorizeInto<S: Data> {
 
 impl<A, S> FactorizeInto<S> for ArrayBase<S, Ix2>
 where
-    A: Scalar,
+    A: Scalar + Lapack,
     S: DataMut<Elem = A>,
 {
     fn factorize_into(mut self) -> Result<LUFactorized<S>> {
@@ -252,7 +252,7 @@ where
 
 impl<A, Si> Factorize<OwnedRepr<A>> for ArrayBase<Si, Ix2>
 where
-    A: Scalar,
+    A: Scalar + Lapack,
     Si: Data<Elem = A>,
 {
     fn factorize(&self) -> Result<LUFactorized<OwnedRepr<A>>> {
@@ -278,7 +278,7 @@ pub trait InverseInto {
 
 impl<A, S> InverseInto for LUFactorized<S>
 where
-    A: Scalar,
+    A: Scalar + Lapack,
     S: DataMut<Elem = A>,
 {
     type Output = ArrayBase<S, Ix2>;
@@ -291,7 +291,7 @@ where
 
 impl<A, S> Inverse for LUFactorized<S>
 where
-    A: Scalar,
+    A: Scalar + Lapack,
     S: Data<Elem = A>,
 {
     type Output = Array2<A>;
@@ -307,7 +307,7 @@ where
 
 impl<A, S> InverseInto for ArrayBase<S, Ix2>
 where
-    A: Scalar,
+    A: Scalar + Lapack,
     S: DataMut<Elem = A>,
 {
     type Output = Self;
@@ -320,7 +320,7 @@ where
 
 impl<A, Si> Inverse for ArrayBase<Si, Ix2>
 where
-    A: Scalar,
+    A: Scalar + Lapack,
     Si: Data<Elem = A>,
 {
     type Output = Array2<A>;
@@ -336,7 +336,7 @@ pub trait Determinant<A: Scalar> {
     /// Computes the determinant of the matrix.
     fn det(&self) -> Result<A> {
         let (sign, ln_det) = self.sln_det()?;
-        Ok(sign.mul_real(ln_det.exp()))
+        Ok(sign * A::from_real(ln_det.exp()))
     }
 
     /// Computes the `(sign, natural_log)` of the determinant of the matrix.
@@ -361,7 +361,7 @@ pub trait DeterminantInto<A: Scalar>: Sized {
     /// Computes the determinant of the matrix.
     fn det_into(self) -> Result<A> {
         let (sign, ln_det) = self.sln_det_into()?;
-        Ok(sign.mul_real(ln_det.exp()))
+        Ok(sign * A::from_real(ln_det.exp()))
     }
 
     /// Computes the `(sign, natural_log)` of the determinant of the matrix.
@@ -383,7 +383,7 @@ pub trait DeterminantInto<A: Scalar>: Sized {
 
 fn lu_sln_det<'a, A, P, U>(ipiv_iter: P, u_diag_iter: U) -> (A, A::Real)
 where
-    A: Scalar,
+    A: Scalar + Lapack,
     P: Iterator<Item = i32>,
     U: Iterator<Item = &'a A>,
 {
@@ -400,14 +400,14 @@ where
     };
     let (upper_sign, ln_det) = u_diag_iter.fold((A::one(), A::Real::zero()), |(upper_sign, ln_det), &elem| {
         let abs_elem: A::Real = elem.abs();
-        (upper_sign * elem.div_real(abs_elem), ln_det + abs_elem.ln())
+        (upper_sign * elem / A::from_real(abs_elem), ln_det + abs_elem.ln())
     });
     (pivot_sign * upper_sign, ln_det)
 }
 
 impl<A, S> Determinant<A> for LUFactorized<S>
 where
-    A: Scalar,
+    A: Scalar + Lapack,
     S: Data<Elem = A>,
 {
     fn sln_det(&self) -> Result<(A, A::Real)> {
@@ -418,7 +418,7 @@ where
 
 impl<A, S> DeterminantInto<A> for LUFactorized<S>
 where
-    A: Scalar,
+    A: Scalar + Lapack,
     S: Data<Elem = A>,
 {
     fn sln_det_into(self) -> Result<(A, A::Real)> {
@@ -429,7 +429,7 @@ where
 
 impl<A, S> Determinant<A> for ArrayBase<S, Ix2>
 where
-    A: Scalar,
+    A: Scalar + Lapack,
     S: Data<Elem = A>,
 {
     fn sln_det(&self) -> Result<(A, A::Real)> {
@@ -438,7 +438,7 @@ where
             Ok(fac) => fac.sln_det(),
             Err(LinalgError::Lapack { return_code }) if return_code > 0 => {
                 // The determinant is zero.
-                Ok((A::zero(), A::Real::neg_infinity()))
+                Ok((A::zero(), A::Real::NEG_INFINITY))
             }
             Err(err) => Err(err),
         }
@@ -447,7 +447,7 @@ where
 
 impl<A, S> DeterminantInto<A> for ArrayBase<S, Ix2>
 where
-    A: Scalar,
+    A: Scalar + Lapack,
     S: DataMut<Elem = A>,
 {
     fn sln_det_into(self) -> Result<(A, A::Real)> {
@@ -456,7 +456,7 @@ where
             Ok(fac) => fac.sln_det_into(),
             Err(LinalgError::Lapack { return_code }) if return_code > 0 => {
                 // The determinant is zero.
-                Ok((A::zero(), A::Real::neg_infinity()))
+                Ok((A::zero(), A::Real::NEG_INFINITY))
             }
             Err(err) => Err(err),
         }
@@ -493,7 +493,7 @@ pub trait ReciprocalConditionNumInto<A: Scalar> {
 
 impl<A, S> ReciprocalConditionNum<A> for LUFactorized<S>
 where
-    A: Scalar,
+    A: Scalar + Lapack,
     S: Data<Elem = A>,
 {
     fn rcond(&self) -> Result<A::Real> {
@@ -503,7 +503,7 @@ where
 
 impl<A, S> ReciprocalConditionNumInto<A> for LUFactorized<S>
 where
-    A: Scalar,
+    A: Scalar + Lapack,
     S: Data<Elem = A>,
 {
     fn rcond_into(self) -> Result<A::Real> {
@@ -513,7 +513,7 @@ where
 
 impl<A, S> ReciprocalConditionNum<A> for ArrayBase<S, Ix2>
 where
-    A: Scalar,
+    A: Scalar + Lapack,
     S: Data<Elem = A>,
 {
     fn rcond(&self) -> Result<A::Real> {
@@ -523,7 +523,7 @@ where
 
 impl<A, S> ReciprocalConditionNumInto<A> for ArrayBase<S, Ix2>
 where
-    A: Scalar,
+    A: Scalar + Lapack,
     S: DataMut<Elem = A>,
 {
     fn rcond_into(self) -> Result<A::Real> {

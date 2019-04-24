@@ -5,7 +5,7 @@ use ndarray::*;
 use super::error::*;
 use super::lapack_traits::UPLO;
 use super::layout::*;
-use super::types::Conjugate;
+use super::types::*;
 
 pub fn into_col<S>(a: ArrayBase<S, Ix1>) -> ArrayBase<S, Ix2>
 where
@@ -107,7 +107,7 @@ where
 /// ***Panics*** if `a` is not square.
 pub(crate) fn triangular_fill_hermitian<A, S>(a: &mut ArrayBase<S, Ix2>, uplo: UPLO)
 where
-    A: Conjugate,
+    A: Scalar + Lapack,
     S: DataMut<Elem = A>,
 {
     assert!(a.is_square());

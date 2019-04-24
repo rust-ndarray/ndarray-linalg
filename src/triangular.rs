@@ -14,7 +14,7 @@ pub use super::lapack_traits::Diag;
 /// solve a triangular system with upper triangular matrix
 pub trait SolveTriangular<A, S, D>
 where
-    A: Scalar,
+    A: Scalar + Lapack,
     S: Data<Elem = A>,
     D: Dimension,
 {
@@ -46,7 +46,7 @@ where
 
 impl<A, Si, So> SolveTriangularInto<So, Ix2> for ArrayBase<Si, Ix2>
 where
-    A: Scalar,
+    A: Scalar + Lapack,
     Si: Data<Elem = A>,
     So: DataMut<Elem = A> + DataOwned,
 {
@@ -58,7 +58,7 @@ where
 
 impl<A, Si, So> SolveTriangularInplace<So, Ix2> for ArrayBase<Si, Ix2>
 where
-    A: Scalar,
+    A: Scalar + Lapack,
     Si: Data<Elem = A>,
     So: DataMut<Elem = A> + DataOwned,
 {
@@ -82,7 +82,7 @@ where
 
 impl<A, Si, So> SolveTriangular<A, So, Ix2> for ArrayBase<Si, Ix2>
 where
-    A: Scalar,
+    A: Scalar + Lapack,
     Si: Data<Elem = A>,
     So: DataMut<Elem = A> + DataOwned,
 {
@@ -94,7 +94,7 @@ where
 
 impl<A, Si, So> SolveTriangularInto<So, Ix1> for ArrayBase<Si, Ix2>
 where
-    A: Scalar,
+    A: Scalar + Lapack,
     Si: Data<Elem = A>,
     So: DataMut<Elem = A> + DataOwned,
 {
@@ -107,7 +107,7 @@ where
 
 impl<A, Si, So> SolveTriangular<A, So, Ix1> for ArrayBase<Si, Ix2>
 where
-    A: Scalar,
+    A: Scalar + Lapack,
     Si: Data<Elem = A>,
     So: DataMut<Elem = A> + DataOwned,
 {

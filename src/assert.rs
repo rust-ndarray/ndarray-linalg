@@ -32,7 +32,7 @@ pub fn close_max<A, S1, S2, D>(
     atol: A::Real,
 ) -> Result<A::Real, A::Real>
 where
-    A: Scalar,
+    A: Scalar + Lapack,
     S1: Data<Elem = A>,
     S2: Data<Elem = A>,
     D: Dimension,
@@ -52,7 +52,7 @@ pub fn close_l1<A, S1, S2, D>(
     rtol: A::Real,
 ) -> Result<A::Real, A::Real>
 where
-    A: Scalar,
+    A: Scalar + Lapack,
     S1: Data<Elem = A>,
     S2: Data<Elem = A>,
     D: Dimension,
@@ -72,7 +72,7 @@ pub fn close_l2<A, S1, S2, D>(
     rtol: A::Real,
 ) -> Result<A::Real, A::Real>
 where
-    A: Scalar,
+    A: Scalar + Lapack,
     S1: Data<Elem = A>,
     S2: Data<Elem = A>,
     D: Dimension,

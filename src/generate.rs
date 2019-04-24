@@ -11,13 +11,13 @@ use super::types::*;
 /// Hermite conjugate matrix
 pub fn conjugate<A, Si, So>(a: &ArrayBase<Si, Ix2>) -> ArrayBase<So, Ix2>
 where
-    A: Conjugate,
+    A: Scalar + Lapack
     Si: Data<Elem = A>,
     So: DataOwned<Elem = A> + DataMut,
 {
     let mut a = replicate(&a.t());
     for val in a.iter_mut() {
-        *val = Conjugate::conj(*val);
+        *val = Scalar::conj(*val);
     }
     a
 }
@@ -37,14 +37,14 @@ where
 /// Random Hermite matrix
 pub fn random_hermite<A, S>(n: usize) -> ArrayBase<S, Ix2>
 where
-    A: RandNormal + Conjugate + Add<Output = A>,
+    A: RandNormal + Scalar + Add<Output = A>,
     S: DataOwned<Elem = A> + DataMut,
 {
     let mut a = random((n, n));
     for i in 0..n {
-        a[(i, i)] = a[(i, i)] + Conjugate::conj(a[(i, i)]);
+        a[(i, i)] = a[(i, i)] + Scalar::conj(a[(i, i)]);
         for j in (i + 1)..n {
-            a[(i, j)] = Conjugate::conj(a[(j, i)])
+            a[(i, j)] = Scalar::conj(a[(j, i)])
         }
     }
     a
@@ -56,7 +56,7 @@ where
 ///
 pub fn random_hpd<A, S>(n: usize) -> ArrayBase<S, Ix2>
 where
-    A: RandNormal + Conjugate + LinalgScalar,
+    A: RandNormal + Scalar + LinalgScalar,
     S: DataOwned<Elem = A> + DataMut,
 {
     let a: Array2<A> = random((n, n));

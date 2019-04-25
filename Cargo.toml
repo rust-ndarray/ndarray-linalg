@@ -24,6 +24,7 @@ serde-1    = ["ndarray/serde-1", "num-complex/serde"]
 lapacke = "0.2"
 num-traits  = "0.2"
 rand = "0.6"
+cauchy = "0.2"
 
 [dependencies.num-complex]
 version = "0.2"

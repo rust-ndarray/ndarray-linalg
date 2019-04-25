@@ -1,8 +1,7 @@
 //! Generator functions for matrices
 
 use ndarray::*;
-use rand::*;
-use std::ops::*;
+use rand::{distributions::Standard, prelude::*};
 
 use super::convert::*;
 use super::error::*;
@@ -11,13 +10,13 @@ use super::types::*;
 /// Hermite conjugate matrix
 pub fn conjugate<A, Si, So>(a: &ArrayBase<Si, Ix2>) -> ArrayBase<So, Ix2>
 where
-    A: Scalar + Lapack
+    A: Scalar,
     Si: Data<Elem = A>,
     So: DataOwned<Elem = A> + DataMut,
 {
-    let mut a = replicate(&a.t());
+    let mut a: ArrayBase<So, Ix2> = replicate(&a.t());
     for val in a.iter_mut() {
-        *val = Scalar::conj(*val);
+        *val = val.conj();
     }
     a
 }
@@ -25,26 +24,27 @@ where
 /// Generate random array
 pub fn random<A, S, Sh, D>(sh: Sh) -> ArrayBase<S, D>
 where
-    A: RandNormal,
     S: DataOwned<Elem = A>,
     D: Dimension,
     Sh: ShapeBuilder<Dim = D>,
+    Standard: Distribution<A>,
 {
     let mut rng = thread_rng();
-    ArrayBase::from_shape_fn(sh, |_| A::randn(&mut rng))
+    ArrayBase::from_shape_fn(sh, |_| rng.sample(Standard))
 }
 
 /// Random Hermite matrix
 pub fn random_hermite<A, S>(n: usize) -> ArrayBase<S, Ix2>
 where
-    A: RandNormal + Scalar + Add<Output = A>,
+    A: Scalar,
     S: DataOwned<Elem = A> + DataMut,
+    Standard: Distribution<A>,
 {
-    let mut a = random((n, n));
+    let mut a: ArrayBase<S, Ix2> = random((n, n));
     for i in 0..n {
-        a[(i, i)] = a[(i, i)] + Scalar::conj(a[(i, i)]);
+        a[(i, i)] = a[(i, i)] + a[(i, i)].conj();
         for j in (i + 1)..n {
-            a[(i, j)] = Scalar::conj(a[(j, i)])
+            a[(i, j)] = a[(j, i)].conj();
         }
     }
     a
@@ -56,8 +56,9 @@ where
 ///
 pub fn random_hpd<A, S>(n: usize) -> ArrayBase<S, Ix2>
 where
-    A: RandNormal + Scalar + LinalgScalar,
+    A: Scalar,
     S: DataOwned<Elem = A> + DataMut,
+    Standard: Distribution<A>,
 {
     let a: Array2<A> = random((n, n));
     let ah: Array2<A> = conjugate(&a);
@@ -67,7 +68,7 @@ where
 /// construct matrix from diag
 pub fn from_diag<A>(d: &[A]) -> Array2<A>
 where
-    A: LinalgScalar,
+    A: Scalar,
 {
     let n = d.len();
     let mut e = Array::zeros((n, n));
@@ -80,7 +81,7 @@ where
 /// stack vectors into matrix horizontally
 pub fn hstack<A, S>(xs: &[ArrayBase<S, Ix1>]) -> Result<Array<A, Ix2>>
 where
-    A: LinalgScalar,
+    A: Scalar,
     S: Data<Elem = A>,
 {
     let views: Vec<_> = xs
@@ -96,7 +97,7 @@ where
 /// stack vectors into matrix vertically
 pub fn vstack<A, S>(xs: &[ArrayBase<S, Ix1>]) -> Result<Array<A, Ix2>>
 where
-    A: LinalgScalar,
+    A: Scalar,
     S: Data<Elem = A>,
 {
     let views: Vec<_> = xs

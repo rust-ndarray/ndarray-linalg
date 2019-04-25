@@ -416,7 +416,7 @@ where
             Ok(fac) => Ok(fac.sln_deth()),
             Err(LinalgError::Lapack { return_code }) if return_code > 0 => {
                 // Determinant is zero.
-                Ok((A::Real::zero(), A::Real::NEG_INFINITY))
+                Ok((A::Real::zero(), A::Real::neg_infinity()))
             }
             Err(err) => Err(err),
         }
@@ -440,7 +440,7 @@ where
             Ok(fac) => Ok(fac.sln_deth_into()),
             Err(LinalgError::Lapack { return_code }) if return_code > 0 => {
                 // Determinant is zero.
-                Ok((A::Real::zero(), A::Real::NEG_INFINITY))
+                Ok((A::Real::zero(), A::Real::neg_infinity()))
             }
             Err(err) => Err(err),
         }

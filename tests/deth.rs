@@ -71,10 +71,7 @@ fn deth() {
 
             // Compute determinant from eigenvalues.
             let (sign, ln_det) = a.eigvalsh(UPLO::Upper).unwrap().iter().fold(
-                (
-                    <$elem as AssociatedReal>::Real::one(),
-                    <$elem as AssociatedReal>::Real::zero(),
-                ),
+                (<$elem as Scalar>::Real::one(), <$elem as Scalar>::Real::zero()),
                 |(sign, ln_det), eigval| (sign * eigval.signum(), ln_det + eigval.abs().ln()),
             );
             let det = sign * ln_det.exp();

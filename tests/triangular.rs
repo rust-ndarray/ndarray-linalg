@@ -3,7 +3,7 @@ use ndarray_linalg::*;
 
 fn test1d<A, Sa, Sb>(uplo: UPLO, a: &ArrayBase<Sa, Ix2>, b: &ArrayBase<Sb, Ix1>, tol: A::Real)
 where
-    A: Scalar,
+    A: Scalar + Lapack,
     Sa: Data<Elem = A>,
     Sb: DataMut<Elem = A> + DataOwned,
 {
@@ -18,7 +18,7 @@ where
 
 fn test2d<A, Sa, Sb>(uplo: UPLO, a: &ArrayBase<Sa, Ix2>, b: &ArrayBase<Sb, Ix2>, tol: A::Real)
 where
-    A: Scalar,
+    A: Scalar + Lapack,
     Sa: Data<Elem = A>,
     Sb: DataMut<Elem = A> + DataOwned + DataClone,
 {

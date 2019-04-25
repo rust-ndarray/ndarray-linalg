@@ -57,7 +57,7 @@ use crate::error::*;
 use crate::layout::*;
 use crate::types::*;
 
-pub use crate::lapack_traits::{Pivot, UPLO};
+pub use crate::lapack::{Pivot, UPLO};
 
 /// An interface for solving systems of Hermitian (or real symmetric) linear equations.
 ///

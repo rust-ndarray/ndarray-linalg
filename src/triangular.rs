@@ -5,11 +5,11 @@ use num_traits::Zero;
 
 use super::convert::*;
 use super::error::*;
-use super::lapack_traits::*;
+use super::lapack::*;
 use super::layout::*;
 use super::types::*;
 
-pub use super::lapack_traits::Diag;
+pub use super::lapack::Diag;
 
 /// solve a triangular system with upper triangular matrix
 pub trait SolveTriangular<A, S, D>

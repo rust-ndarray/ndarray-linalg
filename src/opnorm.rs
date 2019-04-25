@@ -6,7 +6,7 @@ use crate::error::*;
 use crate::layout::*;
 use crate::types::*;
 
-pub use crate::lapack_traits::NormType;
+pub use crate::lapack::NormType;
 
 /// Operator norm using `*lange` LAPACK routines
 ///

@@ -55,7 +55,7 @@ use crate::layout::*;
 use crate::opnorm::OperationNorm;
 use crate::types::*;
 
-pub use crate::lapack_traits::{Pivot, Transpose};
+pub use crate::lapack::{Pivot, Transpose};
 
 /// An interface for solving systems of linear equations.
 ///

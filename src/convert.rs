@@ -3,7 +3,7 @@
 use ndarray::*;
 
 use super::error::*;
-use super::lapack_traits::UPLO;
+use super::lapack::UPLO;
 use super::layout::*;
 use super::types::*;
 

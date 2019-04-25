@@ -11,7 +11,7 @@ use crate::layout::*;
 use crate::triangular::*;
 use crate::types::*;
 
-pub use crate::lapack_traits::UPLO;
+pub use crate::lapack::UPLO;
 
 /// QR decomposition for matrix reference
 ///

@@ -1,6 +1,6 @@
 //! Basic types and their methods for linear algebra
 
-pub use super::lapack_traits::Lapack;
+pub use super::lapack::Lapack;
 pub use cauchy::Scalar;
 
 pub use num_complex::Complex32 as c32;

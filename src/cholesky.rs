@@ -52,7 +52,7 @@ use crate::layout::*;
 use crate::triangular::IntoTriangular;
 use crate::types::*;
 
-pub use crate::lapack_traits::UPLO;
+pub use crate::lapack::UPLO;
 
 /// Cholesky decomposition of Hermitian (or real symmetric) positive definite matrix
 pub struct CholeskyFactorized<S: Data> {

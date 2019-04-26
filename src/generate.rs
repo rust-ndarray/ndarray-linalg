@@ -58,6 +58,19 @@ where
     q.dot(&r)
 }
 
+/// Generate random regular matrix
+pub fn random_regular_t<A>(n: usize) -> Array2<A>
+where
+    A: Scalar + RandNormal,
+{
+    let a: Array2<A> = random((n, n).f());
+    let (q, mut r) = a.qr_into().unwrap();
+    for i in 0..n {
+        r[(i, i)] = A::from_f64(1.0) + AssociatedReal::inject(r[(i, i)].abs());
+    }
+    q.dot(&r).t().to_owned()
+}
+
 /// Random Hermite matrix
 pub fn random_hermite<A, S>(n: usize) -> ArrayBase<S, Ix2>
 where

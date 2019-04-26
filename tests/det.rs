@@ -100,46 +100,48 @@ fn det_zero_nonsquare() {
 
 #[test]
 fn det() {
-    macro_rules! det {
-        ($elem:ty, $shape:expr, $rtol:expr) => {
-            let a: Array2<$elem> = random($shape);
-            println!("a = \n{:?}", a);
-            let det = det_naive(&a);
-            let sign = det.div_real(det.abs());
-            let ln_det = det.abs().ln();
-            assert_rclose!(a.factorize().unwrap().det().unwrap(), det, $rtol);
-            {
-                let result = a.factorize().unwrap().sln_det().unwrap();
-                assert_rclose!(result.0, sign, $rtol);
-                assert_rclose!(result.1, ln_det, $rtol);
-            }
-            assert_rclose!(a.factorize().unwrap().det_into().unwrap(), det, $rtol);
-            {
-                let result = a.factorize().unwrap().sln_det_into().unwrap();
-                assert_rclose!(result.0, sign, $rtol);
-                assert_rclose!(result.1, ln_det, $rtol);
-            }
-            assert_rclose!(a.det().unwrap(), det, $rtol);
-            {
-                let result = a.sln_det().unwrap();
-                assert_rclose!(result.0, sign, $rtol);
-                assert_rclose!(result.1, ln_det, $rtol);
-            }
-            assert_rclose!(a.clone().det_into().unwrap(), det, $rtol);
-            {
-                let result = a.sln_det_into().unwrap();
-                assert_rclose!(result.0, sign, $rtol);
-                assert_rclose!(result.1, ln_det, $rtol);
-            }
-        };
+    fn det_impl<A, Tol>(a: Array2<A>, rtol: Tol)
+    where
+        A: Scalar<Real = Tol>,
+        Tol: RealScalar<Real = Tol>,
+    {
+        let det = det_naive(&a);
+        let sign = det.div_real(det.abs());
+        let ln_det = det.abs().ln();
+        assert_rclose!(a.factorize().unwrap().det().unwrap(), det, rtol);
+        {
+            let result = a.factorize().unwrap().sln_det().unwrap();
+            assert_rclose!(result.0, sign, rtol);
+            assert_rclose!(result.1, ln_det, rtol);
+        }
+        assert_rclose!(a.factorize().unwrap().det_into().unwrap(), det, rtol);
+        {
+            let result = a.factorize().unwrap().sln_det_into().unwrap();
+            assert_rclose!(result.0, sign, rtol);
+            assert_rclose!(result.1, ln_det, rtol);
+        }
+        assert_rclose!(a.det().unwrap(), det, rtol);
+        {
+            let result = a.sln_det().unwrap();
+            assert_rclose!(result.0, sign, rtol);
+            assert_rclose!(result.1, ln_det, rtol);
+        }
+        assert_rclose!(a.clone().det_into().unwrap(), det, rtol);
+        {
+            let result = a.sln_det_into().unwrap();
+            assert_rclose!(result.0, sign, rtol);
+            assert_rclose!(result.1, ln_det, rtol);
+        }
     }
     for rows in 1..5 {
-        for &shape in &[(rows, rows).into_shape(), (rows, rows).f()] {
-            det!(f64, shape, 1e-9);
-            det!(f32, shape, 1e-4);
-            det!(c64, shape, 1e-9);
-            det!(c32, shape, 1e-4);
-        }
+        det_impl(random_regular::<f64>(rows), 1e-9);
+        det_impl(random_regular::<f32>(rows), 1e-4);
+        det_impl(random_regular::<c64>(rows), 1e-9);
+        det_impl(random_regular::<c32>(rows), 1e-4);
+        det_impl(random_regular_t::<f64>(rows), 1e-9);
+        det_impl(random_regular_t::<f32>(rows), 1e-4);
+        det_impl(random_regular_t::<c64>(rows), 1e-9);
+        det_impl(random_regular_t::<c32>(rows), 1e-4);
     }
 }
 

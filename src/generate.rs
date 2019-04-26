@@ -6,6 +6,7 @@ use std::ops::*;
 
 use super::convert::*;
 use super::error::*;
+use super::qr::*;
 use super::types::*;
 
 /// Hermite conjugate matrix
@@ -32,6 +33,29 @@ where
 {
     let mut rng = thread_rng();
     ArrayBase::from_shape_fn(sh, |_| A::randn(&mut rng))
+}
+
+/// Generate random unitary matrix using QR decomposition
+pub fn random_unitary<A>(n: usize) -> Array2<A>
+where
+    A: Scalar + RandNormal,
+{
+    let a: Array2<A> = random((n, n));
+    let (q, _r) = a.qr_into().unwrap();
+    q
+}
+
+/// Generate random regular matrix
+pub fn random_regular<A>(n: usize) -> Array2<A>
+where
+    A: Scalar + RandNormal,
+{
+    let a: Array2<A> = random((n, n));
+    let (q, mut r) = a.qr_into().unwrap();
+    for i in 0..n {
+        r[(i, i)] = A::from_f64(1.0) + AssociatedReal::inject(r[(i, i)].abs());
+    }
+    q.dot(&r)
 }
 
 /// Random Hermite matrix

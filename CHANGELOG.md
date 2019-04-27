@@ -8,11 +8,12 @@ Added
 Removed
 ----------
 - `static` feature gate #136 
+- ependencies to derive-new, procedurals
+
 
 Changed
 ---------
 - Error type becomes simple #118 #127
-  - remove dependencies to derive-new, procedurals
 
 
 0.10.0 - 2 Sep 2018

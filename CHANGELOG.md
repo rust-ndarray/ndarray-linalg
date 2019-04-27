@@ -3,17 +3,17 @@ Unreleased
 
 Added
 --------
-- `generate::random_{unitary,regular}` for debug use #140 
+- `generate::random_{unitary,regular}` for debug use [#140](../../pull/140) 
 
 Removed
 ----------
-- `static` feature gate #136 
+- `static` feature gate [#136](../../pull/136) 
 - Dependencies to derive-new, procedurals
 
 
 Changed
 ---------
-- Error type becomes simple #118 #127
+- Error type becomes simple [#118](../../pull/118) [#127](../../pull/127)
 
 
 0.10.0 - 2 Sep 2018
@@ -28,8 +28,8 @@ Update Dependencies
 - openblas-src 0.6
 - lapacke 0.2
 
-See also #110
+See also [#110](../../pull/110)
 
 Added
 ------
-- serde-1 feature gate #99, #116
+- serde-1 feature gate [#99](../../pull/99), [#116](../../pull/116)

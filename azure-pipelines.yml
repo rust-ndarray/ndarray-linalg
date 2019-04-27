@@ -1,34 +1,60 @@
 jobs:
-  - job: Linux
+  - job: LinuxOpenBLAS
     pool:
       vmImage: 'ubuntu-16.04'
-    strategy:
-      matrix:
-        openblas:
-          feature: openblas
-        netlib:
-          feature: netlib
-        intel-mkl:
-          feature: intel-mkl
     steps:
       - script: |
           curl -sSf https://sh.rustup.rs | sh -s -- -y
           echo "##vso[task.setvariable variable=PATH;]$PATH:$HOME/.cargo/bin"
         displayName: install rustup
-      - script: cargo test -v --features=$FEATURE --no-default-features
+      - script: |
+          sudo apt-get update
+          sudo apt-get install -y gfortran
+        displayName: apt install
+      - script: |
+          cargo test -v --features=openblas --no-default-features
+          cargo test -v --features=openblas,serde-1 --no-default-features
+        displayName: run test
+
+  - job: LinuxNetlib
+    pool:
+      vmImage: 'ubuntu-16.04'
+    steps:
+      - script: |
+          curl -sSf https://sh.rustup.rs | sh -s -- -y
+          echo "##vso[task.setvariable variable=PATH;]$PATH:$HOME/.cargo/bin"
+        displayName: install rustup
+      - script: |
+          sudo apt-get update
+          sudo apt-get install -y cmake gfortran
+        displayName: apt install
+      - script: |
+          cargo test -v --features=netlib --no-default-features
+          cargo test -v --features=netlib,serde-1 --no-default-features
+        displayName: run test
+
+  - job: LinuxIntelMKL
+    pool:
+      vmImage: 'ubuntu-16.04'
+    steps:
+      - script: |
+          curl -sSf https://sh.rustup.rs | sh -s -- -y
+          echo "##vso[task.setvariable variable=PATH;]$PATH:$HOME/.cargo/bin"
+        displayName: install rustup
+      - script: |
+          cargo test -v --features=intel-mkl --no-default-features
+          cargo test -v --features=intel-mkl,serde-1 --no-default-features
         displayName: run test
 
   - job: macOS
     pool:
       vmImage: 'macOS-10.14'
-    strategy:
-      matrix:
-        intel-mkl:
-          feature: intel-mkl
     steps:
       - script: |
           curl -sSf https://sh.rustup.rs | sh -s -- -y
           echo "##vso[task.setvariable variable=PATH;]$PATH:$HOME/.cargo/bin"
         displayName: install rustup
-      - script: cargo test -v --features=$FEATURE --no-default-features
+      - script: |
+          cargo test -v --features=intel-mkl --no-default-features
+          cargo test -v --features=intel-mkl,serde-1 --no-default-features
         displayName: run test

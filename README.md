@@ -1,8 +1,8 @@
 ndarray-linalg
 ===============
-[![CircleCI](https://circleci.com/gh/rust-math/ndarray-linalg.svg?style=shield)](https://circleci.com/gh/rust-math/ndarray-linalg)
 [![Crate](http://meritbadge.herokuapp.com/ndarray-linalg)](https://crates.io/crates/ndarray-linalg)
 [![docs.rs](https://docs.rs/ndarray-linalg/badge.svg)](https://docs.rs/ndarray-linalg)
+[![Build Status](https://dev.azure.com/rust-math/ndarray-linalg/_apis/build/status/rust-math.ndarray-linalg?branchName=master)](https://dev.azure.com/rust-math/ndarray-linalg/_build/latest?definitionId=3&branchName=master)
 
 Linear algebra package for Rust with [ndarray](https://github.com/bluss/ndarray) based on external LAPACK implementations.
 

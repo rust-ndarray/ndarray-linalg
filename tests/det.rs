@@ -138,10 +138,10 @@ fn det() {
         det_impl(random_regular::<f32>(rows), 1e-4);
         det_impl(random_regular::<c64>(rows), 1e-9);
         det_impl(random_regular::<c32>(rows), 1e-4);
-        det_impl(random_regular_t::<f64>(rows), 1e-9);
-        det_impl(random_regular_t::<f32>(rows), 1e-4);
-        det_impl(random_regular_t::<c64>(rows), 1e-9);
-        det_impl(random_regular_t::<c32>(rows), 1e-4);
+        det_impl(random_regular::<f64>(rows).t().to_owned(), 1e-9);
+        det_impl(random_regular::<f32>(rows).t().to_owned(), 1e-4);
+        det_impl(random_regular::<c64>(rows).t().to_owned(), 1e-9);
+        det_impl(random_regular::<c32>(rows).t().to_owned(), 1e-4);
     }
 }
 

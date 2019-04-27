@@ -36,6 +36,8 @@ where
 }
 
 /// Generate random unitary matrix using QR decomposition
+///
+/// Be sure that this it **NOT** a uniform distribution. Use it only for test purpose.
 pub fn random_unitary<A>(n: usize) -> Array2<A>
 where
     A: Scalar + RandNormal,
@@ -46,6 +48,8 @@ where
 }
 
 /// Generate random regular matrix
+///
+/// Be sure that this it **NOT** a uniform distribution. Use it only for test purpose.
 pub fn random_regular<A>(n: usize) -> Array2<A>
 where
     A: Scalar + RandNormal,
@@ -56,19 +60,6 @@ where
         r[(i, i)] = A::from_f64(1.0) + AssociatedReal::inject(r[(i, i)].abs());
     }
     q.dot(&r)
-}
-
-/// Generate random regular matrix
-pub fn random_regular_t<A>(n: usize) -> Array2<A>
-where
-    A: Scalar + RandNormal,
-{
-    let a: Array2<A> = random((n, n).f());
-    let (q, mut r) = a.qr_into().unwrap();
-    for i in 0..n {
-        r[(i, i)] = A::from_f64(1.0) + AssociatedReal::inject(r[(i, i)].abs());
-    }
-    q.dot(&r).t().to_owned()
 }
 
 /// Random Hermite matrix

@@ -23,6 +23,7 @@ use super::types::*;
 
 pub type Pivot = Vec<i32>;
 
+/// Trait for primitive types which implements LAPACK subroutines
 pub trait Lapack: OperatorNorm_ + QR_ + SVD_ + Solve_ + Solveh_ + Cholesky_ + Eigh_ + Triangular_ {}
 
 impl Lapack for f32 {}

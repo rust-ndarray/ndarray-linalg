@@ -1,6 +1,6 @@
 ndarray-linalg
 ===============
-[![CircleCI](https://circleci.com/gh/termoshtt/ndarray-linalg.svg?style=shield)](https://circleci.com/gh/termoshtt/ndarray-linalg)
+[![CircleCI](https://circleci.com/gh/rust-math/ndarray-linalg.svg?style=shield)](https://circleci.com/gh/rust-math/ndarray-linalg)
 [![Crate](http://meritbadge.herokuapp.com/ndarray-linalg)](https://crates.io/crates/ndarray-linalg)
 [![docs.rs](https://docs.rs/ndarray-linalg/badge.svg)](https://docs.rs/ndarray-linalg)
 

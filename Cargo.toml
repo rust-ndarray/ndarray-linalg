@@ -14,7 +14,6 @@ categories    = ["algorithms", "science"]
 
 [features]
 default    = []
-accelerate = ["lapack-src/accelerate", "blas-src/accelerate"]
 intel-mkl  = ["lapack-src/intel-mkl", "blas-src/intel-mkl"]
 netlib     = ["lapack-src/netlib", "blas-src/netlib"]
 openblas   = ["lapack-src/openblas", "blas-src/openblas"]

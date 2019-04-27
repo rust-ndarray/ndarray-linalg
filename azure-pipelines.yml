@@ -46,7 +46,7 @@ jobs:
           cargo test -v --features=intel-mkl,serde-1 --no-default-features
         displayName: run test
 
-  - job: macOS
+  - job: macOSIntelMKL
     pool:
       vmImage: 'macOS-10.14'
     steps:
@@ -57,4 +57,17 @@ jobs:
       - script: |
           cargo test -v --features=intel-mkl --no-default-features
           cargo test -v --features=intel-mkl,serde-1 --no-default-features
+        displayName: run test
+
+  - job: macOSAccelerate
+    pool:
+      vmImage: 'macOS-10.14'
+    steps:
+      - script: |
+          curl -sSf https://sh.rustup.rs | sh -s -- -y
+          echo "##vso[task.setvariable variable=PATH;]$PATH:$HOME/.cargo/bin"
+        displayName: install rustup
+      - script: |
+          cargo test -v --features=accelerate --no-default-features
+          cargo test -v --features=accelerate,serde-1 --no-default-features
         displayName: run test

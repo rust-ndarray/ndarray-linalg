@@ -8,7 +8,7 @@ Added
 Removed
 ----------
 - `static` feature gate #136 
-- ependencies to derive-new, procedurals
+- Dependencies to derive-new, procedurals
 
 
 Changed

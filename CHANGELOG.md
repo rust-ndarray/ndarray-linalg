@@ -12,3 +12,23 @@ Removed
 Changed
 ---------
 - Error type becomes simple #118 #127
+  - remove dependencies to derive-new, procedurals
+
+
+0.10.0
+=======
+
+Update Dependencies
+--------------------
+
+- ndarray 0.12
+- rand 0.5
+- num-complex 0.2
+- openblas-src 0.6
+- lapacke 0.2
+
+See also #110
+
+Added
+------
+- serde-1 feature gate #99, #116

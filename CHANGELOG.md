@@ -15,7 +15,7 @@ Changed
   - remove dependencies to derive-new, procedurals
 
 
-0.10.0
+0.10.0 - 2 Sep 2018
 =======
 
 Update Dependencies

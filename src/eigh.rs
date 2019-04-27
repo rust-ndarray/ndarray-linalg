@@ -30,7 +30,7 @@ pub trait EighInto: Sized {
 
 impl<A, S> EighInto for ArrayBase<S, Ix2>
 where
-    A: Scalar,
+    A: Scalar + Lapack,
     S: DataMut<Elem = A>,
 {
     type EigVal = Array1<A::Real>;
@@ -43,7 +43,7 @@ where
 
 impl<A, S> Eigh for ArrayBase<S, Ix2>
 where
-    A: Scalar,
+    A: Scalar + Lapack,
     S: Data<Elem = A>,
 {
     type EigVal = Array1<A::Real>;
@@ -57,7 +57,7 @@ where
 
 impl<A, S> EighInplace for ArrayBase<S, Ix2>
 where
-    A: Scalar,
+    A: Scalar + Lapack,
     S: DataMut<Elem = A>,
 {
     type EigVal = Array1<A::Real>;
@@ -88,7 +88,7 @@ pub trait EigValshInplace {
 
 impl<A, S> EigValshInto for ArrayBase<S, Ix2>
 where
-    A: Scalar,
+    A: Scalar + Lapack,
     S: DataMut<Elem = A>,
 {
     type EigVal = Array1<A::Real>;
@@ -100,7 +100,7 @@ where
 
 impl<A, S> EigValsh for ArrayBase<S, Ix2>
 where
-    A: Scalar,
+    A: Scalar + Lapack,
     S: Data<Elem = A>,
 {
     type EigVal = Array1<A::Real>;
@@ -113,7 +113,7 @@ where
 
 impl<A, S> EigValshInplace for ArrayBase<S, Ix2>
 where
-    A: Scalar,
+    A: Scalar + Lapack,
     S: DataMut<Elem = A>,
 {
     type EigVal = Array1<A::Real>;
@@ -132,7 +132,7 @@ pub trait SymmetricSqrt {
 
 impl<A, S> SymmetricSqrt for ArrayBase<S, Ix2>
 where
-    A: Scalar,
+    A: Scalar + Lapack,
     S: Data<Elem = A>,
 {
     type Output = Array2<A>;
@@ -151,14 +151,14 @@ pub trait SymmetricSqrtInto {
 
 impl<A, S> SymmetricSqrtInto for ArrayBase<S, Ix2>
 where
-    A: Scalar,
+    A: Scalar + Lapack,
     S: DataMut<Elem = A> + DataOwned,
 {
     type Output = Array2<A>;
 
     fn ssqrt_into(self, uplo: UPLO) -> Result<Self::Output> {
         let (e, v) = self.eigh_into(uplo)?;
-        let e_sqrt = Array1::from_iter(e.iter().map(|r| AssociatedReal::inject(r.sqrt())));
+        let e_sqrt = Array1::from_iter(e.iter().map(|r| Scalar::from_real(r.sqrt())));
         let ev = e_sqrt.into_diagonal().op(&v.t());
         Ok(v.op(&ev))
     }

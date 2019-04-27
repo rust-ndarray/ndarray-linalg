@@ -23,11 +23,13 @@ serde-1    = ["ndarray/serde-1", "num-complex/serde"]
 [dependencies]
 lapacke = "0.2"
 num-traits  = "0.2"
-rand = "0.6"
+rand = "0.5"
+cauchy = "0.2"
 
 [dependencies.num-complex]
-version = "0.2"
+version = "0.2.1"
 default-features = false
+features = ["rand"]
 
 [dependencies.ndarray]
 version = "0.12"

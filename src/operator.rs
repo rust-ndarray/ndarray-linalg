@@ -30,7 +30,7 @@ where
 
 impl<T, A, S, D> Operator<A, S, D> for T
 where
-    A: Scalar,
+    A: Scalar + Lapack,
     S: Data<Elem = A>,
     D: Dimension,
     T: linalg::Dot<ArrayBase<S, D>, Output = Array<A, D>>,
@@ -50,7 +50,7 @@ where
 
 impl<T, A, S, D> OperatorMulti<A, S, D> for T
 where
-    A: Scalar,
+    A: Scalar + Lapack,
     S: DataMut<Elem = A>,
     D: Dimension + RemoveAxis,
     for<'a> T: OperatorInplace<ViewRepr<&'a mut A>, D::Smaller>,

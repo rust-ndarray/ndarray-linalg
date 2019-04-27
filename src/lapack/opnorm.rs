@@ -8,7 +8,7 @@ use crate::types::*;
 
 pub use super::NormType;
 
-pub trait OperatorNorm_: AssociatedReal {
+pub trait OperatorNorm_: Scalar {
     unsafe fn opnorm(t: NormType, l: MatrixLayout, a: &[Self]) -> Self::Real;
 }
 

@@ -57,7 +57,7 @@ use crate::error::*;
 use crate::layout::*;
 use crate::types::*;
 
-pub use crate::lapack_traits::{Pivot, UPLO};
+pub use crate::lapack::{Pivot, UPLO};
 
 /// An interface for solving systems of Hermitian (or real symmetric) linear equations.
 ///
@@ -100,7 +100,7 @@ pub struct BKFactorized<S: Data> {
 
 impl<A, S> SolveH<A> for BKFactorized<S>
 where
-    A: Scalar,
+    A: Scalar + Lapack,
     S: Data<Elem = A>,
 {
     fn solveh_inplace<'a, Sb>(&self, rhs: &'a mut ArrayBase<Sb, Ix1>) -> Result<&'a mut ArrayBase<Sb, Ix1>>
@@ -122,7 +122,7 @@ where
 
 impl<A, S> SolveH<A> for ArrayBase<S, Ix2>
 where
-    A: Scalar,
+    A: Scalar + Lapack,
     S: Data<Elem = A>,
 {
     fn solveh_inplace<'a, Sb>(&self, rhs: &'a mut ArrayBase<Sb, Ix1>) -> Result<&'a mut ArrayBase<Sb, Ix1>>
@@ -152,7 +152,7 @@ pub trait FactorizeHInto<S: Data> {
 
 impl<A, S> FactorizeHInto<S> for ArrayBase<S, Ix2>
 where
-    A: Scalar,
+    A: Scalar + Lapack,
     S: DataMut<Elem = A>,
 {
     fn factorizeh_into(mut self) -> Result<BKFactorized<S>> {
@@ -163,7 +163,7 @@ where
 
 impl<A, Si> FactorizeH<OwnedRepr<A>> for ArrayBase<Si, Ix2>
 where
-    A: Scalar,
+    A: Scalar + Lapack,
     Si: Data<Elem = A>,
 {
     fn factorizeh(&self) -> Result<BKFactorized<OwnedRepr<A>>> {
@@ -189,7 +189,7 @@ pub trait InverseHInto {
 
 impl<A, S> InverseHInto for BKFactorized<S>
 where
-    A: Scalar,
+    A: Scalar + Lapack,
     S: DataMut<Elem = A>,
 {
     type Output = ArrayBase<S, Ix2>;
@@ -210,7 +210,7 @@ where
 
 impl<A, S> InverseH for BKFactorized<S>
 where
-    A: Scalar,
+    A: Scalar + Lapack,
     S: Data<Elem = A>,
 {
     type Output = Array2<A>;
@@ -226,7 +226,7 @@ where
 
 impl<A, S> InverseHInto for ArrayBase<S, Ix2>
 where
-    A: Scalar,
+    A: Scalar + Lapack,
     S: DataMut<Elem = A>,
 {
     type Output = Self;
@@ -239,7 +239,7 @@ where
 
 impl<A, Si> InverseH for ArrayBase<Si, Ix2>
 where
-    A: Scalar,
+    A: Scalar + Lapack,
     Si: Data<Elem = A>,
 {
     type Output = Array2<A>;
@@ -256,7 +256,7 @@ pub trait DeterminantH {
     type Elem: Scalar;
 
     /// Computes the determinant of the Hermitian (or real symmetric) matrix.
-    fn deth(&self) -> Result<<Self::Elem as AssociatedReal>::Real>;
+    fn deth(&self) -> Result<<Self::Elem as Scalar>::Real>;
 
     /// Computes the `(sign, natural_log)` of the determinant of the Hermitian
     /// (or real symmetric) matrix.
@@ -271,12 +271,7 @@ pub trait DeterminantH {
     /// This method is more robust than `.deth()` to very small or very large
     /// determinants since it returns the natural logarithm of the determinant
     /// rather than the determinant itself.
-    fn sln_deth(
-        &self,
-    ) -> Result<(
-        <Self::Elem as AssociatedReal>::Real,
-        <Self::Elem as AssociatedReal>::Real,
-    )>;
+    fn sln_deth(&self) -> Result<(<Self::Elem as Scalar>::Real, <Self::Elem as Scalar>::Real)>;
 }
 
 /// An interface for calculating determinants of Hermitian (or real symmetric) matrices.
@@ -285,7 +280,7 @@ pub trait DeterminantHInto {
     type Elem: Scalar;
 
     /// Computes the determinant of the Hermitian (or real symmetric) matrix.
-    fn deth_into(self) -> Result<<Self::Elem as AssociatedReal>::Real>;
+    fn deth_into(self) -> Result<<Self::Elem as Scalar>::Real>;
 
     /// Computes the `(sign, natural_log)` of the determinant of the Hermitian
     /// (or real symmetric) matrix.
@@ -300,12 +295,7 @@ pub trait DeterminantHInto {
     /// This method is more robust than `.deth_into()` to very small or very
     /// large determinants since it returns the natural logarithm of the
     /// determinant rather than the determinant itself.
-    fn sln_deth_into(
-        self,
-    ) -> Result<(
-        <Self::Elem as AssociatedReal>::Real,
-        <Self::Elem as AssociatedReal>::Real,
-    )>;
+    fn sln_deth_into(self) -> Result<(<Self::Elem as Scalar>::Real, <Self::Elem as Scalar>::Real)>;
 }
 
 /// Returns the sign and natural log of the determinant.
@@ -313,7 +303,7 @@ fn bk_sln_det<P, S, A>(uplo: UPLO, ipiv_iter: P, a: &ArrayBase<S, Ix2>) -> (A::R
 where
     P: Iterator<Item = i32>,
     S: Data<Elem = A>,
-    A: Scalar,
+    A: Scalar + Lapack,
 {
     let mut sign = A::Real::one();
     let mut ln_det = A::Real::zero();
@@ -322,20 +312,20 @@ where
         debug_assert!(k < a.rows() && k < a.cols());
         if ipiv_k > 0 {
             // 1x1 block at k, must be real.
-            let elem = unsafe { a.uget((k, k)) }.real();
-            debug_assert_eq!(elem.imag(), Zero::zero());
+            let elem = unsafe { a.uget((k, k)) }.re();
+            debug_assert_eq!(elem.im(), Zero::zero());
             sign = sign * elem.signum();
             ln_det = ln_det + elem.abs().ln();
         } else {
             // 2x2 block at k..k+2.
 
             // Upper left diagonal elem, must be real.
-            let upper_diag = unsafe { a.uget((k, k)) }.real();
-            debug_assert_eq!(upper_diag.imag(), Zero::zero());
+            let upper_diag = unsafe { a.uget((k, k)) }.re();
+            debug_assert_eq!(upper_diag.im(), Zero::zero());
 
             // Lower right diagonal elem, must be real.
-            let lower_diag = unsafe { a.uget((k + 1, k + 1)) }.real();
-            debug_assert_eq!(lower_diag.imag(), Zero::zero());
+            let lower_diag = unsafe { a.uget((k + 1, k + 1)) }.re();
+            debug_assert_eq!(lower_diag.im(), Zero::zero());
 
             // Off-diagonal elements, can be complex.
             let off_diag = match uplo {
@@ -344,7 +334,7 @@ where
             };
 
             // Determinant of 2x2 block.
-            let block_det = upper_diag * lower_diag - off_diag.abs_sqr();
+            let block_det = upper_diag * lower_diag - off_diag.square();
             sign = sign * block_det.signum();
             ln_det = ln_det + block_det.abs().ln();
 
@@ -357,7 +347,7 @@ where
 
 impl<A, S> BKFactorized<S>
 where
-    A: Scalar,
+    A: Scalar + Lapack,
     S: Data<Elem = A>,
 {
     /// Computes the determinant of the factorized Hermitian (or real
@@ -411,7 +401,7 @@ where
 
 impl<A, S> DeterminantH for ArrayBase<S, Ix2>
 where
-    A: Scalar,
+    A: Scalar + Lapack,
     S: Data<Elem = A>,
 {
     type Elem = A;
@@ -435,7 +425,7 @@ where
 
 impl<A, S> DeterminantHInto for ArrayBase<S, Ix2>
 where
-    A: Scalar,
+    A: Scalar + Lapack,
     S: DataMut<Elem = A>,
 {
     type Elem = A;

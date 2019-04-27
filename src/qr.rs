@@ -11,7 +11,7 @@ use crate::layout::*;
 use crate::triangular::*;
 use crate::types::*;
 
-pub use crate::lapack_traits::UPLO;
+pub use crate::lapack::UPLO;
 
 /// QR decomposition for matrix reference
 ///
@@ -54,7 +54,7 @@ pub trait QRSquareInplace: Sized {
 
 impl<A, S> QRSquareInplace for ArrayBase<S, Ix2>
 where
-    A: Scalar,
+    A: Scalar + Lapack,
     S: DataMut<Elem = A>,
 {
     type R = Array2<A>;
@@ -69,7 +69,7 @@ where
 
 impl<A, S> QRSquareInto for ArrayBase<S, Ix2>
 where
-    A: Scalar,
+    A: Scalar + Lapack,
     S: DataMut<Elem = A>,
 {
     type R = Array2<A>;
@@ -82,7 +82,7 @@ where
 
 impl<A, S> QRSquare for ArrayBase<S, Ix2>
 where
-    A: Scalar,
+    A: Scalar + Lapack,
     S: Data<Elem = A>,
 {
     type Q = Array2<A>;
@@ -96,7 +96,7 @@ where
 
 impl<A, S> QRInto for ArrayBase<S, Ix2>
 where
-    A: Scalar,
+    A: Scalar + Lapack,
     S: DataMut<Elem = A>,
 {
     type Q = Array2<A>;
@@ -116,7 +116,7 @@ where
 
 impl<A, S> QR for ArrayBase<S, Ix2>
 where
-    A: Scalar,
+    A: Scalar + Lapack,
     S: Data<Elem = A>,
 {
     type Q = Array2<A>;

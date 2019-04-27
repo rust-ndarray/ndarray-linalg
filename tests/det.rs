@@ -100,10 +100,9 @@ fn det_zero_nonsquare() {
 
 #[test]
 fn det() {
-    fn det_impl<A, Tol>(a: Array2<A>, rtol: Tol)
+    fn det_impl<A>(a: Array2<A>, rtol: A::Real)
     where
-        A: Scalar<Real = Tol>,
-        Tol: RealScalar<Real = Tol>,
+        A: Scalar + Lapack,
     {
         let det = det_naive(&a);
         let sign = det.div_real(det.abs());

@@ -35,7 +35,7 @@ pub trait SVDInplace {
 
 impl<A, S> SVDInto for ArrayBase<S, Ix2>
 where
-    A: Scalar,
+    A: Scalar + Lapack,
     S: DataMut<Elem = A>,
 {
     type U = Array2<A>;
@@ -49,7 +49,7 @@ where
 
 impl<A, S> SVD for ArrayBase<S, Ix2>
 where
-    A: Scalar,
+    A: Scalar + Lapack,
     S: Data<Elem = A>,
 {
     type U = Array2<A>;
@@ -64,7 +64,7 @@ where
 
 impl<A, S> SVDInplace for ArrayBase<S, Ix2>
 where
-    A: Scalar,
+    A: Scalar + Lapack,
     S: DataMut<Elem = A>,
 {
     type U = Array2<A>;

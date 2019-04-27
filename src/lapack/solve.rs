@@ -11,7 +11,7 @@ use super::NormType;
 use super::{into_result, Pivot, Transpose};
 
 /// Wraps `*getrf`, `*getri`, and `*getrs`
-pub trait Solve_: AssociatedReal + Sized {
+pub trait Solve_: Scalar + Sized {
     /// Computes the LU factorization of a general `m x n` matrix `a` using
     /// partial pivoting with row interchanges.
     ///

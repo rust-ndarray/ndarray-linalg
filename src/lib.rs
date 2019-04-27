@@ -24,7 +24,7 @@ pub mod diagonal;
 pub mod eigh;
 pub mod error;
 pub mod generate;
-pub mod lapack_traits;
+pub mod lapack;
 pub mod layout;
 pub mod norm;
 pub mod operator;

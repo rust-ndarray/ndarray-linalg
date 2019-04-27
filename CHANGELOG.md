@@ -8,11 +8,14 @@ Added
 
 Removed
 ----------
-- `static` feature gate [#136](../../pull/136) 
+- `static` feature [#136](../../pull/136)
+  - See README for detail
+- `accelerate` feature [#141](../../pull/141)
 - Dependencies to derive-new, procedurals
 
 Changed
 ---------
+- Switch CI service: Circle CI -> Azure Pipeline [#141](../../pull/141)
 - submodule `lapack_traits` is renamed to `lapack` [#139](../../pull/139)
 - `ndarray_linalg::Scalar` trait is split into two parts [#139](../../pull/139)
   - [cauchy::Scalar](https://docs.rs/cauchy/0.2.0/cauchy/trait.Scalar.html) is a refined real/complex common trait

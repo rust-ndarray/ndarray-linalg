@@ -39,7 +39,8 @@ where
 /// Be sure that this it **NOT** a uniform distribution. Use it only for test purpose.
 pub fn random_unitary<A>(n: usize) -> Array2<A>
 where
-    A: Scalar + RandNormal,
+    A: Scalar + Lapack,
+    Standard: Distribution<A>,
 {
     let a: Array2<A> = random((n, n));
     let (q, _r) = a.qr_into().unwrap();
@@ -51,12 +52,13 @@ where
 /// Be sure that this it **NOT** a uniform distribution. Use it only for test purpose.
 pub fn random_regular<A>(n: usize) -> Array2<A>
 where
-    A: Scalar + RandNormal,
+    A: Scalar + Lapack,
+    Standard: Distribution<A>,
 {
     let a: Array2<A> = random((n, n));
     let (q, mut r) = a.qr_into().unwrap();
     for i in 0..n {
-        r[(i, i)] = A::from_f64(1.0) + AssociatedReal::inject(r[(i, i)].abs());
+        r[(i, i)] = A::one() + A::from_real(r[(i, i)].abs());
     }
     q.dot(&r)
 }

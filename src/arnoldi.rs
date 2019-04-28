@@ -46,10 +46,12 @@ impl<A: Scalar + Lapack> MGS<A> {
         nrm
     }
 
+    /// Get orthogonal basis as Q matrix
     pub fn get_q(&self) -> Array2<A> {
         hstack(&self.q).unwrap()
     }
 
+    /// Get each vector norm and coefficients as R matrix
     pub fn get_r(&self) -> Array2<A> {
         let len = self.len();
         let mut r = Array2::zeros((len, len));
@@ -66,6 +68,7 @@ impl<A: Scalar + Lapack> MGS<A> {
 mod tests {
     use super::*;
     use crate::assert::*;
+    use rand::{distributions::Standard, prelude::*};
 
     const N: usize = 5;
 
@@ -76,10 +79,12 @@ mod tests {
         assert_eq!(mgs.len(), 0);
     }
 
-    #[test]
-    fn append_random() {
-        let mut mgs: MGS<f64> = MGS::new(N);
-        let a: Array2<f64> = random((N, 3));
+    fn test<A: Scalar + Lapack>(rtol: A::Real)
+    where
+        Standard: Distribution<A>,
+    {
+        let mut mgs: MGS<A> = MGS::new(N);
+        let a: Array2<A> = crate::generate::random((N, 3));
         dbg!(&a);
         for col in a.axis_iter(Axis(1)) {
             let res = mgs.append(col);
@@ -91,9 +96,19 @@ mod tests {
         dbg!(&r);
 
         dbg!(q.dot(&r));
-        close_l2(&q.dot(&r), &a, 1e-9).unwrap();
+        close_l2(&q.dot(&r), &a, rtol).unwrap();
 
         dbg!(q.t().dot(&q));
-        close_l2(&q.t().dot(&q), &Array2::eye(3), 1e-9).unwrap();
+        close_l2(&q.t().dot(&q), &Array2::eye(3), rtol).unwrap();
+    }
+
+    #[test]
+    fn test_f32() {
+        test::<f32>(1e-5);
+    }
+
+    #[test]
+    fn test_c32() {
+        test::<c32>(1e-5);
     }
 }

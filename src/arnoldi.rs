@@ -68,7 +68,6 @@ impl<A: Scalar + Lapack> MGS<A> {
 mod tests {
     use super::*;
     use crate::assert::*;
-    use rand::{distributions::Standard, prelude::*};
 
     const N: usize = 5;
 
@@ -79,10 +78,7 @@ mod tests {
         assert_eq!(mgs.len(), 0);
     }
 
-    fn test<A: Scalar + Lapack>(rtol: A::Real)
-    where
-        Standard: Distribution<A>,
-    {
+    fn test<A: Scalar + Lapack>(rtol: A::Real) {
         let mut mgs: MGS<A> = MGS::new(N);
         let a: Array2<A> = crate::generate::random((N, 3));
         dbg!(&a);

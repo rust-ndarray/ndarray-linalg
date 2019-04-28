@@ -1,7 +1,7 @@
 //! Generator functions for matrices
 
 use ndarray::*;
-use rand::{distributions::Standard, prelude::*};
+use rand::prelude::*;
 
 use super::convert::*;
 use super::error::*;
@@ -25,13 +25,13 @@ where
 /// Generate random array
 pub fn random<A, S, Sh, D>(sh: Sh) -> ArrayBase<S, D>
 where
+    A: Scalar,
     S: DataOwned<Elem = A>,
     D: Dimension,
     Sh: ShapeBuilder<Dim = D>,
-    Standard: Distribution<A>,
 {
     let mut rng = thread_rng();
-    ArrayBase::from_shape_fn(sh, |_| rng.sample(Standard))
+    ArrayBase::from_shape_fn(sh, |_| A::rand(&mut rng))
 }
 
 /// Generate random unitary matrix using QR decomposition
@@ -40,7 +40,6 @@ where
 pub fn random_unitary<A>(n: usize) -> Array2<A>
 where
     A: Scalar + Lapack,
-    Standard: Distribution<A>,
 {
     let a: Array2<A> = random((n, n));
     let (q, _r) = a.qr_into().unwrap();
@@ -53,7 +52,6 @@ where
 pub fn random_regular<A>(n: usize) -> Array2<A>
 where
     A: Scalar + Lapack,
-    Standard: Distribution<A>,
 {
     let a: Array2<A> = random((n, n));
     let (q, mut r) = a.qr_into().unwrap();
@@ -68,7 +66,6 @@ pub fn random_hermite<A, S>(n: usize) -> ArrayBase<S, Ix2>
 where
     A: Scalar,
     S: DataOwned<Elem = A> + DataMut,
-    Standard: Distribution<A>,
 {
     let mut a: ArrayBase<S, Ix2> = random((n, n));
     for i in 0..n {
@@ -88,7 +85,6 @@ pub fn random_hpd<A, S>(n: usize) -> ArrayBase<S, Ix2>
 where
     A: Scalar,
     S: DataOwned<Elem = A> + DataMut,
-    Standard: Distribution<A>,
 {
     let a: Array2<A> = random((n, n));
     let ah: Array2<A> = conjugate(&a);

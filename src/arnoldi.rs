@@ -94,8 +94,9 @@ mod tests {
         dbg!(q.dot(&r));
         close_l2(&q.dot(&r), &a, rtol).unwrap();
 
-        dbg!(q.t().dot(&q));
-        close_l2(&q.t().dot(&q), &Array2::eye(3), rtol).unwrap();
+        let qt: Array2<_> = conjugate(&q);
+        dbg!(qt.dot(&q));
+        close_l2(&qt.dot(&q), &Array2::eye(3), rtol).unwrap();
     }
 
     #[test]

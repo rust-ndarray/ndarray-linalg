@@ -1,4 +1,4 @@
-use crate::{generate::*, norm::Norm, types::*};
+use crate::{generate::*, inner::*, norm::Norm, types::*};
 use ndarray::*;
 
 #[derive(Debug, Clone)]
@@ -34,7 +34,7 @@ impl<A: Scalar + Lapack> MGS<A> {
         let mut coef = Array1::zeros(self.len() + 1);
         for i in 0..self.len() {
             let q = &self.q[i];
-            let c = a.dot(q);
+            let c = q.inner(&a);
             azip!(mut a, q (q) in { *a = *a - c * q } );
             coef[i] = c;
         }
@@ -107,5 +107,15 @@ mod tests {
     #[test]
     fn test_c32() {
         test::<c32>(1e-5);
+    }
+
+    #[test]
+    fn test_f64() {
+        test::<f64>(1e-9);
+    }
+
+    #[test]
+    fn test_c64() {
+        test::<c64>(1e-9);
     }
 }

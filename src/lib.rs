@@ -43,6 +43,7 @@ pub mod diagonal;
 pub mod eigh;
 pub mod error;
 pub mod generate;
+pub mod inner;
 pub mod lapack;
 pub mod layout;
 pub mod norm;

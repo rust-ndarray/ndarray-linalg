@@ -83,7 +83,7 @@ impl<A: Scalar> MGS<A> {
     /// let coef = mgs.append(array![1.0, 1.0, 0.0], 1e-9).unwrap();
     /// close_l2(&coef, &array![1.0, 1.0], 1e-9).unwrap();
     ///
-    /// assert!(mgs.append(array![1.0, 1.0, 0.0], 1e-9).is_none());  // Cannot append dependent vector
+    /// assert!(mgs.append(array![1.0, 2.0, 0.0], 1e-9).is_none());  // Cannot append dependent vector
     /// ```
     pub fn append<S>(&mut self, a: ArrayBase<S, Ix1>, rtol: A::Real) -> Option<Coefficient<A>>
     where

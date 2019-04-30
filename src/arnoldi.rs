@@ -10,10 +10,25 @@ pub struct MGS<A> {
     q: Vec<Array1<A>>,
 }
 
+/// Residual vector of orthogonalization
 pub type Residual<S> = ArrayBase<S, Ix1>;
+/// Residual vector of orthogonalization
 pub type Coefficient<A> = Array1<A>;
+/// Q-matrix (unitary matrix)
+pub type Q<A> = Array2<A>;
+/// R-matrix (upper triangle)
+pub type R<A> = Array2<A>;
 
-impl<A: Scalar + Lapack> MGS<A> {
+impl<A: Scalar> MGS<A> {
+    /// Create empty linear space
+    ///
+    /// ```rust
+    /// # use ndarray_linalg::*;
+    /// const N: usize = 5;
+    /// let mgs = arnoldi::MGS::<f32>::new(N);
+    /// assert_eq!(mgs.dim(), N);
+    /// assert_eq!(mgs.len(), 0);
+    /// ```
     pub fn new(dimension: usize) -> Self {
         Self {
             dimension,
@@ -36,6 +51,7 @@ impl<A: Scalar + Lapack> MGS<A> {
     /// - if the size of the input array mismaches to the dimension
     pub fn orthogonalize<S>(&self, mut a: ArrayBase<S, Ix1>) -> (Residual<S>, Coefficient<A>)
     where
+        A: Lapack,
         S: DataMut<Elem = A>,
     {
         assert_eq!(a.len(), self.dim());
@@ -56,13 +72,27 @@ impl<A: Scalar + Lapack> MGS<A> {
     /// Panic
     /// -------
     /// - if the size of the input array mismaches to the dimension
-    pub fn append_if_independent<S>(&mut self, a: ArrayBase<S, Ix1>, rtol: A::Real) -> Option<Coefficient<A>>
+    ///
+    /// ```rust
+    /// # use ndarray::*;
+    /// # use ndarray_linalg::*;
+    /// let mut mgs = arnoldi::MGS::new(3);
+    /// let coef = mgs.append(array![1.0, 0.0, 0.0], 1e-9).unwrap();
+    /// close_l2(&coef, &array![1.0], 1e-9).unwrap();
+    ///
+    /// let coef = mgs.append(array![1.0, 1.0, 0.0], 1e-9).unwrap();
+    /// close_l2(&coef, &array![1.0, 1.0], 1e-9).unwrap();
+    ///
+    /// assert!(mgs.append(array![1.0, 1.0, 0.0], 1e-9).is_none());  // Cannot append dependent vector
+    /// ```
+    pub fn append<S>(&mut self, a: ArrayBase<S, Ix1>, rtol: A::Real) -> Option<Coefficient<A>>
     where
+        A: Lapack,
         S: Data<Elem = A>,
     {
         let a = a.into_owned();
         let (mut a, coef) = self.orthogonalize(a);
-        let nrm = coef[coef.len()].re();
+        let nrm = coef[coef.len() - 1].re();
         if nrm < rtol {
             // Linearly dependent
             return None;
@@ -73,84 +103,30 @@ impl<A: Scalar + Lapack> MGS<A> {
     }
 
     /// Get orthogonal basis as Q matrix
-    pub fn get_q(&self) -> Array2<A> {
+    pub fn get_q(&self) -> Q<A> {
         hstack(&self.q).unwrap()
     }
 }
 
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use crate::assert::*;
-
-    const N: usize = 5;
-
-    #[test]
-    fn new() {
-        let mgs: MGS<f32> = MGS::new(N);
-        assert_eq!(mgs.dim(), N);
-        assert_eq!(mgs.len(), 0);
-    }
-
-    fn test_append<A: Scalar + Lapack>(rtol: A::Real) {
-        let mut mgs: MGS<A> = MGS::new(N);
-        let a: Array2<A> = crate::generate::random((N, 3));
-        dbg!(&a);
-        for col in a.axis_iter(Axis(1)) {
-            let res = mgs.append(col);
-            dbg!(res);
+pub fn mgs<A, S>(iter: impl Iterator<Item = ArrayBase<S, Ix1>>, dim: usize, rtol: A::Real) -> (Q<A>, R<A>)
+where
+    A: Scalar + Lapack,
+    S: Data<Elem = A>,
+{
+    let mut ortho = MGS::new(dim);
+    let mut coefs = Vec::new();
+    for a in iter {
+        match ortho.append(a, rtol) {
+            Some(coef) => coefs.push(coef),
+            None => break,
         }
-        let q = mgs.get_q();
-        dbg!(&q);
-        let r = mgs.get_r();
-        dbg!(&r);
-
-        dbg!(q.dot(&r));
-        close_l2(&q.dot(&r), &a, rtol).unwrap();
-
-        let qt: Array2<_> = conjugate(&q);
-        dbg!(qt.dot(&q));
-        close_l2(&qt.dot(&q), &Array2::eye(3), rtol).unwrap();
     }
-
-    #[test]
-    fn append() {
-        test_append::<f32>(1e-5);
-        test_append::<c32>(1e-5);
-        test_append::<f64>(1e-9);
-        test_append::<c64>(1e-9);
-    }
-
-    fn test_append_if<A: Scalar + Lapack>(rtol: A::Real) {
-        let mut mgs: MGS<A> = MGS::new(N);
-        let a: Array2<A> = crate::generate::random((N, 8));
-        dbg!(&a);
-        for col in a.axis_iter(Axis(1)) {
-            match mgs.append_if(col, rtol) {
-                Some(res) => {
-                    dbg!(res);
-                }
-                None => break,
-            }
+    let m = coefs.len();
+    let mut r = Array2::zeros((m, m));
+    for i in 0..m {
+        for j in 0..=i {
+            r[(j, i)] = coefs[i][j];
         }
-        let q = mgs.get_q();
-        dbg!(&q);
-        let r = mgs.get_r();
-        dbg!(&r);
-
-        dbg!(q.dot(&r));
-        close_l2(&q.dot(&r), &a.slice(s![.., 0..N]), rtol).unwrap();
-
-        let qt: Array2<_> = conjugate(&q);
-        dbg!(qt.dot(&q));
-        close_l2(&qt.dot(&q), &Array2::eye(N), rtol).unwrap();
     }
-
-    #[test]
-    fn append_if() {
-        test_append_if::<f32>(1e-5);
-        test_append_if::<c32>(1e-5);
-        test_append_if::<f64>(1e-9);
-        test_append_if::<c64>(1e-9);
-    }
+    (ortho.get_q(), r)
 }

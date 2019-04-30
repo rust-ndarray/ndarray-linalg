@@ -1,51 +1,44 @@
 use crate::{generate::*, inner::*, norm::Norm, types::*};
 use ndarray::*;
-use num_traits::Zero;
 
+/// Iterative orthogonalizer using modified Gram-Schmit procedure
 #[derive(Debug, Clone)]
 pub struct MGS<A> {
-    dim: usize,
+    /// Dimension of base space
+    dimension: usize,
+    /// Basis of spanned space
     q: Vec<Array1<A>>,
-    r: Vec<Array1<A>>,
 }
 
-pub enum Dependence<A: Scalar> {
-    Orthogonal(A::Real),
-    Coefficient(Array1<A>),
-}
+pub type Residual<S> = ArrayBase<S, Ix1>;
+pub type Coefficient<A> = Array1<A>;
 
 impl<A: Scalar + Lapack> MGS<A> {
-    pub fn new(dim: usize) -> Self {
+    pub fn new(dimension: usize) -> Self {
         Self {
-            dim,
+            dimension,
             q: Vec::new(),
-            r: Vec::new(),
         }
     }
 
     pub fn dim(&self) -> usize {
-        self.dim
+        self.dimension
     }
 
     pub fn len(&self) -> usize {
         self.q.len()
     }
 
-    /// Add new vector, return residual norm
-    pub fn append<S>(&mut self, a: ArrayBase<S, Ix1>) -> A::Real
+    /// Orthogonalize given vector using current basis
+    ///
+    /// Panic
+    /// -------
+    /// - if the size of the input array mismaches to the dimension
+    pub fn orthogonalize<S>(&self, mut a: ArrayBase<S, Ix1>) -> (Residual<S>, Coefficient<A>)
     where
-        S: Data<Elem = A>,
-    {
-        self.append_if(a, A::Real::zero()).unwrap()
-    }
-
-    /// Add new vector if the residual is larger than relative tolerance
-    pub fn append_if<S>(&mut self, a: ArrayBase<S, Ix1>, rtol: A::Real) -> Option<A::Real>
-    where
-        S: Data<Elem = A>,
+        S: DataMut<Elem = A>,
     {
         assert_eq!(a.len(), self.dim());
-        let mut a = a.into_owned();
         let mut coef = Array1::zeros(self.len() + 1);
         for i in 0..self.len() {
             let q = &self.q[i];
@@ -54,31 +47,34 @@ impl<A: Scalar + Lapack> MGS<A> {
             coef[i] = c;
         }
         let nrm = a.norm_l2();
+        coef[self.len()] = A::from_real(nrm);
+        (a, coef)
+    }
+
+    /// Add new vector if the residual is larger than relative tolerance
+    ///
+    /// Panic
+    /// -------
+    /// - if the size of the input array mismaches to the dimension
+    pub fn append_if_independent<S>(&mut self, a: ArrayBase<S, Ix1>, rtol: A::Real) -> Option<Coefficient<A>>
+    where
+        S: Data<Elem = A>,
+    {
+        let a = a.into_owned();
+        let (mut a, coef) = self.orthogonalize(a);
+        let nrm = coef[coef.len()].re();
         if nrm < rtol {
+            // Linearly dependent
             return None;
         }
-        coef[self.len()] = A::from_real(nrm);
-        self.r.push(coef);
         azip!(mut a in { *a = *a / A::from_real(nrm) });
         self.q.push(a);
-        Some(nrm)
+        Some(coef)
     }
 
     /// Get orthogonal basis as Q matrix
     pub fn get_q(&self) -> Array2<A> {
         hstack(&self.q).unwrap()
-    }
-
-    /// Get each vector norm and coefficients as R matrix
-    pub fn get_r(&self) -> Array2<A> {
-        let len = self.len();
-        let mut r = Array2::zeros((len, len));
-        for i in 0..len {
-            for j in 0..=i {
-                r[(j, i)] = self.r[i][j];
-            }
-        }
-        r
     }
 }
 

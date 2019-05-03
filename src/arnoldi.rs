@@ -73,15 +73,19 @@ impl<A: Scalar> MGS<A> {
     /// # use ndarray::*;
     /// # use ndarray_linalg::*;
     /// let mut mgs = arnoldi::MGS::new(3);
-    /// let coef = mgs.append(array![1.0, 0.0, 0.0], 1e-9).unwrap();
+    /// let coef = mgs.append(array![0.0, 1.0, 0.0], 1e-9).unwrap();
     /// close_l2(&coef, &array![1.0], 1e-9).unwrap();
     ///
     /// let coef = mgs.append(array![1.0, 1.0, 0.0], 1e-9).unwrap();
     /// close_l2(&coef, &array![1.0, 1.0], 1e-9).unwrap();
     ///
-    /// assert!(mgs.append(array![1.0, 2.0, 0.0], 1e-9).is_none());  // Cannot append dependent vector
+    /// assert!(mgs.append(array![1.0, 2.0, 0.0], 1e-9).is_err());  // Fail if the vector is linearly dependend
+    ///
+    /// if let Err(coef) = mgs.append(array![1.0, 2.0, 0.0], 1e-9) {
+    ///     close_l2(&coef, &array![2.0, 1.0, 0.0], 1e-9).unwrap(); // You can get coefficients of dependent vector
+    /// }
     /// ```
-    pub fn append<S>(&mut self, a: ArrayBase<S, Ix1>, rtol: A::Real) -> Option<Array1<A>>
+    pub fn append<S>(&mut self, a: ArrayBase<S, Ix1>, rtol: A::Real) -> Result<Array1<A>, Array1<A>>
     where
         A: Lapack,
         S: Data<Elem = A>,
@@ -91,11 +95,11 @@ impl<A: Scalar> MGS<A> {
         let nrm = coef[coef.len() - 1].re();
         if nrm < rtol {
             // Linearly dependent
-            return None;
+            return Err(coef);
         }
         azip!(mut a in { *a = *a / A::from_real(nrm) });
         self.q.push(a);
-        Some(coef)
+        Ok(coef)
     }
 
     /// Get orthogonal basis as Q matrix
@@ -104,7 +108,34 @@ impl<A: Scalar> MGS<A> {
     }
 }
 
-pub fn mgs<A, S>(iter: impl Iterator<Item = ArrayBase<S, Ix1>>, dim: usize, rtol: A::Real) -> (Q<A>, R<A>)
+/// Strategy for linearly dependent vectors appearing in iterative QR decomposition
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub enum Strategy {
+    /// Terminate iteration if dependent vector comes
+    Terminate,
+
+    /// Skip dependent vector
+    Skip,
+
+    /// Orghotonalize dependent vector without adding to Q,
+    /// thus R must be non-regular like following:
+    ///
+    /// ```ignore
+    /// x x x x x
+    /// 0 x x x x
+    /// 0 0 0 x x
+    /// 0 0 0 0 x
+    /// 0 0 0 0 0   // 0-filled to be square matrix
+    /// ```
+    Full,
+}
+
+pub fn mgs<A, S>(
+    iter: impl Iterator<Item = ArrayBase<S, Ix1>>,
+    dim: usize,
+    rtol: A::Real,
+    strategy: Strategy,
+) -> (Q<A>, R<A>)
 where
     A: Scalar + Lapack,
     S: Data<Elem = A>,
@@ -113,8 +144,12 @@ where
     let mut coefs = Vec::new();
     for a in iter {
         match ortho.append(a, rtol) {
-            Some(coef) => coefs.push(coef),
-            None => break,
+            Ok(coef) => coefs.push(coef),
+            Err(coef) => match strategy {
+                Strategy::Terminate => break,
+                Strategy::Skip => continue,
+                Strategy::Full => coefs.push(coef),
+            },
         }
     }
     let m = coefs.len();

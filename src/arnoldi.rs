@@ -130,6 +130,7 @@ pub enum Strategy {
     Full,
 }
 
+/// Online QR decomposition of vectors using modified Gram-Schmit algorithm
 pub fn mgs<A, S>(
     iter: impl Iterator<Item = ArrayBase<S, Ix1>>,
     dim: usize,
@@ -152,11 +153,14 @@ where
             },
         }
     }
+    let n = ortho.len();
     let m = coefs.len();
-    let mut r = Array2::zeros((m, m));
-    for i in 0..m {
-        for j in 0..=i {
-            r[(j, i)] = coefs[i][j];
+    let mut r = Array2::zeros((n, m).f());
+    for j in 0..m {
+        for i in 0..n {
+            if i < coefs[j].len() {
+                r[(i, j)] = coefs[j][i];
+            }
         }
     }
     (ortho.get_q(), r)

@@ -10,11 +10,7 @@ pub struct MGS<A> {
     q: Vec<Array1<A>>,
 }
 
-/// Residual vector of orthogonalization
-pub type Residual<S> = ArrayBase<S, Ix1>;
-/// Residual vector of orthogonalization
-pub type Coefficient<A> = Array1<A>;
-/// Q-matrix (unitary matrix)
+/// Q-matrix (unitary)
 pub type Q<A> = Array2<A>;
 /// R-matrix (upper triangle)
 pub type R<A> = Array2<A>;
@@ -49,7 +45,7 @@ impl<A: Scalar> MGS<A> {
     /// Panic
     /// -------
     /// - if the size of the input array mismaches to the dimension
-    pub fn orthogonalize<S>(&self, mut a: ArrayBase<S, Ix1>) -> (Residual<S>, Coefficient<A>)
+    pub fn orthogonalize<S>(&self, a: &mut ArrayBase<S, Ix1>) -> Array1<A>
     where
         A: Lapack,
         S: DataMut<Elem = A>,
@@ -59,12 +55,12 @@ impl<A: Scalar> MGS<A> {
         for i in 0..self.len() {
             let q = &self.q[i];
             let c = q.inner(&a);
-            azip!(mut a, q (q) in { *a = *a - c * q } );
+            azip!(mut a (&mut *a), q (q) in { *a = *a - c * q } );
             coef[i] = c;
         }
         let nrm = a.norm_l2();
         coef[self.len()] = A::from_real(nrm);
-        (a, coef)
+        coef
     }
 
     /// Add new vector if the residual is larger than relative tolerance
@@ -85,13 +81,13 @@ impl<A: Scalar> MGS<A> {
     ///
     /// assert!(mgs.append(array![1.0, 2.0, 0.0], 1e-9).is_none());  // Cannot append dependent vector
     /// ```
-    pub fn append<S>(&mut self, a: ArrayBase<S, Ix1>, rtol: A::Real) -> Option<Coefficient<A>>
+    pub fn append<S>(&mut self, a: ArrayBase<S, Ix1>, rtol: A::Real) -> Option<Array1<A>>
     where
         A: Lapack,
         S: Data<Elem = A>,
     {
-        let a = a.into_owned();
-        let (mut a, coef) = self.orthogonalize(a);
+        let mut a = a.into_owned();
+        let coef = self.orthogonalize(&mut a);
         let nrm = coef[coef.len() - 1].re();
         if nrm < rtol {
             // Linearly dependent

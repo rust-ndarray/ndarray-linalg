@@ -36,7 +36,6 @@
 //!  - [Random matrix generators](generate/index.html)
 //!  - [Scalar trait](types/trait.Scalar.html)
 
-pub mod arnoldi;
 pub mod assert;
 pub mod cholesky;
 pub mod convert;
@@ -44,8 +43,8 @@ pub mod diagonal;
 pub mod eigh;
 pub mod error;
 pub mod generate;
-pub mod householder;
 pub mod inner;
+pub mod krylov;
 pub mod lapack;
 pub mod layout;
 pub mod norm;

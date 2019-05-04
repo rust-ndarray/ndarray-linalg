@@ -65,10 +65,6 @@ impl<A: Scalar> MGS<A> {
 
     /// Add new vector if the residual is larger than relative tolerance
     ///
-    /// Panic
-    /// -------
-    /// - if the size of the input array mismaches to the dimension
-    ///
     /// ```rust
     /// # use ndarray::*;
     /// # use ndarray_linalg::*;
@@ -85,6 +81,11 @@ impl<A: Scalar> MGS<A> {
     ///     close_l2(&coef, &array![2.0, 1.0, 0.0], 1e-9).unwrap(); // You can get coefficients of dependent vector
     /// }
     /// ```
+    ///
+    /// Panic
+    /// -------
+    /// - if the size of the input array mismaches to the dimension
+    ///
     pub fn append<S>(&mut self, a: ArrayBase<S, Ix1>, rtol: A::Real) -> Result<Array1<A>, Array1<A>>
     where
         A: Lapack,

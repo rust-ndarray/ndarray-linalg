@@ -44,6 +44,7 @@ pub mod diagonal;
 pub mod eigh;
 pub mod error;
 pub mod generate;
+pub mod householder;
 pub mod inner;
 pub mod lapack;
 pub mod layout;

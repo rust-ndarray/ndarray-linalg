@@ -76,3 +76,26 @@ impl<A: Scalar + Lapack> Orthogonalizer for MGS<A> {
         hstack(&self.q).unwrap()
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::assert::*;
+
+    #[test]
+    fn mgs_append() {
+        let mut mgs = MGS::new(3);
+        let coef = mgs.append(array![0.0, 1.0, 0.0], 1e-9).unwrap();
+        close_l2(&coef, &array![1.0], 1e-9).unwrap();
+
+        let coef = mgs.append(array![1.0, 1.0, 0.0], 1e-9).unwrap();
+        close_l2(&coef, &array![1.0, 1.0], 1e-9).unwrap();
+
+        assert!(mgs.append(array![1.0, 2.0, 0.0], 1e-9).is_err());
+
+        if let Err(coef) = mgs.append(array![1.0, 2.0, 0.0], 1e-9) {
+            close_l2(&coef, &array![2.0, 1.0, 0.0], 1e-9).unwrap();
+        }
+    }
+
+}

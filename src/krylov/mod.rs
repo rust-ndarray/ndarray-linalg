@@ -88,10 +88,10 @@ pub enum Strategy {
     Full,
 }
 
-/// Online QR decomposition of vectors using modified Gram-Schmit algorithm
+/// Online QR decomposition using arbitary orthogonalizer
 pub fn qr<A, S>(
     iter: impl Iterator<Item = ArrayBase<S, Ix1>>,
-    dim: usize,
+    mut ortho: impl Orthogonalizer<Elem = A>,
     rtol: A::Real,
     strategy: Strategy,
 ) -> (Q<A>, R<A>)
@@ -99,7 +99,8 @@ where
     A: Scalar + Lapack,
     S: Data<Elem = A>,
 {
-    let mut ortho = MGS::new(dim);
+    assert_eq!(ortho.len(), 0);
+
     let mut coefs = Vec::new();
     for a in iter {
         match ortho.append(a.into_owned(), rtol) {
@@ -122,4 +123,34 @@ where
         }
     }
     (ortho.get_q(), r)
+}
+
+/// Online QR decomposition using modified Gram-Schmit
+pub fn mgs<A, S>(
+    iter: impl Iterator<Item = ArrayBase<S, Ix1>>,
+    dim: usize,
+    rtol: A::Real,
+    strategy: Strategy,
+) -> (Q<A>, R<A>)
+where
+    A: Scalar + Lapack,
+    S: Data<Elem = A>,
+{
+    let mgs = MGS::new(dim);
+    qr(iter, mgs, rtol, strategy)
+}
+
+/// Online QR decomposition using modified Gram-Schmit
+pub fn householder<A, S>(
+    iter: impl Iterator<Item = ArrayBase<S, Ix1>>,
+    dim: usize,
+    rtol: A::Real,
+    strategy: Strategy,
+) -> (Q<A>, R<A>)
+where
+    A: Scalar + Lapack,
+    S: Data<Elem = A>,
+{
+    let h = Householder::new(dim);
+    qr(iter, h, rtol, strategy)
 }

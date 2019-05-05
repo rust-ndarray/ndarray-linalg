@@ -1,5 +1,6 @@
 use super::*;
 use crate::{inner::*, norm::*};
+use num_traits::Zero;
 
 /// Iterative orthogonalizer using Householder reflection
 #[derive(Debug, Clone)]
@@ -46,6 +47,10 @@ impl<A: Scalar + Lapack> Orthogonalizer for Householder<A> {
     {
         for k in 0..self.len() {
             self.reflect(k, a);
+        }
+        if a.len() >= self.len() {
+            // full rank
+            return Zero::zero();
         }
         // residual norm
         a.slice(s![self.len()..]).norm_l2()

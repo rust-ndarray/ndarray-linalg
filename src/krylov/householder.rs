@@ -70,6 +70,13 @@ impl<A: Scalar + Lapack> Orthogonalizer for Householder<A> {
     }
 
     fn get_q(&self) -> Q<A> {
-        unimplemented!()
+        assert!(self.len() > 0);
+        let mut a = Array::eye(self.len());
+        for mut col in a.axis_iter_mut(Axis(0)) {
+            for l in 0..self.len() {
+                self.reflect(l, &mut col);
+            }
+        }
+        a
     }
 }

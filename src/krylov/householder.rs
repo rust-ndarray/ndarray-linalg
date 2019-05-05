@@ -21,7 +21,7 @@ impl<A: Scalar> Householder<A> {
         let w = self.v[k].slice(s![k..]);
         let c = A::from(2.0).unwrap() * w.inner(&a.slice(s![k..]));
         for l in k..self.dim {
-            a[l] -= c * w[l];
+            a[l] -= c * w[l - k];
         }
     }
 }

@@ -15,11 +15,17 @@ pub type R<A> = Array2<A>;
 pub trait Orthogonalizer {
     type Elem: Scalar;
 
-    /// Create empty linear space
-    fn new(dim: usize) -> Self;
-
     fn dim(&self) -> usize;
     fn len(&self) -> usize;
+
+    /// check if the basis spans entire space
+    fn is_full(&self) -> bool {
+        self.len() == self.dim()
+    }
+
+    fn is_empty(&self) -> bool {
+        self.len() == 0
+    }
 
     /// Orthogonalize given vector
     ///

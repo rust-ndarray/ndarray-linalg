@@ -11,6 +11,10 @@ pub struct MGS<A> {
 }
 
 impl<A: Scalar> MGS<A> {
+    pub fn new(dim: usize) -> Self {
+        Self { dim, q: Vec::new() }
+    }
+
     fn ortho<S>(&self, a: &mut ArrayBase<S, Ix1>) -> Array1<A>
     where
         A: Lapack,
@@ -32,10 +36,6 @@ impl<A: Scalar> MGS<A> {
 
 impl<A: Scalar + Lapack> Orthogonalizer for MGS<A> {
     type Elem = A;
-
-    fn new(dim: usize) -> Self {
-        Self { dim, q: Vec::new() }
-    }
 
     fn dim(&self) -> usize {
         self.dim

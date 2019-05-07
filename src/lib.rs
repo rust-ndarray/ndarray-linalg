@@ -30,8 +30,8 @@
 //!
 //!  Utilities
 //!  -----------
-//!  - [assertions for array](index.html#macros)
-//!  - [generator functions](generate/index.html)
+//!  - [Assertions for array](index.html#macros)
+//!  - [Random matrix generators](generate/index.html)
 //!  - [Scalar trait](types/trait.Scalar.html)
 
 pub mod assert;

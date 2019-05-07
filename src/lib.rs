@@ -3,14 +3,14 @@
 //!
 //!  Linear algebra methods
 //!  -----------------------
-//!  - [QR decomposition](qr/trait.QR.html)
-//!  - [singular value decomposition](svd/trait.SVD.html)
-//!  - [solve linear problem](solve/index.html)
-//!  - [solve linear problem for triangular matrix](triangular/trait.SolveTriangular.html)
-//!  - [inverse matrix](solve/trait.Inverse.html)
-//!  - [eigenvalue decomposition for Hermite matrix][eigh]
-//!
-//!  [eigh]:eigh/trait.Eigh.html
+//!  - [QR decomposition](qr/index.html)
+//!  - [**S**ingular **V**alue **D**ecomposition](svd/index.html)
+//!  - Solution of linear systems:
+//!     - [General matrices](solve/index.html)
+//!     - [Triangular matrices](triangular/index.html)
+//!     - [Hermitian/real symmetric matrices](solveh/index.html)
+//!  - [Inverse matrix computation](solve/trait.Inverse.html)
+//!  - [Eigenvalue decomposition for Hermite matrices](eigh/index.html)
 //!
 //!  Utilities
 //!  -----------

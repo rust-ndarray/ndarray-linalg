@@ -1,17 +1,18 @@
 //! The `ndarray-linalg` crate provides linear algebra functionalities for `ArrayBase`, the n-dimensional array data structure provided by [`ndarray`](https://github.com/rust-ndarray/ndarray).
 //!
-//! `ndarray-linalg` leverages [LAPACK](http://www.netlib.org/lapack/)'s routines using the bindings provided by [stainless-steel/lapack](https://github.com/stainless-steel/lapack).
+//! `ndarray-linalg` leverages [LAPACK](http://www.netlib.org/lapack/)'s routines using the bindings provided by [blas-lapack-rs/lapack](https://github.com/blas-lapack-rs/lapack).
 //!
 //! Linear algebra methods
 //! -----------------------
-//! - [QR decomposition](qr/index.html)
-//! - [**S**ingular **V**alue **D**ecomposition](svd/index.html)
+//! - Decomposition methods:
+//!     - [QR decomposition](qr/index.html)
+//!     - [Eigenvalue decomposition for Hermite matrices](eigh/index.html)
+//!     - [**S**ingular **V**alue **D**ecomposition](svd/index.html)
 //! - Solution of linear systems:
 //!    - [General matrices](solve/index.html)
 //!    - [Triangular matrices](triangular/index.html)
 //!    - [Hermitian/real symmetric matrices](solveh/index.html)
 //! - [Inverse matrix computation](solve/trait.Inverse.html)
-//! - [Eigenvalue decomposition for Hermite matrices](eigh/index.html)
 //!
 //! Naming Convention
 //! -----------------------
@@ -21,7 +22,7 @@
 //!
 //! For example, if you are interested in the QR decomposition of a square matrix, you can use:
 //! - [QRSquare](qr/trait.QRSquare.html), if you hold an immutable reference (i.e. `&self`) to the matrix you want to decompose;
-//! - [QRSquareInplace](qr/trait.QRSquareInPlace.html), if you hold a mutable reference (i.e. `&mut self`) to the matrix you want to decompose;
+//! - [QRSquareInplace](qr/trait.QRSquareInplace.html), if you hold a mutable reference (i.e. `&mut self`) to the matrix you want to decompose;
 //! - [QRSquareInto](qr/trait.QRSquareInto.html), if you can pass the matrix you want to decompose by value (e.g. `self`).
 //!
 //! Depending on the algorithm, each variant might require more or less copy operations of the underlying data.

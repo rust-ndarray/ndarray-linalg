@@ -6,6 +6,7 @@
 //! -----------------------
 //! - Decomposition methods:
 //!     - [QR decomposition](qr/index.html)
+//!     - [Cholesky/LU decomposition](cholesky/index.html)
 //!     - [Eigenvalue decomposition for Hermite matrices](eigh/index.html)
 //!     - [**S**ingular **V**alue **D**ecomposition](svd/index.html)
 //! - Solution of linear systems:

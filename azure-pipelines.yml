@@ -58,3 +58,16 @@ jobs:
           cargo test -v --features=intel-mkl --no-default-features
           cargo test -v --features=intel-mkl,serde-1 --no-default-features
         displayName: run test
+
+  - job: Windows
+    pool:
+      vmImage: 'windows-2019'
+    steps:
+      - script: |
+          curl -sSf -o rustup-init.exe https://win.rustup.rs
+          rustup-init.exe -y 2>&1
+          set PATH=%PATH%;%USERPROFILE%\.cargo\bin
+          echo '##vso[task.setvariable variable=PATH;]%PATH%;%USERPROFILE%\.cargo\bin'
+        displayName: install rustup on Windows
+      - script: cargo test -v --features=intel-mkl --no-default-features 2>&1
+        displayName: run test

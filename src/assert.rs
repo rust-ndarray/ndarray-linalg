@@ -35,6 +35,7 @@ where
     D: Dimension,
     D::Pattern: PartialEq + Debug,
 {
+    assert_eq!(test.dim(), truth.dim());
     let tol = (test - truth).norm_max();
     if tol > atol {
         eprintln!("Expected:\n{}", truth);
@@ -52,6 +53,7 @@ where
     D: Dimension,
     D::Pattern: PartialEq + Debug,
 {
+    assert_eq!(test.dim(), truth.dim());
     let tol = (test - truth).norm_l1() / truth.norm_l1();
     if tol > rtol {
         eprintln!("Expected:\n{}", truth);
@@ -69,6 +71,7 @@ where
     D: Dimension,
     D::Pattern: PartialEq + Debug,
 {
+    assert_eq!(test.dim(), truth.dim());
     let tol = (test - truth).norm_l2() / truth.norm_l2();
     if tol > rtol {
         eprintln!("Expected:\n{}", truth);

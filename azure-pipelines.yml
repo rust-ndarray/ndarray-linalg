@@ -59,7 +59,7 @@ jobs:
           cargo test -v --features=intel-mkl,serde-1 --no-default-features
         displayName: run test
 
-  - job: Windows
+  - job: WindowsIntelMKL
     pool:
       vmImage: 'windows-2019'
     steps:

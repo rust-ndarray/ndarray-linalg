@@ -104,23 +104,20 @@ impl<A: Scalar + Lapack> Orthogonalizer for Householder<A> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::assert::*;
+    use crate::assert::close_l2;
 
     #[test]
     fn householder_append() {
         let mut householder = Householder::new(3);
         let coef = householder.append(array![0.0, 1.0, 0.0], 1e-9).unwrap();
-        dbg!(&coef);
-        close_l2(&coef, &array![1.0], 1e-9).unwrap();
+        close_l2(&coef, &array![1.0], 1e-9);
 
         let coef = householder.append(array![1.0, 1.0, 0.0], 1e-9).unwrap();
-        dbg!(&coef);
-        close_l2(&coef, &array![-1.0, 1.0], 1e-9).unwrap();
+        close_l2(&coef, &array![-1.0, 1.0], 1e-9);
 
         assert!(householder.append(array![1.0, 2.0, 0.0], 1e-9).is_err());
         if let Err(coef) = householder.append(array![1.0, 2.0, 0.0], 1e-9) {
-            dbg!(&coef);
-            close_l2(&coef, &array![-2.0, 1.0, 0.0], 1e-9).unwrap();
+            close_l2(&coef, &array![-2.0, 1.0, 0.0], 1e-9);
         }
     }
 

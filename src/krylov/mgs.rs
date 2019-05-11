@@ -86,15 +86,15 @@ mod tests {
     fn mgs_append() {
         let mut mgs = MGS::new(3);
         let coef = mgs.append(array![0.0, 1.0, 0.0], 1e-9).unwrap();
-        close_l2(&coef, &array![1.0], 1e-9).unwrap();
+        close_l2(&coef, &array![1.0], 1e-9);
 
         let coef = mgs.append(array![1.0, 1.0, 0.0], 1e-9).unwrap();
-        close_l2(&coef, &array![1.0, 1.0], 1e-9).unwrap();
+        close_l2(&coef, &array![1.0, 1.0], 1e-9);
 
         assert!(mgs.append(array![1.0, 2.0, 0.0], 1e-9).is_err());
 
         if let Err(coef) = mgs.append(array![1.0, 2.0, 0.0], 1e-9) {
-            close_l2(&coef, &array![2.0, 1.0, 0.0], 1e-9).unwrap();
+            close_l2(&coef, &array![2.0, 1.0, 0.0], 1e-9);
         }
     }
 

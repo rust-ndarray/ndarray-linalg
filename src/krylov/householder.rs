@@ -5,11 +5,17 @@ use num_traits::Zero;
 /// Iterative orthogonalizer using Householder reflection
 #[derive(Debug, Clone)]
 pub struct Householder<A: Scalar> {
+    /// Dimension of orthogonalizer
     dim: usize,
+
+    /// Store Householder reflector.
+    ///
+    /// The coefficient is copied into another array, and this does not contain
     v: Vec<Array1<A>>,
 }
 
 impl<A: Scalar> Householder<A> {
+    /// Create a new orthogonalizer
     pub fn new(dim: usize) -> Self {
         Householder { dim, v: Vec::new() }
     }

@@ -78,11 +78,14 @@ impl<A: Scalar + Lapack> Orthogonalizer for Householder<A> {
 
         // Add reflector
         assert!(k < a.len()); // this must hold because `alpha == 0` if k >= a.len()
-        let xi = a[k].re();
-        let alpha = if xi >= Zero::zero() { -alpha } else { alpha };
-        coef[k] = A::from_real(alpha);
+        let alpha = if a[k].abs() > Zero::zero() {
+            a[k].mul_real(alpha / a[k].abs())
+        } else {
+            A::from_real(alpha)
+        };
+        coef[k] = alpha;
 
-        a[k] = A::from_real(xi - alpha);
+        a[k] -= alpha;
         let norm = a.slice(s![k..]).norm_l2();
         azip!(mut a (a.slice_mut(s![..k])) in { *a = Zero::zero() }); // this can be omitted
         azip!(mut a (a.slice_mut(s![k..])) in { *a = a.div_real(norm) });
@@ -101,26 +104,4 @@ impl<A: Scalar + Lapack> Orthogonalizer for Householder<A> {
         }
         a
     }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use crate::assert::close_l2;
-
-    #[test]
-    fn householder_append() {
-        let mut householder = Householder::new(3);
-        let coef = householder.append(array![0.0, 1.0, 0.0], 1e-9).unwrap();
-        close_l2(&coef, &array![-1.0], 1e-9);
-
-        let coef = householder.append(array![1.0, 1.0, 0.0], 1e-9).unwrap();
-        close_l2(&coef, &array![-1.0, 1.0], 1e-9);
-
-        assert!(householder.append(array![1.0, 2.0, 0.0], 1e-9).is_err());
-        if let Err(coef) = householder.append(array![1.0, 2.0, 0.0], 1e-9) {
-            close_l2(&coef, &array![-2.0, 1.0, 0.0], 1e-9);
-        }
-    }
-
 }

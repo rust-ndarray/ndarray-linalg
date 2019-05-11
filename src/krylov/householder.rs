@@ -23,7 +23,7 @@ impl<A: Scalar> Householder<A> {
     /// Take a Reflection `P = I - 2ww^T`
     fn reflect<S: DataMut<Elem = A>>(&self, k: usize, a: &mut ArrayBase<S, Ix1>) {
         assert!(k < self.v.len());
-        assert_eq!(a.len(), self.dim);
+        assert_eq!(a.len(), self.dim, "Input array size mismaches to the dimension");
 
         let w = self.v[k].slice(s![k..]);
         let mut a_slice = a.slice_mut(s![k..]);
@@ -90,8 +90,9 @@ impl<A: Scalar + Lapack> Orthogonalizer for Householder<A> {
 
     fn get_q(&self) -> Q<A> {
         assert!(self.len() > 0);
-        let mut a = Array::eye(self.len());
-        for mut col in a.axis_iter_mut(Axis(0)) {
+        let mut a = Array::zeros((self.dim(), self.len()));
+        for (i, mut col) in a.axis_iter_mut(Axis(1)).enumerate() {
+            col[i] = A::one();
             for l in 0..self.len() {
                 self.reflect(l, &mut col);
             }

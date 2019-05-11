@@ -64,26 +64,27 @@ impl<A: Scalar + Lapack> Orthogonalizer for Householder<A> {
         S: DataMut<Elem = A>,
     {
         assert_eq!(a.len(), self.dim);
-        let alpha = self.orthogonalize(&mut a);
         let k = self.len();
-        let xi = a[k].re();
-        let alpha = if xi >= Zero::zero() { -alpha } else { alpha };
-
-        // Generate coefficient vector
-        let mut coef = Array::zeros(self.len() + 1);
-        for i in 0..self.len() {
+        let alpha = self.orthogonalize(&mut a);
+        let mut coef = Array::zeros(k + 1);
+        for i in 0..k {
             coef[i] = a[i];
         }
-        coef[self.len()] = A::from_real(alpha);
-
-        if alpha.abs() < rtol {
+        if alpha < rtol {
+            // linearly dependent
+            coef[k] = A::from_real(alpha);
             return Err(coef);
         }
 
         // Add reflector
+        assert!(k < a.len()); // this must hold because `alpha == 0` if k >= a.len()
+        let xi = a[k].re();
+        let alpha = if xi >= Zero::zero() { -alpha } else { alpha };
+        coef[k] = A::from_real(alpha);
+
         a[k] = A::from_real(xi - alpha);
         let norm = a.slice(s![k..]).norm_l2();
-        azip!(mut a (a.slice_mut(s![..k])) in { *a = Zero::zero() });
+        azip!(mut a (a.slice_mut(s![..k])) in { *a = Zero::zero() }); // this can be omitted
         azip!(mut a (a.slice_mut(s![k..])) in { *a = a.div_real(norm) });
         self.v.push(a.into_owned());
         Ok(coef)

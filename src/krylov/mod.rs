@@ -29,6 +29,10 @@ pub trait Orthogonalizer {
 
     /// Orthogonalize given vector
     ///
+    /// Returns
+    /// --------
+    /// Residual norm
+    ///
     /// Panic
     /// -------
     /// - if the size of the input array mismaches to the dimension
@@ -39,22 +43,12 @@ pub trait Orthogonalizer {
 
     /// Add new vector if the residual is larger than relative tolerance
     ///
-    /// ```rust
-    /// # use ndarray::*;
-    /// # use ndarray_linalg::{*, krylov::*};
-    /// let mut mgs = krylov::MGS::new(3);
-    /// let coef = mgs.append(array![0.0, 1.0, 0.0], 1e-9).unwrap();
-    /// close_l2(&coef, &array![1.0], 1e-9).unwrap();
+    /// Returns
+    /// --------
+    /// Coefficients to the `i`-th Q-vector
     ///
-    /// let coef = mgs.append(array![1.0, 1.0, 0.0], 1e-9).unwrap();
-    /// close_l2(&coef, &array![1.0, 1.0], 1e-9).unwrap();
-    ///
-    /// assert!(mgs.append(array![1.0, 2.0, 0.0], 1e-9).is_err());  // Fail if the vector is linearly dependend
-    ///
-    /// if let Err(coef) = mgs.append(array![1.0, 2.0, 0.0], 1e-9) {
-    ///     close_l2(&coef, &array![2.0, 1.0, 0.0], 1e-9).unwrap(); // You can get coefficients of dependent vector
-    /// }
-    /// ```
+    /// - The size of array must be `self.len() + 1`
+    /// - The last element is the residual norm of input vector
     ///
     /// Panic
     /// -------

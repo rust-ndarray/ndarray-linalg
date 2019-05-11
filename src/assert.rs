@@ -1,87 +1,87 @@
 //! Assertions for array
 
 use ndarray::*;
+use std::fmt::Debug;
 
 use super::norm::*;
 use super::types::*;
 
-/// check two values are close in terms of the relative torrence
-pub fn rclose<A: Scalar>(test: A, truth: A, rtol: A::Real) -> Result<A::Real, A::Real> {
+/// check two values are close in terms of the relative tolerance
+pub fn rclose<A: Scalar>(test: A, truth: A, rtol: A::Real) {
     let dev = (test - truth).abs() / truth.abs();
-    if dev < rtol {
-        Ok(dev)
-    } else {
-        Err(dev)
+    if dev > rtol {
+        eprintln!("==== Assetion Failed ====");
+        eprintln!("Expected = {}", truth);
+        eprintln!("Actual   = {}", test);
+        panic!("Too large deviation in relative tolerance: {}", dev);
     }
 }
 
-/// check two values are close in terms of the absolute torrence
-pub fn aclose<A: Scalar>(test: A, truth: A, atol: A::Real) -> Result<A::Real, A::Real> {
+/// check two values are close in terms of the absolute tolerance
+pub fn aclose<A: Scalar>(test: A, truth: A, atol: A::Real) {
     let dev = (test - truth).abs();
-    if dev < atol {
-        Ok(dev)
-    } else {
-        Err(dev)
+    if dev > atol {
+        eprintln!("==== Assetion Failed ====");
+        eprintln!("Expected = {}", truth);
+        eprintln!("Actual   = {}", test);
+        panic!("Too large deviation in absolute tolerance: {}", dev);
     }
 }
 
 /// check two arrays are close in maximum norm
-pub fn close_max<A, S1, S2, D>(
-    test: &ArrayBase<S1, D>,
-    truth: &ArrayBase<S2, D>,
-    atol: A::Real,
-) -> Result<A::Real, A::Real>
+pub fn close_max<A, S1, S2, D>(test: &ArrayBase<S1, D>, truth: &ArrayBase<S2, D>, atol: A::Real)
 where
     A: Scalar + Lapack,
     S1: Data<Elem = A>,
     S2: Data<Elem = A>,
     D: Dimension,
+    D::Pattern: PartialEq + Debug,
 {
+    assert_eq!(test.dim(), truth.dim());
     let tol = (test - truth).norm_max();
-    if tol < atol {
-        Ok(tol)
-    } else {
-        Err(tol)
+    if tol > atol {
+        eprintln!("==== Assetion Failed ====");
+        eprintln!("Expected:\n{}", truth);
+        eprintln!("Actual:\n{}", test);
+        panic!("Too large deviation in maximum norm: {} > {}", tol, atol);
     }
 }
 
 /// check two arrays are close in L1 norm
-pub fn close_l1<A, S1, S2, D>(
-    test: &ArrayBase<S1, D>,
-    truth: &ArrayBase<S2, D>,
-    rtol: A::Real,
-) -> Result<A::Real, A::Real>
+pub fn close_l1<A, S1, S2, D>(test: &ArrayBase<S1, D>, truth: &ArrayBase<S2, D>, rtol: A::Real)
 where
     A: Scalar + Lapack,
     S1: Data<Elem = A>,
     S2: Data<Elem = A>,
     D: Dimension,
+    D::Pattern: PartialEq + Debug,
 {
+    assert_eq!(test.dim(), truth.dim());
     let tol = (test - truth).norm_l1() / truth.norm_l1();
-    if tol < rtol {
-        Ok(tol)
-    } else {
-        Err(tol)
+    if tol > rtol {
+        eprintln!("==== Assetion Failed ====");
+        eprintln!("Expected:\n{}", truth);
+        eprintln!("Actual:\n{}", test);
+        panic!("Too large deviation in L1-norm: {} > {}", tol, rtol);
     }
 }
 
 /// check two arrays are close in L2 norm
-pub fn close_l2<A, S1, S2, D>(
-    test: &ArrayBase<S1, D>,
-    truth: &ArrayBase<S2, D>,
-    rtol: A::Real,
-) -> Result<A::Real, A::Real>
+pub fn close_l2<A, S1, S2, D>(test: &ArrayBase<S1, D>, truth: &ArrayBase<S2, D>, rtol: A::Real)
 where
     A: Scalar + Lapack,
     S1: Data<Elem = A>,
     S2: Data<Elem = A>,
     D: Dimension,
+    D::Pattern: PartialEq + Debug,
 {
+    assert_eq!(test.dim(), truth.dim());
     let tol = (test - truth).norm_l2() / truth.norm_l2();
-    if tol < rtol {
-        Ok(tol)
-    } else {
-        Err(tol)
+    if tol > rtol {
+        eprintln!("==== Assetion Failed ====");
+        eprintln!("Expected:\n{}", truth);
+        eprintln!("Actual:\n{}", test);
+        panic!("Too large deviation in L2-norm: {} > {} ", tol, rtol);
     }
 }
 
@@ -90,10 +90,11 @@ macro_rules! generate_assert {
         #[macro_export]
         macro_rules! $assert {
             ($test: expr,$truth: expr,$tol: expr) => {
-                $crate::$close($test, $truth, $tol).unwrap();
+                $crate::$close($test, $truth, $tol);
             };
             ($test: expr,$truth: expr,$tol: expr; $comment: expr) => {
-                $crate::$close($test, $truth, $tol).expect($comment);
+                eprintln!($comment);
+                $crate::$close($test, $truth, $tol);
             };
         }
     };

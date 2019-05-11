@@ -87,6 +87,10 @@ macro_rules! generate_assert {
             ($test: expr,$truth: expr,$tol: expr) => {
                 $crate::$close($test, $truth, $tol);
             };
+            ($test: expr,$truth: expr,$tol: expr; $comment: expr) => {
+                eprintln!($comment);
+                $crate::$close($test, $truth, $tol);
+            };
         }
     };
 } // generate_assert!

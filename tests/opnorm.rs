@@ -6,9 +6,9 @@ fn test(a: Array2<f64>, one: f64, inf: f64, fro: f64) {
     println!("ONE = {:?}", a.opnorm_one());
     println!("INF = {:?}", a.opnorm_inf());
     println!("FRO = {:?}", a.opnorm_fro());
-    assert_rclose!(a.opnorm_one().unwrap(), one, 1e-7);
-    assert_rclose!(a.opnorm_inf().unwrap(), inf, 1e-7);
-    assert_rclose!(a.opnorm_fro().unwrap(), fro, 1e-7);
+    assert_rclose!(a.opnorm_one().unwrap(), one, 1e-7; "One norm");
+    assert_rclose!(a.opnorm_inf().unwrap(), inf, 1e-7; "Infinity norm");
+    assert_rclose!(a.opnorm_fro().unwrap(), fro, 1e-7; "Frobenius norm");
 }
 
 fn gen(i: usize, j: usize, rev: bool) -> Array2<f64> {

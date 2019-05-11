@@ -6,23 +6,25 @@ use std::fmt::Debug;
 use super::norm::*;
 use super::types::*;
 
-/// check two values are close in terms of the relative torrence
+/// check two values are close in terms of the relative tolerance
 pub fn rclose<A: Scalar>(test: A, truth: A, rtol: A::Real) {
     let dev = (test - truth).abs() / truth.abs();
     if dev > rtol {
+        eprintln!("==== Assetion Failed ====");
         eprintln!("Expected = {}", truth);
         eprintln!("Actual   = {}", test);
-        panic!("Too large deviation in relative torrence: {}", dev);
+        panic!("Too large deviation in relative tolerance: {}", dev);
     }
 }
 
-/// check two values are close in terms of the absolute torrence
+/// check two values are close in terms of the absolute tolerance
 pub fn aclose<A: Scalar>(test: A, truth: A, atol: A::Real) {
     let dev = (test - truth).abs();
     if dev > atol {
+        eprintln!("==== Assetion Failed ====");
         eprintln!("Expected = {}", truth);
         eprintln!("Actual   = {}", test);
-        panic!("Too large deviation in absolute torrence: {}", dev);
+        panic!("Too large deviation in absolute tolerance: {}", dev);
     }
 }
 
@@ -38,9 +40,10 @@ where
     assert_eq!(test.dim(), truth.dim());
     let tol = (test - truth).norm_max();
     if tol > atol {
+        eprintln!("==== Assetion Failed ====");
         eprintln!("Expected:\n{}", truth);
         eprintln!("Actual:\n{}", test);
-        panic!("Too large deviation in maximum norm: {}", tol);
+        panic!("Too large deviation in maximum norm: {} > {}", tol, atol);
     }
 }
 
@@ -56,9 +59,10 @@ where
     assert_eq!(test.dim(), truth.dim());
     let tol = (test - truth).norm_l1() / truth.norm_l1();
     if tol > rtol {
+        eprintln!("==== Assetion Failed ====");
         eprintln!("Expected:\n{}", truth);
         eprintln!("Actual:\n{}", test);
-        panic!("Too large deviation in L1-norm: {}", tol);
+        panic!("Too large deviation in L1-norm: {} > {}", tol, rtol);
     }
 }
 
@@ -74,9 +78,10 @@ where
     assert_eq!(test.dim(), truth.dim());
     let tol = (test - truth).norm_l2() / truth.norm_l2();
     if tol > rtol {
+        eprintln!("==== Assetion Failed ====");
         eprintln!("Expected:\n{}", truth);
         eprintln!("Actual:\n{}", test);
-        panic!("Too large deviation in L2-norm: {}", tol);
+        panic!("Too large deviation in L2-norm: {} > {} ", tol, rtol);
     }
 }
 

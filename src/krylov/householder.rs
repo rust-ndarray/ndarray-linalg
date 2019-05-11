@@ -65,6 +65,9 @@ impl<A: Scalar + Lapack> Orthogonalizer for Householder<A> {
     {
         assert_eq!(a.len(), self.dim);
         let alpha = self.orthogonalize(&mut a);
+        let k = self.len();
+        let xi = a[k].re();
+        let alpha = if xi >= Zero::zero() { -alpha } else { alpha };
 
         // Generate coefficient vector
         let mut coef = Array::zeros(self.len() + 1);
@@ -73,14 +76,12 @@ impl<A: Scalar + Lapack> Orthogonalizer for Householder<A> {
         }
         coef[self.len()] = A::from_real(alpha);
 
-        if alpha < rtol {
+        if alpha.abs() < rtol {
             return Err(coef);
         }
 
         // Add reflector
-        let k = self.len();
-        let xi = a[k].re();
-        a[k] = A::from(if xi >= Zero::zero() { xi + alpha } else { xi - alpha }).unwrap();
+        a[k] = A::from_real(xi - alpha);
         let norm = a.slice(s![k..]).norm_l2();
         azip!(mut a (a.slice_mut(s![..k])) in { *a = Zero::zero() });
         azip!(mut a (a.slice_mut(s![k..])) in { *a = a.div_real(norm) });
@@ -110,7 +111,7 @@ mod tests {
     fn householder_append() {
         let mut householder = Householder::new(3);
         let coef = householder.append(array![0.0, 1.0, 0.0], 1e-9).unwrap();
-        close_l2(&coef, &array![1.0], 1e-9);
+        close_l2(&coef, &array![-1.0], 1e-9);
 
         let coef = householder.append(array![1.0, 1.0, 0.0], 1e-9).unwrap();
         close_l2(&coef, &array![-1.0, 1.0], 1e-9);

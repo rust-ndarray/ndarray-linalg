@@ -93,7 +93,7 @@ impl<A: Scalar + Lapack> Orthogonalizer for Householder<A> {
         let mut a = Array::zeros((self.dim(), self.len()));
         for (i, mut col) in a.axis_iter_mut(Axis(1)).enumerate() {
             col[i] = A::one();
-            for l in 0..self.len() {
+            for l in (0..self.len()).rev() {
                 self.reflect(l, &mut col);
             }
         }

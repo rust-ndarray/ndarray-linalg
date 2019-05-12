@@ -74,15 +74,15 @@ impl<A: Scalar> MGS<A> {
     /// # use ndarray_linalg::*;
     /// let mut mgs = MGS::new(3);
     /// let coef = mgs.append(array![0.0, 1.0, 0.0], 1e-9).unwrap();
-    /// close_l2(&coef, &array![1.0], 1e-9).unwrap();
+    /// close_l2(&coef, &array![1.0], 1e-9);
     ///
     /// let coef = mgs.append(array![1.0, 1.0, 0.0], 1e-9).unwrap();
-    /// close_l2(&coef, &array![1.0, 1.0], 1e-9).unwrap();
+    /// close_l2(&coef, &array![1.0, 1.0], 1e-9);
     ///
     /// assert!(mgs.append(array![1.0, 2.0, 0.0], 1e-9).is_err());  // Fail if the vector is linearly dependend
     ///
     /// if let Err(coef) = mgs.append(array![1.0, 2.0, 0.0], 1e-9) {
-    ///     close_l2(&coef, &array![2.0, 1.0, 0.0], 1e-9).unwrap(); // You can get coefficients of dependent vector
+    ///     close_l2(&coef, &array![2.0, 1.0, 0.0], 1e-9); // You can get coefficients of dependent vector
     /// }
     /// ```
     pub fn append<S>(&mut self, a: ArrayBase<S, Ix1>, rtol: A::Real) -> Result<Array1<A>, Array1<A>>
@@ -120,7 +120,7 @@ pub enum Strategy {
     /// Orghotonalize dependent vector without adding to Q,
     /// thus R must be non-regular like following:
     ///
-    /// ```ignore
+    /// ```text
     /// x x x x x
     /// 0 x x x x
     /// 0 0 0 x x

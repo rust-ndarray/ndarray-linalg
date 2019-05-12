@@ -1,18 +1,26 @@
 use crate::types::*;
 use ndarray::*;
 
-pub trait Inner<S: Data> {
-    /// Inner product `(self.conjugate, rhs)`
-    fn inner(&self, rhs: &ArrayBase<S, Ix1>) -> S::Elem;
+/// Inner Product
+///
+/// Differenct from `Dot` trait, this take complex conjugate of `self` elements
+///
+pub trait InnerProduct {
+    type Elem: Scalar;
+
+    /// Inner product `(self.conjugate, rhs)
+    fn inner<S>(&self, rhs: &ArrayBase<S, Ix1>) -> Self::Elem
+    where
+        S: Data<Elem = Self::Elem>;
 }
 
-impl<A, S1, S2> Inner<S1> for ArrayBase<S2, Ix1>
+impl<A, S> InnerProduct for ArrayBase<S, Ix1>
 where
     A: Scalar,
-    S1: Data<Elem = A>,
-    S2: Data<Elem = A>,
+    S: Data<Elem = A>,
 {
-    fn inner(&self, rhs: &ArrayBase<S1, Ix1>) -> A {
+    type Elem = A;
+    fn inner<St: Data<Elem = A>>(&self, rhs: &ArrayBase<St, Ix1>) -> A {
         Zip::from(self)
             .and(rhs)
             .fold_while(A::zero(), |acc, s, r| FoldWhile::Continue(acc + s.conj() * *r))

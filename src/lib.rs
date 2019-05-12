@@ -63,6 +63,7 @@ pub use convert::*;
 pub use diagonal::*;
 pub use eigh::*;
 pub use generate::*;
+pub use inner::*;
 pub use layout::*;
 pub use norm::*;
 pub use operator::*;

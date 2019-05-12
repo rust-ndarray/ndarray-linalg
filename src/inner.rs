@@ -21,6 +21,7 @@ where
 {
     type Elem = A;
     fn inner<St: Data<Elem = A>>(&self, rhs: &ArrayBase<St, Ix1>) -> A {
+        assert_eq!(self.len(), rhs.len());
         Zip::from(self)
             .and(rhs)
             .fold_while(A::zero(), |acc, s, r| FoldWhile::Continue(acc + s.conj() * *r))

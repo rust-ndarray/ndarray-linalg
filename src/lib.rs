@@ -36,7 +36,6 @@
 //!  - [Random matrix generators](generate/index.html)
 //!  - [Scalar trait](types/trait.Scalar.html)
 
-pub mod arnoldi;
 pub mod assert;
 pub mod cholesky;
 pub mod convert;
@@ -47,6 +46,7 @@ pub mod generate;
 pub mod inner;
 pub mod lapack;
 pub mod layout;
+pub mod mgs;
 pub mod norm;
 pub mod operator;
 pub mod opnorm;
@@ -66,6 +66,7 @@ pub use eigh::*;
 pub use generate::*;
 pub use inner::*;
 pub use layout::*;
+pub use mgs::*;
 pub use norm::*;
 pub use operator::*;
 pub use opnorm::*;

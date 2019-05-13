@@ -21,6 +21,7 @@ pub type Q<A> = Array2<A>;
 ///
 pub type R<A> = Array2<A>;
 
+/// Trait for creating orthogonal basis from iterator of arrays
 pub trait Orthogonalizer {
     type Elem: Scalar;
 

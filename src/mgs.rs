@@ -1,3 +1,5 @@
+//! Modified Gram-Schmit orthogonalizer
+
 use crate::{generate::*, inner::*, norm::Norm, types::*};
 use ndarray::*;
 
@@ -10,21 +12,22 @@ pub struct MGS<A> {
     q: Vec<Array1<A>>,
 }
 
-/// Q-matrix (unitary)
+/// Q-matrix
+///
+/// - Maybe **NOT** square
+/// - Unitary for existing columns
+///
 pub type Q<A> = Array2<A>;
-/// R-matrix (upper triangle)
+
+/// R-matrix
+///
+/// - Maybe **NOT** square
+/// - Upper triangle
+///
 pub type R<A> = Array2<A>;
 
 impl<A: Scalar> MGS<A> {
-    /// Create empty linear space
-    ///
-    /// ```rust
-    /// # use ndarray_linalg::{mgs::*, *};
-    /// const N: usize = 5;
-    /// let mgs = MGS::<f32>::new(N);
-    /// assert_eq!(mgs.dim(), N);
-    /// assert_eq!(mgs.len(), 0);
-    /// ```
+    /// Create an empty orthogonalizer
     pub fn new(dimension: usize) -> Self {
         Self {
             dimension,
@@ -32,10 +35,24 @@ impl<A: Scalar> MGS<A> {
         }
     }
 
+    /// Dimension of input array
     pub fn dim(&self) -> usize {
         self.dimension
     }
 
+    /// Number of cached basis
+    ///
+    /// ```rust
+    /// # use ndarray::*;
+    /// # use ndarray_linalg::{mgs::*, *};
+    /// const N: usize = 3;
+    /// let mut mgs = MGS::<f32>::new(N);
+    /// assert_eq!(mgs.dim(), N);
+    /// assert_eq!(mgs.len(), 0);
+    ///
+    /// mgs.append(array![0.0, 1.0, 0.0], 1e-9).unwrap();
+    /// assert_eq!(mgs.len(), 1);
+    /// ```
     pub fn len(&self) -> usize {
         self.q.len()
     }
@@ -66,10 +83,6 @@ impl<A: Scalar> MGS<A> {
 
     /// Add new vector if the residual is larger than relative tolerance
     ///
-    /// Panic
-    /// -------
-    /// - if the size of the input array mismatches to the dimension
-    ///
     /// ```rust
     /// # use ndarray::*;
     /// # use ndarray_linalg::{mgs::*, *};
@@ -80,12 +93,19 @@ impl<A: Scalar> MGS<A> {
     /// let coef = mgs.append(array![1.0, 1.0, 0.0], 1e-9).unwrap();
     /// close_l2(&coef, &array![1.0, 1.0], 1e-9);
     ///
-    /// assert!(mgs.append(array![1.0, 2.0, 0.0], 1e-9).is_err());  // Fail if the vector is linearly dependent
+    /// // Fail if the vector is linearly dependent
+    /// assert!(mgs.append(array![1.0, 2.0, 0.0], 1e-9).is_err());
     ///
+    /// // You can get coefficients of dependent vector
     /// if let Err(coef) = mgs.append(array![1.0, 2.0, 0.0], 1e-9) {
-    ///     close_l2(&coef, &array![2.0, 1.0, 0.0], 1e-9); // You can get coefficients of dependent vector
+    ///     close_l2(&coef, &array![2.0, 1.0, 0.0], 1e-9);
     /// }
     /// ```
+    ///
+    /// Panic
+    /// -------
+    /// - if the size of the input array mismatches to the dimension
+    ///
     pub fn append<S>(&mut self, a: ArrayBase<S, Ix1>, rtol: A::Real) -> Result<Array1<A>, Array1<A>>
     where
         A: Lapack,

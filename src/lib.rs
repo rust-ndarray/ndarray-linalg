@@ -76,5 +76,3 @@ pub use svd::*;
 pub use trace::*;
 pub use triangular::*;
 pub use types::*;
-
-pub use krylov::mgs;

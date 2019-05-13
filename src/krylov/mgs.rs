@@ -7,7 +7,7 @@ use crate::{generate::*, inner::*, norm::Norm};
 ///
 /// ```rust
 /// # use ndarray::*;
-/// # use ndarray_linalg::{mgs::*, krylov::*, *};
+/// # use ndarray_linalg::{krylov::*, *};
 /// let mut mgs = MGS::new(3);
 /// let coef = mgs.append(array![0.0, 1.0, 0.0], 1e-9).unwrap();
 /// close_l2(&coef, &array![1.0], 1e-9);

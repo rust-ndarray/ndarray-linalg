@@ -3,9 +3,9 @@
 use crate::types::*;
 use ndarray::*;
 
-pub mod mgs;
+mod mgs;
 
-pub use mgs::MGS;
+pub use mgs::{mgs, MGS};
 
 /// Q-matrix
 ///

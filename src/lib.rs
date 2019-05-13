@@ -44,9 +44,9 @@ pub mod eigh;
 pub mod error;
 pub mod generate;
 pub mod inner;
+pub mod krylov;
 pub mod lapack;
 pub mod layout;
-pub mod mgs;
 pub mod norm;
 pub mod operator;
 pub mod opnorm;
@@ -76,3 +76,5 @@ pub use svd::*;
 pub use trace::*;
 pub use triangular::*;
 pub use types::*;
+
+pub use krylov::mgs;

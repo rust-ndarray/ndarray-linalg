@@ -4,6 +4,25 @@ use super::*;
 use crate::{generate::*, inner::*, norm::Norm};
 
 /// Iterative orthogonalizer using modified Gram-Schmit procedure
+///
+/// ```rust
+/// # use ndarray::*;
+/// # use ndarray_linalg::{mgs::*, krylov::*, *};
+/// let mut mgs = MGS::new(3);
+/// let coef = mgs.append(array![0.0, 1.0, 0.0], 1e-9).unwrap();
+/// close_l2(&coef, &array![1.0], 1e-9);
+///
+/// let coef = mgs.append(array![1.0, 1.0, 0.0], 1e-9).unwrap();
+/// close_l2(&coef, &array![1.0, 1.0], 1e-9);
+///
+/// // Fail if the vector is linearly dependent
+/// assert!(mgs.append(array![1.0, 2.0, 0.0], 1e-9).is_err());
+///
+/// // You can get coefficients of dependent vector
+/// if let Err(coef) = mgs.append(array![1.0, 2.0, 0.0], 1e-9) {
+///     close_l2(&coef, &array![2.0, 1.0, 0.0], 1e-9);
+/// }
+/// ```
 #[derive(Debug, Clone)]
 pub struct MGS<A> {
     /// Dimension of base space
@@ -20,36 +39,20 @@ impl<A: Scalar> MGS<A> {
             q: Vec::new(),
         }
     }
+}
 
-    /// Dimension of input array
-    pub fn dim(&self) -> usize {
+impl<A: Scalar + Lapack> Orthogonalizer for MGS<A> {
+    type Elem = A;
+
+    fn dim(&self) -> usize {
         self.dimension
     }
 
-    /// Number of cached basis
-    ///
-    /// ```rust
-    /// # use ndarray::*;
-    /// # use ndarray_linalg::{mgs::*, *};
-    /// const N: usize = 3;
-    /// let mut mgs = MGS::<f32>::new(N);
-    /// assert_eq!(mgs.dim(), N);
-    /// assert_eq!(mgs.len(), 0);
-    ///
-    /// mgs.append(array![0.0, 1.0, 0.0], 1e-9).unwrap();
-    /// assert_eq!(mgs.len(), 1);
-    /// ```
-    pub fn len(&self) -> usize {
+    fn len(&self) -> usize {
         self.q.len()
     }
 
-    /// Orthogonalize given vector using current basis
-    ///
-    /// Panic
-    /// -------
-    /// - if the size of the input array mismatches to the dimension
-    ///
-    pub fn orthogonalize<S>(&self, a: &mut ArrayBase<S, Ix1>) -> Array1<A>
+    fn orthogonalize<S>(&self, a: &mut ArrayBase<S, Ix1>) -> Array1<A>
     where
         A: Lapack,
         S: DataMut<Elem = A>,
@@ -67,32 +70,7 @@ impl<A: Scalar> MGS<A> {
         coef
     }
 
-    /// Add new vector if the residual is larger than relative tolerance
-    ///
-    /// ```rust
-    /// # use ndarray::*;
-    /// # use ndarray_linalg::{mgs::*, *};
-    /// let mut mgs = MGS::new(3);
-    /// let coef = mgs.append(array![0.0, 1.0, 0.0], 1e-9).unwrap();
-    /// close_l2(&coef, &array![1.0], 1e-9);
-    ///
-    /// let coef = mgs.append(array![1.0, 1.0, 0.0], 1e-9).unwrap();
-    /// close_l2(&coef, &array![1.0, 1.0], 1e-9);
-    ///
-    /// // Fail if the vector is linearly dependent
-    /// assert!(mgs.append(array![1.0, 2.0, 0.0], 1e-9).is_err());
-    ///
-    /// // You can get coefficients of dependent vector
-    /// if let Err(coef) = mgs.append(array![1.0, 2.0, 0.0], 1e-9) {
-    ///     close_l2(&coef, &array![2.0, 1.0, 0.0], 1e-9);
-    /// }
-    /// ```
-    ///
-    /// Panic
-    /// -------
-    /// - if the size of the input array mismatches to the dimension
-    ///
-    pub fn append<S>(&mut self, a: ArrayBase<S, Ix1>, rtol: A::Real) -> Result<Array1<A>, Array1<A>>
+    fn append<S>(&mut self, a: ArrayBase<S, Ix1>, rtol: A::Real) -> Result<Array1<A>, Array1<A>>
     where
         A: Lapack,
         S: Data<Elem = A>,
@@ -109,8 +87,7 @@ impl<A: Scalar> MGS<A> {
         Ok(coef)
     }
 
-    /// Get orthogonal basis as Q matrix
-    pub fn get_q(&self) -> Q<A> {
+    fn get_q(&self) -> Q<A> {
         hstack(&self.q).unwrap()
     }
 }
@@ -126,27 +103,6 @@ where
     A: Scalar + Lapack,
     S: Data<Elem = A>,
 {
-    let mut ortho = MGS::new(dim);
-    let mut coefs = Vec::new();
-    for a in iter {
-        match ortho.append(a, rtol) {
-            Ok(coef) => coefs.push(coef),
-            Err(coef) => match strategy {
-                Strategy::Terminate => break,
-                Strategy::Skip => continue,
-                Strategy::Full => coefs.push(coef),
-            },
-        }
-    }
-    let n = ortho.len();
-    let m = coefs.len();
-    let mut r = Array2::zeros((n, m).f());
-    for j in 0..m {
-        for i in 0..n {
-            if i < coefs[j].len() {
-                r[(i, j)] = coefs[j][i];
-            }
-        }
-    }
-    (ortho.get_q(), r)
+    let mgs = MGS::new(dim);
+    qr(iter, mgs, rtol, strategy)
 }

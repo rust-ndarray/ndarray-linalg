@@ -46,6 +46,7 @@ pub mod generate;
 pub mod inner;
 pub mod lapack;
 pub mod layout;
+pub mod mgs;
 pub mod norm;
 pub mod operator;
 pub mod opnorm;

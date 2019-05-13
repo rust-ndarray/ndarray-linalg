@@ -44,7 +44,8 @@ impl<A: Scalar> MGS<A> {
     ///
     /// Panic
     /// -------
-    /// - if the size of the input array mismaches to the dimension
+    /// - if the size of the input array mismatches to the dimension
+    ///
     pub fn orthogonalize<S>(&self, a: &mut ArrayBase<S, Ix1>) -> Array1<A>
     where
         A: Lapack,
@@ -67,7 +68,7 @@ impl<A: Scalar> MGS<A> {
     ///
     /// Panic
     /// -------
-    /// - if the size of the input array mismaches to the dimension
+    /// - if the size of the input array mismatches to the dimension
     ///
     /// ```rust
     /// # use ndarray::*;
@@ -79,7 +80,7 @@ impl<A: Scalar> MGS<A> {
     /// let coef = mgs.append(array![1.0, 1.0, 0.0], 1e-9).unwrap();
     /// close_l2(&coef, &array![1.0, 1.0], 1e-9);
     ///
-    /// assert!(mgs.append(array![1.0, 2.0, 0.0], 1e-9).is_err());  // Fail if the vector is linearly dependend
+    /// assert!(mgs.append(array![1.0, 2.0, 0.0], 1e-9).is_err());  // Fail if the vector is linearly dependent
     ///
     /// if let Err(coef) = mgs.append(array![1.0, 2.0, 0.0], 1e-9) {
     ///     close_l2(&coef, &array![2.0, 1.0, 0.0], 1e-9); // You can get coefficients of dependent vector
@@ -117,15 +118,14 @@ pub enum Strategy {
     /// Skip dependent vector
     Skip,
 
-    /// Orghotonalize dependent vector without adding to Q,
-    /// thus R must be non-regular like following:
+    /// Orthogonalize dependent vector without adding to Q,
+    /// i.e. R must be non-square like following:
     ///
     /// ```text
     /// x x x x x
     /// 0 x x x x
     /// 0 0 0 x x
     /// 0 0 0 0 x
-    /// 0 0 0 0 0   // 0-filled to be square matrix
     /// ```
     Full,
 }

@@ -19,7 +19,7 @@ impl<A: Scalar> MGS<A> {
     /// Create empty linear space
     ///
     /// ```rust
-    /// # use ndarray_linalg::*;
+    /// # use ndarray_linalg::{mgs::*, *};
     /// const N: usize = 5;
     /// let mgs = MGS::<f32>::new(N);
     /// assert_eq!(mgs.dim(), N);
@@ -72,7 +72,7 @@ impl<A: Scalar> MGS<A> {
     ///
     /// ```rust
     /// # use ndarray::*;
-    /// # use ndarray_linalg::*;
+    /// # use ndarray_linalg::{mgs::*, *};
     /// let mut mgs = MGS::new(3);
     /// let coef = mgs.append(array![0.0, 1.0, 0.0], 1e-9).unwrap();
     /// close_l2(&coef, &array![1.0], 1e-9);

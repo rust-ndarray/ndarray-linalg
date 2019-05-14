@@ -1,5 +1,5 @@
 use ndarray::*;
-use ndarray_linalg::{mgs::*, *};
+use ndarray_linalg::{krylov::*, *};
 
 fn qr_full<A: Scalar + Lapack>() {
     const N: usize = 5;

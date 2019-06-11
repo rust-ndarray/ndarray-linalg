@@ -36,9 +36,6 @@
 //!  - [Random matrix generators](generate/index.html)
 //!  - [Scalar trait](types/trait.Scalar.html)
 
-#[cfg(feature = "intel-mkl")]
-extern crate intel_mkl_src;
-
 pub mod assert;
 pub mod cholesky;
 pub mod convert;

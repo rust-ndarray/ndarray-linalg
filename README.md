@@ -2,7 +2,7 @@ ndarray-linalg
 ===============
 [![Crate](http://meritbadge.herokuapp.com/ndarray-linalg)](https://crates.io/crates/ndarray-linalg)
 [![docs.rs](https://docs.rs/ndarray-linalg/badge.svg)](https://docs.rs/ndarray-linalg)
-[![Build Status](https://dev.azure.com/rust-math/ndarray-linalg/_apis/build/status/rust-math.ndarray-linalg?branchName=master)](https://dev.azure.com/rust-math/ndarray-linalg/_build/latest?definitionId=3&branchName=master)
+[![Build Status](https://dev.azure.com/rust-ndarray/ndarray-linalg/_apis/build/status/rust-ndarray.ndarray-linalg?branchName=master)](https://dev.azure.com/rust-ndarray/ndarray-linalg/_build/latest?definitionId=1&branchName=master)
 
 Linear algebra package for Rust with [ndarray](https://github.com/bluss/ndarray) based on external LAPACK implementations.
 
@@ -33,7 +33,6 @@ Three BLAS/LAPACK implementations are supported:
 - [Netlib](https://github.com/cmr/netlib-src)
   - needs `cmake` and `gfortran`
 - [Intel MKL](https://github.com/termoshtt/rust-intel-mkl) (non-free license, see the linked page)
-  - needs `curl`
 
 There are three features corresponding to the backend implementations (`openblas` / `netlib` / `intel-mkl`):
 

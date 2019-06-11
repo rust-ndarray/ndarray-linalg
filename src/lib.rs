@@ -36,6 +36,9 @@
 //!  - [Random matrix generators](generate/index.html)
 //!  - [Scalar trait](types/trait.Scalar.html)
 
+extern crate blas_src;
+extern crate lapack_src;
+
 pub mod assert;
 pub mod cholesky;
 pub mod convert;

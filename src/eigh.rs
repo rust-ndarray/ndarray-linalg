@@ -63,7 +63,6 @@ where
     type EigVal = Array1<A::Real>;
 
     fn eigh_inplace(&mut self, uplo: UPLO) -> Result<(Self::EigVal, &mut Self)> {
-        dbg!(&self);
         let layout = self.square_layout()?;
         // XXX Force layout to be Fortran (see #146)
         match layout {

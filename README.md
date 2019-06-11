@@ -46,8 +46,8 @@ ndarray-linalg = { version = "0.11", features = ["openblas"] }
 
 |Backend | Linux | Windows | macOS |
 |:-------|:-----:|:-------:|:-----:|
-|OpenBLAS|✔️|🚫|🚫|
-|Netlib|✔️|🚫|🚫|
+|OpenBLAS|✔️|❌|❌|
+|Netlib|✔️|❌|❌|
 |Intel MKL|✔️|✔️|✔️|
 
 ### For librarian

@@ -14,7 +14,7 @@ categories    = ["algorithms", "science"]
 
 [features]
 default    = []
-intel-mkl  = ["intel-mkl-src"]
+intel-mkl  = ["lapack-src/intel-mkl", "blas-src/intel-mkl"]
 netlib     = ["lapack-src/netlib", "blas-src/netlib"]
 openblas   = ["lapack-src/openblas", "blas-src/openblas"]
 serde-1    = ["ndarray/serde-1", "num-complex/serde"]
@@ -32,16 +32,11 @@ features = ["blas"]
 default-features = false
 
 [dependencies.blas-src]
-version = "0.2"
+version = "0.3"
 default-features = false
 optional = true
 
 [dependencies.lapack-src]
-version = "0.2"
-default-features = false
-optional = true
-
-[dependencies.intel-mkl-src]
-version = "0.4"
+version = "0.3"
 default-features = false
 optional = true

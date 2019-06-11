@@ -14,14 +14,14 @@ pub struct Householder<A: Scalar> {
     v: Vec<Array1<A>>,
 }
 
-impl<A: Scalar> Householder<A> {
+impl<A: Scalar + Lapack> Householder<A> {
     /// Create a new orthogonalizer
     pub fn new(dim: usize) -> Self {
         Householder { dim, v: Vec::new() }
     }
 
     /// Take a Reflection `P = I - 2ww^T`
-    fn reflect<S: DataMut<Elem = A>>(&self, k: usize, a: &mut ArrayBase<S, Ix1>) {
+    fn fundamental_reflection<S: DataMut<Elem = A>>(&self, k: usize, a: &mut ArrayBase<S, Ix1>) {
         assert!(k < self.v.len());
         assert_eq!(a.len(), self.dim, "Input array size mismaches to the dimension");
 
@@ -30,6 +30,42 @@ impl<A: Scalar> Householder<A> {
         let c = A::from(2.0).unwrap() * w.inner(&a_slice);
         for l in 0..self.dim - k {
             a_slice[l] -= c * w[l];
+        }
+    }
+
+    /// Take forward reflection `P = P_l ... P_1`
+    pub fn forward_reflection<S>(&self, a: &mut ArrayBase<S, Ix1>)
+    where
+        S: DataMut<Elem = A>,
+    {
+        assert!(a.len() == self.dim);
+        let l = self.v.len();
+        for k in 0..l {
+            self.fundamental_reflection(k, a);
+        }
+    }
+
+    /// Take backward reflection `P = P_1 ... P_l`
+    pub fn backward_reflection<S>(&self, a: &mut ArrayBase<S, Ix1>)
+    where
+        S: DataMut<Elem = A>,
+    {
+        assert!(a.len() == self.dim);
+        let l = self.v.len();
+        for k in (0..l).rev() {
+            self.fundamental_reflection(k, a);
+        }
+    }
+
+    fn eval_residual<S>(&self, a: &ArrayBase<S, Ix1>) -> A::Real
+    where
+        S: Data<Elem = A>,
+    {
+        let l = self.v.len();
+        if l == self.dim {
+            Zero::zero()
+        } else {
+            a.slice(s![l..]).norm_l2()
         }
     }
 }
@@ -45,18 +81,18 @@ impl<A: Scalar + Lapack> Orthogonalizer for Householder<A> {
         self.v.len()
     }
 
-    fn orthogonalize<S>(&self, a: &mut ArrayBase<S, Ix1>) -> A::Real
+    fn coeff<S>(&self, a: ArrayBase<S, Ix1>) -> Array1<A>
     where
-        S: DataMut<Elem = A>,
+        S: Data<Elem = A>,
     {
-        for k in 0..self.len() {
-            self.reflect(k, a);
-        }
-        if self.is_full() {
-            return Zero::zero();
-        }
-        // residual norm
-        a.slice(s![self.len()..]).norm_l2()
+        let mut a = a.into_owned();
+        self.forward_reflection(&mut a);
+        let res = self.eval_residual(&a);
+        let k = self.len();
+        let mut c = Array1::zeros(k + 1);
+        azip!(mut c(c.slice_mut(s![..k])), a(a.slice(s![..k])) in { *c = a });
+        c[k] = A::from_real(res);
+        c
     }
 
     fn append<S>(&mut self, mut a: ArrayBase<S, Ix1>, rtol: A::Real) -> Result<Array1<A>, Array1<A>>
@@ -65,7 +101,8 @@ impl<A: Scalar + Lapack> Orthogonalizer for Householder<A> {
     {
         assert_eq!(a.len(), self.dim);
         let k = self.len();
-        let alpha = self.orthogonalize(&mut a);
+        self.forward_reflection(&mut a);
+        let alpha = self.eval_residual(&a);
         let mut coef = Array::zeros(k + 1);
         for i in 0..k {
             coef[i] = a[i];
@@ -98,9 +135,7 @@ impl<A: Scalar + Lapack> Orthogonalizer for Householder<A> {
         let mut a = Array::zeros((self.dim(), self.len()));
         for (i, mut col) in a.axis_iter_mut(Axis(1)).enumerate() {
             col[i] = A::one();
-            for l in (0..self.len()).rev() {
-                self.reflect(l, &mut col);
-            }
+            self.backward_reflection(&mut col);
         }
         a
     }

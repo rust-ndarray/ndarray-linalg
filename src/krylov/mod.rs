@@ -3,8 +3,10 @@
 use crate::types::*;
 use ndarray::*;
 
+mod householder;
 mod mgs;
 
+pub use householder::*;
 pub use mgs::{mgs, MGS};
 
 /// Q-matrix

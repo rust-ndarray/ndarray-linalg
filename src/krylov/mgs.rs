@@ -39,19 +39,12 @@ impl<A: Scalar> MGS<A> {
             q: Vec::new(),
         }
     }
-}
 
-impl<A: Scalar + Lapack> Orthogonalizer for MGS<A> {
-    type Elem = A;
-
-    fn dim(&self) -> usize {
-        self.dimension
-    }
-
-    fn len(&self) -> usize {
-        self.q.len()
-    }
-
+    /// Orthogonalize given vector against to the current basis
+    ///
+    /// - Returned array is coefficients and residual norm
+    /// - `a` will contain the residual vector
+    ///
     fn orthogonalize<S>(&self, a: &mut ArrayBase<S, Ix1>) -> Array1<A>
     where
         A: Lapack,
@@ -68,6 +61,27 @@ impl<A: Scalar + Lapack> Orthogonalizer for MGS<A> {
         let nrm = a.norm_l2();
         coef[self.len()] = A::from_real(nrm);
         coef
+    }
+}
+
+impl<A: Scalar + Lapack> Orthogonalizer for MGS<A> {
+    type Elem = A;
+
+    fn dim(&self) -> usize {
+        self.dimension
+    }
+
+    fn len(&self) -> usize {
+        self.q.len()
+    }
+
+    fn coeff<S>(&self, a: ArrayBase<S, Ix1>) -> Array1<A>
+    where
+        A: Lapack,
+        S: Data<Elem = A>,
+    {
+        let mut a = a.into_owned();
+        self.orthogonalize(&mut a)
     }
 
     fn append<S>(&mut self, a: ArrayBase<S, Ix1>, rtol: A::Real) -> Result<Array1<A>, Array1<A>>

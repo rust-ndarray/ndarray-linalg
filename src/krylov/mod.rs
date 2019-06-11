@@ -40,15 +40,18 @@ pub trait Orthogonalizer {
         self.len() == 0
     }
 
-    /// Orthogonalize given vector using current basis
+    /// Calculate the coefficient to the given basis and residual norm
+    ///
+    /// - The length of the returned array must be `self.len() + 1`
+    /// - Last component is the residual norm
     ///
     /// Panic
     /// -------
     /// - if the size of the input array mismatches to the dimension
     ///
-    fn orthogonalize<S>(&self, a: &mut ArrayBase<S, Ix1>) -> Array1<Self::Elem>
+    fn coeff<S>(&self, a: ArrayBase<S, Ix1>) -> Array1<Self::Elem>
     where
-        S: DataMut<Elem = Self::Elem>;
+        S: Data<Elem = Self::Elem>;
 
     /// Add new vector if the residual is larger than relative tolerance
     ///

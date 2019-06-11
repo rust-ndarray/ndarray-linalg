@@ -70,14 +70,3 @@ extern crate ndarray;
 extern crate ndarray_linalg;
 extern crate openblas_src; // or another backend of your choice
 ```
-
-### Link statically
-
-If you needs to link the backend (OpenBLAS/Netlib) statically, please add following to your Cargo.toml
-
-```toml
-[dependencies]
-openblas-src = { version = "0.7.0", features = ["static"] }
-```
-
-Intel-MKL backend does not support static linking.

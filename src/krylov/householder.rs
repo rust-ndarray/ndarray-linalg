@@ -21,7 +21,10 @@ impl<A: Scalar + Lapack> Householder<A> {
     }
 
     /// Take a Reflection `P = I - 2ww^T`
-    fn fundamental_reflection<S: DataMut<Elem = A>>(&self, k: usize, a: &mut ArrayBase<S, Ix1>) {
+    fn fundamental_reflection<S>(&self, k: usize, a: &mut ArrayBase<S, Ix1>)
+    where
+        S: DataMut<Elem = A>,
+    {
         assert!(k < self.v.len());
         assert_eq!(a.len(), self.dim, "Input array size mismaches to the dimension");
 
@@ -139,4 +142,19 @@ impl<A: Scalar + Lapack> Orthogonalizer for Householder<A> {
         }
         a
     }
+}
+
+/// Online QR decomposition of vectors
+pub fn householder<A, S>(
+    iter: impl Iterator<Item = ArrayBase<S, Ix1>>,
+    dim: usize,
+    rtol: A::Real,
+    strategy: Strategy,
+) -> (Q<A>, R<A>)
+where
+    A: Scalar + Lapack,
+    S: Data<Elem = A>,
+{
+    let h = Householder::new(dim);
+    qr(iter, h, rtol, strategy)
 }

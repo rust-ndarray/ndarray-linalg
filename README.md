@@ -39,7 +39,7 @@ There are three features corresponding to the backend implementations (`openblas
 ```toml
 [dependencies]
 ndarray = "0.12"
-ndarray-linalg = { version = "0.10", features = ["openblas"] }
+ndarray-linalg = { version = "0.11", features = ["openblas"] }
 ```
 
 ### For librarian
@@ -48,7 +48,7 @@ If you creating a library depending on this crate, we encourage you not to link 
 ```toml
 [dependencies]
 ndarray = "0.12"
-ndarray-linalg = "0.10"
+ndarray-linalg = "0.11"
 ```
 
 ### Link backend crate manually
@@ -58,7 +58,7 @@ You should link a LAPACKE implementation to a final crate (like binary executabl
 ```toml
 [dependencies]
 ndarray = "0.12"
-ndarray-linalg = "0.10"
+ndarray-linalg = "0.11"
 openblas-src = "0.7" # or another backend of your choice
 
 ```

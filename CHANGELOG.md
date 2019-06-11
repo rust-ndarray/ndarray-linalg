@@ -1,7 +1,12 @@
 Unreleased
 ===========
 
-- none yet
+- none
+
+0.11.1 - 12 June 2019
+---------------------
+
+- Hotfix for document generation [#153](../../pull/153)
 
 0.11.0 - 12 June 2019
 ====================

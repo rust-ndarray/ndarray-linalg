@@ -63,6 +63,12 @@ where
     type EigVal = Array1<A::Real>;
 
     fn eigh_inplace(&mut self, uplo: UPLO) -> Result<(Self::EigVal, &mut Self)> {
+        let layout = self.square_layout()?;
+        // XXX Force layout to be Fortran (see #146)
+        match layout {
+            MatrixLayout::C(_) => self.swap_axes(0, 1),
+            MatrixLayout::F(_) => {}
+        }
         let s = unsafe { A::eigh(true, self.square_layout()?, uplo, self.as_allocated_mut()?)? };
         Ok((ArrayBase::from_vec(s), self))
     }

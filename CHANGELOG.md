@@ -1,6 +1,11 @@
 Unreleased
 ===========
 
+- none yet
+
+0.11.0 - 12 June 2019
+====================
+
 Added
 --------
 - Dependency to cauchy 0.2 [#139](../../pull/139)

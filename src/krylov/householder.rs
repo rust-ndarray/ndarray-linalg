@@ -9,7 +9,7 @@ where
     S: DataMut<Elem = A>,
 {
     let norm = x.norm_l2();
-    let alpha = x[0].mul_real(norm / x[0].abs());
+    let alpha = -x[0].mul_real(norm / x[0].abs());
     x[0] -= alpha;
     let inv_rev_norm = A::Real::one() / x.norm_l2();
     azip!(mut a(x) in { *a = a.mul_real(inv_rev_norm)});
@@ -87,11 +87,7 @@ impl<A: Scalar + Lapack> Householder<A> {
         S: Data<Elem = A>,
     {
         let l = self.v.len();
-        if l == self.dim {
-            Zero::zero()
-        } else {
-            a.slice(s![l..]).norm_l2()
-        }
+        a.slice(s![l..]).norm_l2()
     }
 }
 
@@ -125,15 +121,24 @@ impl<A: Scalar + Lapack> Orthogonalizer for Householder<A> {
         S: DataMut<Elem = A>,
     {
         assert_eq!(a.len(), self.dim);
-        let k = self.len();
+
         self.forward_reflection(&mut a);
+
+        let k = self.len();
         let alpha = self.eval_residual(&a);
+        let alpha = if k < a.len() && a[k].abs() > Zero::zero() {
+            -a[k].mul_real(alpha / a[k].abs())
+        } else {
+            A::from_real(alpha)
+        };
+
         let mut coef = Array::zeros(k + 1);
         for i in 0..k {
             coef[i] = a[i];
         }
-        coef[k] = A::from_real(alpha);
-        if alpha < rtol {
+        coef[k] = alpha;
+
+        if alpha.abs() < rtol {
             // linearly dependent
             return Err(coef);
         }
@@ -141,16 +146,9 @@ impl<A: Scalar + Lapack> Orthogonalizer for Householder<A> {
         assert!(k < a.len()); // this must hold because `alpha == 0` if k >= a.len()
 
         // Add reflector
-        let alpha = if a[k].abs() > Zero::zero() {
-            a[k].mul_real(alpha / a[k].abs())
-        } else {
-            A::from_real(alpha)
-        };
-        coef[k] = alpha;
-
         a[k] -= alpha;
         let norm = a.slice(s![k..]).norm_l2();
-        azip!(mut a (a.slice_mut(s![..k])) in { *a = Zero::zero() }); // this can be omitted
+        azip!(mut a (a.slice_mut(s![..k])) in { *a = A::zero() });
         azip!(mut a (a.slice_mut(s![k..])) in { *a = a.div_real(norm) });
         self.v.push(a.into_owned());
         Ok(coef)
@@ -195,7 +193,7 @@ mod tests {
         reflect(&w, &mut a);
         close_l2(
             &a,
-            &array![c64::new(2.0.sqrt(), 2.0.sqrt()), c64::zero(), c64::zero()],
+            &array![-c64::new(2.0.sqrt(), 2.0.sqrt()), c64::zero(), c64::zero()],
             1e-9,
         );
     }

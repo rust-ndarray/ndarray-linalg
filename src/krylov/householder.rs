@@ -92,12 +92,27 @@ impl<A: Scalar + Lapack> Householder<A> {
         }
     }
 
-    fn eval_residual<S>(&self, a: &ArrayBase<S, Ix1>) -> A::Real
+    /// Compose coefficients array using reflected vector
+    fn compose_coefficients<S>(&self, a: &ArrayBase<S, Ix1>) -> Coefficients<A>
     where
         S: Data<Elem = A>,
     {
-        let l = self.v.len();
-        a.slice(s![l..]).norm_l2()
+        let k = self.len();
+        let res = a.slice(s![k..]).norm_l2();
+        let mut c = Array1::zeros(k + 1);
+        azip!(mut c(c.slice_mut(s![..k])), a(a.slice(s![..k])) in { *c = a });
+        c[k] = A::from_real(res);
+        c
+    }
+
+    /// Construct the residual vector from reflected vector
+    fn construct_residual<S>(&self, a: &mut ArrayBase<S, Ix1>)
+    where
+        S: DataMut<Elem = A>,
+    {
+        let k = self.len();
+        azip!(mut a( a.slice_mut(s![..k])) in { *a = A::zero() });
+        self.backward_reflection(a);
     }
 }
 
@@ -112,18 +127,23 @@ impl<A: Scalar + Lapack> Orthogonalizer for Householder<A> {
         self.v.len()
     }
 
+    fn decompose<S>(&self, a: &mut ArrayBase<S, Ix1>) -> Array1<A>
+    where
+        S: DataMut<Elem = A>,
+    {
+        self.forward_reflection(a);
+        let coef = self.compose_coefficients(a);
+        self.construct_residual(a);
+        coef
+    }
+
     fn coeff<S>(&self, a: ArrayBase<S, Ix1>) -> Array1<A>
     where
         S: Data<Elem = A>,
     {
         let mut a = a.into_owned();
         self.forward_reflection(&mut a);
-        let res = self.eval_residual(&a);
-        let k = self.len();
-        let mut c = Array1::zeros(k + 1);
-        azip!(mut c(c.slice_mut(s![..k])), a(a.slice(s![..k])) in { *c = a });
-        c[k] = A::from_real(res);
-        c
+        self.compose_coefficients(&a)
     }
 
     fn append<S>(&mut self, mut a: ArrayBase<S, Ix1>, rtol: A::Real) -> Result<Array1<A>, Array1<A>>

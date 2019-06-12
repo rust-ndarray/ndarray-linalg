@@ -23,7 +23,18 @@ pub type Q<A> = Array2<A>;
 ///
 pub type R<A> = Array2<A>;
 
+/// Array type for coefficients to the current basis
+///
+/// - The length must be `self.len() + 1`
+/// - Last component is the residual norm
+///
+pub type Coefficients<A> = Array1<A>;
+
 /// Trait for creating orthogonal basis from iterator of arrays
+///
+/// Panic
+/// -------
+/// - if the size of the input array mismatches to the dimension
 ///
 /// Example
 /// -------
@@ -64,37 +75,31 @@ pub trait Orthogonalizer {
         self.len() == 0
     }
 
-    /// Calculate the coefficient to the given basis and residual norm
+    /// Decompose given vector into the span of current basis and
+    /// its tangent space
     ///
-    /// - The length of the returned array must be `self.len() + 1`
-    /// - Last component is the residual norm
+    /// - `a` becomes the tangent vector
+    /// - The Coefficients to the current basis is returned.
     ///
-    /// Panic
-    /// -------
-    /// - if the size of the input array mismatches to the dimension
+    fn decompose<S>(&self, a: &mut ArrayBase<S, Ix1>) -> Coefficients<Self::Elem>
+    where
+        S: DataMut<Elem = Self::Elem>;
+
+    /// Calculate the coefficient to the current basis basis
     ///
-    fn coeff<S>(&self, a: ArrayBase<S, Ix1>) -> Array1<Self::Elem>
+    /// - This will be faster than `decompose` because the construction of the residual vector may
+    ///   requires more Calculation
+    ///
+    fn coeff<S>(&self, a: ArrayBase<S, Ix1>) -> Coefficients<Self::Elem>
     where
         S: Data<Elem = Self::Elem>;
 
     /// Add new vector if the residual is larger than relative tolerance
-    ///
-    /// Returns
-    /// --------
-    /// Coefficients to the `i`-th Q-vector
-    ///
-    /// - The size of array must be `self.len() + 1`
-    /// - The last element is the residual norm of input vector
-    ///
-    /// Panic
-    /// -------
-    /// - if the size of the input array mismatches to the dimension
-    ///
     fn append<S>(
         &mut self,
         a: ArrayBase<S, Ix1>,
         rtol: <Self::Elem as Scalar>::Real,
-    ) -> Result<Array1<Self::Elem>, Array1<Self::Elem>>
+    ) -> Result<Coefficients<Self::Elem>, Coefficients<Self::Elem>>
     where
         S: DataMut<Elem = Self::Elem>;
 

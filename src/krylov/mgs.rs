@@ -20,13 +20,20 @@ impl<A: Scalar + Lapack> MGS<A> {
             q: Vec::new(),
         }
     }
+}
 
-    /// Orthogonalize given vector against to the current basis
-    ///
-    /// - Returned array is coefficients and residual norm
-    /// - `a` will contain the residual vector
-    ///
-    pub fn orthogonalize<S>(&self, a: &mut ArrayBase<S, Ix1>) -> Array1<A>
+impl<A: Scalar + Lapack> Orthogonalizer for MGS<A> {
+    type Elem = A;
+
+    fn dim(&self) -> usize {
+        self.dimension
+    }
+
+    fn len(&self) -> usize {
+        self.q.len()
+    }
+
+    fn decompose<S>(&self, a: &mut ArrayBase<S, Ix1>) -> Array1<A>
     where
         S: DataMut<Elem = A>,
     {
@@ -42,18 +49,6 @@ impl<A: Scalar + Lapack> MGS<A> {
         coef[self.len()] = A::from_real(nrm);
         coef
     }
-}
-
-impl<A: Scalar + Lapack> Orthogonalizer for MGS<A> {
-    type Elem = A;
-
-    fn dim(&self) -> usize {
-        self.dimension
-    }
-
-    fn len(&self) -> usize {
-        self.q.len()
-    }
 
     fn coeff<S>(&self, a: ArrayBase<S, Ix1>) -> Array1<A>
     where
@@ -61,7 +56,7 @@ impl<A: Scalar + Lapack> Orthogonalizer for MGS<A> {
         S: Data<Elem = A>,
     {
         let mut a = a.into_owned();
-        self.orthogonalize(&mut a)
+        self.decompose(&mut a)
     }
 
     fn append<S>(&mut self, a: ArrayBase<S, Ix1>, rtol: A::Real) -> Result<Array1<A>, Array1<A>>
@@ -70,7 +65,7 @@ impl<A: Scalar + Lapack> Orthogonalizer for MGS<A> {
         S: Data<Elem = A>,
     {
         let mut a = a.into_owned();
-        let coef = self.orthogonalize(&mut a);
+        let coef = self.decompose(&mut a);
         let nrm = coef[coef.len() - 1].re();
         if nrm < rtol {
             // Linearly dependent

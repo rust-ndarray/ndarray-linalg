@@ -4,25 +4,6 @@ use super::*;
 use crate::{generate::*, inner::*, norm::Norm};
 
 /// Iterative orthogonalizer using modified Gram-Schmit procedure
-///
-/// ```rust
-/// # use ndarray::*;
-/// # use ndarray_linalg::{krylov::*, *};
-/// let mut mgs = MGS::new(3);
-/// let coef = mgs.append(array![0.0, 1.0, 0.0], 1e-9).unwrap();
-/// close_l2(&coef, &array![1.0], 1e-9);
-///
-/// let coef = mgs.append(array![1.0, 1.0, 0.0], 1e-9).unwrap();
-/// close_l2(&coef, &array![1.0, 1.0], 1e-9);
-///
-/// // Fail if the vector is linearly dependent
-/// assert!(mgs.append(array![1.0, 2.0, 0.0], 1e-9).is_err());
-///
-/// // You can get coefficients of dependent vector
-/// if let Err(coef) = mgs.append(array![1.0, 2.0, 0.0], 1e-9) {
-///     close_l2(&coef, &array![2.0, 1.0, 0.0], 1e-9);
-/// }
-/// ```
 #[derive(Debug, Clone)]
 pub struct MGS<A> {
     /// Dimension of base space
@@ -31,7 +12,7 @@ pub struct MGS<A> {
     q: Vec<Array1<A>>,
 }
 
-impl<A: Scalar> MGS<A> {
+impl<A: Scalar + Lapack> MGS<A> {
     /// Create an empty orthogonalizer
     pub fn new(dimension: usize) -> Self {
         Self {
@@ -45,9 +26,8 @@ impl<A: Scalar> MGS<A> {
     /// - Returned array is coefficients and residual norm
     /// - `a` will contain the residual vector
     ///
-    fn orthogonalize<S>(&self, a: &mut ArrayBase<S, Ix1>) -> Array1<A>
+    pub fn orthogonalize<S>(&self, a: &mut ArrayBase<S, Ix1>) -> Array1<A>
     where
-        A: Lapack,
         S: DataMut<Elem = A>,
     {
         assert_eq!(a.len(), self.dim());
@@ -106,7 +86,7 @@ impl<A: Scalar + Lapack> Orthogonalizer for MGS<A> {
     }
 }
 
-/// Online QR decomposition of vectors using modified Gram-Schmit algorithm
+/// Online QR decomposition using modified Gram-Schmit algorithm
 pub fn mgs<A, S>(
     iter: impl Iterator<Item = ArrayBase<S, Ix1>>,
     dim: usize,

@@ -1,3 +1,8 @@
+//! Householder reflection
+//!
+//! - [Householder transformation - Wikipedia](https://en.wikipedia.org/wiki/Householder_transformation)
+//!
+
 use super::*;
 use crate::{inner::*, norm::*};
 use num_traits::One;
@@ -16,7 +21,11 @@ where
     alpha
 }
 
-/// Take a reflection using `w`
+/// Take a reflection `P = I - 2ww^T`
+///
+/// Panic
+/// ------
+/// - if the size of `w` and `a` mismaches
 pub fn reflect<A, S1, S2>(w: &ArrayBase<S1, Ix1>, a: &mut ArrayBase<S2, Ix1>)
 where
     A: Scalar + Lapack,
@@ -155,7 +164,7 @@ impl<A: Scalar + Lapack> Orthogonalizer for Householder<A> {
     }
 }
 
-/// Online QR decomposition of vectors
+/// Online QR decomposition using Householder reflection
 pub fn householder<A, S>(
     iter: impl Iterator<Item = ArrayBase<S, Ix1>>,
     dim: usize,

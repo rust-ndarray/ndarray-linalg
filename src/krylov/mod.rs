@@ -3,10 +3,10 @@
 use crate::types::*;
 use ndarray::*;
 
-mod householder;
-mod mgs;
+pub mod householder;
+pub mod mgs;
 
-pub use householder::*;
+pub use householder::{householder, Householder};
 pub use mgs::{mgs, MGS};
 
 /// Q-matrix
@@ -24,6 +24,28 @@ pub type Q<A> = Array2<A>;
 pub type R<A> = Array2<A>;
 
 /// Trait for creating orthogonal basis from iterator of arrays
+///
+/// Example
+/// -------
+///
+/// ```rust
+/// # use ndarray::*;
+/// # use ndarray_linalg::{krylov::*, *};
+/// let mut mgs = MGS::new(3);
+/// let coef = mgs.append(array![0.0, 1.0, 0.0], 1e-9).unwrap();
+/// close_l2(&coef, &array![1.0], 1e-9);
+///
+/// let coef = mgs.append(array![1.0, 1.0, 0.0], 1e-9).unwrap();
+/// close_l2(&coef, &array![1.0, 1.0], 1e-9);
+///
+/// // Fail if the vector is linearly dependent
+/// assert!(mgs.append(array![1.0, 2.0, 0.0], 1e-9).is_err());
+///
+/// // You can get coefficients of dependent vector
+/// if let Err(coef) = mgs.append(array![1.0, 2.0, 0.0], 1e-9) {
+///     close_l2(&coef, &array![2.0, 1.0, 0.0], 1e-9);
+/// }
+/// ```
 pub trait Orthogonalizer {
     type Elem: Scalar;
 

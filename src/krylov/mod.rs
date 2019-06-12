@@ -3,6 +3,7 @@
 use crate::types::*;
 use ndarray::*;
 
+pub mod arnoldi;
 pub mod householder;
 pub mod mgs;
 

@@ -1,6 +1,34 @@
 use super::*;
 use crate::{inner::*, norm::*};
-use num_traits::Zero;
+use num_traits::{One, Zero};
+
+/// Calc a reflactor `w` from a vector `x`
+pub fn calc_reflector<A, S>(x: &mut ArrayBase<S, Ix1>)
+where
+    A: Scalar + Lapack,
+    S: DataMut<Elem = A>,
+{
+    let norm = x.norm_l2();
+    let alpha = x[0].mul_real(norm / x[0].abs());
+    x[0] -= alpha;
+    let inv_rev_norm = A::Real::one() / x.norm_l2();
+    azip!(mut a(x) in { *a = a.mul_real(inv_rev_norm)});
+}
+
+/// Take a reflection using `w`
+pub fn reflect<A, S1, S2>(w: &ArrayBase<S1, Ix1>, a: &mut ArrayBase<S2, Ix1>)
+where
+    A: Scalar + Lapack,
+    S1: Data<Elem = A>,
+    S2: DataMut<Elem = A>,
+{
+    assert_eq!(w.len(), a.len());
+    let n = a.len();
+    let c = A::from(2.0).unwrap() * w.inner(&a);
+    for l in 0..n {
+        a[l] -= c * w[l];
+    }
+}
 
 /// Iterative orthogonalizer using Householder reflection
 #[derive(Debug, Clone)]
@@ -27,13 +55,7 @@ impl<A: Scalar + Lapack> Householder<A> {
     {
         assert!(k < self.v.len());
         assert_eq!(a.len(), self.dim, "Input array size mismaches to the dimension");
-
-        let w = self.v[k].slice(s![k..]);
-        let mut a_slice = a.slice_mut(s![k..]);
-        let c = A::from(2.0).unwrap() * w.inner(&a_slice);
-        for l in 0..self.dim - k {
-            a_slice[l] -= c * w[l];
-        }
+        reflect(&self.v[k].slice(s![k..]), &mut a.slice_mut(s![k..]));
     }
 
     /// Take forward reflection `P = P_l ... P_1`
@@ -110,14 +132,15 @@ impl<A: Scalar + Lapack> Orthogonalizer for Householder<A> {
         for i in 0..k {
             coef[i] = a[i];
         }
+        coef[k] = A::from_real(alpha);
         if alpha < rtol {
             // linearly dependent
-            coef[k] = A::from_real(alpha);
             return Err(coef);
         }
 
-        // Add reflector
         assert!(k < a.len()); // this must hold because `alpha == 0` if k >= a.len()
+
+        // Add reflector
         let alpha = if a[k].abs() > Zero::zero() {
             a[k].mul_real(alpha / a[k].abs())
         } else {
@@ -157,4 +180,23 @@ where
 {
     let h = Householder::new(dim);
     qr(iter, h, rtol, strategy)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::assert::*;
+
+    #[test]
+    fn check_reflector() {
+        let mut a = array![c64::new(1.0, 1.0), c64::new(1.0, 0.0), c64::new(0.0, 1.0)];
+        let mut w = a.clone();
+        calc_reflector(&mut w);
+        reflect(&w, &mut a);
+        close_l2(
+            &a,
+            &array![c64::new(2.0.sqrt(), 2.0.sqrt()), c64::zero(), c64::zero()],
+            1e-9,
+        );
+    }
 }

@@ -1,9 +1,9 @@
 use super::*;
 use crate::{inner::*, norm::*};
-use num_traits::{One, Zero};
+use num_traits::One;
 
 /// Calc a reflactor `w` from a vector `x`
-pub fn calc_reflector<A, S>(x: &mut ArrayBase<S, Ix1>)
+pub fn calc_reflector<A, S>(x: &mut ArrayBase<S, Ix1>) -> A
 where
     A: Scalar + Lapack,
     S: DataMut<Elem = A>,
@@ -13,6 +13,7 @@ where
     x[0] -= alpha;
     let inv_rev_norm = A::Real::one() / x.norm_l2();
     azip!(mut a(x) in { *a = a.mul_real(inv_rev_norm)});
+    alpha
 }
 
 /// Take a reflection using `w`
@@ -121,35 +122,24 @@ impl<A: Scalar + Lapack> Orthogonalizer for Householder<A> {
         S: DataMut<Elem = A>,
     {
         assert_eq!(a.len(), self.dim);
+        let k = self.len();
 
         self.forward_reflection(&mut a);
-
-        let k = self.len();
-        let alpha = self.eval_residual(&a);
-        let alpha = if k < a.len() && a[k].abs() > Zero::zero() {
-            -a[k].mul_real(alpha / a[k].abs())
-        } else {
-            A::from_real(alpha)
-        };
-
         let mut coef = Array::zeros(k + 1);
         for i in 0..k {
             coef[i] = a[i];
         }
+        if self.is_full() {
+            return Err(coef); // coef[k] must be zero in this case
+        }
+
+        let alpha = calc_reflector(&mut a.slice_mut(s![k..]));
         coef[k] = alpha;
 
         if alpha.abs() < rtol {
             // linearly dependent
             return Err(coef);
         }
-
-        assert!(k < a.len()); // this must hold because `alpha == 0` if k >= a.len()
-
-        // Add reflector
-        a[k] -= alpha;
-        let norm = a.slice(s![k..]).norm_l2();
-        azip!(mut a (a.slice_mut(s![..k])) in { *a = A::zero() });
-        azip!(mut a (a.slice_mut(s![k..])) in { *a = a.div_real(norm) });
         self.v.push(a.into_owned());
         Ok(coef)
     }
@@ -184,6 +174,7 @@ where
 mod tests {
     use super::*;
     use crate::assert::*;
+    use num_traits::Zero;
 
     #[test]
     fn check_reflector() {

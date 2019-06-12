@@ -3,8 +3,10 @@
 use crate::types::*;
 use ndarray::*;
 
-mod mgs;
+pub mod householder;
+pub mod mgs;
 
+pub use householder::{householder, Householder};
 pub use mgs::{mgs, MGS};
 
 /// Q-matrix
@@ -22,6 +24,28 @@ pub type Q<A> = Array2<A>;
 pub type R<A> = Array2<A>;
 
 /// Trait for creating orthogonal basis from iterator of arrays
+///
+/// Example
+/// -------
+///
+/// ```rust
+/// # use ndarray::*;
+/// # use ndarray_linalg::{krylov::*, *};
+/// let mut mgs = MGS::new(3);
+/// let coef = mgs.append(array![0.0, 1.0, 0.0], 1e-9).unwrap();
+/// close_l2(&coef, &array![1.0], 1e-9);
+///
+/// let coef = mgs.append(array![1.0, 1.0, 0.0], 1e-9).unwrap();
+/// close_l2(&coef, &array![1.0, 1.0], 1e-9);
+///
+/// // Fail if the vector is linearly dependent
+/// assert!(mgs.append(array![1.0, 2.0, 0.0], 1e-9).is_err());
+///
+/// // You can get coefficients of dependent vector
+/// if let Err(coef) = mgs.append(array![1.0, 2.0, 0.0], 1e-9) {
+///     close_l2(&coef, &array![2.0, 1.0, 0.0], 1e-9);
+/// }
+/// ```
 pub trait Orthogonalizer {
     type Elem: Scalar;
 
@@ -40,15 +64,18 @@ pub trait Orthogonalizer {
         self.len() == 0
     }
 
-    /// Orthogonalize given vector using current basis
+    /// Calculate the coefficient to the given basis and residual norm
+    ///
+    /// - The length of the returned array must be `self.len() + 1`
+    /// - Last component is the residual norm
     ///
     /// Panic
     /// -------
     /// - if the size of the input array mismatches to the dimension
     ///
-    fn orthogonalize<S>(&self, a: &mut ArrayBase<S, Ix1>) -> Array1<Self::Elem>
+    fn coeff<S>(&self, a: ArrayBase<S, Ix1>) -> Array1<Self::Elem>
     where
-        S: DataMut<Elem = Self::Elem>;
+        S: Data<Elem = Self::Elem>;
 
     /// Add new vector if the residual is larger than relative tolerance
     ///

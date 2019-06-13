@@ -1,4 +1,5 @@
 use super::*;
+use std::iter::Fuse;
 
 pub struct Arnoldi<A, S, F, Ortho>
 where
@@ -19,15 +20,15 @@ where
     F: Fn(&mut ArrayBase<S, Ix1>),
     Ortho: Orthogonalizer<Elem = A>,
 {
-    pub fn new(a: F, v: ArrayBase<S, Ix1>, ortho: Ortho) -> Self {
-        Arnoldi { a, v, ortho }
+    pub fn new(a: F, v: ArrayBase<S, Ix1>, ortho: Ortho) -> Fuse<Self> {
+        Iterator::fuse(Arnoldi { a, v, ortho })
     }
 }
 
 impl<A, S, F, Ortho> Iterator for Arnoldi<A, S, F, Ortho>
 where
     A: Scalar,
-    S: DataMut<Elem = A> + DataClone,
+    S: DataMut<Elem = A>,
     F: Fn(&mut ArrayBase<S, Ix1>),
     Ortho: Orthogonalizer<Elem = A>,
 {

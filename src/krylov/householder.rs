@@ -50,12 +50,19 @@ pub struct Householder<A: Scalar> {
     ///
     /// The coefficient is copied into another array, and this does not contain
     v: Vec<Array1<A>>,
+
+    /// Tolerance
+    tol: A::Real,
 }
 
 impl<A: Scalar + Lapack> Householder<A> {
     /// Create a new orthogonalizer
-    pub fn new(dim: usize) -> Self {
-        Householder { dim, v: Vec::new() }
+    pub fn new(dim: usize, tol: A::Real) -> Self {
+        Householder {
+            dim,
+            v: Vec::new(),
+            tol,
+        }
     }
 
     /// Take a Reflection `P = I - 2ww^T`
@@ -127,6 +134,10 @@ impl<A: Scalar + Lapack> Orthogonalizer for Householder<A> {
         self.v.len()
     }
 
+    fn tolerance(&self) -> A::Real {
+        self.tol
+    }
+
     fn decompose<S>(&self, a: &mut ArrayBase<S, Ix1>) -> Array1<A>
     where
         S: DataMut<Elem = A>,
@@ -146,7 +157,7 @@ impl<A: Scalar + Lapack> Orthogonalizer for Householder<A> {
         self.compose_coefficients(&a)
     }
 
-    fn append<S>(&mut self, mut a: ArrayBase<S, Ix1>, rtol: A::Real) -> Result<Array1<A>, Array1<A>>
+    fn append<S>(&mut self, mut a: ArrayBase<S, Ix1>) -> AppendResult<A>
     where
         S: DataMut<Elem = A>,
     {
@@ -159,18 +170,18 @@ impl<A: Scalar + Lapack> Orthogonalizer for Householder<A> {
             coef[i] = a[i];
         }
         if self.is_full() {
-            return Err(coef); // coef[k] must be zero in this case
+            return AppendResult::Dependent(coef); // coef[k] must be zero in this case
         }
 
         let alpha = calc_reflector(&mut a.slice_mut(s![k..]));
         coef[k] = alpha;
 
-        if alpha.abs() < rtol {
+        if alpha.abs() < self.tol {
             // linearly dependent
-            return Err(coef);
+            return AppendResult::Dependent(coef);
         }
         self.v.push(a.into_owned());
-        Ok(coef)
+        AppendResult::Added(coef)
     }
 
     fn get_q(&self) -> Q<A> {
@@ -195,8 +206,8 @@ where
     A: Scalar + Lapack,
     S: Data<Elem = A>,
 {
-    let h = Householder::new(dim);
-    qr(iter, h, rtol, strategy)
+    let h = Householder::new(dim, rtol);
+    qr(iter, h, strategy)
 }
 
 #[cfg(test)]

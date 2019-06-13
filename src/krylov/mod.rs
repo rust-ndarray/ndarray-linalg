@@ -43,18 +43,18 @@ pub type Coefficients<A> = Array1<A>;
 /// ```rust
 /// # use ndarray::*;
 /// # use ndarray_linalg::{krylov::*, *};
-/// let mut mgs = MGS::new(3);
-/// let coef = mgs.append(array![0.0, 1.0, 0.0], 1e-9).unwrap();
+/// let mut mgs = MGS::new(3, 1e-9);
+/// let coef = mgs.append(array![0.0, 1.0, 0.0]).into_coeff();
 /// close_l2(&coef, &array![1.0], 1e-9);
 ///
-/// let coef = mgs.append(array![1.0, 1.0, 0.0], 1e-9).unwrap();
+/// let coef = mgs.append(array![1.0, 1.0, 0.0]).into_coeff();
 /// close_l2(&coef, &array![1.0, 1.0], 1e-9);
 ///
 /// // Fail if the vector is linearly dependent
-/// assert!(mgs.append(array![1.0, 2.0, 0.0], 1e-9).is_err());
+/// assert!(mgs.append(array![1.0, 2.0, 0.0]).is_dependent());
 ///
 /// // You can get coefficients of dependent vector
-/// if let Err(coef) = mgs.append(array![1.0, 2.0, 0.0], 1e-9) {
+/// if let AppendResult::Dependent(coef) = mgs.append(array![1.0, 2.0, 0.0]) {
 ///     close_l2(&coef, &array![2.0, 1.0, 0.0], 1e-9);
 /// }
 /// ```
@@ -76,6 +76,8 @@ pub trait Orthogonalizer {
         self.len() == 0
     }
 
+    fn tolerance(&self) -> <Self::Elem as Scalar>::Real;
+
     /// Decompose given vector into the span of current basis and
     /// its tangent space
     ///
@@ -96,16 +98,45 @@ pub trait Orthogonalizer {
         S: Data<Elem = Self::Elem>;
 
     /// Add new vector if the residual is larger than relative tolerance
-    fn append<S>(
-        &mut self,
-        a: ArrayBase<S, Ix1>,
-        rtol: <Self::Elem as Scalar>::Real,
-    ) -> Result<Coefficients<Self::Elem>, Coefficients<Self::Elem>>
+    fn append<S>(&mut self, a: ArrayBase<S, Ix1>) -> AppendResult<Self::Elem>
     where
         S: DataMut<Elem = Self::Elem>;
 
     /// Get Q-matrix of generated basis
     fn get_q(&self) -> Q<Self::Elem>;
+}
+
+pub enum AppendResult<A> {
+    Added(Coefficients<A>),
+    Dependent(Coefficients<A>),
+}
+
+impl<A: Scalar> AppendResult<A> {
+    pub fn into_coeff(self) -> Coefficients<A> {
+        match self {
+            AppendResult::Added(c) => c,
+            AppendResult::Dependent(c) => c,
+        }
+    }
+
+    pub fn is_dependent(&self) -> bool {
+        match self {
+            AppendResult::Added(_) => false,
+            AppendResult::Dependent(_) => true,
+        }
+    }
+
+    pub fn coeff(&self) -> &Coefficients<A> {
+        match self {
+            AppendResult::Added(c) => c,
+            AppendResult::Dependent(c) => c,
+        }
+    }
+
+    pub fn residual_norm(&self) -> A::Real {
+        let c = self.coeff();
+        c[c.len() - 1].abs()
+    }
 }
 
 /// Strategy for linearly dependent vectors appearing in iterative QR decomposition
@@ -133,7 +164,6 @@ pub enum Strategy {
 pub fn qr<A, S>(
     iter: impl Iterator<Item = ArrayBase<S, Ix1>>,
     mut ortho: impl Orthogonalizer<Elem = A>,
-    rtol: A::Real,
     strategy: Strategy,
 ) -> (Q<A>, R<A>)
 where
@@ -144,9 +174,9 @@ where
 
     let mut coefs = Vec::new();
     for a in iter {
-        match ortho.append(a.into_owned(), rtol) {
-            Ok(coef) => coefs.push(coef),
-            Err(coef) => match strategy {
+        match ortho.append(a.into_owned()) {
+            AppendResult::Added(coef) => coefs.push(coef),
+            AppendResult::Dependent(coef) => match strategy {
                 Strategy::Terminate => break,
                 Strategy::Skip => continue,
                 Strategy::Full => coefs.push(coef),

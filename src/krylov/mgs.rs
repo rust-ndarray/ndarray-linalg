@@ -5,19 +5,24 @@ use crate::{generate::*, inner::*, norm::Norm};
 
 /// Iterative orthogonalizer using modified Gram-Schmit procedure
 #[derive(Debug, Clone)]
-pub struct MGS<A> {
+pub struct MGS<A: Scalar> {
     /// Dimension of base space
-    dimension: usize,
+    dim: usize,
+
     /// Basis of spanned space
     q: Vec<Array1<A>>,
+
+    /// Tolerance
+    tol: A::Real,
 }
 
 impl<A: Scalar + Lapack> MGS<A> {
     /// Create an empty orthogonalizer
-    pub fn new(dimension: usize) -> Self {
+    pub fn new(dim: usize, tol: A::Real) -> Self {
         Self {
-            dimension,
+            dim,
             q: Vec::new(),
+            tol,
         }
     }
 }
@@ -26,11 +31,15 @@ impl<A: Scalar + Lapack> Orthogonalizer for MGS<A> {
     type Elem = A;
 
     fn dim(&self) -> usize {
-        self.dimension
+        self.dim
     }
 
     fn len(&self) -> usize {
         self.q.len()
+    }
+
+    fn tolerance(&self) -> A::Real {
+        self.tol
     }
 
     fn decompose<S>(&self, a: &mut ArrayBase<S, Ix1>) -> Array1<A>
@@ -59,7 +68,7 @@ impl<A: Scalar + Lapack> Orthogonalizer for MGS<A> {
         self.decompose(&mut a)
     }
 
-    fn append<S>(&mut self, a: ArrayBase<S, Ix1>, rtol: A::Real) -> Result<Array1<A>, Array1<A>>
+    fn append<S>(&mut self, a: ArrayBase<S, Ix1>) -> AppendResult<A>
     where
         A: Lapack,
         S: Data<Elem = A>,
@@ -67,13 +76,13 @@ impl<A: Scalar + Lapack> Orthogonalizer for MGS<A> {
         let mut a = a.into_owned();
         let coef = self.decompose(&mut a);
         let nrm = coef[coef.len() - 1].re();
-        if nrm < rtol {
+        if nrm < self.tol {
             // Linearly dependent
-            return Err(coef);
+            return AppendResult::Dependent(coef);
         }
         azip!(mut a in { *a = *a / A::from_real(nrm) });
         self.q.push(a);
-        Ok(coef)
+        AppendResult::Added(coef)
     }
 
     fn get_q(&self) -> Q<A> {
@@ -92,6 +101,6 @@ where
     A: Scalar + Lapack,
     S: Data<Elem = A>,
 {
-    let mgs = MGS::new(dim);
-    qr(iter, mgs, rtol, strategy)
+    let mgs = MGS::new(dim, rtol);
+    qr(iter, mgs, strategy)
 }

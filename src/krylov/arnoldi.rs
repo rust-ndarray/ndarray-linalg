@@ -1,41 +1,47 @@
-use super::Orthogonalizer;
-use crate::types::*;
-use ndarray::*;
+use super::*;
 
-pub struct Arnoldi<S, F, Ortho>
-where
-    S: DataMut,
-    F: Fn(&mut ArrayBase<S, Ix1>),
-    Ortho: Orthogonalizer,
-{
-    a: F,
-    v: ArrayBase<S, Ix1>,
-    ortho: Ortho,
-}
-
-impl<S, F, Ortho> Arnoldi<S, F, Ortho>
-where
-    S: DataMut,
-    F: Fn(&mut ArrayBase<S, Ix1>),
-    Ortho: Orthogonalizer,
-{
-    pub fn new(a: F, v: ArrayBase<S, Ix1>, ortho: Ortho) -> Self {
-        Arnoldi { a, v, ortho }
-    }
-}
-
-impl<A, S, F, Ortho> Iterator for Arnoldi<S, F, Ortho>
+pub struct Arnoldi<A, S, F, Ortho>
 where
     A: Scalar,
     S: DataMut<Elem = A>,
     F: Fn(&mut ArrayBase<S, Ix1>),
     Ortho: Orthogonalizer<Elem = A>,
 {
-    type Item = (Array2<A>, Array2<A>);
+    a: F,
+    v: ArrayBase<S, Ix1>,
+    ortho: Ortho,
+}
+
+impl<A, S, F, Ortho> Arnoldi<A, S, F, Ortho>
+where
+    A: Scalar,
+    S: DataMut<Elem = A>,
+    F: Fn(&mut ArrayBase<S, Ix1>),
+    Ortho: Orthogonalizer<Elem = A>,
+{
+    pub fn new(a: F, v: ArrayBase<S, Ix1>, ortho: Ortho) -> Self {
+        Arnoldi { a, v, ortho }
+    }
+}
+
+impl<A, S, F, Ortho> Iterator for Arnoldi<A, S, F, Ortho>
+where
+    A: Scalar,
+    S: DataMut<Elem = A> + DataClone,
+    F: Fn(&mut ArrayBase<S, Ix1>),
+    Ortho: Orthogonalizer<Elem = A>,
+{
+    type Item = Array1<A>;
 
     fn next(&mut self) -> Option<Self::Item> {
         (self.a)(&mut self.v);
-        let coef = self.ortho.decompose(&mut self.v);
-        unimplemented!()
+        match self.ortho.div_append(&mut self.v) {
+            AppendResult::Added(coef) => {
+                let norm = coef[coef.len() - 1].abs();
+                azip!(mut a(&mut self.v) in { *a = a.div_real(norm) });
+                Some(coef)
+            }
+            AppendResult::Dependent(_) => None,
+        }
     }
 }

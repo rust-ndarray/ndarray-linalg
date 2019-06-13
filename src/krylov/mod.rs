@@ -100,6 +100,12 @@ pub trait Orthogonalizer {
     /// Add new vector if the residual is larger than relative tolerance
     fn append<S>(&mut self, a: ArrayBase<S, Ix1>) -> AppendResult<Self::Elem>
     where
+        S: Data<Elem = Self::Elem>;
+
+    /// Add new vector if the residual is larger than relative tolerance,
+    /// and return the residual vector
+    fn div_append<S>(&mut self, a: &mut ArrayBase<S, Ix1>) -> AppendResult<Self::Elem>
+    where
         S: DataMut<Elem = Self::Elem>;
 
     /// Get Q-matrix of generated basis

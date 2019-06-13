@@ -74,14 +74,22 @@ impl<A: Scalar + Lapack> Orthogonalizer for MGS<A> {
         S: Data<Elem = A>,
     {
         let mut a = a.into_owned();
+        self.div_append(&mut a)
+    }
+
+    fn div_append<S>(&mut self, mut a: &mut ArrayBase<S, Ix1>) -> AppendResult<A>
+    where
+        A: Lapack,
+        S: DataMut<Elem = A>,
+    {
         let coef = self.decompose(&mut a);
         let nrm = coef[coef.len() - 1].re();
         if nrm < self.tol {
             // Linearly dependent
             return AppendResult::Dependent(coef);
         }
-        azip!(mut a in { *a = *a / A::from_real(nrm) });
-        self.q.push(a);
+        azip!(mut a(&mut *a) in { *a = *a / A::from_real(nrm) });
+        self.q.push(a.to_owned());
         AppendResult::Added(coef)
     }
 

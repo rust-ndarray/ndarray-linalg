@@ -8,17 +8,17 @@ use crate::{inner::*, norm::*};
 use num_traits::One;
 
 /// Calc a reflactor `w` from a vector `x`
-pub fn calc_reflector<A, S>(x: &mut ArrayBase<S, Ix1>) -> A
+pub fn calc_reflector<A, S>(x: &mut ArrayBase<S, Ix1>)
 where
     A: Scalar + Lapack,
     S: DataMut<Elem = A>,
 {
+    assert!(x.len() > 0);
     let norm = x.norm_l2();
     let alpha = -x[0].mul_real(norm / x[0].abs());
     x[0] -= alpha;
     let inv_rev_norm = A::Real::one() / x.norm_l2();
     azip!(mut a(x) in { *a = a.mul_real(inv_rev_norm)});
-    alpha
 }
 
 /// Take a reflection `P = I - 2ww^T`
@@ -108,7 +108,12 @@ impl<A: Scalar + Lapack> Householder<A> {
         let res = a.slice(s![k..]).norm_l2();
         let mut c = Array1::zeros(k + 1);
         azip!(mut c(c.slice_mut(s![..k])), a(a.slice(s![..k])) in { *c = a });
-        c[k] = A::from_real(res);
+        if k < a.len() {
+            let ak = a[k];
+            c[k] = -ak.mul_real(res / ak.abs());
+        } else {
+            c[k] = A::from_real(res);
+        }
         c
     }
 
@@ -157,30 +162,37 @@ impl<A: Scalar + Lapack> Orthogonalizer for Householder<A> {
         self.compose_coefficients(&a)
     }
 
-    fn append<S>(&mut self, mut a: ArrayBase<S, Ix1>) -> AppendResult<A>
+    fn div_append<S>(&mut self, a: &mut ArrayBase<S, Ix1>) -> AppendResult<A>
     where
         S: DataMut<Elem = A>,
     {
         assert_eq!(a.len(), self.dim);
         let k = self.len();
-
-        self.forward_reflection(&mut a);
-        let mut coef = Array::zeros(k + 1);
-        for i in 0..k {
-            coef[i] = a[i];
-        }
-        if self.is_full() {
-            return AppendResult::Dependent(coef); // coef[k] must be zero in this case
-        }
-
-        let alpha = calc_reflector(&mut a.slice_mut(s![k..]));
-        coef[k] = alpha;
-
-        if alpha.abs() < self.tol {
-            // linearly dependent
+        self.forward_reflection(a);
+        let coef = self.compose_coefficients(a);
+        if coef[k].abs() < self.tol {
             return AppendResult::Dependent(coef);
         }
-        self.v.push(a.into_owned());
+        calc_reflector(&mut a.slice_mut(s![k..]));
+        self.v.push(a.to_owned());
+        self.construct_residual(a);
+        AppendResult::Added(coef)
+    }
+
+    fn append<S>(&mut self, a: ArrayBase<S, Ix1>) -> AppendResult<A>
+    where
+        S: Data<Elem = A>,
+    {
+        assert_eq!(a.len(), self.dim);
+        let mut a = a.into_owned();
+        let k = self.len();
+        self.forward_reflection(&mut a);
+        let coef = self.compose_coefficients(&a);
+        if coef[k].abs() < self.tol {
+            return AppendResult::Dependent(coef);
+        }
+        calc_reflector(&mut a.slice_mut(s![k..]));
+        self.v.push(a.to_owned());
         AppendResult::Added(coef)
     }
 

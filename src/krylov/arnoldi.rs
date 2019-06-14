@@ -54,10 +54,10 @@ where
     pub fn complete(mut self) -> (Q<A>, H<A>) {
         for _ in &mut self {} // execute iteration until convergent
         let q = self.ortho.get_q();
-        let n = self.dim();
+        let n = self.h.len();
         let mut h = Array2::zeros((n, n).f());
         for (i, hc) in self.h.iter().enumerate() {
-            let m = std::cmp::max(n, i + 1);
+            let m = std::cmp::min(n, i + 2);
             for j in 0..m {
                 h[(j, i)] = hc[j];
             }
@@ -79,12 +79,17 @@ where
         (self.a)(&mut self.v);
         let result = self.ortho.div_append(&mut self.v);
         azip!(mut v(&mut self.v) in { *v = v.div_real(result.residual_norm()) });
-        if result.is_dependent() {
-            None
-        } else {
-            let coef = result.into_coeff();
-            self.h.push(coef.clone());
-            Some(coef)
+        match result {
+            AppendResult::Added(coef) => {
+                dbg!(&coef);
+                self.h.push(coef.clone());
+                Some(coef)
+            }
+            AppendResult::Dependent(coef) => {
+                dbg!(&coef);
+                self.h.push(coef);
+                None
+            }
         }
     }
 }
@@ -125,4 +130,39 @@ where
 {
     let mgs = MGS::new(v.len(), tol);
     Arnoldi::new(mul_mat(a), v, mgs).complete()
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::generate::*;
+
+    #[test]
+    fn aq_qh() {
+        let a = array![[1.0, 2.0], [3.0, 5.0]];
+        let mut v = Array::zeros(2);
+        v[0] = 1.0;
+        let (q, h) = arnoldi_mgs(a.clone(), v, 1e-9);
+        println!("A = \n{:?}", &a);
+        println!("Q = \n{:?}", &q);
+        println!("H = \n{:?}", &h);
+        println!("AQ = \n{:?}", a.dot(&q));
+        println!("QH = \n{:?}", q.dot(&h));
+        panic!()
+    }
+
+    #[test]
+    fn aq_qh_random() {
+        let a: Array2<f64> = random((5, 5));
+        let mut v = Array::zeros(5);
+        v[0] = 1.0;
+        let (q, h) = arnoldi_mgs(a.clone(), v, 1e-9);
+        println!("A = \n{:?}", &a);
+        println!("Q = \n{:?}", &q);
+        println!("H = \n{:?}", &h);
+        println!("AQ = \n{:?}", a.dot(&q));
+        println!("QH = \n{:?}", q.dot(&h));
+        panic!()
+    }
+
 }

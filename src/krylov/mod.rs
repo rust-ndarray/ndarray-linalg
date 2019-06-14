@@ -24,6 +24,13 @@ pub type Q<A> = Array2<A>;
 ///
 pub type R<A> = Array2<A>;
 
+/// H-matrix
+///
+/// - Maybe **NOT** square
+/// - Hessenberg matrix
+///
+pub type H<A> = Array2<A>;
+
 /// Array type for coefficients to the current basis
 ///
 /// - The length must be `self.len() + 1`

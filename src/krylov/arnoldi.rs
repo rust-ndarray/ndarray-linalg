@@ -1,7 +1,7 @@
 use super::*;
 use crate::norm::Norm;
 use num_traits::One;
-use std::iter::Fuse;
+use std::iter::*;
 
 pub struct Arnoldi<A, S, F, Ortho>
 where
@@ -22,14 +22,29 @@ where
     F: Fn(&mut ArrayBase<S, Ix1>),
     Ortho: Orthogonalizer<Elem = A>,
 {
-    pub fn new(a: F, mut v: ArrayBase<S, Ix1>, mut ortho: Ortho) -> Fuse<Self> {
+    pub fn new(a: F, mut v: ArrayBase<S, Ix1>, mut ortho: Ortho) -> Self {
         assert_eq!(ortho.len(), 0);
         assert!(ortho.tolerance() < One::one());
         // normalize before append because |v| may be smaller than ortho.tolerance()
         let norm = v.norm_l2();
         azip!(mut v(&mut v) in { *v = v.div_real(norm) });
         ortho.append(v.view());
-        Iterator::fuse(Arnoldi { a, v, ortho })
+        Arnoldi { a, v, ortho }
+    }
+
+    /// Iterate until convergent
+    pub fn complete(self) -> (Q<A>, H<A>) {
+        let q = self.ortho.get_q();
+        let hs: Vec<Array1<A>> = self.collect();
+        let n = hs.len();
+        let mut h = Array2::zeros((n, n).f());
+        for (i, hc) in hs.iter().enumerate() {
+            let m = std::cmp::max(n, i + 1);
+            for j in 0..m {
+                h[(j, i)] = hc[j];
+            }
+        }
+        (q, h)
     }
 
     /// Dimension of Krylov subspace

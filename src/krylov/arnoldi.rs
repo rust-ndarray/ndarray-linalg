@@ -3,6 +3,10 @@ use crate::norm::Norm;
 use num_traits::One;
 use std::iter::*;
 
+/// Execute Arnodi iteration as Rust iterator
+///
+/// - [Arnoldi iteration - Wikipedia](https://en.wikipedia.org/wiki/Arnoldi_iteration)
+///
 pub struct Arnoldi<A, S, F, Ortho>
 where
     A: Scalar,
@@ -11,9 +15,11 @@ where
     Ortho: Orthogonalizer<Elem = A>,
 {
     a: F,
+    /// Next vector (normalized `|v|=1`)
     v: ArrayBase<S, Ix1>,
+    /// Orthogonalizer
     ortho: Ortho,
-    /// Coefficients
+    /// Coefficients to be composed into H-matrix
     h: Vec<Array1<A>>,
 }
 
@@ -99,6 +105,7 @@ where
     }
 }
 
+/// Utility to execute Arnoldi iteration with Householder reflection
 pub fn arnoldi_householder<A, S1, S2>(a: ArrayBase<S1, Ix2>, v: ArrayBase<S2, Ix1>, tol: A::Real) -> (Q<A>, H<A>)
 where
     A: Scalar + Lapack,
@@ -109,6 +116,7 @@ where
     Arnoldi::new(mul_mat(a), v, householder).complete()
 }
 
+/// Utility to execute Arnoldi iteration with modified Gram-Schmit orthogonalizer
 pub fn arnoldi_mgs<A, S1, S2>(a: ArrayBase<S1, Ix2>, v: ArrayBase<S2, Ix1>, tol: A::Real) -> (Q<A>, H<A>)
 where
     A: Scalar + Lapack,

@@ -1,7 +1,7 @@
 resources:
   containers:
     - container: tarpaulin
-      image: xd009642/tarpaulin:latest-nightly
+      image: termoshtt/tarpaulin:1.35
       options: --security-opt seccomp=unconfined
 
 jobs:
@@ -101,8 +101,6 @@ jobs:
     container: tarpaulin
     steps:
       - script: |
-          apt update
-          apt install -y gfortran
           cargo tarpaulin -v --features=openblas-static --out Xml
           curl -s https://codecov.io/bash -o .codecov && chmod +x .codecov
           ./.codecov -B "${BUILD_SOURCEBRANCHNAME:-}" \

@@ -1,9 +1,11 @@
+//! Arnoldi iteration
+
 use super::*;
 use crate::norm::Norm;
 use num_traits::One;
 use std::iter::*;
 
-/// Execute Arnodi iteration as Rust iterator
+/// Execute Arnoldi iteration as Rust iterator
 ///
 /// - [Arnoldi iteration - Wikipedia](https://en.wikipedia.org/wiki/Arnoldi_iteration)
 ///
@@ -30,6 +32,7 @@ where
     F: Fn(&mut ArrayBase<S, Ix1>),
     Ortho: Orthogonalizer<Elem = A>,
 {
+    /// Create an Arnoldi iterator from any linear operator `a`
     pub fn new(a: F, mut v: ArrayBase<S, Ix1>, mut ortho: Ortho) -> Self {
         assert_eq!(ortho.len(), 0);
         assert!(ortho.tolerance() < One::one());

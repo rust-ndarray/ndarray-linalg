@@ -1,4 +1,4 @@
-//! Krylov subspace
+//! Krylov subspace methods
 
 use crate::types::*;
 use ndarray::*;

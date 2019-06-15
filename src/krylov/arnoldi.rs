@@ -68,7 +68,7 @@ where
 
 impl<A, S, F, Ortho> Iterator for Arnoldi<A, S, F, Ortho>
 where
-    A: Scalar,
+    A: Scalar + Lapack,
     S: DataMut<Elem = A>,
     F: Fn(&mut ArrayBase<S, Ix1>),
     Ortho: Orthogonalizer<Elem = A>,
@@ -78,15 +78,14 @@ where
     fn next(&mut self) -> Option<Self::Item> {
         (self.a)(&mut self.v);
         let result = self.ortho.div_append(&mut self.v);
-        azip!(mut v(&mut self.v) in { *v = v.div_real(result.residual_norm()) });
+        let norm = self.v.norm_l2();
+        azip!(mut v(&mut self.v) in { *v = v.div_real(norm) });
         match result {
             AppendResult::Added(coef) => {
-                dbg!(&coef);
                 self.h.push(coef.clone());
                 Some(coef)
             }
             AppendResult::Dependent(coef) => {
-                dbg!(&coef);
                 self.h.push(coef);
                 None
             }
@@ -135,7 +134,7 @@ where
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::generate::*;
+    use crate::{assert::*, generate::*};
 
     #[test]
     fn aq_qh() {
@@ -146,23 +145,26 @@ mod tests {
         println!("A = \n{:?}", &a);
         println!("Q = \n{:?}", &q);
         println!("H = \n{:?}", &h);
+        let aq = a.dot(&q);
+        let qh = q.dot(&h);
         println!("AQ = \n{:?}", a.dot(&q));
         println!("QH = \n{:?}", q.dot(&h));
-        panic!()
+        close_l2(&aq, &qh, 1e-9);
     }
 
     #[test]
     fn aq_qh_random() {
         let a: Array2<f64> = random((5, 5));
-        let mut v = Array::zeros(5);
-        v[0] = 1.0;
+        let v: Array1<f64> = random(5);
         let (q, h) = arnoldi_mgs(a.clone(), v, 1e-9);
         println!("A = \n{:?}", &a);
         println!("Q = \n{:?}", &q);
         println!("H = \n{:?}", &h);
-        println!("AQ = \n{:?}", a.dot(&q));
-        println!("QH = \n{:?}", q.dot(&h));
-        panic!()
+        let aq = a.dot(&q);
+        let qh = q.dot(&h);
+        println!("AQ = \n{:?}", &aq);
+        println!("QH = \n{:?}", &qh);
+        close_l2(&aq, &qh, 1e-9);
     }
 
 }

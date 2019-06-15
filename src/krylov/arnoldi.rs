@@ -137,23 +137,7 @@ mod tests {
     use crate::{assert::*, generate::*};
 
     #[test]
-    fn aq_qh() {
-        let a = array![[1.0, 2.0], [3.0, 5.0]];
-        let mut v = Array::zeros(2);
-        v[0] = 1.0;
-        let (q, h) = arnoldi_mgs(a.clone(), v, 1e-9);
-        println!("A = \n{:?}", &a);
-        println!("Q = \n{:?}", &q);
-        println!("H = \n{:?}", &h);
-        let aq = a.dot(&q);
-        let qh = q.dot(&h);
-        println!("AQ = \n{:?}", a.dot(&q));
-        println!("QH = \n{:?}", q.dot(&h));
-        close_l2(&aq, &qh, 1e-9);
-    }
-
-    #[test]
-    fn aq_qh_random() {
+    fn aq_qh_mgs() {
         let a: Array2<f64> = random((5, 5));
         let v: Array1<f64> = random(5);
         let (q, h) = arnoldi_mgs(a.clone(), v, 1e-9);
@@ -167,4 +151,18 @@ mod tests {
         close_l2(&aq, &qh, 1e-9);
     }
 
+    #[test]
+    fn aq_qh_householder() {
+        let a: Array2<f64> = random((5, 5));
+        let v: Array1<f64> = random(5);
+        let (q, h) = arnoldi_mgs(a.clone(), v, 1e-9);
+        println!("A = \n{:?}", &a);
+        println!("Q = \n{:?}", &q);
+        println!("H = \n{:?}", &h);
+        let aq = a.dot(&q);
+        let qh = q.dot(&h);
+        println!("AQ = \n{:?}", &aq);
+        println!("QH = \n{:?}", &qh);
+        close_l2(&aq, &qh, 1e-9);
+    }
 }

@@ -19,6 +19,8 @@ netlib     = ["lapack-src/netlib", "blas-src/netlib"]
 openblas   = ["lapack-src/openblas", "blas-src/openblas"]
 serde-1    = ["ndarray/serde-1", "num-complex/serde"]
 
+openblas-static = ["openblas", "openblas-src"]
+
 [dependencies]
 lapacke = "0.2"
 num-traits  = "0.2"
@@ -38,3 +40,9 @@ default-features = false
 [dependencies.lapack-src]
 version = "0.3"
 default-features = false
+
+[dependencies.openblas-src]
+version = "0.6"
+default-features = false
+features = ["static"]
+optional = true

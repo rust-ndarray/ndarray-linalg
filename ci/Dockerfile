@@ -1,12 +1,7 @@
-FROM rustlang/rust:nightly
+FROM xd009642/tarpaulin:latest-nightly
 
 RUN apt-get update \
  && apt-get install -y \
-    cmake              \
     gfortran           \
-    libssl-dev         \
-    pkg-config         \
-    zlib1g-dev         \
  && rm -rf /var/lib/apt/lists/*
 
-RUN cargo install cargo-tarpaulin

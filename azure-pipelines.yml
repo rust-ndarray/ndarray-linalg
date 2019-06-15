@@ -1,3 +1,9 @@
+resources:
+  containers:
+    - container: tarpaulin
+      image: xd009642/tarpaulin:latest-nightly
+      options: --security-opt seccomp=unconfined
+
 jobs:
   - job: LinuxOpenBLAS
     pool:
@@ -71,3 +77,20 @@ jobs:
         displayName: install rustup on Windows
       - script: cargo test -v --features=intel-mkl --no-default-features 2>&1
         displayName: run test
+
+  - job: tarpaulin
+    pool:
+      vmImage: 'ubuntu-16.04'
+      container: tarpaulin
+      steps:
+      - script: |
+          cargo tarpaulin -v --out Xml
+          curl -s https://codecov.io/bash -o .codecov && chmod +x .codecov
+          ./.codecov -B "${BUILD_SOURCEBRANCHNAME:-}" \
+                     -C "${BUILD_SOURCEVERSION:-}" \
+                     -P "${SYSTEM_PULLREQUEST_PULLREQUESTNUMBER:-}" \
+                     -b "${BUILD_BUILDID:-}" \
+                     -K -n "report name"
+        displayName: 'run tarpaulin'
+        env:
+          CODECOV_TOKEN: $(myCodecovToken)

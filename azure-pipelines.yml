@@ -1,7 +1,7 @@
 resources:
   containers:
     - container: tarpaulin
-      image: termoshtt/tarpaulin:1.35
+      image: termoshtt/tarpaulin:nightly
       options: --security-opt seccomp=unconfined
 
 jobs:

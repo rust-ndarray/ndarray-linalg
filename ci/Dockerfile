@@ -1,4 +1,4 @@
-FROM rust:1.35
+FROM rustlang/rust:nightly
 
 RUN apt-get update \
  && apt-get install -y \

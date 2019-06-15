@@ -7,6 +7,7 @@ pub mod arnoldi;
 pub mod householder;
 pub mod mgs;
 
+pub use arnoldi::{arnoldi_householder, arnoldi_mgs, Arnoldi};
 pub use householder::{householder, Householder};
 pub use mgs::{mgs, MGS};
 

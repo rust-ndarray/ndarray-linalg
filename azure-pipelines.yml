@@ -117,14 +117,18 @@ jobs:
       vmImage: 'ubuntu-16.04'
     container: tarpaulin
     steps:
-    - script: |
-        cargo tarpaulin -v --features=openblas-static --out Xml
-        curl -s https://codecov.io/bash -o .codecov && chmod +x .codecov
-        ./.codecov -B "${BUILD_SOURCEBRANCHNAME:-}" \
-                   -C "${BUILD_SOURCEVERSION:-}" \
-                   -P "${SYSTEM_PULLREQUEST_PULLREQUESTNUMBER:-}" \
-                   -b "${BUILD_BUILDID:-}" \
-                   -K -n "report name"
-      displayName: 'run tarpaulin'
-      env:
-        CODECOV_TOKEN: $(myCodecovToken)
+      - script: |
+          sudo apt-get update
+          sudo apt-get install -y gfortran
+        displayName: apt install
+      - script: |
+          cargo tarpaulin -v --features=openblas-static --out Xml
+          curl -s https://codecov.io/bash -o .codecov && chmod +x .codecov
+          ./.codecov -B "${BUILD_SOURCEBRANCHNAME:-}" \
+                     -C "${BUILD_SOURCEVERSION:-}" \
+                     -P "${SYSTEM_PULLREQUEST_PULLREQUESTNUMBER:-}" \
+                     -b "${BUILD_BUILDID:-}" \
+                     -K -n "report name"
+        displayName: 'run tarpaulin'
+        env:
+          CODECOV_TOKEN: $(myCodecovToken)

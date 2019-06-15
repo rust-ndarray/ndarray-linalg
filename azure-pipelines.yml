@@ -101,8 +101,8 @@ jobs:
     container: tarpaulin
     steps:
       - script: |
-          sudo apt-get update
-          sudo apt-get install -y gfortran
+          apt-get update
+          apt-get install -y gfortran
         displayName: apt install
       - script: |
           cargo tarpaulin -v --features=openblas-static --out Xml

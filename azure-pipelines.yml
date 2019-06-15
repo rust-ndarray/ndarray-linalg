@@ -101,10 +101,8 @@ jobs:
     container: tarpaulin
     steps:
       - script: |
-          apt-get update
-          apt-get install -y gfortran
-        displayName: apt install
-      - script: |
+          apt update
+          apt install -y gfortran
           cargo tarpaulin -v --features=openblas-static --out Xml
           curl -s https://codecov.io/bash -o .codecov && chmod +x .codecov
           ./.codecov -B "${BUILD_SOURCEBRANCHNAME:-}" \

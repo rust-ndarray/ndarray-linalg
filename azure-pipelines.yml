@@ -118,7 +118,7 @@ jobs:
     container: tarpaulin
     steps:
     - script: |
-        cargo tarpaulin -v --features=intel-mkl --out Xml
+        cargo tarpaulin -v --features=openblas-static --out Xml
         curl -s https://codecov.io/bash -o .codecov && chmod +x .codecov
         ./.codecov -B "${BUILD_SOURCEBRANCHNAME:-}" \
                    -C "${BUILD_SOURCEVERSION:-}" \

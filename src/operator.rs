@@ -4,6 +4,8 @@ use crate::generate::hstack;
 use crate::types::*;
 use ndarray::*;
 
+/// Abstracted linear operator as an action to vector (`ArrayBase<S, Ix1>`) and matrix
+/// (`ArrayBase<S, Ix2`)
 pub trait LinearOperator {
     type Elem: Scalar;
 

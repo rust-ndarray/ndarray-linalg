@@ -1,7 +1,7 @@
 //! Arnoldi iteration
 
 use super::*;
-use crate::norm::Norm;
+use crate::{norm::Norm, operator::LinearOperator};
 use num_traits::One;
 use std::iter::*;
 
@@ -13,7 +13,7 @@ pub struct Arnoldi<A, S, F, Ortho>
 where
     A: Scalar,
     S: DataMut<Elem = A>,
-    F: Fn(&mut ArrayBase<S, Ix1>),
+    F: LinearOperator<Elem = A>,
     Ortho: Orthogonalizer<Elem = A>,
 {
     a: F,
@@ -29,7 +29,7 @@ impl<A, S, F, Ortho> Arnoldi<A, S, F, Ortho>
 where
     A: Scalar + Lapack,
     S: DataMut<Elem = A>,
-    F: Fn(&mut ArrayBase<S, Ix1>),
+    F: LinearOperator<Elem = A>,
     Ortho: Orthogonalizer<Elem = A>,
 {
     /// Create an Arnoldi iterator from any linear operator `a`
@@ -73,13 +73,13 @@ impl<A, S, F, Ortho> Iterator for Arnoldi<A, S, F, Ortho>
 where
     A: Scalar + Lapack,
     S: DataMut<Elem = A>,
-    F: Fn(&mut ArrayBase<S, Ix1>),
+    F: LinearOperator<Elem = A>,
     Ortho: Orthogonalizer<Elem = A>,
 {
     type Item = Array1<A>;
 
     fn next(&mut self) -> Option<Self::Item> {
-        (self.a)(&mut self.v);
+        self.a.apply_mut(&mut self.v);
         let result = self.ortho.div_append(&mut self.v);
         let norm = self.v.norm_l2();
         azip!(mut v(&mut self.v) in { *v = v.div_real(norm) });
@@ -96,40 +96,22 @@ where
     }
 }
 
-/// Interpret a matrix as a linear operator
-pub fn mul_mat<A, S1, S2>(a: ArrayBase<S1, Ix2>) -> impl Fn(&mut ArrayBase<S2, Ix1>)
-where
-    A: Scalar,
-    S1: Data<Elem = A>,
-    S2: DataMut<Elem = A>,
-{
-    let (n, m) = a.dim();
-    assert_eq!(n, m, "Input matrix must be square");
-    move |x| {
-        assert_eq!(m, x.len(), "Input matrix and vector sizes mismatch");
-        let ax = a.dot(x);
-        azip!(mut x(x), ax in { *x = ax });
-    }
-}
-
 /// Utility to execute Arnoldi iteration with Householder reflection
-pub fn arnoldi_householder<A, S1, S2>(a: ArrayBase<S1, Ix2>, v: ArrayBase<S2, Ix1>, tol: A::Real) -> (Q<A>, H<A>)
+pub fn arnoldi_householder<A, S>(a: impl LinearOperator<Elem = A>, v: ArrayBase<S, Ix1>, tol: A::Real) -> (Q<A>, H<A>)
 where
     A: Scalar + Lapack,
-    S1: Data<Elem = A>,
-    S2: DataMut<Elem = A>,
+    S: DataMut<Elem = A>,
 {
     let householder = Householder::new(v.len(), tol);
-    Arnoldi::new(mul_mat(a), v, householder).complete()
+    Arnoldi::new(a, v, householder).complete()
 }
 
 /// Utility to execute Arnoldi iteration with modified Gram-Schmit orthogonalizer
-pub fn arnoldi_mgs<A, S1, S2>(a: ArrayBase<S1, Ix2>, v: ArrayBase<S2, Ix1>, tol: A::Real) -> (Q<A>, H<A>)
+pub fn arnoldi_mgs<A, S>(a: impl LinearOperator<Elem = A>, v: ArrayBase<S, Ix1>, tol: A::Real) -> (Q<A>, H<A>)
 where
     A: Scalar + Lapack,
-    S1: Data<Elem = A>,
-    S2: DataMut<Elem = A>,
+    S: DataMut<Elem = A>,
 {
     let mgs = MGS::new(v.len(), tol);
-    Arnoldi::new(mul_mat(a), v, mgs).complete()
+    Arnoldi::new(a, v, mgs).complete()
 }

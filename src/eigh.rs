@@ -5,7 +5,7 @@ use ndarray::*;
 use crate::diagonal::*;
 use crate::error::*;
 use crate::layout::*;
-use crate::operator::Operator;
+use crate::operator::LinearOperator;
 use crate::types::*;
 use crate::UPLO;
 
@@ -165,7 +165,7 @@ where
     fn ssqrt_into(self, uplo: UPLO) -> Result<Self::Output> {
         let (e, v) = self.eigh_into(uplo)?;
         let e_sqrt = Array1::from_iter(e.iter().map(|r| Scalar::from_real(r.sqrt())));
-        let ev = e_sqrt.into_diagonal().op(&v.t());
-        Ok(v.op(&ev))
+        let ev = e_sqrt.into_diagonal().apply2(&v.t());
+        Ok(v.apply2(&ev))
     }
 }

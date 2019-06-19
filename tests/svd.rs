@@ -19,7 +19,7 @@ fn test(a: &Array2<f64>) {
     assert_close_l2!(&u.dot(&sm).dot(&vt), &answer, 1e-7);
 }
 
-fn test_u(a: &Array2<f64>) {
+fn test_no_vt(a: &Array2<f64>) {
     let (n, _m) = a.dim();
     println!("a = \n{:?}", a);
     let (u, _s, vt): (_, Array1<_>, _) = a.svd(true, false).unwrap();
@@ -30,7 +30,7 @@ fn test_u(a: &Array2<f64>) {
     assert_eq!(u.dim().1, n);
 }
 
-fn test_vt(a: &Array2<f64>) {
+fn test_no_u(a: &Array2<f64>) {
     let (_n, m) = a.dim();
     println!("a = \n{:?}", a);
     let (u, _s, vt): (_, Array1<_>, _) = a.svd(false, true).unwrap();
@@ -60,11 +60,11 @@ macro_rules! test_svd_impl {
 }
 
 test_svd_impl!(test, 3, 3);
-test_svd_impl!(test_u, 3, 3);
-test_svd_impl!(test_vt, 3, 3);
+test_svd_impl!(test_no_vt, 3, 3);
+test_svd_impl!(test_no_u, 3, 3);
 test_svd_impl!(test, 4, 3);
-test_svd_impl!(test_u, 4, 3);
-test_svd_impl!(test_vt, 4, 3);
+test_svd_impl!(test_no_vt, 4, 3);
+test_svd_impl!(test_no_u, 4, 3);
 test_svd_impl!(test, 3, 4);
-test_svd_impl!(test_u, 3, 4);
-test_svd_impl!(test_vt, 3, 4);
+test_svd_impl!(test_no_vt, 3, 4);
+test_svd_impl!(test_no_u, 3, 4);

@@ -42,15 +42,16 @@ macro_rules! impl_svd {
                 let (ju, ldu, mut u) = if calc_u {
                     (FlagSVD::All, m, vec![Self::zero(); (m * m) as usize])
                 } else {
-                    (FlagSVD::No, 0, Vec::new())
+                    (FlagSVD::No, 1, Vec::new())
                 };
                 let (jvt, ldvt, mut vt) = if calc_vt {
                     (FlagSVD::All, n, vec![Self::zero(); (n * n) as usize])
                 } else {
-                    (FlagSVD::No, 0, Vec::new())
+                    (FlagSVD::No, n, Vec::new())
                 };
                 let mut s = vec![Self::Real::zero(); k as usize];
                 let mut superb = vec![Self::Real::zero(); (k - 1) as usize];
+                dbg!(ldvt);
                 let info = $gesvd(
                     l.lapacke_layout(),
                     ju as u8,
@@ -70,8 +71,8 @@ macro_rules! impl_svd {
                     info,
                     SVDOutput {
                         s: s,
-                        u: if ldu > 0 { Some(u) } else { None },
-                        vt: if ldvt > 0 { Some(vt) } else { None },
+                        u: if calc_u { Some(u) } else { None },
+                        vt: if calc_vt { Some(vt) } else { None },
                     },
                 )
             }

@@ -48,4 +48,4 @@ features = ["static"]
 optional = true
 
 [dev-dependencies]
-paste = "*"
+paste = "0.1"

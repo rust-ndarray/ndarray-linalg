@@ -42,12 +42,12 @@ macro_rules! impl_svd {
                 let (ju, ldu, mut u) = if calc_u {
                     (FlagSVD::All, m, vec![Self::zero(); (m * m) as usize])
                 } else {
-                    (FlagSVD::No, 0, Vec::new())
+                    (FlagSVD::No, 1, Vec::new())
                 };
                 let (jvt, ldvt, mut vt) = if calc_vt {
                     (FlagSVD::All, n, vec![Self::zero(); (n * n) as usize])
                 } else {
-                    (FlagSVD::No, 0, Vec::new())
+                    (FlagSVD::No, 1, Vec::new())
                 };
                 let mut s = vec![Self::Real::zero(); k as usize];
                 let mut superb = vec![Self::Real::zero(); (k - 1) as usize];

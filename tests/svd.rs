@@ -41,6 +41,13 @@ fn test_no_u(a: &Array2<f64>) {
     assert_eq!(vt.dim().1, m);
 }
 
+fn test_diag_only(a: &Array2<f64>) {
+    println!("a = \n{:?}", a);
+    let (u, _s, vt): (_, Array1<_>, _) = a.svd(false, false).unwrap();
+    assert!(u.is_none());
+    assert!(vt.is_none());
+}
+
 macro_rules! test_svd_impl {
     ($test:ident, $n:expr, $m:expr) => {
         paste::item! {
@@ -62,9 +69,12 @@ macro_rules! test_svd_impl {
 test_svd_impl!(test, 3, 3);
 test_svd_impl!(test_no_vt, 3, 3);
 test_svd_impl!(test_no_u, 3, 3);
+test_svd_impl!(test_diag_only, 3, 3);
 test_svd_impl!(test, 4, 3);
 test_svd_impl!(test_no_vt, 4, 3);
 test_svd_impl!(test_no_u, 4, 3);
+test_svd_impl!(test_diag_only, 4, 3);
 test_svd_impl!(test, 3, 4);
 test_svd_impl!(test_no_vt, 3, 4);
 test_svd_impl!(test_no_u, 3, 4);
+test_svd_impl!(test_diag_only, 3, 4);

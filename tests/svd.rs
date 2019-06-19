@@ -2,13 +2,8 @@ use ndarray::*;
 use ndarray_linalg::*;
 use std::cmp::min;
 
-fn test(a: &Array2<f64>, n: usize, m: usize) {
-    test_both(a, n, m);
-    test_u(a, n, m);
-    test_vt(a, n, m);
-}
-
-fn test_both(a: &Array2<f64>, n: usize, m: usize) {
+fn test(a: &Array2<f64>) {
+    let (n, m) = a.dim();
     let answer = a.clone();
     println!("a = \n{:?}", a);
     let (u, s, vt): (_, Array1<_>, _) = a.svd(true, true).unwrap();
@@ -24,7 +19,8 @@ fn test_both(a: &Array2<f64>, n: usize, m: usize) {
     assert_close_l2!(&u.dot(&sm).dot(&vt), &answer, 1e-7);
 }
 
-fn test_u(a: &Array2<f64>, n: usize, _m: usize) {
+fn test_u(a: &Array2<f64>) {
+    let (n, _m) = a.dim();
     println!("a = \n{:?}", a);
     let (u, _s, vt): (_, Array1<_>, _) = a.svd(true, false).unwrap();
     assert!(u.is_some());
@@ -34,7 +30,8 @@ fn test_u(a: &Array2<f64>, n: usize, _m: usize) {
     assert_eq!(u.dim().1, n);
 }
 
-fn test_vt(a: &Array2<f64>, _n: usize, m: usize) {
+fn test_vt(a: &Array2<f64>) {
+    let (_n, m) = a.dim();
     println!("a = \n{:?}", a);
     let (u, _s, vt): (_, Array1<_>, _) = a.svd(false, true).unwrap();
     assert!(u.is_none());
@@ -44,38 +41,30 @@ fn test_vt(a: &Array2<f64>, _n: usize, m: usize) {
     assert_eq!(vt.dim().1, m);
 }
 
-#[test]
-fn svd_square() {
-    let a = random((3, 3));
-    test(&a, 3, 3);
+macro_rules! test_svd_impl {
+    ($test:ident, $n:expr, $m:expr) => {
+        paste::item! {
+            #[test]
+            fn [<svd_ $test _ $n x $m>]() {
+                let a = random(($n, $m));
+                $test(&a);
+            }
+
+            #[test]
+            fn [<svd_ $test _ $n x $m _t>]() {
+                let a = random(($n, $m).f());
+                $test(&a);
+            }
+        }
+    };
 }
 
-#[test]
-fn svd_square_t() {
-    let a = random((3, 3).f());
-    test(&a, 3, 3);
-}
-
-#[test]
-fn svd_3x4() {
-    let a = random((3, 4));
-    test(&a, 3, 4);
-}
-
-#[test]
-fn svd_3x4_t() {
-    let a = random((3, 4).f());
-    test(&a, 3, 4);
-}
-
-#[test]
-fn svd_4x3() {
-    let a = random((4, 3));
-    test(&a, 4, 3);
-}
-
-#[test]
-fn svd_4x3_t() {
-    let a = random((4, 3).f());
-    test(&a, 4, 3);
-}
+test_svd_impl!(test, 3, 3);
+test_svd_impl!(test_u, 3, 3);
+test_svd_impl!(test_vt, 3, 3);
+test_svd_impl!(test, 4, 3);
+test_svd_impl!(test_u, 4, 3);
+test_svd_impl!(test_vt, 4, 3);
+test_svd_impl!(test, 3, 4);
+test_svd_impl!(test_u, 3, 4);
+test_svd_impl!(test_vt, 3, 4);

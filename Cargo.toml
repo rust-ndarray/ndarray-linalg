@@ -46,3 +46,6 @@ version = "0.6"
 default-features = false
 features = ["static"]
 optional = true
+
+[dev-dependencies]
+paste = "*"

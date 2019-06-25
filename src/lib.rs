@@ -36,6 +36,9 @@
 //!  - [Random matrix generators](generate/index.html)
 //!  - [Scalar trait](types/trait.Scalar.html)
 
+#[cfg(features = "openblas")]
+extern crate openblas_src;
+
 extern crate blas_src;
 extern crate lapack_src;
 

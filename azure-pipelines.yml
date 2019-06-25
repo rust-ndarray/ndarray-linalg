@@ -1,9 +1,3 @@
-resources:
-  containers:
-    - container: tarpaulin
-      image: termoshtt/tarpaulin
-      options: --security-opt seccomp=unconfined
-
 jobs:
   - job: LinuxOpenBLAS
     pool:
@@ -98,8 +92,19 @@ jobs:
   - job: Coverage
     pool:
       vmImage: 'ubuntu-16.04'
-    container: tarpaulin
     steps:
+      - script: |
+          curl https://sh.rustup.rs -sSf | sh -s -- --default-toolchain nightly
+          echo "##vso[task.setvariable variable=PATH;]$PATH:$HOME/.cargo/bin"
+        displayName: install rustup
+      - script: |
+          sudo apt-get update
+          sudo apt-get install -y gfortran libssl-dev pkg-config cmake zlib1g-dev
+        displayName: apt install
+      - script: |
+          cargo install cargo-tarpaulin -f
+          cargo tarpaulin -v
+        displayName: install tarpauling
       - script: |
           cargo tarpaulin -v --features=openblas-static --out Xml
           curl -s https://codecov.io/bash -o .codecov && chmod +x .codecov
@@ -108,6 +113,6 @@ jobs:
                      -P "${SYSTEM_PULLREQUEST_PULLREQUESTNUMBER:-}" \
                      -b "${BUILD_BUILDID:-}" \
                      -K -n "report name"
-        displayName: 'run tarpaulin'
+        displayName: run tarpaulin
         env:
           CODECOV_TOKEN: $(myCodecovToken)

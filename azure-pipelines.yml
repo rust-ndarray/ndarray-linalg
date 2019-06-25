@@ -99,7 +99,7 @@ jobs:
         displayName: install rustup
       - script: |
           sudo apt-get update
-          sudo apt-get install -y gfortran libssl-dev pkg-config cmake zlib1g-dev
+          sudo apt-get install -y gfortran libssl-dev pkg-config cmake zlib1g-dev liblzma-dev
         displayName: apt install
       - script: |
           cargo install cargo-tarpaulin -f

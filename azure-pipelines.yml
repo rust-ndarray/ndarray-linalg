@@ -103,7 +103,6 @@ jobs:
         displayName: apt install
       - script: |
           cargo install cargo-tarpaulin -f
-          cargo tarpaulin -v
         displayName: install tarpauling
       - script: |
           cargo tarpaulin -v --features=openblas-static --out Xml

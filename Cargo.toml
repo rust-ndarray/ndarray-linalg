@@ -41,6 +41,10 @@ default-features = false
 version = "0.3"
 default-features = false
 
+[dependencies.sprs]
+git = "https://github.com/pmarks/sprs.git"
+optional = true
+
 [dependencies.openblas-src]
 version = "0.6"
 default-features = false

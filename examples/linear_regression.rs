@@ -72,7 +72,7 @@ impl LinearRegression {
         if self.fit_intercept {
             let dummy_column: Array<f64, _> = Array::ones((n_samples, 1));
             let X = stack(Axis(1), &[dummy_column.view(), X.view()]).unwrap();
-            self._predict(X)
+            self._predict(&X)
         } else {
             self._predict(X)
         }

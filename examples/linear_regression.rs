@@ -1,3 +1,4 @@
+#![allow(non_snake_case)]
 use ndarray::{Array1, ArrayBase, Array2, stack, Axis, Array, Ix2, Data};
 use ndarray_linalg::{Solve, random};
 use ndarray_stats::DeviationExt;
@@ -30,7 +31,7 @@ impl LinearRegression {
     }
 
     fn fit(&mut self, mut X: Array2<f32>, y: Array1<f32>) {
-        let (n_samples, n_features) = X.dim();
+        let (n_samples, _) = X.dim();
 
         // Check that our inputs have compatible shapes
         assert_eq!(y.dim(), n_samples);
@@ -46,11 +47,11 @@ impl LinearRegression {
         self.beta = Some(linear_operator.solve_into(rhs).unwrap());
     }
 
-    fn predict<A>(&self, mut X: &ArrayBase<A, Ix2>) -> Array1<f32>
+    fn predict<A>(&self, X: &ArrayBase<A, Ix2>) -> Array1<f32>
     where
         A: Data<Elem=f32>,
     {
-        let (n_samples, n_features) = X.dim();
+        let (n_samples, _) = X.dim();
 
         // If we are fitting the intercept, we need an additional column
         let X = if self.fit_intercept {

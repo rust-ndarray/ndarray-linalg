@@ -69,13 +69,19 @@ impl LinearRegression {
         let (n_samples, _) = X.dim();
 
         // If we are fitting the intercept, we need an additional column
-        let X = if self.fit_intercept {
+        if self.fit_intercept {
             let dummy_column: Array<f64, _> = Array::ones((n_samples, 1));
-            stack(Axis(1), &[dummy_column.view(), X.view()]).unwrap()
+            let X = stack(Axis(1), &[dummy_column.view(), X.view()]).unwrap();
+            self._predict(X)
         } else {
-            X.to_owned()
-        };
+            self._predict(X)
+        }
+    }
 
+    fn _predict<A>(&self, X: &ArrayBase<A, Ix2>) -> Array1<f64>
+        where
+            A: Data<Elem=f64>,
+    {
         match &self.beta {
             None => panic!("The linear regression estimator has to be fitted first!"),
             Some(beta) => {

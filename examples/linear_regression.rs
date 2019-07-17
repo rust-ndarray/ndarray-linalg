@@ -77,7 +77,7 @@ fn get_data(n_samples: usize, n_features: usize) -> (
     let shape = (n_samples, n_features);
     let noise: Array1<f64> = Array::random(n_samples, StandardNormal);
 
-    let beta: Array1<f64> = random(n_features) * 100.;
+    let beta: Array1<f64> = random(n_features) * 10.;
     println!("Beta used to generate target variable: {:.3}", beta);
 
     let X: Array2<f64> = random(shape);

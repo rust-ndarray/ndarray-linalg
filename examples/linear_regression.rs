@@ -1,8 +1,8 @@
 #![allow(non_snake_case)]
-use ndarray::{Array1, ArrayBase, Array2, stack, Axis, Array, Ix2, Ix1, Data};
-use ndarray_linalg::{Solve, random};
-use ndarray_stats::DeviationExt;
+use ndarray::{stack, Array, Array1, Array2, ArrayBase, Axis, Data, Ix1, Ix2};
+use ndarray_linalg::{random, Solve};
 use ndarray_rand::RandomExt;
+use ndarray_stats::DeviationExt;
 use rand::distributions::StandardNormal;
 
 /// The simple linear regression model is
@@ -28,14 +28,14 @@ impl LinearRegression {
     fn new(fit_intercept: bool) -> LinearRegression {
         LinearRegression {
             beta: None,
-            fit_intercept
+            fit_intercept,
         }
     }
 
     fn fit<A, B>(&mut self, X: ArrayBase<A, Ix2>, y: ArrayBase<B, Ix1>)
     where
-        A: Data<Elem=f64>,
-        B: Data<Elem=f64>,
+        A: Data<Elem = f64>,
+        B: Data<Elem = f64>,
     {
         let (n_samples, _) = X.dim();
 
@@ -53,9 +53,9 @@ impl LinearRegression {
     }
 
     fn solve_normal_equation<A, B>(X: ArrayBase<A, Ix2>, y: ArrayBase<B, Ix1>) -> Array1<f64>
-        where
-            A: Data<Elem=f64>,
-            B: Data<Elem=f64>,
+    where
+        A: Data<Elem = f64>,
+        B: Data<Elem = f64>,
     {
         let rhs = X.t().dot(&y);
         let linear_operator = X.t().dot(&X);
@@ -64,7 +64,7 @@ impl LinearRegression {
 
     fn predict<A>(&self, X: &ArrayBase<A, Ix2>) -> Array1<f64>
     where
-        A: Data<Elem=f64>,
+        A: Data<Elem = f64>,
     {
         let (n_samples, _) = X.dim();
 
@@ -79,21 +79,17 @@ impl LinearRegression {
     }
 
     fn _predict<A>(&self, X: &ArrayBase<A, Ix2>) -> Array1<f64>
-        where
-            A: Data<Elem=f64>,
+    where
+        A: Data<Elem = f64>,
     {
         match &self.beta {
             None => panic!("The linear regression estimator has to be fitted first!"),
-            Some(beta) => {
-                X.dot(beta)
-            }
+            Some(beta) => X.dot(beta),
         }
     }
 }
 
-fn get_data(n_samples: usize, n_features: usize) -> (
-    Array2<f64>, Array1<f64>
-) {
+fn get_data(n_samples: usize, n_features: usize) -> (Array2<f64>, Array1<f64>) {
     let shape = (n_samples, n_features);
     let noise: Array1<f64> = Array::random(n_samples, StandardNormal);
 
@@ -119,6 +115,12 @@ pub fn main() {
 
     let test_predictions = linear_regressor.predict(&X_test);
     let mean_squared_error = test_predictions.mean_sq_err(&y_test.to_owned()).unwrap();
-    println!("Beta estimated from the training data: {:.3}", linear_regressor.beta.unwrap());
-    println!("The fitted regressor has a root mean squared error of {:.3}", mean_squared_error);
+    println!(
+        "Beta estimated from the training data: {:.3}",
+        linear_regressor.beta.unwrap()
+    );
+    println!(
+        "The fitted regressor has a root mean squared error of {:.3}",
+        mean_squared_error
+    );
 }

@@ -1,5 +1,5 @@
 #![allow(non_snake_case)]
-use ndarray::{Array1, ArrayBase, Array2, stack, Axis, Array, Ix2, Data};
+use ndarray::{Array1, ArrayBase, Array2, stack, Axis, Array, Ix2, Ix1, Data};
 use ndarray_linalg::{Solve, random};
 use ndarray_stats::DeviationExt;
 use ndarray_rand::RandomExt;
@@ -13,11 +13,12 @@ use rand::distributions::StandardNormal;
 /// The loss for the model is simply the squared error between the model
 /// predictions and the true values:
 ///     Loss = ||y - bX||^2
-/// The MLE for the model parameters b can be computed in closed form via the
-/// normal equation:
+/// The maximum likelihood estimation for the model parameters `beta` can be computed
+/// in closed form via the normal equation:
 ///     b = (X^T X)^{-1} X^T y
-/// where (X^T X)^{-1} X^T is known as the pseudoinverse / Moore-Penrose
-/// inverse.
+/// where (X^T X)^{-1} X^T is known as the pseudoinverse or Moore-Penrose inverse.
+///
+/// Adapted from: https://github.com/xinscrs/numpy-ml
 struct LinearRegression {
     pub beta: Option<Array1<f64>>,
     fit_intercept: bool,
@@ -31,21 +32,34 @@ impl LinearRegression {
         }
     }
 
-    fn fit(&mut self, mut X: Array2<f64>, y: Array1<f64>) {
+    fn fit<A, B>(&mut self, X: ArrayBase<A, Ix2>, y: ArrayBase<B, Ix1>)
+    where
+        A: Data<Elem=f64>,
+        B: Data<Elem=f64>,
+    {
         let (n_samples, _) = X.dim();
 
         // Check that our inputs have compatible shapes
         assert_eq!(y.dim(), n_samples);
 
         // If we are fitting the intercept, we need an additional column
-        if self.fit_intercept {
+        self.beta = if self.fit_intercept {
             let dummy_column: Array<f64, _> = Array::ones((n_samples, 1));
-            X = stack(Axis(1), &[dummy_column.view(), X.view()]).unwrap();
+            let X = stack(Axis(1), &[dummy_column.view(), X.view()]).unwrap();
+            Some(LinearRegression::solve_normal_equation(X, y))
+        } else {
+            Some(LinearRegression::solve_normal_equation(X, y))
         };
+    }
 
+    fn solve_normal_equation<A, B>(X: ArrayBase<A, Ix2>, y: ArrayBase<B, Ix1>) -> Array1<f64>
+        where
+            A: Data<Elem=f64>,
+            B: Data<Elem=f64>,
+    {
         let rhs = X.t().dot(&y);
         let linear_operator = X.t().dot(&X);
-        self.beta = Some(linear_operator.solve_into(rhs).unwrap());
+        linear_operator.solve_into(rhs).unwrap()
     }
 
     fn predict<A>(&self, X: &ArrayBase<A, Ix2>) -> Array1<f64>
@@ -93,7 +107,7 @@ pub fn main() {
     let (X_train, X_test) = X.view().split_at(Axis(0), n_train_samples);
     let (y_train, y_test) = y.view().split_at(Axis(0), n_train_samples);
     let mut linear_regressor = LinearRegression::new(false);
-    linear_regressor.fit(X_train.to_owned(), y_train.to_owned());
+    linear_regressor.fit(X_train, y_train);
     let test_predictions = linear_regressor.predict(&X_test);
     let mean_squared_error = test_predictions.mean_sq_err(&y_test.to_owned()).unwrap();
     println!("Beta estimated from the training data: {:.3}", linear_regressor.beta.unwrap());

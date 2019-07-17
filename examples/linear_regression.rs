@@ -1,5 +1,6 @@
 use ndarray::{Array1, ArrayBase, Array2, stack, Axis, Array, Ix2, Data};
-use ndarray_linalg::{Solve};
+use ndarray_linalg::{Solve, random};
+use ndarray_stats::DeviationExt;
 
 
 /// The simple linear regression model is
@@ -45,7 +46,7 @@ impl LinearRegression {
         self.beta = Some(linear_operator.solve_into(rhs).unwrap());
     }
 
-    fn predict<A>(&self, mut X: &mut ArrayBase<A, Ix2>) -> Array1<f32>
+    fn predict<A>(&self, mut X: &ArrayBase<A, Ix2>) -> Array1<f32>
     where
         A: Data<Elem=f32>,
     {
@@ -66,4 +67,26 @@ impl LinearRegression {
             }
         }
     }
+}
+
+fn get_data(n_train_samples: usize, n_test_samples: usize, n_features: usize) -> (
+    Array2<f32>, Array2<f32>, Array1<f32>, Array1<f32>
+) {
+    let X_train: Array2<f32> = random((n_train_samples, n_features));
+    let y_train: Array1<f32> = random(n_train_samples);
+    let X_test: Array2<f32> = random((n_test_samples, n_features));
+    let y_test: Array1<f32> = random(n_test_samples);
+    (X_train, X_test, y_train, y_test)
+}
+
+pub fn main() {
+    let n_train_samples = 5000;
+    let n_test_samples = 1000;
+    let n_features = 15;
+    let (X_train, X_test, y_train, y_test) = get_data(n_train_samples, n_test_samples, n_features);
+    let mut linear_regressor = LinearRegression::new(true);
+    linear_regressor.fit(X_train, y_train);
+    let test_predictions = linear_regressor.predict(&X_test);
+    let mean_squared_error = test_predictions.sq_l2_dist(&y_test).unwrap();
+    println!("The fitted regressor has a root mean squared error of {:}", mean_squared_error);
 }

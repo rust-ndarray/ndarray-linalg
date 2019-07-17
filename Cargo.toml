@@ -49,3 +49,4 @@ optional = true
 
 [dev-dependencies]
 paste = "0.1"
+ndarray-stats = {git = "https://github.com/rust-ndarray/ndarray-stats", branch = "master"}

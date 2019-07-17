@@ -2,7 +2,8 @@
 use ndarray::{Array1, ArrayBase, Array2, stack, Axis, Array, Ix2, Data};
 use ndarray_linalg::{Solve, random};
 use ndarray_stats::DeviationExt;
-
+use ndarray_rand::RandomExt;
+use rand::distributions::StandardNormal;
 
 /// The simple linear regression model is
 ///     y = bX + e  where e ~ N(0, sigma^2 * I)
@@ -18,7 +19,7 @@ use ndarray_stats::DeviationExt;
 /// where (X^T X)^{-1} X^T is known as the pseudoinverse / Moore-Penrose
 /// inverse.
 struct LinearRegression {
-    beta: Option<Array1<f32>>,
+    pub beta: Option<Array1<f64>>,
     fit_intercept: bool,
 }
 
@@ -30,7 +31,7 @@ impl LinearRegression {
         }
     }
 
-    fn fit(&mut self, mut X: Array2<f32>, y: Array1<f32>) {
+    fn fit(&mut self, mut X: Array2<f64>, y: Array1<f64>) {
         let (n_samples, _) = X.dim();
 
         // Check that our inputs have compatible shapes
@@ -38,7 +39,7 @@ impl LinearRegression {
 
         // If we are fitting the intercept, we need an additional column
         if self.fit_intercept {
-            let dummy_column: Array<f32, _> = Array::ones((n_samples, 1));
+            let dummy_column: Array<f64, _> = Array::ones((n_samples, 1));
             X = stack(Axis(1), &[dummy_column.view(), X.view()]).unwrap();
         };
 
@@ -47,15 +48,15 @@ impl LinearRegression {
         self.beta = Some(linear_operator.solve_into(rhs).unwrap());
     }
 
-    fn predict<A>(&self, X: &ArrayBase<A, Ix2>) -> Array1<f32>
+    fn predict<A>(&self, X: &ArrayBase<A, Ix2>) -> Array1<f64>
     where
-        A: Data<Elem=f32>,
+        A: Data<Elem=f64>,
     {
         let (n_samples, _) = X.dim();
 
         // If we are fitting the intercept, we need an additional column
         let X = if self.fit_intercept {
-            let dummy_column: Array<f32, _> = Array::ones((n_samples, 1));
+            let dummy_column: Array<f64, _> = Array::ones((n_samples, 1));
             stack(Axis(1), &[dummy_column.view(), X.view()]).unwrap()
         } else {
             X.to_owned()
@@ -70,24 +71,31 @@ impl LinearRegression {
     }
 }
 
-fn get_data(n_train_samples: usize, n_test_samples: usize, n_features: usize) -> (
-    Array2<f32>, Array2<f32>, Array1<f32>, Array1<f32>
+fn get_data(n_samples: usize, n_features: usize) -> (
+    Array2<f64>, Array1<f64>
 ) {
-    let X_train: Array2<f32> = random((n_train_samples, n_features));
-    let y_train: Array1<f32> = random(n_train_samples);
-    let X_test: Array2<f32> = random((n_test_samples, n_features));
-    let y_test: Array1<f32> = random(n_test_samples);
-    (X_train, X_test, y_train, y_test)
+    let shape = (n_samples, n_features);
+    let noise: Array1<f64> = Array::random(n_samples, StandardNormal);
+
+    let beta: Array1<f64> = random(n_features) * 100.;
+    println!("Beta used to generate target variable: {:.3}", beta);
+
+    let X: Array2<f64> = random(shape);
+    let y: Array1<f64> = X.dot(&beta) + noise;
+    (X, y)
 }
 
 pub fn main() {
     let n_train_samples = 5000;
     let n_test_samples = 1000;
-    let n_features = 15;
-    let (X_train, X_test, y_train, y_test) = get_data(n_train_samples, n_test_samples, n_features);
-    let mut linear_regressor = LinearRegression::new(true);
-    linear_regressor.fit(X_train, y_train);
+    let n_features = 3;
+    let (X, y) = get_data(n_train_samples + n_test_samples, n_features);
+    let (X_train, X_test) = X.view().split_at(Axis(0), n_train_samples);
+    let (y_train, y_test) = y.view().split_at(Axis(0), n_train_samples);
+    let mut linear_regressor = LinearRegression::new(false);
+    linear_regressor.fit(X_train.to_owned(), y_train.to_owned());
     let test_predictions = linear_regressor.predict(&X_test);
-    let mean_squared_error = test_predictions.sq_l2_dist(&y_test).unwrap();
-    println!("The fitted regressor has a root mean squared error of {:}", mean_squared_error);
+    let mean_squared_error = test_predictions.mean_sq_err(&y_test.to_owned()).unwrap();
+    println!("Beta estimated from the training data: {:.3}", linear_regressor.beta.unwrap());
+    println!("The fitted regressor has a root mean squared error of {:.3}", mean_squared_error);
 }

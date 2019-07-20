@@ -15,7 +15,7 @@ use ndarray_linalg::Solve;
 ///     b = (X^T X)^{-1} X^T y
 /// where (X^T X)^{-1} X^T is known as the pseudoinverse or Moore-Penrose inverse.
 ///
-/// Adapted from: https://github.com/xinscrs/numpy-ml
+/// Adapted from: https://github.com/ddbourgin/numpy-ml
 pub struct LinearRegression {
     pub beta: Option<Array1<f64>>,
     fit_intercept: bool,

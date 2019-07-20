@@ -29,6 +29,13 @@ impl LinearRegression {
         }
     }
 
+    /// Given:
+    /// - an input matrix `X`, with shape `(n_samples, n_features)`;
+    /// - a target variable `y`, with shape `(n_samples,)`;
+    /// `fit` tunes the `beta` parameter of the linear regression model
+    /// to match the training data distribution.
+    ///
+    /// `self` is modified in place, nothing is returned.
     pub fn fit<A, B>(&mut self, X: ArrayBase<A, Ix2>, y: ArrayBase<B, Ix1>)
     where
         A: Data<Elem = f64>,
@@ -49,6 +56,11 @@ impl LinearRegression {
         };
     }
 
+    /// Given an input matrix `X`, with shape `(n_samples, n_features)`,
+    /// `predict` returns the target variable according to linear model
+    /// learned from the training data distribution.
+    ///
+    /// **Panics** if `self` has not be `fit`ted before calling `predict.
     pub fn predict<A>(&self, X: &ArrayBase<A, Ix2>) -> Array1<f64>
         where
             A: Data<Elem = f64>,

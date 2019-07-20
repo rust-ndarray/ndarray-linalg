@@ -29,7 +29,8 @@ num-complex = "0.2.1"
 rand = "0.5"
 
 [dependencies.ndarray]
-version = "0.12"
+git = "https://github.com/LukeMathWalker/ndarray"
+branch = "re-export-rand-distribution"
 features = ["blas"]
 default-features = false
 
@@ -49,6 +50,8 @@ optional = true
 
 [dev-dependencies]
 paste = "0.1"
-ndarray-stats = {git = "https://github.com/rust-ndarray/ndarray-stats", branch = "master"}
-ndarray-rand = "0.9"
-rand = "0.6"
+ndarray-rand = {git = "https://github.com/LukeMathWalker/ndarray", branch = "re-export-rand-distribution"}
+rand = "0.7"
+
+[patch.crates-io]
+ndarray = {git = "https://github.com/LukeMathWalker/ndarray", branch = "re-export-rand-distribution"}

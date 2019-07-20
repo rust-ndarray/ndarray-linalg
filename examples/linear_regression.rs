@@ -120,7 +120,7 @@ pub fn main() {
         linear_regressor.beta.unwrap()
     );
     println!(
-        "The fitted regressor has a root mean squared error of {:.3}",
+        "The fitted regressor has a mean squared error of {:.3}",
         mean_squared_error
     );
 }

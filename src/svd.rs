@@ -75,8 +75,12 @@ where
         let l = self.layout()?;
         let svd_res = unsafe { A::svd(l, calc_u, calc_vt, self.as_allocated_mut()?)? };
         let (n, m) = l.size();
-        let u = svd_res.u.map(|u| into_matrix(l.resized(n, n), u).unwrap());
-        let vt = svd_res.vt.map(|vt| into_matrix(l.resized(m, m), vt).unwrap());
+        let u = svd_res
+            .u
+            .map(|u| into_matrix(l.resized(n, n), u).expect("Size of U mismatches"));
+        let vt = svd_res
+            .vt
+            .map(|vt| into_matrix(l.resized(m, m), vt).expect("Size of VT mismatches"));
         let s = ArrayBase::from_vec(svd_res.s);
         Ok((u, s, vt))
     }

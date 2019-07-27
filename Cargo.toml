@@ -45,3 +45,6 @@ default-features = false
 version = "0.6"
 default-features = false
 optional = true
+
+[dev-dependencies]
+paste = "0.1"

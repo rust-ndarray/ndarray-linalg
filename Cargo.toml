@@ -19,6 +19,7 @@ netlib     = ["lapack-src/netlib", "blas-src/netlib"]
 openblas   = ["lapack-src/openblas", "blas-src/openblas"]
 serde-1    = ["ndarray/serde-1", "num-complex/serde"]
 
+static          = ["openblas-static"]
 openblas-static = ["openblas", "openblas-src"]
 
 [dependencies]

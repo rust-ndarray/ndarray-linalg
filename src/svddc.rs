@@ -28,10 +28,7 @@ pub trait SVDDCInto {
     type U;
     type VT;
     type Sigma;
-    fn svddc_into(
-        self,
-        uvt_flag: UVTFlag,
-    ) -> Result<(Option<Self::U>, Self::Sigma, Option<Self::VT>)>;
+    fn svddc_into(self, uvt_flag: UVTFlag) -> Result<(Option<Self::U>, Self::Sigma, Option<Self::VT>)>;
 }
 
 /// Singular-value decomposition of matrix reference by divide-and-conquer
@@ -39,10 +36,7 @@ pub trait SVDDCInplace {
     type U;
     type VT;
     type Sigma;
-    fn svddc_inplace(
-        &mut self,
-        uvt_flag: UVTFlag,
-    ) -> Result<(Option<Self::U>, Self::Sigma, Option<Self::VT>)>;
+    fn svddc_inplace(&mut self, uvt_flag: UVTFlag) -> Result<(Option<Self::U>, Self::Sigma, Option<Self::VT>)>;
 }
 
 impl<A, S> SVDDC for ArrayBase<S, Ix2>
@@ -68,10 +62,7 @@ where
     type VT = Array2<A>;
     type Sigma = Array1<A::Real>;
 
-    fn svddc_into(
-        mut self,
-        uvt_flag: UVTFlag,
-    ) -> Result<(Option<Self::U>, Self::Sigma, Option<Self::VT>)> {
+    fn svddc_into(mut self, uvt_flag: UVTFlag) -> Result<(Option<Self::U>, Self::Sigma, Option<Self::VT>)> {
         self.svddc_inplace(uvt_flag)
     }
 }
@@ -85,10 +76,7 @@ where
     type VT = Array2<A>;
     type Sigma = Array1<A::Real>;
 
-    fn svddc_inplace(
-        &mut self,
-        uvt_flag: UVTFlag,
-    ) -> Result<(Option<Self::U>, Self::Sigma, Option<Self::VT>)> {
+    fn svddc_inplace(&mut self, uvt_flag: UVTFlag) -> Result<(Option<Self::U>, Self::Sigma, Option<Self::VT>)> {
         let l = self.layout()?;
         let svd_res = unsafe { A::svddc(l, uvt_flag, self.as_allocated_mut()?)? };
         let (m, n) = l.size();
@@ -104,7 +92,7 @@ where
         let vt = svd_res
             .vt
             .map(|vt| into_matrix(l.resized(ldvt, tdvt), vt).expect("Size of VT mismatches"));
-        let s = ArrayBase::from_vec(svd_res.s);
+        let s = ArrayBase::from(svd_res.s);
         Ok((u, s, vt))
     }
 }

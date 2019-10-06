@@ -96,10 +96,10 @@ where
         let shape = self.shape();
         let strides = self.strides();
         if shape[0] == strides[1] as usize {
-            return Ok(MatrixLayout::F((self.cols() as i32, self.rows() as i32)));
+            return Ok(MatrixLayout::F((self.ncols() as i32, self.nrows() as i32)));
         }
         if shape[1] == strides[0] as usize {
-            return Ok(MatrixLayout::C((self.rows() as i32, self.cols() as i32)));
+            return Ok(MatrixLayout::C((self.nrows() as i32, self.ncols() as i32)));
         }
         Err(LinalgError::InvalidStride {
             s0: strides[0],
@@ -122,8 +122,8 @@ where
             Ok(())
         } else {
             Err(LinalgError::NotSquare {
-                rows: self.rows() as i32,
-                cols: self.cols() as i32,
+                rows: self.nrows() as i32,
+                cols: self.ncols() as i32,
             })
         }
     }

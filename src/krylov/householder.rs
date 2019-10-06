@@ -18,7 +18,8 @@ where
     let alpha = -x[0].mul_real(norm / x[0].abs());
     x[0] -= alpha;
     let inv_rev_norm = A::Real::one() / x.norm_l2();
-    azip!(mut a(x) in { *a = a.mul_real(inv_rev_norm)});
+    // azip!(mut a(x) in { *a = a.mul_real(inv_rev_norm)});
+    azip!((a in x) *a = a.mul_real(inv_rev_norm));
 }
 
 /// Take a reflection `P = I - 2ww^T`
@@ -107,7 +108,7 @@ impl<A: Scalar + Lapack> Householder<A> {
         let k = self.len();
         let res = a.slice(s![k..]).norm_l2();
         let mut c = Array1::zeros(k + 1);
-        azip!(mut c(c.slice_mut(s![..k])), a(a.slice(s![..k])) in { *c = a });
+        azip!((c in c.slice_mut(s![..k]), &a in a.slice(s![..k])) *c = a);
         if k < a.len() {
             let ak = a[k];
             c[k] = -ak.mul_real(res / ak.abs());
@@ -123,7 +124,7 @@ impl<A: Scalar + Lapack> Householder<A> {
         S: DataMut<Elem = A>,
     {
         let k = self.len();
-        azip!(mut a( a.slice_mut(s![..k])) in { *a = A::zero() });
+        azip!((a in a.slice_mut(s![..k])) *a = A::zero());
         self.backward_reflection(a);
     }
 }

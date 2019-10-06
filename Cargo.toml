@@ -30,7 +30,7 @@ num-complex = "0.2.1"
 rand = "0.5"
 
 [dependencies.ndarray]
-version = "0.12"
+version = "0.13"
 features = ["blas"]
 default-features = false
 

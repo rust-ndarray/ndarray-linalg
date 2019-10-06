@@ -113,14 +113,14 @@ where
     assert!(a.is_square());
     match uplo {
         UPLO::Upper => {
-            for row in 0..a.rows() {
+            for row in 0..a.nrows() {
                 for col in 0..row {
                     a[(row, col)] = a[(col, row)].conj();
                 }
             }
         }
         UPLO::Lower => {
-            for col in 0..a.cols() {
+            for col in 0..a.ncols() {
                 for row in 0..col {
                     a[(row, col)] = a[(col, row)].conj();
                 }

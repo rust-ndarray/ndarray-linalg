@@ -103,8 +103,8 @@ where
     type R = Array2<A>;
 
     fn qr_into(mut self) -> Result<(Self::Q, Self::R)> {
-        let n = self.rows();
-        let m = self.cols();
+        let n = self.nrows();
+        let m = self.ncols();
         let k = ::std::cmp::min(n, m);
         let l = self.layout()?;
         let r = unsafe { A::qr(l, self.as_allocated_mut()?)? };

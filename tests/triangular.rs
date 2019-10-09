@@ -20,7 +20,7 @@ fn test2d<A, Sa, Sb>(uplo: UPLO, a: &ArrayBase<Sa, Ix2>, b: &ArrayBase<Sb, Ix2>,
 where
     A: Scalar + Lapack,
     Sa: Data<Elem = A>,
-    Sb: DataMut<Elem = A> + DataOwned + DataClone,
+    Sb: DataMut<Elem = A> + DataOwned + Data + RawDataClone,
 {
     println!("a = {:?}", a);
     println!("b = {:?}", b);

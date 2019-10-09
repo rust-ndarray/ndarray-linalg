@@ -8,9 +8,9 @@ where
     A: Scalar,
     S: Data<Elem = A>,
 {
-    let mut select_rows = (0..a.rows()).collect::<Vec<_>>();
+    let mut select_rows = (0..a.nrows()).collect::<Vec<_>>();
     select_rows.remove(row);
-    let mut select_cols = (0..a.cols()).collect::<Vec<_>>();
+    let mut select_cols = (0..a.ncols()).collect::<Vec<_>>();
     select_cols.remove(col);
     a.select(Axis(0), &select_rows).select(Axis(1), &select_cols)
 }
@@ -24,8 +24,8 @@ where
     A: Scalar,
     S: Data<Elem = A>,
 {
-    assert_eq!(a.rows(), a.cols());
-    match a.cols() {
+    assert_eq!(a.nrows(), a.ncols());
+    match a.ncols() {
         0 => A::one(),
         1 => a[(0, 0)],
         cols => (0..cols)

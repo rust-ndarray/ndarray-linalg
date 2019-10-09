@@ -81,7 +81,7 @@ where
         let vt = svd_res
             .vt
             .map(|vt| into_matrix(l.resized(m, m), vt).expect("Size of VT mismatches"));
-        let s = ArrayBase::from_vec(svd_res.s);
+        let s = ArrayBase::from(svd_res.s);
         Ok((u, s, vt))
     }
 }

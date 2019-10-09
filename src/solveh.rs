@@ -309,7 +309,7 @@ where
     let mut ln_det = A::Real::zero();
     let mut ipiv_enum = ipiv_iter.enumerate();
     while let Some((k, ipiv_k)) = ipiv_enum.next() {
-        debug_assert!(k < a.rows() && k < a.cols());
+        debug_assert!(k < a.nrows() && k < a.ncols());
         if ipiv_k > 0 {
             // 1x1 block at k, must be real.
             let elem = unsafe { a.uget((k, k)) }.re();

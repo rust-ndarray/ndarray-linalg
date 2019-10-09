@@ -8,6 +8,7 @@ use crate::layout::*;
 use crate::operator::LinearOperator;
 use crate::types::*;
 use crate::UPLO;
+use std::iter::FromIterator;
 
 /// Eigenvalue decomposition of Hermite matrix reference
 pub trait Eigh {
@@ -70,7 +71,7 @@ where
             MatrixLayout::F(_) => {}
         }
         let s = unsafe { A::eigh(true, self.square_layout()?, uplo, self.as_allocated_mut()?)? };
-        Ok((ArrayBase::from_vec(s), self))
+        Ok((ArrayBase::from(s), self))
     }
 }
 
@@ -126,7 +127,7 @@ where
 
     fn eigvalsh_inplace(&mut self, uplo: UPLO) -> Result<Self::EigVal> {
         let s = unsafe { A::eigh(true, self.square_layout()?, uplo, self.as_allocated_mut()?)? };
-        Ok(ArrayBase::from_vec(s))
+        Ok(ArrayBase::from(s))
     }
 }
 
@@ -164,7 +165,7 @@ where
 
     fn ssqrt_into(self, uplo: UPLO) -> Result<Self::Output> {
         let (e, v) = self.eigh_into(uplo)?;
-        let e_sqrt = Array1::from_iter(e.iter().map(|r| Scalar::from_real(r.sqrt())));
+        let e_sqrt = Array::from_iter(e.iter().map(|r| Scalar::from_real(r.sqrt())));
         let ev = e_sqrt.into_diagonal().apply2(&v.t());
         Ok(v.apply2(&ev))
     }

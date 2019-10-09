@@ -25,7 +25,7 @@ pub trait LinearOperator {
         S: DataMut<Elem = Self::Elem>,
     {
         let b = self.apply(a);
-        azip!(mut a(a), b in { *a = b });
+        azip!((a in a, &b in &b) *a = b);
     }
 
     /// Apply operator with move

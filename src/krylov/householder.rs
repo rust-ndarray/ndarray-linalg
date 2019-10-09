@@ -18,7 +18,6 @@ where
     let alpha = -x[0].mul_real(norm / x[0].abs());
     x[0] -= alpha;
     let inv_rev_norm = A::Real::one() / x.norm_l2();
-    // azip!(mut a(x) in { *a = a.mul_real(inv_rev_norm)});
     azip!((a in x) *a = a.mul_real(inv_rev_norm));
 }
 

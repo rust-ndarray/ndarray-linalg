@@ -17,40 +17,26 @@ default    = []
 intel-mkl  = ["lapack-src/intel-mkl", "blas-src/intel-mkl"]
 netlib     = ["lapack-src/netlib", "blas-src/netlib"]
 openblas   = ["lapack-src/openblas", "blas-src/openblas"]
-serde-1    = ["ndarray/serde-1", "num-complex/serde"]
+serde-1    = ["ndarray/serde-1"]
 
 static          = ["openblas-static"]
 openblas-static = ["openblas", "openblas-src"]
 
 [dependencies]
+cauchy = "0.3.0"
+num-traits = "0.2.12"
+rand = "0.7.3"
+
+blas-src = { version = "0.6.1", default-features = false }
+lapack-src = { version = "0.6.0", default-features = false }
 lapacke = "0.2.0"
-num-traits  = "0.2.11"
-cauchy = "0.2.2"
-num-complex = "0.2.4"
-rand = "0.5"
+openblas-src = { version = "0.9.0", default-features = false, features = ["static"], optional = true }
 
-[dependencies.ndarray]
-version = "0.13.0"
-features = ["blas"]
-default-features = false
-
-[dependencies.blas-src]
-version = "0.6.1"
-default-features = false
-
-[dependencies.lapack-src]
-version = "0.6.0"
-default-features = false
-
-[dependencies.openblas-src]
-version = "0.9.0"
-default-features = false
-features = ["static"]
-optional = true
+ndarray = { version = "0.13.1", features = ["blas"], default-features = false }
 
 [dev-dependencies]
-paste = "0.1.9"
-criterion = "0.3.1"
+paste = "0.1.17"
+criterion = "0.3.2"
 
 [[bench]]
 name = "truncated_eig"
@@ -59,4 +45,3 @@ harness = false
 [[bench]]
 name = "eigh"
 harness = false
-

@@ -1,7 +1,17 @@
-Unreleased
-===========
+0.12.0 - 14 Oct 2019
+====================
 
-- none
+Added
+-----
+- SVD by divide-and-conquer [#164](../../pull/164)
+- Householder reflection [#154](../../pull/154), Arnoldi iteration [#155](../../pull/155)
+
+Changed
+----------
+- Replace `operator::Operator*` traits by new `LinearOperator trait` [#159](../../pull/159)
+- ndarray 0.13.0 [#172](../../pull/172)
+- blas-src 0.4.0, lapack-src 0.4.0, openblas-src 0.7.0 [#174](../../pull/174)
+- restore `static` feature flag
 
 0.11.1 - 12 June 2019
 ---------------------

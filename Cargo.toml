@@ -35,15 +35,15 @@ features = ["blas"]
 default-features = false
 
 [dependencies.blas-src]
-version = "0.3"
+version = "0.4"
 default-features = false
 
 [dependencies.lapack-src]
-version = "0.3"
+version = "0.4"
 default-features = false
 
 [dependencies.openblas-src]
-version = "0.6"
+version = "0.7"
 default-features = false
 features = ["static"]
 optional = true

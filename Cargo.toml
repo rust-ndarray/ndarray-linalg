@@ -50,7 +50,7 @@ optional = true
 
 [dev-dependencies]
 paste = "0.1"
-criterion = "*"
+criterion = "0.3"
 
 [[bench]]
 name = "eigh"

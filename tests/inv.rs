@@ -25,3 +25,12 @@ fn inv_error() {
     let a_inv = a.inv().unwrap();
     println!("{:?}", a_inv);
 }
+
+#[test]
+fn inv_2x2() {
+    // Related to issue #123 where this problem led to a wrongly computed inverse when using the
+    // `openblas` backend.
+    let a: Array2<f64> = array!([1.0, 2.0], [3.0, 4.0]);
+    let a_inv = a.inv().unwrap();
+    assert_close_l2!(&a_inv, &array!([-2.0, 1.0], [1.5, -0.5]), 1e-7);
+}

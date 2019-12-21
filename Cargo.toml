@@ -13,7 +13,7 @@ readme        = "README.md"
 categories    = ["algorithms", "science"]
 
 [features]
-default    = []
+default    = ["intel-mkl"]
 intel-mkl  = ["lapack-src/intel-mkl", "blas-src/intel-mkl", "intel-mkl-sys"]
 netlib     = ["lapack-src/netlib", "blas-src/netlib"]
 openblas   = ["lapack-src/openblas", "blas-src/openblas"]

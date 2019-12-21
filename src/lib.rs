@@ -67,6 +67,7 @@ pub mod svddc;
 pub mod trace;
 pub mod triangular;
 pub mod types;
+pub mod vecmath;
 
 pub use assert::*;
 pub use cholesky::*;

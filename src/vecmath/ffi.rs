@@ -106,14 +106,14 @@ trait VecMathReal: Sized {
     fn minmag(a: &[Self], b: &[Self], out: &mut [Self]);
 }
 
-trait VecMathComplex: Sized {
+trait VecMathComplex: Scalar {
     /* Arthmetic */
-    fn mulbyconj(in_: &[Self], out: &mut [Self]);
+    fn mul_by_conj(a: &[Self], b: &[Self], out: &mut [Self]);
     fn conj(in_: &[Self], out: &mut [Self]);
-    fn arg(in_: &[Self], out: &mut [Self]);
+    fn arg(in_: &[Self], out: &mut [Self::Real]);
 
     /* Trigonometric */
-    fn cis(in_: &[Self], out: &mut [Self]);
+    fn cis(in_: &[Self::Real], out: &mut [Self]);
 }
 
 macro_rules! impl_unary {
@@ -388,6 +388,22 @@ macro_rules! impl_unary_real_c {
     };
 }
 
+macro_rules! impl_real_unary_c {
+    ($scalar:ty, $mkl_complex:ty, $name:ident, $impl_name:ident) => {
+        fn $name(in_: &[<$scalar as Scalar>::Real], out: &mut [$scalar]) {
+            assert_eq!(in_.len(), out.len());
+            let n = in_.len() as i32;
+            unsafe {
+                $impl_name(
+                    n,
+                    in_.as_ptr() as *const <$scalar as Scalar>::Real,
+                    out.as_mut_ptr() as *mut $mkl_complex,
+                )
+            }
+        }
+    };
+}
+
 macro_rules! impl_binary_c {
     ($scalar:ty, $mkl_complex:ty, $name:ident, $impl_name:ident) => {
         fn $name(a: &[$scalar], b: &[$scalar], out: &mut [$scalar]) {
@@ -506,4 +522,18 @@ impl VecMath for c64 {
     impl_unary_c!(c64, MKL_Complex16, acosh, vzAcosh);
     impl_unary_c!(c64, MKL_Complex16, asinh, vzAsinh);
     impl_unary_c!(c64, MKL_Complex16, atanh, vzAtanh);
+}
+
+impl VecMathComplex for c32 {
+    impl_binary_c!(c32, MKL_Complex8, mul_by_conj, vcMulByConj);
+    impl_unary_c!(c32, MKL_Complex8, conj, vcConj);
+    impl_unary_real_c!(c32, MKL_Complex8, arg, vcArg);
+    impl_real_unary_c!(c32, MKL_Complex8, cis, vcCIS);
+}
+
+impl VecMathComplex for c64 {
+    impl_binary_c!(c64, MKL_Complex16, mul_by_conj, vzMulByConj);
+    impl_unary_c!(c64, MKL_Complex16, conj, vzConj);
+    impl_unary_real_c!(c64, MKL_Complex16, arg, vzArg);
+    impl_real_unary_c!(c64, MKL_Complex16, cis, vzCIS);
 }

@@ -67,6 +67,7 @@ pub mod svddc;
 pub mod trace;
 pub mod triangular;
 pub mod types;
+#[cfg(feature = "intel-mkl")]
 pub mod vecmath;
 
 pub use assert::*;

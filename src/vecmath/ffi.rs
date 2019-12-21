@@ -1,11 +1,13 @@
+use cauchy::Scalar;
 use intel_mkl_sys::*;
+use num_complex::{Complex32 as c32, Complex64 as c64};
 
-trait VecMath: Sized {
+trait VecMath: Scalar {
     /* Arthmetic */
     fn add(a: &[Self], b: &[Self], out: &mut [Self]);
     fn sub(a: &[Self], b: &[Self], out: &mut [Self]);
     fn mul(a: &[Self], b: &[Self], out: &mut [Self]);
-    fn abs(in_: &[Self], out: &mut [Self]);
+    fn abs(in_: &[Self], out: &mut [Self::Real]);
 
     /* Power and Root */
     fn div(a: &[Self], b: &[Self], out: &mut [Self]);
@@ -194,4 +196,156 @@ impl VecMath for f64 {
     impl_unary!(f64, acosh, vdAcosh);
     impl_unary!(f64, asinh, vdAsinh);
     impl_unary!(f64, atanh, vdAtanh);
+}
+
+macro_rules! impl_unary_c {
+    ($scalar:ty, $mkl_complex:ty, $name:ident, $impl_name:ident) => {
+        fn $name(in_: &[$scalar], out: &mut [$scalar]) {
+            assert_eq!(in_.len(), out.len());
+            let n = in_.len() as i32;
+            unsafe {
+                $impl_name(
+                    n,
+                    in_.as_ptr() as *const $mkl_complex,
+                    out.as_mut_ptr() as *mut $mkl_complex,
+                )
+            }
+        }
+    };
+}
+
+macro_rules! impl_unary_real_c {
+    ($scalar:ty, $mkl_complex:ty, $name:ident, $impl_name:ident) => {
+        fn $name(in_: &[$scalar], out: &mut [<$scalar as Scalar>::Real]) {
+            assert_eq!(in_.len(), out.len());
+            let n = in_.len() as i32;
+            unsafe {
+                $impl_name(
+                    n,
+                    in_.as_ptr() as *const $mkl_complex,
+                    out.as_mut_ptr() as *mut <$scalar as Scalar>::Real,
+                )
+            }
+        }
+    };
+}
+
+macro_rules! impl_binary_c {
+    ($scalar:ty, $mkl_complex:ty, $name:ident, $impl_name:ident) => {
+        fn $name(a: &[$scalar], b: &[$scalar], out: &mut [$scalar]) {
+            assert_eq!(a.len(), out.len());
+            assert_eq!(b.len(), out.len());
+            let n = out.len() as i32;
+            unsafe {
+                $impl_name(
+                    n,
+                    a.as_ptr() as *const $mkl_complex,
+                    b.as_ptr() as *const $mkl_complex,
+                    out.as_mut_ptr() as *mut $mkl_complex,
+                )
+            }
+        }
+    };
+}
+
+macro_rules! impl_binary_scalar_c {
+    ($scalar:ty, $mkl_complex:ty, $name:ident, $impl_name:ident) => {
+        fn $name(a: &[$scalar], b: $scalar, out: &mut [$scalar]) {
+            assert_eq!(a.len(), out.len());
+            let n = out.len() as i32;
+            unsafe {
+                $impl_name(
+                    n,
+                    a.as_ptr() as *const $mkl_complex,
+                    b.into_mkl(),
+                    out.as_mut_ptr() as *mut $mkl_complex,
+                )
+            }
+        }
+    };
+}
+
+trait IntoMKL {
+    type Output;
+    fn into_mkl(self) -> Self::Output;
+}
+
+impl IntoMKL for c32 {
+    type Output = MKL_Complex8;
+    fn into_mkl(self) -> MKL_Complex8 {
+        MKL_Complex8 {
+            real: self.re,
+            imag: self.im,
+        }
+    }
+}
+
+impl IntoMKL for c64 {
+    type Output = MKL_Complex16;
+    fn into_mkl(self) -> MKL_Complex16 {
+        MKL_Complex16 {
+            real: self.re,
+            imag: self.im,
+        }
+    }
+}
+
+impl VecMath for c32 {
+    impl_binary_c!(c32, MKL_Complex8, add, vcAdd);
+    impl_binary_c!(c32, MKL_Complex8, sub, vcSub);
+    impl_binary_c!(c32, MKL_Complex8, mul, vcMul);
+    impl_unary_real_c!(c32, MKL_Complex8, abs, vcAbs);
+
+    impl_binary_c!(c32, MKL_Complex8, div, vcDiv);
+    impl_unary_c!(c32, MKL_Complex8, sqrt, vcSqrt);
+    impl_binary_c!(c32, MKL_Complex8, pow, vcPow);
+    impl_binary_scalar_c!(c32, MKL_Complex8, powx, vcPowx);
+
+    impl_unary_c!(c32, MKL_Complex8, exp, vcExp);
+    impl_unary_c!(c32, MKL_Complex8, ln, vcLn);
+    impl_unary_c!(c32, MKL_Complex8, log10, vcLog10);
+
+    impl_unary_c!(c32, MKL_Complex8, cos, vcCos);
+    impl_unary_c!(c32, MKL_Complex8, sin, vcSin);
+    impl_unary_c!(c32, MKL_Complex8, tan, vcTan);
+    impl_unary_c!(c32, MKL_Complex8, acos, vcAcos);
+    impl_unary_c!(c32, MKL_Complex8, asin, vcAsin);
+    impl_unary_c!(c32, MKL_Complex8, atan, vcAtan);
+
+    impl_unary_c!(c32, MKL_Complex8, cosh, vcCosh);
+    impl_unary_c!(c32, MKL_Complex8, sinh, vcSinh);
+    impl_unary_c!(c32, MKL_Complex8, tanh, vcTanh);
+    impl_unary_c!(c32, MKL_Complex8, acosh, vcAcosh);
+    impl_unary_c!(c32, MKL_Complex8, asinh, vcAsinh);
+    impl_unary_c!(c32, MKL_Complex8, atanh, vcAtanh);
+}
+
+impl VecMath for c64 {
+    impl_binary_c!(c64, MKL_Complex16, add, vzAdd);
+    impl_binary_c!(c64, MKL_Complex16, sub, vzSub);
+    impl_binary_c!(c64, MKL_Complex16, mul, vzMul);
+    impl_unary_real_c!(c64, MKL_Complex16, abs, vzAbs);
+
+    impl_binary_c!(c64, MKL_Complex16, div, vzDiv);
+    impl_unary_c!(c64, MKL_Complex16, sqrt, vzSqrt);
+    impl_binary_c!(c64, MKL_Complex16, pow, vzPow);
+    impl_binary_scalar_c!(c64, MKL_Complex16, powx, vzPowx);
+
+    impl_unary_c!(c64, MKL_Complex16, exp, vzExp);
+    impl_unary_c!(c64, MKL_Complex16, ln, vzLn);
+    impl_unary_c!(c64, MKL_Complex16, log10, vzLog10);
+
+    impl_unary_c!(c64, MKL_Complex16, cos, vzCos);
+    impl_unary_c!(c64, MKL_Complex16, sin, vzSin);
+    impl_unary_c!(c64, MKL_Complex16, tan, vzTan);
+    impl_unary_c!(c64, MKL_Complex16, acos, vzAcos);
+    impl_unary_c!(c64, MKL_Complex16, asin, vzAsin);
+    impl_unary_c!(c64, MKL_Complex16, atan, vzAtan);
+
+    impl_unary_c!(c64, MKL_Complex16, cosh, vzCosh);
+    impl_unary_c!(c64, MKL_Complex16, sinh, vzSinh);
+    impl_unary_c!(c64, MKL_Complex16, tanh, vzTanh);
+    impl_unary_c!(c64, MKL_Complex16, acosh, vzAcosh);
+    impl_unary_c!(c64, MKL_Complex16, asinh, vzAsinh);
+    impl_unary_c!(c64, MKL_Complex16, atanh, vzAtanh);
 }

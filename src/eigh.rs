@@ -42,10 +42,11 @@ where
     }
 }
 
-impl<A, S> EighInto for (ArrayBase<S, Ix2>, ArrayBase<S, Ix2>)
+impl<A, S, S2> EighInto for (ArrayBase<S, Ix2>, ArrayBase<S2, Ix2>)
 where
     A: Scalar + Lapack,
     S: DataMut<Elem = A>,
+    S2: DataMut<Elem = A>,
 {
     type EigVal = Array1<A::Real>;
 
@@ -69,10 +70,11 @@ where
     }
 }
 
-impl<A, S> Eigh for (ArrayBase<S, Ix2>, ArrayBase<S, Ix2>)
+impl<A, S, S2> Eigh for (ArrayBase<S, Ix2>, ArrayBase<S2, Ix2>)
 where
     A: Scalar + Lapack,
     S: Data<Elem = A>,
+    S2: Data<Elem = A>,
 {
     type EigVal = Array1<A::Real>;
     type EigVec = (Array2<A>, Array2<A>);
@@ -102,10 +104,11 @@ where
     }
 }
 
-impl<A, S> EighInplace for (ArrayBase<S, Ix2>, ArrayBase<S, Ix2>)
+impl<A, S, S2> EighInplace for (ArrayBase<S, Ix2>, ArrayBase<S2, Ix2>)
 where
     A: Scalar + Lapack,
     S: DataMut<Elem = A>,
+    S2: DataMut<Elem = A>,
 {
     type EigVal = Array1<A::Real>;
 

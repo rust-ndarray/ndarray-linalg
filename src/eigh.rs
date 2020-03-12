@@ -42,6 +42,19 @@ where
     }
 }
 
+impl<A, S> EighInto for (ArrayBase<S, Ix2>, ArrayBase<S, Ix2>)
+where
+    A: Scalar + Lapack,
+    S: DataMut<Elem = A>,
+{
+    type EigVal = Array1<A::Real>;
+
+    fn eigh_into(mut self, uplo: UPLO) -> Result<(Self::EigVal, Self)> {
+        let (val, _) = self.eigh_inplace(uplo)?;
+        Ok((val, self))
+    }
+}
+
 impl<A, S> Eigh for ArrayBase<S, Ix2>
 where
     A: Scalar + Lapack,
@@ -53,6 +66,20 @@ where
     fn eigh(&self, uplo: UPLO) -> Result<(Self::EigVal, Self::EigVec)> {
         let a = self.to_owned();
         a.eigh_into(uplo)
+    }
+}
+
+impl<A, S> Eigh for (ArrayBase<S, Ix2>, ArrayBase<S, Ix2>)
+where
+    A: Scalar + Lapack,
+    S: Data<Elem = A>,
+{
+    type EigVal = Array1<A::Real>;
+    type EigVec = Array2<A>;
+
+    fn eigh(&self, uplo: UPLO) -> Result<(Self::EigVal, Self::EigVec)> {
+        let (a,b) = (self.0.to_owned(), self.1.to_owned());
+        (a,b).eigh_into(uplo).map(|x| (x.0, (x.1).0))
     }
 }
 
@@ -71,6 +98,33 @@ where
             MatrixLayout::F(_) => {}
         }
         let s = unsafe { A::eigh(true, self.square_layout()?, uplo, self.as_allocated_mut()?)? };
+        Ok((ArrayBase::from(s), self))
+    }
+}
+
+impl<A, S> EighInplace for (ArrayBase<S, Ix2>, ArrayBase<S, Ix2>)
+where
+    A: Scalar + Lapack,
+    S: DataMut<Elem = A>,
+{
+    type EigVal = Array1<A::Real>;
+
+    fn eigh_inplace(&mut self, uplo: UPLO) -> Result<(Self::EigVal, &mut Self)> {
+        let layout = self.0.square_layout()?;
+        // XXX Force layout to be Fortran (see #146)
+        match layout {
+            MatrixLayout::C(_) => self.0.swap_axes(0, 1),
+            MatrixLayout::F(_) => {}
+        }
+
+        let layout = self.1.square_layout()?;
+        match layout {
+            MatrixLayout::C(_) => self.1.swap_axes(0, 1),
+            MatrixLayout::F(_) => {}
+        }
+
+        let s = unsafe { A::eigh_generalized(true, self.0.square_layout()?, uplo, self.0.as_allocated_mut()?, self.1.as_allocated_mut()?)? };
+
         Ok((ArrayBase::from(s), self))
     }
 }

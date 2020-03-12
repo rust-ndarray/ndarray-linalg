@@ -75,11 +75,11 @@ where
     S: Data<Elem = A>,
 {
     type EigVal = Array1<A::Real>;
-    type EigVec = Array2<A>;
+    type EigVec = (Array2<A>, Array2<A>);
 
     fn eigh(&self, uplo: UPLO) -> Result<(Self::EigVal, Self::EigVec)> {
         let (a,b) = (self.0.to_owned(), self.1.to_owned());
-        (a,b).eigh_into(uplo).map(|x| (x.0, (x.1).0))
+        (a,b).eigh_into(uplo)
     }
 }
 

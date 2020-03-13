@@ -1,39 +1,62 @@
-use num_traits::NumCast;
+///! Locally Optimal Block Preconditioned Conjugated
+///!
+///! This module implements the Locally Optimal Block Preconditioned Conjugated (LOBPCG) algorithm,
+///which can be used as a solver for large symmetric positive definite eigenproblems. 
+
+use crate::error::{LinalgError, Result};
+use crate::{cholesky::*, close_l2, eigh::*, norm::*, triangular::*};
+use crate::{Lapack, Scalar};
 use ndarray::prelude::*;
 use ndarray::OwnedRepr;
-use crate::{cholesky::*, triangular::*, eigh::*, norm::*, close_l2};
-//use sprs::CsMat;
-use crate::{Scalar, Lapack};
-use crate::error::{Result, LinalgError};
+use num_traits::NumCast;
 
+/// Find largest or smallest eigenvalues
 pub enum Order {
     Largest,
-    Smallest
+    Smallest,
 }
 
+/// The result of the eigensolver
+///
+/// In the best case the eigensolver has converged with a result better than the given threshold,
+/// then a `EigResult::Ok` gives the eigenvalues, eigenvectors and norms. If an error ocurred
+/// during the process, it is returned in `EigResult::Err`, but the best result is still returned,
+/// as it could be usable. If there is no result at all, then `EigResult::NoResult` is returned.
+/// This happens if the algorithm fails in an early stage, for example if the matrix `A` is not SPD
 #[derive(Debug)]
 pub enum EigResult<A> {
     Ok(Array1<A>, Array2<A>, Vec<A>),
     Err(Array1<A>, Array2<A>, Vec<A>, LinalgError),
-    NoResult(LinalgError)
+    NoResult(LinalgError),
 }
 
-fn sorted_eig<A: Scalar + Lapack>(a: ArrayView2<A>, b: Option<ArrayView2<A>>, size: usize, order: &Order) -> Result<(Array1<A>, Array2<A>)> {
-    //close_l2(&input, &input.t(), 1e-4);
-
+/// Solve full eigenvalue problem, sort by `order` and truncate to `size`
+fn sorted_eig<A: Scalar + Lapack>(
+    a: ArrayView2<A>,
+    b: Option<ArrayView2<A>>,
+    size: usize,
+    order: &Order,
+) -> Result<(Array1<A>, Array2<A>)> {
     let (vals, vecs) = match b {
         Some(b) => (a, b).eigh(UPLO::Upper).map(|x| (x.0, (x.1).0))?,
-        _ => a.eigh(UPLO::Upper)?
+        _ => a.eigh(UPLO::Upper)?,
     };
 
     let n = a.len_of(Axis(0));
 
     Ok(match order {
-        Order::Largest => (vals.slice_move(s![n-size..; -1]).mapv(|x| Scalar::from_real(x)), vecs.slice_move(s![.., n-size..; -1])),
-        Order::Smallest => (vals.slice_move(s![..size]).mapv(|x| Scalar::from_real(x)), vecs.slice_move(s![.., ..size]))
+        Order::Largest => (
+            vals.slice_move(s![n-size..; -1]).mapv(|x| Scalar::from_real(x)),
+            vecs.slice_move(s![.., n-size..; -1]),
+        ),
+        Order::Smallest => (
+            vals.slice_move(s![..size]).mapv(|x| Scalar::from_real(x)),
+            vecs.slice_move(s![.., ..size]),
+        ),
     })
 }
 
+/// Masks a matrix with the given `matrix`
 fn ndarray_mask<A: Scalar>(matrix: ArrayView2<A>, mask: &[bool]) -> Array2<A> {
     let (rows, cols) = (matrix.nrows(), matrix.ncols());
 
@@ -41,23 +64,33 @@ fn ndarray_mask<A: Scalar>(matrix: ArrayView2<A>, mask: &[bool]) -> Array2<A> {
 
     let n_positive = mask.iter().filter(|x| **x).count();
 
-    let matrix = matrix.gencolumns().into_iter().zip(mask.iter())
-        .filter(|(_,x)| **x)
-        .map(|(x,_)| x.to_vec())
+    let matrix = matrix
+        .gencolumns()
+        .into_iter()
+        .zip(mask.iter())
+        .filter(|(_, x)| **x)
+        .map(|(x, _)| x.to_vec())
         .flatten()
         .collect::<Vec<A>>();
 
-    Array2::from_shape_vec((n_positive, rows), matrix).unwrap().reversed_axes()
+    Array2::from_shape_vec((n_positive, rows), matrix)
+        .unwrap()
+        .reversed_axes()
 }
 
+/// Applies constraints ensuring that a matrix is orthogonal to it
+///
+/// This functions takes a matrix `v` and constraint matrix `y` and orthogonalize the `v` to `y`.
 fn apply_constraints<A: Scalar + Lapack>(
     mut v: ArrayViewMut<A, Ix2>,
     fact_yy: &CholeskyFactorized<OwnedRepr<A>>,
-    y: ArrayView2<A>
+    y: ArrayView2<A>,
 ) {
     let gram_yv = y.t().dot(&v);
 
-    let u = gram_yv.genrows().into_iter()
+    let u = gram_yv
+        .genrows()
+        .into_iter()
         .map(|x| fact_yy.solvec(&x).unwrap().to_vec())
         .flatten()
         .collect::<Vec<A>>();
@@ -67,32 +100,57 @@ fn apply_constraints<A: Scalar + Lapack>(
     v -= &(y.dot(&u));
 }
 
-fn orthonormalize<T: Scalar + Lapack>(
-    v: Array2<T>
-) -> Result<(Array2<T>, Array2<T>)> {
+/// Orthonormalize `V` with Cholesky factorization
+///
+/// This also returns the matrix `R` of the `QR` problem
+fn orthonormalize<T: Scalar + Lapack>(v: Array2<T>) -> Result<(Array2<T>, Array2<T>)> {
     let gram_vv = v.t().dot(&v);
     let gram_vv_fac = gram_vv.cholesky(UPLO::Lower)?;
 
-    close_l2(&gram_vv, &gram_vv_fac.dot(&gram_vv_fac.t()), NumCast::from(1e-5).unwrap());
+    close_l2(
+        &gram_vv,
+        &gram_vv_fac.dot(&gram_vv_fac.t()),
+        NumCast::from(1e-5).unwrap(),
+    );
 
     let v_t = v.reversed_axes();
-    let u = gram_vv_fac.solve_triangular(UPLO::Lower, Diag::NonUnit, &v_t)?
+    let u = gram_vv_fac
+        .solve_triangular(UPLO::Lower, Diag::NonUnit, &v_t)?
         .reversed_axes();
 
     Ok((u, gram_vv_fac))
 }
 
+/// Eigenvalue solver for large symmetric positive definite (SPD) eigenproblems
+///
+/// # Arguments
+/// * `a` - An operator defining the problem, usually a sparse (sometimes also dense) matrix
+/// multiplication. Also called the "Stiffness matrix".
+/// * `x` - Initial approximation to the k eigenvectors. If `a` has shape=(n,n), then `x` should
+/// have shape=(n,k).
+/// * `m` - Preconditioner to `a`, by default the identity matrix. In the optimal case `m`
+/// approximates the inverse of `a`.
+/// * `y` - Constraints of (n,size_y), iterations are performed in the orthogonal complement of the
+/// column-space of `y`. It must be full rank.
+/// * `tol` - The tolerance values defines at which point the solver stops the optimization. The l2-norm 
+/// of the residual is compared to this value and the eigenvalue approximation returned if below
+/// the threshold.
+/// * `maxiter` - The maximal number of iterations
+/// * `order` - Whether to solve for the largest or lowest eigenvalues
+///
+/// The function returns an `EigResult` with the eigenvalue/eigenvector and achieved residual norm
+/// for it. All iterations are tracked and the optimal solution returned. In case of an error a
+/// special variant `EigResult::NotConverged` additionally carries the error. This can happen when
+/// the precision of the matrix is too low (switch from `f32` to `f64` for example).
 pub fn lobpcg<A: Scalar + Lapack + PartialOrd + Default, F: Fn(ArrayView2<A>) -> Array2<A>>(
     a: F,
     x: Array2<A>,
     m: Option<Array2<A>>,
     y: Option<Array2<A>>,
-    tol: A::Real, maxiter: usize,
-    order: Order
+    tol: A::Real,
+    maxiter: usize,
+    order: Order,
 ) -> EigResult<A> {
-    // the target matrix should be symmetric and quadratic
-    //assert!(sprs::is_symmetric(&A));
-
     // the initital approximation should be maximal square
     // n is the dimensionality of the problem
     let (n, size_x) = (x.nrows(), x.ncols());
@@ -100,7 +158,7 @@ pub fn lobpcg<A: Scalar + Lapack + PartialOrd + Default, F: Fn(ArrayView2<A>) ->
 
     let size_y = match y {
         Some(ref y) => y.ncols(),
-        _ => 0
+        _ => 0,
     };
 
     if (n - size_y) < 5 * size_x {
@@ -116,7 +174,7 @@ pub fn lobpcg<A: Scalar + Lapack + PartialOrd + Default, F: Fn(ArrayView2<A>) ->
     // orthonormalize the initial guess and calculate matrices AX and XAX
     let (x, _) = match orthonormalize(x) {
         Ok(x) => x,
-        Err(err) => return EigResult::NoResult(err)
+        Err(err) => return EigResult::NoResult(err),
     };
 
     let ax = a(x.view());
@@ -125,7 +183,7 @@ pub fn lobpcg<A: Scalar + Lapack + PartialOrd + Default, F: Fn(ArrayView2<A>) ->
     // perform eigenvalue decomposition on XAX
     let (mut lambda, eig_block) = match sorted_eig(xax.view(), None, size_x, &order) {
         Ok(x) => x,
-        Err(err) => return EigResult::NoResult(err)
+        Err(err) => return EigResult::NoResult(err),
     };
 
     //dbg!(&lambda, &eig_block);
@@ -182,13 +240,13 @@ pub fn lobpcg<A: Scalar + Lapack + PartialOrd + Default, F: Fn(ArrayView2<A>) ->
             apply_constraints(active_block_r.view_mut(), fact_yy, y.view());
         }
 
-        let (r,_) = match orthonormalize(active_block_r) {
+        let (r, _) = match orthonormalize(active_block_r) {
             Ok(x) => x,
-            Err(err) => break Err(err)
+            Err(err) => break Err(err),
         };
 
         let ar = a(r.view());
-        
+
         // perform the Rayleigh Ritz procedure
         let xaw = x.t().dot(&ar);
         let waw = r.t().dot(&ar);
@@ -203,7 +261,7 @@ pub fn lobpcg<A: Scalar + Lapack + PartialOrd + Default, F: Fn(ArrayView2<A>) ->
             //dbg!(&active_P, &P_R);
             let active_ap = match p_r.solve_triangular(UPLO::Lower, Diag::NonUnit, &active_ap.reversed_axes()) {
                 Ok(x) => x,
-                Err(err) => break Err(err)
+                Err(err) => break Err(err),
             };
 
             let active_ap = active_ap.reversed_axes();
@@ -218,51 +276,46 @@ pub fn lobpcg<A: Scalar + Lapack + PartialOrd + Default, F: Fn(ArrayView2<A>) ->
             let wp = r.t().dot(&active_p);
 
             (
-                stack![Axis(0),
+                stack![
+                    Axis(0),
                     stack![Axis(1), Array2::from_diag(&lambda), xaw, xap],
                     stack![Axis(1), xaw.t(), waw, wap],
                     stack![Axis(1), xap.t(), wap.t(), pap]
                 ],
-
-                stack![Axis(0),
+                stack![
+                    Axis(0),
                     stack![Axis(1), ident0, xw, xp],
                     stack![Axis(1), xw.t(), ident, wp],
                     stack![Axis(1), xp.t(), wp.t(), ident]
                 ],
                 Some(active_p),
-                Some(active_ap)
+                Some(active_ap),
             )
         } else {
             (
-                stack![Axis(0), 
+                stack![
+                    Axis(0),
                     stack![Axis(1), Array2::from_diag(&lambda), xaw],
                     stack![Axis(1), xaw.t(), waw]
                 ],
-                stack![Axis(0),
-                    stack![Axis(1), ident0, xw],
-                    stack![Axis(1), xw.t(), ident]
-                ],
+                stack![Axis(0), stack![Axis(1), ident0, xw], stack![Axis(1), xw.t(), ident]],
                 None,
-                None
+                None,
             )
         };
 
-        //assert!(is_symmetric(gramA.view()));
-        //assert!(is_symmetric(gramB.view()));
-
-        //dbg!(&gramA, &gramB);
         let (new_lambda, eig_vecs) = match sorted_eig(gram_a.view(), Some(gram_b.view()), size_x, &order) {
             Ok(x) => x,
-            Err(err) => break Err(err)
+            Err(err) => break Err(err),
         };
         lambda = new_lambda;
 
         //dbg!(&lambda, &eig_vecs);
-        let (pp, app, eig_x) = if let (Some(_), (Some(ref active_p), Some(ref active_ap))) = (ap, (active_p, active_ap)) {
-
+        let (pp, app, eig_x) = if let (Some(_), (Some(ref active_p), Some(ref active_ap))) = (ap, (active_p, active_ap))
+        {
             let eig_x = eig_vecs.slice(s![..size_x, ..]);
-            let eig_r = eig_vecs.slice(s![size_x..size_x+current_block_size, ..]);
-            let eig_p = eig_vecs.slice(s![size_x+current_block_size.., ..]);
+            let eig_r = eig_vecs.slice(s![size_x..size_x + current_block_size, ..]);
+            let eig_p = eig_vecs.slice(s![size_x + current_block_size.., ..]);
 
             //dbg!(&eig_X);
             //dbg!(&eig_R);
@@ -292,23 +345,18 @@ pub fn lobpcg<A: Scalar + Lapack + PartialOrd + Default, F: Fn(ArrayView2<A>) ->
 
         results.push((lambda.clone(), x.clone()));
 
-        //dbg!(&X);
-        //dbg!(&AX);
-
         ap = Some((pp, app));
-
-        //dbg!(&ap);
 
         iter -= 1;
     };
 
-    let best_idx = residual_norms.iter()
-        .enumerate()
-        .min_by(|&(_, item1): &(usize, &Vec<A::Real>), &(_, item2): &(usize, &Vec<A::Real>)| {
-            let norm1: A::Real = item1.iter().map(|x| (*x)*(*x)).sum();
-            let norm2: A::Real = item2.iter().map(|x| (*x)*(*x)).sum();
+    let best_idx = residual_norms.iter().enumerate().min_by(
+        |&(_, item1): &(usize, &Vec<A::Real>), &(_, item2): &(usize, &Vec<A::Real>)| {
+            let norm1: A::Real = item1.iter().map(|x| (*x) * (*x)).sum();
+            let norm2: A::Real = item2.iter().map(|x| (*x) * (*x)).sum();
             norm1.partial_cmp(&norm2).unwrap()
-        });
+        },
+    );
 
     match best_idx {
         Some((idx, norms)) => {
@@ -317,32 +365,31 @@ pub fn lobpcg<A: Scalar + Lapack + PartialOrd + Default, F: Fn(ArrayView2<A>) ->
 
             match final_norm {
                 Ok(_) => EigResult::Ok(vals, vecs, norms),
-                Err(err) => EigResult::Err(vals, vecs, norms, err)
-            }
-        },
-        None => {
-            match final_norm {
-                Ok(_) => panic!("Not error available!"),
-                Err(err) => EigResult::NoResult(err)
+                Err(err) => EigResult::Err(vals, vecs, norms, err),
             }
         }
+        None => match final_norm {
+            Ok(_) => panic!("Not error available!"),
+            Err(err) => EigResult::NoResult(err),
+        },
     }
 }
 
 #[cfg(test)]
 mod tests {
-    use super::sorted_eig;
-    use super::orthonormalize;
-    use super::ndarray_mask;
-    use super::Order;
     use super::lobpcg;
+    use super::ndarray_mask;
+    use super::orthonormalize;
+    use super::sorted_eig;
     use super::EigResult;
+    use super::Order;
     use crate::close_l2;
-    use ndarray::prelude::*;
     use crate::qr::*;
-    use ndarray_rand::RandomExt;
+    use ndarray::prelude::*;
     use ndarray_rand::rand_distr::Uniform;
-    
+    use ndarray_rand::RandomExt;
+
+    /// Test the `sorted_eigen` function
     #[test]
     fn test_sorted_eigen() {
         let matrix = Array2::random((10, 10), Uniform::new(0., 10.));
@@ -358,6 +405,7 @@ mod tests {
         close_l2(&matrix, &rec, 1e-5);
     }
 
+    /// Test the masking function
     #[test]
     fn test_masking() {
         let matrix = Array2::random((10, 5), Uniform::new(0., 10.));
@@ -365,6 +413,7 @@ mod tests {
         close_l2(&masked_matrix.slice(s![.., 2]), &matrix.slice(s![.., 3]), 1e-12);
     }
 
+    /// Test orthonormalization of a random matrix
     #[test]
     fn test_orthonormalize() {
         let matrix = Array2::random((10, 10), Uniform::new(-10., 10.));
@@ -377,31 +426,37 @@ mod tests {
 
         // compare returned factorization with QR decomposition
         let (_, r) = matrix.qr().unwrap();
-        close_l2(&r.mapv(|x: f32| x.abs()) , &l.t().mapv(|x| x.abs()), 1e-2);
+        close_l2(&r.mapv(|x: f32| x.abs()), &l.t().mapv(|x| x.abs()), 1e-2);
     }
 
+    /// Test the eigensolver with a identity matrix problem and a random initial solution
     #[test]
     fn test_eigsolver_diag() {
-        let diag = arr1(&[1.,2.,3.,4.,5.,6.,7.,8.,9.,10., 11., 12., 13., 14., 15., 16., 17., 18., 19., 20.]);
+        let diag = arr1(&[
+            1., 2., 3., 4., 5., 6., 7., 8., 9., 10., 11., 12., 13., 14., 15., 16., 17., 18., 19., 20.,
+        ]);
         let a = Array2::from_diag(&diag);
         let x: Array2<f64> = Array2::random((20, 3), Uniform::new(0.0, 1.0));
 
+        // find smallest eigenvalues
         let result = lobpcg(|y| a.dot(&y), x, None, None, 1e-10, 20, Order::Smallest);
         match result {
             EigResult::Ok(vals, _, _) => close_l2(&vals, &arr1(&[1.0, 2.0, 3.0]), 1e-5),
-            EigResult::Err(vals, _,_,_) => close_l2(&vals, &arr1(&[1.0, 2.0, 3.0]), 1e-5),
-            EigResult::NoResult(err) => panic!("Did not converge: {:?}", err)
+            EigResult::Err(vals, _, _, _) => close_l2(&vals, &arr1(&[1.0, 2.0, 3.0]), 1e-5),
+            EigResult::NoResult(err) => panic!("Did not converge: {:?}", err),
         }
 
+        // find largest eigenvalues
         let x: Array2<f64> = Array2::random((20, 3), Uniform::new(0.0, 1.0));
         let result = lobpcg(|y| a.dot(&y), x, None, None, 1e-10, 20, Order::Largest);
         match result {
             EigResult::Ok(vals, _, _) => close_l2(&vals, &arr1(&[20.0, 19.0, 18.0]), 1e-5),
-            EigResult::Err(vals, _,_,_) => close_l2(&vals, &arr1(&[20.0, 19.0, 18.0]), 1e-5),
-            EigResult::NoResult(err) => panic!("Did not converge: {:?}", err)
+            EigResult::Err(vals, _, _, _) => close_l2(&vals, &arr1(&[20.0, 19.0, 18.0]), 1e-5),
+            EigResult::NoResult(err) => panic!("Did not converge: {:?}", err),
         }
     }
 
+    /// Test the eigensolver with matrix of constructed eigenvalues
     #[test]
     fn test_eigsolver() {
         let n = 50;
@@ -412,14 +467,16 @@ mod tests {
         let t = Array2::from_diag(&Array1::linspace(n as f64, 1.0, n));
         let a = v.dot(&t.dot(&v.t()));
 
+        // initial random solution
         let x: Array2<f64> = Array2::random((n, 5), Uniform::new(0.0, 1.0));
 
+        // find five largest eigenvalues
         let result = lobpcg(|y| a.dot(&y), x, None, None, 1e-10, 20, Order::Largest);
         match result {
             EigResult::Ok(vals, _, _) | EigResult::Err(vals, _, _, _) => {
                 close_l2(&vals, &arr1(&[50.0, 49.0, 48.0, 47.0, 46.0]), 1e-5);
-            },
-            EigResult::NoResult(err) => panic!("Did not converge: {:?}", err)
+            }
+            EigResult::NoResult(err) => panic!("Did not converge: {:?}", err),
         }
     }
 }

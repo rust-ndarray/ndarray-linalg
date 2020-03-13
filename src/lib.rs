@@ -36,7 +36,8 @@
 //!  - [Random matrix generators](generate/index.html)
 //!  - [Scalar trait](types/trait.Scalar.html)
 
-#[macro_use] extern crate ndarray;
+#[macro_use]
+extern crate ndarray;
 
 extern crate blas_src;
 extern crate lapack_src;
@@ -52,6 +53,7 @@ pub mod inner;
 pub mod krylov;
 pub mod lapack;
 pub mod layout;
+pub mod lobpcg;
 pub mod norm;
 pub mod operator;
 pub mod opnorm;
@@ -63,7 +65,6 @@ pub mod svddc;
 pub mod trace;
 pub mod triangular;
 pub mod types;
-pub mod lobpcg;
 
 pub use assert::*;
 pub use cholesky::*;

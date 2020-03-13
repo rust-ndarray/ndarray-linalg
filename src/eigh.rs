@@ -80,8 +80,8 @@ where
     type EigVec = (Array2<A>, Array2<A>);
 
     fn eigh(&self, uplo: UPLO) -> Result<(Self::EigVal, Self::EigVec)> {
-        let (a,b) = (self.0.to_owned(), self.1.to_owned());
-        (a,b).eigh_into(uplo)
+        let (a, b) = (self.0.to_owned(), self.1.to_owned());
+        (a, b).eigh_into(uplo)
     }
 }
 
@@ -126,7 +126,15 @@ where
             MatrixLayout::F(_) => {}
         }
 
-        let s = unsafe { A::eigh_generalized(true, self.0.square_layout()?, uplo, self.0.as_allocated_mut()?, self.1.as_allocated_mut()?)? };
+        let s = unsafe {
+            A::eigh_generalized(
+                true,
+                self.0.square_layout()?,
+                uplo,
+                self.0.as_allocated_mut()?,
+                self.1.as_allocated_mut()?,
+            )?
+        };
 
         Ok((ArrayBase::from(s), self))
     }

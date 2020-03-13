@@ -51,6 +51,7 @@ optional = true
 [dev-dependencies]
 paste = "0.1"
 criterion = "0.3"
+ndarray-rand = "0.11"
 
 [[bench]]
 name = "eigh"

@@ -95,7 +95,8 @@ fn apply_constraints<A: Scalar + Lapack>(
         .flatten()
         .collect::<Vec<A>>();
 
-    let u = Array2::from_shape_vec((5, 5), u).unwrap();
+    let rows = gram_yv.len_of(Axis(0));
+    let u = Array2::from_shape_vec((rows, u.len() / rows), u).unwrap();
 
     v -= &(y.dot(&u));
 }
@@ -144,7 +145,7 @@ fn orthonormalize<T: Scalar + Lapack>(v: Array2<T>) -> Result<(Array2<T>, Array2
 /// the precision of the matrix is too low (switch from `f32` to `f64` for example).
 pub fn lobpcg<A: Scalar + Lapack + PartialOrd + Default, F: Fn(ArrayView2<A>) -> Array2<A>>(
     a: F,
-    x: Array2<A>,
+    mut x: Array2<A>,
     m: Option<Array2<A>>,
     y: Option<Array2<A>>,
     tol: A::Real,
@@ -166,10 +167,20 @@ pub fn lobpcg<A: Scalar + Lapack + PartialOrd + Default, F: Fn(ArrayView2<A>) ->
     }
 
     // cap the number of iteration
-    let mut iter = usize::min(n, maxiter);
+    let mut iter = usize::min(n * 10, maxiter);
 
     // factorize yy for later use
-    let fact_yy = y.as_ref().map(|x| x.t().dot(x).factorizec(UPLO::Upper).unwrap());
+    let fact_yy = match y {
+        Some(ref y) => {
+            let fact_yy = y.t().dot(y).factorizec(UPLO::Upper).unwrap();
+
+            apply_constraints(x.view_mut(), &fact_yy, y.view());
+            Some(fact_yy)
+        },
+        None => None
+    };
+
+    
 
     // orthonormalize the initial guess and calculate matrices AX and XAX
     let (x, _) = match orthonormalize(x) {
@@ -496,5 +507,35 @@ mod tests {
         let a = tmp.t().dot(&tmp);
 
         check_eigenvalues(&a, Order::Largest, 5, &[]);
+    }
+
+    #[test]
+    fn test_eigsolver_constrainted() {
+        let diag = arr1(&[
+            1., 2., 3., 4., 5., 6., 7., 8., 9., 10.
+        ]);
+        let a = Array2::from_diag(&diag);
+        let x: Array2<f64> = Array2::random((10, 1), Uniform::new(0.0, 1.0));
+        let y: Array2<f64> = arr2(&[[1.0,0.,0.,0.,0.,0.,0.,0.,0.,0.]]).reversed_axes();
+
+        let result = lobpcg(|y| a.dot(&y), x, None, Some(y), 1e-10, 100, Order::Smallest);
+        dbg!(&result);
+        match result {
+            EigResult::Ok(vals, vecs, r_norms) | EigResult::Err(vals, vecs, r_norms, _) => {
+                // check convergence
+                for (i, norm) in r_norms.into_iter().enumerate() {
+                    if norm > 0.01 {
+                        println!("==== Assertion Failed ====");
+                        println!("The {} eigenvalue estimation did not converge!", i);
+                        panic!("Too large deviation of residual norm: {} > 0.01", norm);
+                    }
+                }
+
+                // should be the second eigenvalue
+                close_l2(&vals, &Array1::from(vec![2.0]), 1e-2);
+                close_l2(&vecs.column(0).mapv(|x| x.abs()), &arr1(&[0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]), 1e-5);
+            },
+            EigResult::NoResult(err) => panic!("Did not converge: {:?}", err),
+        }
     }
 }

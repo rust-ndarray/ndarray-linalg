@@ -88,16 +88,27 @@ fn apply_constraints<A: Scalar + Lapack>(
     y: ArrayView2<A>,
 ) {
     let gram_yv = y.t().dot(&v);
+    dbg!(&gram_yv.shape());
 
     let u = gram_yv
-        .genrows()
+        .gencolumns()
         .into_iter()
-        .map(|x| fact_yy.solvec(&x).unwrap().to_vec())
+        .map(|x| {
+            dbg!(&x.shape());
+            let res = fact_yy.solvec(&x).unwrap();
+
+            dbg!(&res);
+
+            res.to_vec()
+        })
         .flatten()
         .collect::<Vec<A>>();
 
     let rows = gram_yv.len_of(Axis(0));
     let u = Array2::from_shape_vec((rows, u.len() / rows), u).unwrap();
+    dbg!(&u);
+    dbg!(y.shape());
+    dbg!(&v.shape());
 
     v -= &(y.dot(&u));
 }
@@ -173,15 +184,13 @@ pub fn lobpcg<A: Scalar + Lapack + PartialOrd + Default, F: Fn(ArrayView2<A>) ->
     // factorize yy for later use
     let fact_yy = match y {
         Some(ref y) => {
-            let fact_yy = y.t().dot(y).factorizec(UPLO::Upper).unwrap();
+            let fact_yy = y.t().dot(y).factorizec(UPLO::Lower).unwrap();
 
             apply_constraints(x.view_mut(), &fact_yy, y.view());
             Some(fact_yy)
         },
         None => None
     };
-
-    
 
     // orthonormalize the initial guess and calculate matrices AX and XAX
     let (x, _) = match orthonormalize(x) {
@@ -362,7 +371,7 @@ pub fn lobpcg<A: Scalar + Lapack + PartialOrd + Default, F: Fn(ArrayView2<A>) ->
         iter -= 1;
     };
 
-    dbg!(&residual_norms);
+    //dbg!(&residual_norms);
     let best_idx = residual_norms.iter().enumerate().min_by(
         |&(_, item1): &(usize, &Vec<A::Real>), &(_, item2): &(usize, &Vec<A::Real>)| {
             let norm1: A::Real = item1.iter().map(|x| (*x) * (*x)).sum();
@@ -452,7 +461,7 @@ mod tests {
         let n = a.len_of(Axis(0));
         let x: Array2<f64> = Array2::random((n, num), Uniform::new(0.0, 1.0));
 
-        let result = lobpcg(|y| a.dot(&y), x, None, None, 1e-10, n, order);
+        let result = lobpcg(|y| a.dot(&y), x, None, None, 1e-10, 2 * n, order);
         match result {
             EigResult::Ok(vals, _, r_norms) | EigResult::Err(vals, _, r_norms, _) => {
                 // check convergence

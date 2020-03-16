@@ -350,6 +350,7 @@ pub fn lobpcg<A: Scalar + Lapack + PartialOrd + Default, F: Fn(ArrayView2<A>) ->
         iter -= 1;
     };
 
+    dbg!(&residual_norms);
     let best_idx = residual_norms.iter().enumerate().min_by(
         |&(_, item1): &(usize, &Vec<A::Real>), &(_, item2): &(usize, &Vec<A::Real>)| {
             let norm1: A::Real = item1.iter().map(|x| (*x) * (*x)).sum();
@@ -429,6 +430,37 @@ mod tests {
         close_l2(&r.mapv(|x: f32| x.abs()), &l.t().mapv(|x| x.abs()), 1e-2);
     }
 
+    fn assert_symmetric(a: &Array2<f64>) {
+        close_l2(a, &a.t(), 1e-5);
+    }
+
+    fn check_eigenvalues(a: &Array2<f64>, order: Order, num: usize, ground_truth_eigvals: &[f64]) {
+        assert_symmetric(a);
+
+        let n = a.len_of(Axis(0));
+        let x: Array2<f64> = Array2::random((n, num), Uniform::new(0.0, 1.0));
+
+        let result = lobpcg(|y| a.dot(&y), x, None, None, 1e-10, n, order);
+        match result {
+            EigResult::Ok(vals, _, r_norms) | EigResult::Err(vals, _, r_norms, _) => {
+                // check convergence
+                for (i, norm) in r_norms.into_iter().enumerate() {
+                    if norm > 0.01 {
+                        println!("==== Assertion Failed ====");
+                        println!("The {} eigenvalue estimation did not converge!", i);
+                        panic!("Too large deviation of residual norm: {} > 0.01", norm);
+                    }
+                }
+
+                // check correct order of eigenvalues
+                if ground_truth_eigvals.len() == num {
+                    close_l2(&Array1::from(ground_truth_eigvals.to_vec()), &vals, 5e-2)
+                }
+            },
+            EigResult::NoResult(err) => panic!("Did not converge: {:?}", err),
+        }
+    }
+
     /// Test the eigensolver with a identity matrix problem and a random initial solution
     #[test]
     fn test_eigsolver_diag() {
@@ -436,47 +468,33 @@ mod tests {
             1., 2., 3., 4., 5., 6., 7., 8., 9., 10., 11., 12., 13., 14., 15., 16., 17., 18., 19., 20.,
         ]);
         let a = Array2::from_diag(&diag);
-        let x: Array2<f64> = Array2::random((20, 3), Uniform::new(0.0, 1.0));
 
-        // find smallest eigenvalues
-        let result = lobpcg(|y| a.dot(&y), x, None, None, 1e-10, 20, Order::Smallest);
-        match result {
-            EigResult::Ok(vals, _, _) => close_l2(&vals, &arr1(&[1.0, 2.0, 3.0]), 1e-5),
-            EigResult::Err(vals, _, _, _) => close_l2(&vals, &arr1(&[1.0, 2.0, 3.0]), 1e-5),
-            EigResult::NoResult(err) => panic!("Did not converge: {:?}", err),
-        }
-
-        // find largest eigenvalues
-        let x: Array2<f64> = Array2::random((20, 3), Uniform::new(0.0, 1.0));
-        let result = lobpcg(|y| a.dot(&y), x, None, None, 1e-10, 20, Order::Largest);
-        match result {
-            EigResult::Ok(vals, _, _) => close_l2(&vals, &arr1(&[20.0, 19.0, 18.0]), 1e-5),
-            EigResult::Err(vals, _, _, _) => close_l2(&vals, &arr1(&[20.0, 19.0, 18.0]), 1e-5),
-            EigResult::NoResult(err) => panic!("Did not converge: {:?}", err),
-        }
+        check_eigenvalues(&a, Order::Largest, 3, &[20.,19.,18.]);
+        check_eigenvalues(&a, Order::Smallest, 3, &[1., 2., 3.]);
     }
 
     /// Test the eigensolver with matrix of constructed eigenvalues
     #[test]
-    fn test_eigsolver() {
+    fn test_eigsolver_constructed() {
         let n = 50;
         let tmp = Array2::random((n, n), Uniform::new(0.0, 1.0));
+        //let (v, _) = tmp.qr_square().unwrap();
         let (v, _) = orthonormalize(tmp).unwrap();
 
         // set eigenvalues in decreasing order
-        let t = Array2::from_diag(&Array1::linspace(n as f64, 1.0, n));
+        let t = Array2::from_diag(&Array1::linspace(n as f64, -(n as f64), n));
         let a = v.dot(&t.dot(&v.t()));
 
-        // initial random solution
-        let x: Array2<f64> = Array2::random((n, 5), Uniform::new(0.0, 1.0));
-
         // find five largest eigenvalues
-        let result = lobpcg(|y| a.dot(&y), x, None, None, 1e-10, 20, Order::Largest);
-        match result {
-            EigResult::Ok(vals, _, _) | EigResult::Err(vals, _, _, _) => {
-                close_l2(&vals, &arr1(&[50.0, 49.0, 48.0, 47.0, 46.0]), 1e-5);
-            }
-            EigResult::NoResult(err) => panic!("Did not converge: {:?}", err),
-        }
+        check_eigenvalues(&a, Order::Largest, 5, &[50.0, 48.0, 46.0, 44.0, 42.0]);
+        check_eigenvalues(&a, Order::Smallest, 5, &[-50.0, -48.0, -46.0, -44.0, -42.0]);
+    }
+
+    #[test]
+    fn test_eigsolver_convergence() {
+        let tmp = Array2::random((50, 50), Uniform::new(0.0, 1.0));
+        let a = tmp.t().dot(&tmp);
+
+        check_eigenvalues(&a, Order::Largest, 5, &[]);
     }
 }

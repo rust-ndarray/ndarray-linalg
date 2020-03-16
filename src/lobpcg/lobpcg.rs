@@ -512,14 +512,6 @@ mod tests {
     }
 
     #[test]
-    fn test_eigsolver_convergence() {
-        let tmp = Array2::random((50, 50), Uniform::new(0.0, 1.0));
-        let a = tmp.t().dot(&tmp);
-
-        check_eigenvalues(&a, Order::Largest, 5, &[]);
-    }
-
-    #[test]
     fn test_eigsolver_constrainted() {
         let diag = arr1(&[
             1., 2., 3., 4., 5., 6., 7., 8., 9., 10.

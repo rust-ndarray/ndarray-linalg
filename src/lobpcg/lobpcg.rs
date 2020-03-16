@@ -11,6 +11,7 @@ use ndarray::OwnedRepr;
 use num_traits::NumCast;
 
 /// Find largest or smallest eigenvalues
+#[derive(Debug, Clone)]
 pub enum Order {
     Largest,
     Smallest,

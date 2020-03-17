@@ -87,16 +87,12 @@ fn apply_constraints<A: Scalar + Lapack>(
     y: ArrayView2<A>,
 ) {
     let gram_yv = y.t().dot(&v);
-    dbg!(&gram_yv.shape());
 
     let u = gram_yv
         .gencolumns()
         .into_iter()
         .map(|x| {
-            dbg!(&x.shape());
             let res = fact_yy.solvec(&x).unwrap();
-
-            dbg!(&res);
 
             res.to_vec()
         })
@@ -105,9 +101,6 @@ fn apply_constraints<A: Scalar + Lapack>(
 
     let rows = gram_yv.len_of(Axis(0));
     let u = Array2::from_shape_vec((rows, u.len() / rows), u).unwrap();
-    dbg!(&u);
-    dbg!(y.shape());
-    dbg!(&v.shape());
 
     v -= &(y.dot(&u));
 }

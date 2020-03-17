@@ -83,6 +83,7 @@ impl<A: Float + Scalar + Lapack + PartialOrd + Default> IntoIterator for Truncat
     fn into_iter(self) -> TruncatedEigIterator<A> {
         TruncatedEigIterator {
             step_size: 1,
+            remaining: self.problem.len_of(Axis(0)),
             eig: self,
         }
     }
@@ -94,6 +95,7 @@ impl<A: Float + Scalar + Lapack + PartialOrd + Default> IntoIterator for Truncat
 /// eigenvalue/vector pair. Useful for generating pairs until a certain condition is met.
 pub struct TruncatedEigIterator<A: Scalar> {
     step_size: usize,
+    remaining: usize,
     eig: TruncatedEig<A>,
 }
 
@@ -101,7 +103,12 @@ impl<A: Float + Scalar + Lapack + PartialOrd + Default> Iterator for TruncatedEi
     type Item = (Array1<A>, Array2<A>);
 
     fn next(&mut self) -> Option<Self::Item> {
-        let res = self.eig.decompose(self.step_size);
+        if self.remaining == 0 {
+            return None;
+        }
+
+        let step_size = usize::min(self.step_size, self.remaining);
+        let res = self.eig.decompose(step_size);
 
         match res {
             EigResult::Ok(vals, vecs, norms) | EigResult::Err(vals, vecs, norms, _) => {
@@ -127,6 +134,7 @@ impl<A: Float + Scalar + Lapack + PartialOrd + Default> Iterator for TruncatedEi
                 };
 
                 self.eig.constraints = Some(new_constraints);
+                self.remaining -= step_size;
 
                 Some((vals, vecs))
             }

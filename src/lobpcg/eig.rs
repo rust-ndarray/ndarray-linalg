@@ -61,8 +61,8 @@ impl<A: Scalar + Lapack + PartialOrd + Default> TruncatedEig<A> {
         self
     }
 
-    // calculate the eigenvalues once
-    pub fn once(&self, num: usize) -> EigResult<A> {
+    // calculate the eigenvalues decompose
+    pub fn decompose(&self, num: usize) -> EigResult<A> {
         let x = Array2::random((self.problem.len_of(Axis(0)), num), Uniform::new(0.0, 1.0))
             .mapv(|x| NumCast::from(x).unwrap());
 
@@ -95,7 +95,7 @@ impl<A: Float + Scalar + Lapack + PartialOrd + Default> Iterator for TruncatedEi
     type Item = (Array1<A>, Array2<A>);
 
     fn next(&mut self) -> Option<Self::Item> {
-        let res = self.eig.once(self.step_size);
+        let res = self.eig.decompose(self.step_size);
 
         match res {
             EigResult::Ok(vals, vecs, norms) | EigResult::Err(vals, vecs, norms, _) => {

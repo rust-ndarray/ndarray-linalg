@@ -51,7 +51,7 @@ impl<A: Float + PartialOrd + DivAssign<A> + 'static> TruncatedSvdResult<A> {
     }
 
     /// Returns singular values, left-singular vectors and right-singular vectors
-    pub fn values_vecs(&self) -> (Array2<A>, Array1<A>, Array2<A>) {
+    pub fn values_vectors(&self) -> (Array2<A>, Array1<A>, Array2<A>) {
         let (values, indices) = self.singular_values_with_indices();
 
         // branch n > m (for A is [n x m])
@@ -115,8 +115,8 @@ impl<A: Scalar + Lapack + PartialOrd + Default> TruncatedSvd<A> {
 
     }
 
-    // calculate the eigenvalues once
-    pub fn once(self, num: usize) -> Result<TruncatedSvdResult<A>> {
+    // calculate the eigenvalue decomposition
+    pub fn decompose(self, num: usize) -> Result<TruncatedSvdResult<A>> {
         let (n,m) = (self.problem.nrows(), self.problem.ncols());
 
         let x = Array2::random((usize::min(n,m), num), Uniform::new(0.0, 1.0))
@@ -164,7 +164,7 @@ mod tests {
         let res = TruncatedSvd::new(a, Order::Largest)
             .precision(1e-5)
             .maxiter(10)
-            .once(2)
+            .decompose(2)
             .unwrap();
         
         let (_, sigma, _) = res.values_vecs();
@@ -179,10 +179,10 @@ mod tests {
         let res = TruncatedSvd::new(a.clone(), Order::Largest)
             .precision(1e-5)
             .maxiter(10)
-            .once(10)
+            .decompose(10)
             .unwrap();
 
-        let (u, sigma, v_t) = res.values_vecs();
+        let (u, sigma, v_t) = res.values_vectors();
         let reconstructed = u.dot(&Array2::from_diag(&sigma).dot(&v_t));
 
         close_l2(&a, &reconstructed, 1e-5);

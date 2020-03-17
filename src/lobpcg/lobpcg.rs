@@ -1,8 +1,7 @@
 ///! Locally Optimal Block Preconditioned Conjugated
 ///!
 ///! This module implements the Locally Optimal Block Preconditioned Conjugated (LOBPCG) algorithm,
-///which can be used as a solver for large symmetric positive definite eigenproblems. 
-
+///which can be used as a solver for large symmetric positive definite eigenproblems.
 use crate::error::{LinalgError, Result};
 use crate::{cholesky::*, close_l2, eigh::*, norm::*, triangular::*};
 use crate::{Lapack, Scalar};
@@ -145,7 +144,7 @@ fn orthonormalize<T: Scalar + Lapack>(v: Array2<T>) -> Result<(Array2<T>, Array2
 /// approximates the inverse of `a`.
 /// * `y` - Constraints of (n,size_y), iterations are performed in the orthogonal complement of the
 /// column-space of `y`. It must be full rank.
-/// * `tol` - The tolerance values defines at which point the solver stops the optimization. The l2-norm 
+/// * `tol` - The tolerance values defines at which point the solver stops the optimization. The l2-norm
 /// of the residual is compared to this value and the eigenvalue approximation returned if below
 /// the threshold.
 /// * `maxiter` - The maximal number of iterations
@@ -188,8 +187,8 @@ pub fn lobpcg<A: Scalar + Lapack + PartialOrd + Default, F: Fn(ArrayView2<A>) ->
 
             apply_constraints(x.view_mut(), &fact_yy, y.view());
             Some(fact_yy)
-        },
-        None => None
+        }
+        None => None,
     };
 
     // orthonormalize the initial guess and calculate matrices AX and XAX
@@ -477,7 +476,7 @@ mod tests {
                 if ground_truth_eigvals.len() == num {
                     close_l2(&Array1::from(ground_truth_eigvals.to_vec()), &vals, 5e-2)
                 }
-            },
+            }
             EigResult::NoResult(err) => panic!("Did not converge: {:?}", err),
         }
     }
@@ -490,7 +489,7 @@ mod tests {
         ]);
         let a = Array2::from_diag(&diag);
 
-        check_eigenvalues(&a, Order::Largest, 3, &[20.,19.,18.]);
+        check_eigenvalues(&a, Order::Largest, 3, &[20., 19., 18.]);
         check_eigenvalues(&a, Order::Smallest, 3, &[1., 2., 3.]);
     }
 
@@ -513,12 +512,10 @@ mod tests {
 
     #[test]
     fn test_eigsolver_constrainted() {
-        let diag = arr1(&[
-            1., 2., 3., 4., 5., 6., 7., 8., 9., 10.
-        ]);
+        let diag = arr1(&[1., 2., 3., 4., 5., 6., 7., 8., 9., 10.]);
         let a = Array2::from_diag(&diag);
         let x: Array2<f64> = Array2::random((10, 1), Uniform::new(0.0, 1.0));
-        let y: Array2<f64> = arr2(&[[1.0,0.,0.,0.,0.,0.,0.,0.,0.,0.]]).reversed_axes();
+        let y: Array2<f64> = arr2(&[[1.0, 0., 0., 0., 0., 0., 0., 0., 0., 0.]]).reversed_axes();
 
         let result = lobpcg(|y| a.dot(&y), x, None, Some(y), 1e-10, 100, Order::Smallest);
         dbg!(&result);
@@ -535,8 +532,12 @@ mod tests {
 
                 // should be the second eigenvalue
                 close_l2(&vals, &Array1::from(vec![2.0]), 1e-2);
-                close_l2(&vecs.column(0).mapv(|x| x.abs()), &arr1(&[0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]), 1e-5);
-            },
+                close_l2(
+                    &vecs.column(0).mapv(|x| x.abs()),
+                    &arr1(&[0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]),
+                    1e-5,
+                );
+            }
             EigResult::NoResult(err) => panic!("Did not converge: {:?}", err),
         }
     }

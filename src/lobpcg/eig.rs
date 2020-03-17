@@ -1,13 +1,12 @@
+use super::lobpcg::{lobpcg, EigResult, Order};
+use crate::{Lapack, Scalar};
 ///! Implements truncated eigenvalue decomposition
 ///
-
 use ndarray::prelude::*;
 use ndarray::stack;
 use ndarray_rand::rand_distr::Uniform;
 use ndarray_rand::RandomExt;
 use num_traits::{Float, NumCast};
-use crate::{Scalar, Lapack};
-use super::lobpcg::{lobpcg, EigResult, Order};
 
 /// Truncated eigenproblem solver
 ///
@@ -21,7 +20,7 @@ pub struct TruncatedEig<A: Scalar> {
     pub constraints: Option<Array2<A>>,
     preconditioner: Option<Array2<A>>,
     precision: A::Real,
-    maxiter: usize
+    maxiter: usize,
 }
 
 impl<A: Scalar + Lapack + PartialOrd + Default> TruncatedEig<A> {
@@ -31,8 +30,8 @@ impl<A: Scalar + Lapack + PartialOrd + Default> TruncatedEig<A> {
             maxiter: problem.len_of(Axis(0)) * 2,
             preconditioner: None,
             constraints: None,
-            order, 
-            problem
+            order,
+            problem,
         }
     }
 
@@ -46,7 +45,6 @@ impl<A: Scalar + Lapack + PartialOrd + Default> TruncatedEig<A> {
         self.maxiter = maxiter;
 
         self
-
     }
 
     pub fn orthogonal_to(mut self, constraints: Array2<A>) -> Self {
@@ -66,7 +64,15 @@ impl<A: Scalar + Lapack + PartialOrd + Default> TruncatedEig<A> {
         let x = Array2::random((self.problem.len_of(Axis(0)), num), Uniform::new(0.0, 1.0))
             .mapv(|x| NumCast::from(x).unwrap());
 
-        lobpcg(|y| self.problem.dot(&y), x, self.preconditioner.clone(), self.constraints.clone(), self.precision, self.maxiter, self.order.clone())
+        lobpcg(
+            |y| self.problem.dot(&y),
+            x,
+            self.preconditioner.clone(),
+            self.constraints.clone(),
+            self.precision,
+            self.maxiter,
+            self.order.clone(),
+        )
     }
 }
 
@@ -74,10 +80,10 @@ impl<A: Float + Scalar + Lapack + PartialOrd + Default> IntoIterator for Truncat
     type Item = (Array1<A>, Array2<A>);
     type IntoIter = TruncatedEigIterator<A>;
 
-    fn into_iter(self) -> TruncatedEigIterator<A>{
+    fn into_iter(self) -> TruncatedEigIterator<A> {
         TruncatedEigIterator {
             step_size: 1,
-            eig: self
+            eig: self,
         }
     }
 }
@@ -88,7 +94,7 @@ impl<A: Float + Scalar + Lapack + PartialOrd + Default> IntoIterator for Truncat
 /// eigenvalue/vector pair. Useful for generating pairs until a certain condition is met.
 pub struct TruncatedEigIterator<A: Scalar> {
     step_size: usize,
-    eig: TruncatedEig<A>
+    eig: TruncatedEig<A>,
 }
 
 impl<A: Float + Scalar + Lapack + PartialOrd + Default> Iterator for TruncatedEigIterator<A> {
@@ -108,7 +114,9 @@ impl<A: Float + Scalar + Lapack + PartialOrd + Default> Iterator for TruncatedEi
 
                 // add the new eigenvector to the internal constrain matrix
                 let new_constraints = if let Some(ref constraints) = self.eig.constraints {
-                    let eigvecs_arr = constraints.gencolumns().into_iter()
+                    let eigvecs_arr = constraints
+                        .gencolumns()
+                        .into_iter()
                         .chain(vecs.gencolumns().into_iter())
                         .map(|x| x.insert_axis(Axis(1)))
                         .collect::<Vec<_>>();
@@ -121,16 +129,16 @@ impl<A: Float + Scalar + Lapack + PartialOrd + Default> Iterator for TruncatedEi
                 self.eig.constraints = Some(new_constraints);
 
                 Some((vals, vecs))
-            },
-            EigResult::NoResult(_) => None
+            }
+            EigResult::NoResult(_) => None,
         }
     }
 }
 
 #[cfg(test)]
 mod tests {
-    use super::TruncatedEig;
     use super::Order;
+    use super::TruncatedEig;
     use ndarray::{arr1, Array2};
 
     #[test]
@@ -140,13 +148,18 @@ mod tests {
         ]);
         let a = Array2::from_diag(&diag);
 
-        let teig = TruncatedEig::new(a, Order::Largest)
-            .precision(1e-5)
-            .maxiter(500);
-        
+        let teig = TruncatedEig::new(a, Order::Largest).precision(1e-5).maxiter(500);
+
         let res = teig.into_iter().take(3).flat_map(|x| x.0.to_vec()).collect::<Vec<_>>();
         let ground_truth = vec![20., 19., 18.];
 
-        assert!(ground_truth.into_iter().zip(res.into_iter()).map(|(x,y)| (x-y)*(x-y)).sum::<f64>() < 0.01);
+        assert!(
+            ground_truth
+                .into_iter()
+                .zip(res.into_iter())
+                .map(|(x, y)| (x - y) * (x - y))
+                .sum::<f64>()
+                < 0.01
+        );
     }
 }

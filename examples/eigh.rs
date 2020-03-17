@@ -12,4 +12,3 @@ fn main() {
     let av = a.dot(&vecs);
     println!("AV = \n{:?}", av);
 }
-

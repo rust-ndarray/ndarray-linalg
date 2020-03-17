@@ -74,7 +74,7 @@ pub use eigh::*;
 pub use generate::*;
 pub use inner::*;
 pub use layout::*;
-pub use lobpcg::{TruncatedEig, TruncatedSvd, TruncatedOrder};
+pub use lobpcg::{TruncatedEig, TruncatedOrder, TruncatedSvd};
 pub use norm::*;
 pub use operator::*;
 pub use opnorm::*;

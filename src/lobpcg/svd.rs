@@ -10,6 +10,10 @@ use crate::{Scalar, Lapack};
 use super::lobpcg::{lobpcg, EigResult, Order};
 use crate::error::Result;
 
+/// The result of an eigenvalue decomposition for SVD
+///
+/// Provides methods for either calculating just the singular values with reduced cost or the
+/// vectors as well. 
 #[derive(Debug)]
 pub struct TruncatedSvdResult<A> {
     eigvals: Array1<A>,
@@ -19,14 +23,18 @@ pub struct TruncatedSvdResult<A> {
 }
 
 impl<A: Float + PartialOrd + DivAssign<A> + 'static> TruncatedSvdResult<A> {
+    /// Returns singular values ordered by magnitude with indices.
     fn singular_values_with_indices(&self) -> (Array1<A>, Vec<usize>) {
+        // numerate and square root eigenvalues
         let mut a = self.eigvals.iter()
             .map(|x| x.sqrt())
             .enumerate()
             .collect::<Vec<_>>();
 
+        // sort by magnitude
         a.sort_by(|(_,x), (_, y)| x.partial_cmp(&y).unwrap().reverse());
         
+        // filter low singular values away
         let (values, indices): (Vec<A>, Vec<usize>) = a.into_iter()
             .filter(|(_,x)| *x > NumCast::from(1e-5).unwrap())
             .map(|(a,b)| (b,a))
@@ -35,15 +43,18 @@ impl<A: Float + PartialOrd + DivAssign<A> + 'static> TruncatedSvdResult<A> {
         (Array1::from(values), indices)
     }
 
+    /// Returns singular values orderd by magnitude
     pub fn values(&self) -> Array1<A> {
         let (values, _) = self.singular_values_with_indices();
 
         values
     }
 
+    /// Returns singular values, left-singular vectors and right-singular vectors
     pub fn values_vecs(&self) -> (Array2<A>, Array1<A>, Array2<A>) {
         let (values, indices) = self.singular_values_with_indices();
 
+        // branch n > m (for A is [n x m])
         let (u, v) = if self.ngm {
             let vlarge = self.eigvecs.select(Axis(1), &indices);
             let mut ularge = self.problem.dot(&vlarge);
@@ -105,18 +116,23 @@ impl<A: Scalar + Lapack + PartialOrd + Default> TruncatedSvd<A> {
     }
 
     // calculate the eigenvalues once
-    pub fn once(&self, num: usize) -> Result<TruncatedSvdResult<A>> {
+    pub fn once(self, num: usize) -> Result<TruncatedSvdResult<A>> {
         let (n,m) = (self.problem.nrows(), self.problem.ncols());
 
         let x = Array2::random((usize::min(n,m), num), Uniform::new(0.0, 1.0))
             .mapv(|x| NumCast::from(x).unwrap());
 
+        // square precision because the SVD squares the eigenvalue as well 
+        let precision = self.precision * self.precision;
+
+        // use problem definition with less operations required
         let res = if n > m {
-            lobpcg(|y| self.problem.t().dot(&self.problem.dot(&y)), x, None, None, self.precision, self.maxiter, self.order.clone())
+            lobpcg(|y| self.problem.t().dot(&self.problem.dot(&y)), x, None, None, precision, self.maxiter, self.order.clone())
         } else {
-            lobpcg(|y| self.problem.dot(&self.problem.t().dot(&y)), x, None, None, self.precision, self.maxiter, self.order.clone())
+            lobpcg(|y| self.problem.dot(&self.problem.t().dot(&y)), x, None, None, precision, self.maxiter, self.order.clone())
         };
 
+        // convert into TruncatedSvdResult
         match res {
             EigResult::Ok(vals, vecs, _) | EigResult::Err(vals, vecs, _, _) => {
                 Ok(TruncatedSvdResult {
@@ -136,7 +152,9 @@ mod tests {
     use crate::close_l2;
     use super::TruncatedSvd;
     use super::Order;
-    use ndarray::{arr1, arr2};
+    use ndarray::{arr1, arr2, Array2};
+    use ndarray_rand::rand_distr::Uniform;
+    use ndarray_rand::RandomExt;
 
     #[test]
     fn test_truncated_svd() {
@@ -145,12 +163,28 @@ mod tests {
 
         let res = TruncatedSvd::new(a, Order::Largest)
             .precision(1e-5)
-            .maxiter(500)
+            .maxiter(10)
             .once(2)
             .unwrap();
         
-        let (u, sigma, v_t) = res.values_vecs();
+        let (_, sigma, _) = res.values_vecs();
 
         close_l2(&sigma, &arr1(&[5.0, 3.0]), 1e-5);
+    }
+
+    #[test]
+    fn test_truncated_svd_random() {
+        let a: Array2<f64> = Array2::random((50, 10), Uniform::new(0.0, 1.0));
+
+        let res = TruncatedSvd::new(a.clone(), Order::Largest)
+            .precision(1e-5)
+            .maxiter(10)
+            .once(10)
+            .unwrap();
+
+        let (u, sigma, v_t) = res.values_vecs();
+        let reconstructed = u.dot(&Array2::from_diag(&sigma).dot(&v_t));
+
+        close_l2(&a, &reconstructed, 1e-5);
     }
 }

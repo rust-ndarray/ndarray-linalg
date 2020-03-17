@@ -3,7 +3,6 @@
 
 use std::ops::DivAssign;
 use ndarray::prelude::*;
-use ndarray::stack;
 use ndarray_rand::rand_distr::Uniform;
 use ndarray_rand::RandomExt;
 use num_traits::{Float, NumCast};
@@ -20,29 +19,32 @@ pub struct TruncatedSvdResult<A> {
 }
 
 impl<A: Float + PartialOrd + DivAssign<A> + 'static> TruncatedSvdResult<A> {
-    fn singular_values_with_indices(&self) -> (Vec<A>, Vec<usize>) {
+    fn singular_values_with_indices(&self) -> (Array1<A>, Vec<usize>) {
         let mut a = self.eigvals.iter()
-            .map(|x| if *x < NumCast::from(1e-5).unwrap() { NumCast::from(0.0).unwrap() } else { *x })
             .map(|x| x.sqrt())
             .enumerate()
             .collect::<Vec<_>>();
 
         a.sort_by(|(_,x), (_, y)| x.partial_cmp(&y).unwrap().reverse());
         
-        a.into_iter().map(|(a,b)| (b,a)).unzip()
+        let (values, indices): (Vec<A>, Vec<usize>) = a.into_iter()
+            .filter(|(_,x)| *x > NumCast::from(1e-5).unwrap())
+            .map(|(a,b)| (b,a))
+            .unzip();
+
+        (Array1::from(values), indices)
     }
 
-    pub fn values(&self) -> Vec<A> {
-        let (values, indices) = self.singular_values_with_indices();
+    pub fn values(&self) -> Array1<A> {
+        let (values, _) = self.singular_values_with_indices();
 
         values
     }
 
-    pub fn values_vecs(&self) -> (Array2<A>, Vec<A>, Array2<A>) {
+    pub fn values_vecs(&self) -> (Array2<A>, Array1<A>, Array2<A>) {
         let (values, indices) = self.singular_values_with_indices();
-        let n_values = values.iter().filter(|x| **x > NumCast::from(0.0).unwrap()).count();
 
-        if self.ngm {
+        let (u, v) = if self.ngm {
             let vlarge = self.eigvecs.select(Axis(1), &indices);
             let mut ularge = self.problem.dot(&vlarge);
             
@@ -50,20 +52,19 @@ impl<A: Float + PartialOrd + DivAssign<A> + 'static> TruncatedSvdResult<A> {
                 .zip(values.iter()) 
                 .for_each(|(mut a,b)| a.mapv_inplace(|x| x / *b));
 
-            let vhlarge = vlarge.reversed_axes();
-
-            (vhlarge, values, ularge)
+            (ularge, vlarge)
         } else {
             let ularge = self.eigvecs.select(Axis(1), &indices);
 
-            let mut vlarge = ularge.dot(&self.problem);
+            let mut vlarge = self.problem.t().dot(&ularge);
             vlarge.gencolumns_mut().into_iter()
                 .zip(values.iter()) 
                 .for_each(|(mut a,b)| a.mapv_inplace(|x| x / *b));
-            let vhlarge = vlarge.reversed_axes();
 
-            (vhlarge, values, ularge)
-        }
+            (ularge, vlarge)
+        };
+
+        (u, values, v.reversed_axes())
     }
 }
 
@@ -105,7 +106,7 @@ impl<A: Scalar + Lapack + PartialOrd + Default> TruncatedSvd<A> {
 
     // calculate the eigenvalues once
     pub fn once(&self, num: usize) -> Result<TruncatedSvdResult<A>> {
-        let (n,m) = (self.problem.rows(), self.problem.ncols());
+        let (n,m) = (self.problem.nrows(), self.problem.ncols());
 
         let x = Array2::random((usize::min(n,m), num), Uniform::new(0.0, 1.0))
             .mapv(|x| NumCast::from(x).unwrap());
@@ -125,30 +126,31 @@ impl<A: Scalar + Lapack + PartialOrd + Default> TruncatedSvd<A> {
                     ngm: n > m
                 })
             },
-            _ => panic!("")
+            EigResult::NoResult(err) => Err(err)
         }
     }
 }
 
 #[cfg(test)]
 mod tests {
+    use crate::close_l2;
     use super::TruncatedSvd;
     use super::Order;
-    use ndarray::{arr1, Array2};
+    use ndarray::{arr1, arr2};
 
     #[test]
     fn test_truncated_svd() {
-        let diag = arr1(&[
-            1., 2., 3., 4., 5., 6., 7., 8., 9., 10., 11., 12., 13., 14., 15., 16., 17., 18., 19., 20.,
-        ]);
-        let a = Array2::from_diag(&diag);
+        let a = arr2(&[[3., 2., 2.],
+                       [2., 3., -2.]]);
 
         let res = TruncatedSvd::new(a, Order::Largest)
             .precision(1e-5)
             .maxiter(500)
-            .once(3)
+            .once(2)
             .unwrap();
         
-        dbg!(&res.values());
+        let (u, sigma, v_t) = res.values_vecs();
+
+        close_l2(&sigma, &arr1(&[5.0, 3.0]), 1e-5);
     }
 }

@@ -169,14 +169,14 @@ pub fn lobpcg<A: Scalar + Lapack + PartialOrd + Default, F: Fn(ArrayView2<A>) ->
     let (n, size_x) = (x.nrows(), x.ncols());
     assert!(size_x <= n);
 
-    let size_y = match y {
+    /*let size_y = match y {
         Some(ref y) => y.ncols(),
         _ => 0,
     };
 
     if (n - size_y) < 5 * size_x {
         panic!("Please use a different approach, the LOBPCG method only supports the calculation of a couple of eigenvectors!");
-    }
+    }*/
 
     // cap the number of iteration
     let mut iter = usize::min(n * 10, maxiter);

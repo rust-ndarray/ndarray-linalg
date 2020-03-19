@@ -58,24 +58,13 @@ fn sorted_eig<A: Scalar + Lapack>(
 
 /// Masks a matrix with the given `matrix`
 fn ndarray_mask<A: Scalar>(matrix: ArrayView2<A>, mask: &[bool]) -> Array2<A> {
-    let (rows, cols) = (matrix.nrows(), matrix.ncols());
+    assert_eq!(mask.len(), matrix.ncols());
 
-    assert_eq!(mask.len(), cols);
+    let indices = (0..mask.len()).zip(mask.into_iter())
+        .filter(|(_,b)| **b).map(|(a,_)| a)
+        .collect::<Vec<usize>>();
 
-    let n_positive = mask.iter().filter(|x| **x).count();
-
-    let matrix = matrix
-        .gencolumns()
-        .into_iter()
-        .zip(mask.iter())
-        .filter(|(_, x)| **x)
-        .map(|(x, _)| x.to_vec())
-        .flatten()
-        .collect::<Vec<A>>();
-
-    Array2::from_shape_vec((n_positive, rows), matrix)
-        .unwrap()
-        .reversed_axes()
+    matrix.select(Axis(1), &indices)
 }
 
 /// Applies constraints ensuring that a matrix is orthogonal to it
@@ -193,19 +182,16 @@ pub fn lobpcg<A: Scalar + Lapack + PartialOrd + Default, F: Fn(ArrayView2<A>) ->
     let ax = a(x.view());
     let xax = x.t().dot(&ax);
 
-    // perform eigenvalue decomposition on XAX
+    // perform eigenvalue decomposition of XAX as initialization
     let (mut lambda, eig_block) = match sorted_eig(xax.view(), None, size_x, &order) {
         Ok(x) => x,
         Err(err) => return EigResult::NoResult(err),
     };
 
-    //dbg!(&lambda, &eig_block);
-
     // initiate X and AX with eigenvector
     let mut x = x.dot(&eig_block);
     let mut ax = ax.dot(&eig_block);
 
-    //dbg!(&X, &AX);
     let mut activemask = vec![true; size_x];
     let mut residual_norms = Vec::new();
     let mut results = vec![(lambda.clone(), x.clone())];
@@ -219,10 +205,11 @@ pub fn lobpcg<A: Scalar + Lapack + PartialOrd + Default, F: Fn(ArrayView2<A>) ->
 
     let final_norm = loop {
         // calculate residual
-        let lambda_tmp = lambda.clone().insert_axis(Axis(0));
-        let tmp = &x * &lambda_tmp;
+        let lambda_diag = Array2::from_diag(&lambda);
+        let lambda_x = x.dot(&lambda_diag);
 
-        let r = &ax - &tmp;
+        // calculate residual AX - lambdaX
+        let r = &ax - &lambda_x;
 
         // calculate L2 norm of error for every eigenvalue
         let tmp = r.gencolumns().into_iter().map(|x| x.norm()).collect::<Vec<A::Real>>();
@@ -248,7 +235,7 @@ pub fn lobpcg<A: Scalar + Lapack + PartialOrd + Default, F: Fn(ArrayView2<A>) ->
         let mut active_block_r = ndarray_mask(r.view(), &activemask);
         // apply preconditioner
         m(active_block_r.view_mut());
-
+        // apply constraints
         if let (Some(ref y), Some(ref fact_yy)) = (&y, &fact_yy) {
             apply_constraints(active_block_r.view_mut(), fact_yy, y.view());
         }
@@ -271,16 +258,13 @@ pub fn lobpcg<A: Scalar + Lapack + PartialOrd + Default, F: Fn(ArrayView2<A>) ->
             let active_ap = ndarray_mask(ap.view(), &activemask);
 
             let (active_p, p_r) = orthonormalize(active_p).unwrap();
-            //dbg!(&active_P, &P_R);
+
             let active_ap = match p_r.solve_triangular(UPLO::Lower, Diag::NonUnit, &active_ap.reversed_axes()) {
                 Ok(x) => x,
                 Err(err) => break Err(err),
             };
 
             let active_ap = active_ap.reversed_axes();
-
-            //dbg!(&active_AP);
-            //dbg!(&R);
 
             let xap = x.t().dot(&active_ap);
             let wap = r.t().dot(&active_ap);
@@ -291,7 +275,7 @@ pub fn lobpcg<A: Scalar + Lapack + PartialOrd + Default, F: Fn(ArrayView2<A>) ->
             (
                 stack![
                     Axis(0),
-                    stack![Axis(1), Array2::from_diag(&lambda), xaw, xap],
+                    stack![Axis(1), lambda_diag, xaw, xap],
                     stack![Axis(1), xaw.t(), waw, wap],
                     stack![Axis(1), xap.t(), wap.t(), pap]
                 ],
@@ -308,7 +292,7 @@ pub fn lobpcg<A: Scalar + Lapack + PartialOrd + Default, F: Fn(ArrayView2<A>) ->
             (
                 stack![
                     Axis(0),
-                    stack![Axis(1), Array2::from_diag(&lambda), xaw],
+                    stack![Axis(1), lambda_diag, xaw],
                     stack![Axis(1), xaw.t(), waw]
                 ],
                 stack![Axis(0), stack![Axis(1), ident0, xw], stack![Axis(1), xw.t(), ident]],
@@ -323,24 +307,14 @@ pub fn lobpcg<A: Scalar + Lapack + PartialOrd + Default, F: Fn(ArrayView2<A>) ->
         };
         lambda = new_lambda;
 
-        //dbg!(&lambda, &eig_vecs);
         let (pp, app, eig_x) = if let (Some(_), (Some(ref active_p), Some(ref active_ap))) = (ap, (active_p, active_ap))
         {
             let eig_x = eig_vecs.slice(s![..size_x, ..]);
             let eig_r = eig_vecs.slice(s![size_x..size_x + current_block_size, ..]);
             let eig_p = eig_vecs.slice(s![size_x + current_block_size.., ..]);
 
-            //dbg!(&eig_X);
-            //dbg!(&eig_R);
-            //dbg!(&eig_P);
-
-            //dbg!(&R, &AR, &active_P, &active_AP);
-
             let pp = r.dot(&eig_r) + active_p.dot(&eig_p);
             let app = ar.dot(&eig_r) + active_ap.dot(&eig_p);
-
-            //dbg!(&pp);
-            //dbg!(&app);
 
             (pp, app, eig_x)
         } else {
@@ -363,7 +337,6 @@ pub fn lobpcg<A: Scalar + Lapack + PartialOrd + Default, F: Fn(ArrayView2<A>) ->
         iter -= 1;
     };
 
-    //dbg!(&residual_norms);
     let best_idx = residual_norms.iter().enumerate().min_by(
         |&(_, item1): &(usize, &Vec<A::Real>), &(_, item2): &(usize, &Vec<A::Real>)| {
             let norm1: A::Real = item1.iter().map(|x| (*x) * (*x)).sum();

@@ -264,7 +264,7 @@ pub fn lobpcg<A: Float + Scalar + Lapack + ScalarOperand + PartialOrd + Default,
             NumCast::from(1.0e-8).unwrap()
         };
 
-        // if we once below the max_rnorm enable explicit gram flag
+        // if we are once below the max_rnorm, enable explicit gram flag
         let max_norm = residual_norms.into_iter().fold(A::Real::neg_infinity(), A::Real::max);
 
         explicit_gram_flag = max_norm <= max_rnorm || explicit_gram_flag;
@@ -292,22 +292,19 @@ pub fn lobpcg<A: Float + Scalar + Lapack + ScalarOperand + PartialOrd + Default,
             )
         };
 
-        let p_ap: Option<(_,_)> = ap.as_ref().and_then(|(p, ap)| {
-            let active_p = ndarray_mask(p.view(), &activemask);
-            let active_ap = ndarray_mask(ap.view(), &activemask);
+        let p_ap = ap.as_ref()
+            .and_then(|(p, ap)| {
+                let active_p = ndarray_mask(p.view(), &activemask);
+                let active_ap = ndarray_mask(ap.view(), &activemask);
 
-            if let Ok((active_p, p_r)) = orthonormalize(active_p) {
-                if let Ok(active_ap) = p_r.solve_triangular(UPLO::Lower, Diag::NonUnit, &active_ap.reversed_axes()) {
-                    let active_ap = active_ap.reversed_axes();
-            
-                    Some((active_p, active_ap))
-                } else {
-                    None
-                }
-            } else {
-                None
-            }
-        });
+                orthonormalize(active_p).map(|x| (active_ap, x)).ok()
+            })
+            .and_then(|(active_ap, (active_p, p_r))| {
+                let active_ap = active_ap.reversed_axes();
+                p_r.solve_triangular(UPLO::Lower, Diag::NonUnit, &active_ap)
+                    .map(|active_ap| (active_p, active_ap.reversed_axes()))
+                    .ok()
+            });
 
         // compute symmetric gram matrices
         let (gram_a, gram_b) = if let Some((active_p, active_ap)) = &p_ap {
@@ -356,7 +353,15 @@ pub fn lobpcg<A: Float + Scalar + Lapack + ScalarOperand + PartialOrd + Default,
 
         let (new_lambda, eig_vecs) = match sorted_eig(gram_a.view(), Some(gram_b.view()), size_x, &order) {
             Ok(x) => x,
-            Err(err) => break Err(err),
+            Err(err) => {
+                // restart if the eigproblem decomposition failed
+                if ap.is_some() {
+                    ap = None;
+                    continue;
+                } else {
+                    break Err(err);
+                }
+            }
         };
         lambda = new_lambda;
 

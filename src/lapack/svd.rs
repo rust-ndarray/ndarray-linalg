@@ -51,7 +51,6 @@ macro_rules! impl_svd {
                 };
                 let mut s = vec![Self::Real::zero(); k as usize];
                 let mut superb = vec![Self::Real::zero(); (k - 1) as usize];
-                dbg!(ldvt);
                 let info = $gesvd(
                     l.lapacke_layout(),
                     ju as u8,

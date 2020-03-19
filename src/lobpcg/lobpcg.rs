@@ -194,7 +194,7 @@ pub fn lobpcg<A: Scalar + Lapack + PartialOrd + Default, F: Fn(ArrayView2<A>) ->
 
     let mut activemask = vec![true; size_x];
     let mut residual_norms = Vec::new();
-    let mut results = vec![(lambda.clone(), x.clone())];
+    let mut best_result = None;
 
     let mut previous_block_size = size_x;
 
@@ -214,6 +214,12 @@ pub fn lobpcg<A: Scalar + Lapack + PartialOrd + Default, F: Fn(ArrayView2<A>) ->
         // calculate L2 norm of error for every eigenvalue
         let tmp = r.gencolumns().into_iter().map(|x| x.norm()).collect::<Vec<A::Real>>();
         residual_norms.push(tmp.clone());
+
+        // compare best result and update if we improved
+        let sum_rnorm: A::Real = tmp.iter().cloned().sum();
+        if best_result.as_ref().map(|x: &(_,_,Vec<A::Real>)| x.2.iter().cloned().sum::<A::Real>() > sum_rnorm).unwrap_or(true) {
+            best_result = Some((lambda.clone(), x.clone(), tmp.clone()));
+        }
 
         // disable eigenvalues which are below the tolerance threshold
         activemask = tmp.iter().zip(activemask.iter()).map(|(x, a)| *x > tol && *a).collect();
@@ -330,35 +336,17 @@ pub fn lobpcg<A: Scalar + Lapack + PartialOrd + Default, F: Fn(ArrayView2<A>) ->
         x = x.dot(&eig_x) + &pp;
         ax = ax.dot(&eig_x) + &app;
 
-        results.push((lambda.clone(), x.clone()));
-
         ap = Some((pp, app));
 
         iter -= 1;
     };
 
-    let best_idx = residual_norms.iter().enumerate().min_by(
-        |&(_, item1): &(usize, &Vec<A::Real>), &(_, item2): &(usize, &Vec<A::Real>)| {
-            let norm1: A::Real = item1.iter().map(|x| (*x) * (*x)).sum();
-            let norm2: A::Real = item2.iter().map(|x| (*x) * (*x)).sum();
-            norm1.partial_cmp(&norm2).unwrap()
-        },
-    );
+    let (vals, vecs, rnorm) = best_result.unwrap();
+    let rnorm = rnorm.into_iter().map(|x| Scalar::from_real(x)).collect();
 
-    match best_idx {
-        Some((idx, norms)) => {
-            let (vals, vecs) = results[idx].clone();
-            let norms = norms.iter().map(|x| Scalar::from_real(*x)).collect();
-
-            match final_norm {
-                Ok(_) => EigResult::Ok(vals, vecs, norms),
-                Err(err) => EigResult::Err(vals, vecs, norms, err),
-            }
-        }
-        None => match final_norm {
-            Ok(_) => panic!("Not error available!"),
-            Err(err) => EigResult::NoResult(err),
-        },
+    match final_norm {
+        Ok(_) => EigResult::Ok(vals, vecs, rnorm),
+        Err(err) => EigResult::Err(vals, vecs, rnorm, err)
     }
 }
 

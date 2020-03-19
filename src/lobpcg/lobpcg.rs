@@ -147,10 +147,10 @@ fn orthonormalize<T: Scalar + Lapack>(v: Array2<T>) -> Result<(Array2<T>, Array2
 /// for it. All iterations are tracked and the optimal solution returned. In case of an error a
 /// special variant `EigResult::NotConverged` additionally carries the error. This can happen when
 /// the precision of the matrix is too low (switch from `f32` to `f64` for example).
-pub fn lobpcg<A: Scalar + Lapack + PartialOrd + Default, F: Fn(ArrayView2<A>) -> Array2<A>>(
+pub fn lobpcg<A: Scalar + Lapack + PartialOrd + Default, F: Fn(ArrayView2<A>) -> Array2<A>, G: Fn(ArrayViewMut2<A>)>(
     a: F,
     mut x: Array2<A>,
-    m: Option<Array2<A>>,
+    m: G,
     y: Option<Array2<A>>,
     tol: A::Real,
     maxiter: usize,
@@ -246,9 +246,9 @@ pub fn lobpcg<A: Scalar + Lapack + PartialOrd + Default, F: Fn(ArrayView2<A>) ->
 
         // select active eigenvalues, apply pre-conditioner, orthogonalize to Y and orthonormalize
         let mut active_block_r = ndarray_mask(r.view(), &activemask);
-        if let Some(ref m) = m {
-            active_block_r = m.dot(&active_block_r);
-        }
+        // apply preconditioner
+        m(active_block_r.view_mut());
+
         if let (Some(ref y), Some(ref fact_yy)) = (&y, &fact_yy) {
             apply_constraints(active_block_r.view_mut(), fact_yy, y.view());
         }
@@ -453,7 +453,7 @@ mod tests {
         let n = a.len_of(Axis(0));
         let x: Array2<f64> = Array2::random((n, num), Uniform::new(0.0, 1.0));
 
-        let result = lobpcg(|y| a.dot(&y), x, None, None, 1e-10, 2 * n, order);
+        let result = lobpcg(|y| a.dot(&y), x, |_| {}, None, 1e-10, 2 * n, order);
         match result {
             EigResult::Ok(vals, _, r_norms) | EigResult::Err(vals, _, r_norms, _) => {
                 // check convergence
@@ -510,7 +510,7 @@ mod tests {
         let x: Array2<f64> = Array2::random((10, 1), Uniform::new(0.0, 1.0));
         let y: Array2<f64> = arr2(&[[1.0, 0., 0., 0., 0., 0., 0., 0., 0., 0.]]).reversed_axes();
 
-        let result = lobpcg(|y| a.dot(&y), x, None, Some(y), 1e-10, 100, Order::Smallest);
+        let result = lobpcg(|y| a.dot(&y), x, |_| {}, Some(y), 1e-10, 100, Order::Smallest);
         dbg!(&result);
         match result {
             EigResult::Ok(vals, vecs, r_norms) | EigResult::Err(vals, vecs, r_norms, _) => {

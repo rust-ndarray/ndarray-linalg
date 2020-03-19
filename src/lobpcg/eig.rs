@@ -64,15 +64,27 @@ impl<A: Scalar + Lapack + PartialOrd + Default> TruncatedEig<A> {
         let x = Array2::random((self.problem.len_of(Axis(0)), num), Uniform::new(0.0, 1.0))
             .mapv(|x| NumCast::from(x).unwrap());
 
-        lobpcg(
-            |y| self.problem.dot(&y),
-            x,
-            self.preconditioner.clone(),
-            self.constraints.clone(),
-            self.precision,
-            self.maxiter,
-            self.order.clone(),
-        )
+        if let Some(ref preconditioner) = self.preconditioner {
+            lobpcg(
+                |y| self.problem.dot(&y),
+                x,
+                |mut y| y.assign(&preconditioner.dot(&y)),
+                self.constraints.clone(),
+                self.precision,
+                self.maxiter,
+                self.order.clone(),
+            )
+        } else {
+            lobpcg(
+                |y| self.problem.dot(&y),
+                x,
+                |_| {},
+                self.constraints.clone(),
+                self.precision,
+                self.maxiter,
+                self.order.clone(),
+            )
+        }
     }
 }
 

@@ -7,6 +7,7 @@ use ndarray_linalg::*;
 fn main() {
     let n = 10;
     let v = random_unitary(n);
+
     // set eigenvalues in decreasing order
     let t = Array1::linspace(n as f64, -(n as f64), n);
 

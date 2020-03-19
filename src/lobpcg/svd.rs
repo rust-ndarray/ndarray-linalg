@@ -1,3 +1,6 @@
+///! Truncated singular value decomposition
+///! 
+///! This module computes the k largest/smallest singular values/vectors for a dense matrix. 
 use super::lobpcg::{lobpcg, EigResult, Order};
 use crate::error::Result;
 use crate::{Lapack, Scalar};
@@ -5,14 +8,12 @@ use ndarray::prelude::*;
 use ndarray_rand::rand_distr::Uniform;
 use ndarray_rand::RandomExt;
 use num_traits::{Float, NumCast};
-///! Implements truncated singular value decomposition
-///
 use std::ops::DivAssign;
 
-/// The result of an eigenvalue decomposition for SVD
+/// The result of a eigenvalue decomposition, not yet transformed into singular values/vectors
 ///
 /// Provides methods for either calculating just the singular values with reduced cost or the
-/// vectors as well.
+/// vectors with additional cost of matrix multiplication.
 #[derive(Debug)]
 pub struct TruncatedSvdResult<A> {
     eigvals: Array1<A>,
@@ -21,26 +22,31 @@ pub struct TruncatedSvdResult<A> {
     ngm: bool,
 }
 
-impl<A: Float + PartialOrd + DivAssign<A> + 'static> TruncatedSvdResult<A> {
+impl<A: Float + PartialOrd + DivAssign<A> + 'static + MagnitudeCorrection> TruncatedSvdResult<A> {
     /// Returns singular values ordered by magnitude with indices.
     fn singular_values_with_indices(&self) -> (Array1<A>, Vec<usize>) {
-        // numerate and square root eigenvalues
-        let mut a = self.eigvals.iter().map(|x| x.sqrt()).enumerate().collect::<Vec<_>>();
+        // numerate eigenvalues
+        let mut a = self.eigvals.iter().enumerate().collect::<Vec<_>>();
 
         // sort by magnitude
         a.sort_by(|(_, x), (_, y)| x.partial_cmp(&y).unwrap().reverse());
 
+        // calculate cut-off magnitude (borrowed from scipy)
+        let cutoff = A::epsilon() * // float precision
+                     A::correction() * // correction term (see trait below)
+                     *a[0].1; // max eigenvalue
+
         // filter low singular values away
         let (values, indices): (Vec<A>, Vec<usize>) = a
             .into_iter()
-            .filter(|(_, x)| *x > NumCast::from(1e-5).unwrap())
-            .map(|(a, b)| (b, a))
+            .filter(|(_, x)| *x > &cutoff)
+            .map(|(a, b)| (b.sqrt(), a))
             .unzip();
 
         (Array1::from(values), indices)
     }
 
-    /// Returns singular values orderd by magnitude
+    /// Returns singular values ordered by magnitude
     pub fn values(&self) -> Array1<A> {
         let (values, _) = self.singular_values_with_indices();
 
@@ -82,10 +88,8 @@ impl<A: Float + PartialOrd + DivAssign<A> + 'static> TruncatedSvdResult<A> {
 
 /// Truncated singular value decomposition
 ///
-/// This struct wraps the LOBPCG algorithm and provides convenient builder-pattern access to
-/// parameter like maximal iteration, precision and constraint matrix. Furthermore it allows
-/// conversion into a iterative solver where each iteration step yields a new eigenvalue/vector
-/// pair.
+/// Wraps the LOBPCG algorithm and provides convenient builder-pattern access to
+/// parameter like maximal iteration, precision and constraint matrix.
 pub struct TruncatedSvd<A: Scalar> {
     order: Order,
     problem: Array2<A>,
@@ -117,9 +121,15 @@ impl<A: Scalar + Lapack + PartialOrd + Default> TruncatedSvd<A> {
 
     // calculate the eigenvalue decomposition
     pub fn decompose(self, num: usize) -> Result<TruncatedSvdResult<A>> {
+        if num < 1 {
+            panic!("The number of singular values to compute should be larger than zero!");
+        }
+
         let (n, m) = (self.problem.nrows(), self.problem.ncols());
 
-        let x = Array2::random((usize::min(n, m), num), Uniform::new(0.0, 1.0)).mapv(|x| NumCast::from(x).unwrap());
+        // generate initial matrix
+        let x = Array2::random((usize::min(n, m), num), Uniform::new(0.0, 1.0))
+            .mapv(|x| NumCast::from(x).unwrap());
 
         // square precision because the SVD squares the eigenvalue as well
         let precision = self.precision * self.precision;
@@ -129,7 +139,7 @@ impl<A: Scalar + Lapack + PartialOrd + Default> TruncatedSvd<A> {
             lobpcg(
                 |y| self.problem.t().dot(&self.problem.dot(&y)),
                 x,
-                None,
+                |_| {},
                 None,
                 precision,
                 self.maxiter,
@@ -139,7 +149,7 @@ impl<A: Scalar + Lapack + PartialOrd + Default> TruncatedSvd<A> {
             lobpcg(
                 |y| self.problem.dot(&self.problem.t().dot(&y)),
                 x,
-                None,
+                |_| {},
                 None,
                 precision,
                 self.maxiter,
@@ -157,6 +167,22 @@ impl<A: Scalar + Lapack + PartialOrd + Default> TruncatedSvd<A> {
             }),
             EigResult::NoResult(err) => Err(err),
         }
+    }
+}
+
+pub trait MagnitudeCorrection {
+    fn correction() -> Self;
+}
+
+impl MagnitudeCorrection for f32 {
+    fn correction() -> Self {
+        1.0e3
+    }
+}
+
+impl MagnitudeCorrection for f64 {
+    fn correction() -> Self {
+        1.0e6
     }
 }
 
@@ -179,7 +205,7 @@ mod tests {
             .decompose(2)
             .unwrap();
 
-        let (_, sigma, _) = res.values_vecs();
+        let (_, sigma, _) = res.values_vectors();
 
         close_l2(&sigma, &arr1(&[5.0, 3.0]), 1e-5);
     }

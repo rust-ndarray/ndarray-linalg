@@ -396,7 +396,7 @@ pub fn lobpcg<A: Float + Scalar + Lapack + ScalarOperand + PartialOrd + Default,
     let (vals, vecs, rnorm) = best_result.unwrap();
     let rnorm = rnorm.into_iter().map(|x| Scalar::from_real(x)).collect();
 
-    dbg!(&residual_norms_history);
+    //dbg!(&residual_norms_history);
 
     match final_norm {
         Ok(_) => EigResult::Ok(vals, vecs, rnorm),
@@ -445,7 +445,7 @@ mod tests {
     /// Test orthonormalization of a random matrix
     #[test]
     fn test_orthonormalize() {
-        let matrix = Array2::random((10, 10), Uniform::new(-10., 10.));
+        let matrix: Array2<f64> = Array2::random((10, 10), Uniform::new(-10., 10.));
 
         let (n, l) = orthonormalize(matrix.clone()).unwrap();
 
@@ -455,7 +455,7 @@ mod tests {
 
         // compare returned factorization with QR decomposition
         let (_, r) = matrix.qr().unwrap();
-        close_l2(&r.mapv(|x: f32| x.abs()), &l.t().mapv(|x| x.abs()), 1e-2);
+        close_l2(&r.mapv(|x| x.abs()), &l.t().mapv(|x| x.abs()), 1e-2);
     }
 
     fn assert_symmetric(a: &Array2<f64>) {

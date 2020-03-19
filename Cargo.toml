@@ -54,5 +54,10 @@ paste = "0.1"
 criterion = "0.3"
 
 [[bench]]
+name = "truncated_eig"
+harness = false
+
+[[bench]]
 name = "eigh"
 harness = false
+

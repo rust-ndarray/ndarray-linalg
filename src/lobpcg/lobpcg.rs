@@ -204,7 +204,7 @@ pub fn lobpcg<A: Float + Scalar + Lapack + ScalarOperand + PartialOrd + Default,
     let two: A = NumCast::from(2.0).unwrap();
 
     let mut ap: Option<(Array2<A>, Array2<A>)> = None;
-    let mut explicit_gram_flag = false;
+    let mut explicit_gram_flag = true;
 
     let final_norm = loop {
         // calculate residual
@@ -258,7 +258,8 @@ pub fn lobpcg<A: Float + Scalar + Lapack + ScalarOperand + PartialOrd + Default,
 
         let ar = a(r.view());
 
-        let max_rnorm = if A::epsilon() > NumCast::from(1e-8).unwrap() {
+        // check whether `A` is of type `f32` or `f64`
+        let max_rnorm_float = if A::epsilon() > NumCast::from(1e-8).unwrap() {
             NumCast::from(1.0).unwrap()
         } else {
             NumCast::from(1.0e-8).unwrap()
@@ -266,8 +267,7 @@ pub fn lobpcg<A: Float + Scalar + Lapack + ScalarOperand + PartialOrd + Default,
 
         // if we are once below the max_rnorm, enable explicit gram flag
         let max_norm = residual_norms.into_iter().fold(A::Real::neg_infinity(), A::Real::max);
-
-        explicit_gram_flag = max_norm <= max_rnorm || explicit_gram_flag;
+        explicit_gram_flag = max_norm <= max_rnorm_float || explicit_gram_flag;
 
         // perform the Rayleigh Ritz procedure
         let xar = x.t().dot(&ar);
@@ -365,7 +365,7 @@ pub fn lobpcg<A: Float + Scalar + Lapack + ScalarOperand + PartialOrd + Default,
         };
         lambda = new_lambda;
 
-        let (pp, app, eig_x) = if let (Some(_), Some((active_p, active_ap))) = (ap, p_ap)
+        let (pp, app, eig_x) = if let Some((active_p, active_ap)) = p_ap
         {
             let eig_x = eig_vecs.slice(s![..size_x, ..]);
             let eig_r = eig_vecs.slice(s![size_x..size_x + current_block_size, ..]);
@@ -395,6 +395,8 @@ pub fn lobpcg<A: Float + Scalar + Lapack + ScalarOperand + PartialOrd + Default,
 
     let (vals, vecs, rnorm) = best_result.unwrap();
     let rnorm = rnorm.into_iter().map(|x| Scalar::from_real(x)).collect();
+
+    dbg!(&residual_norms_history);
 
     match final_norm {
         Ok(_) => EigResult::Ok(vals, vecs, rnorm),
@@ -466,7 +468,7 @@ mod tests {
         let n = a.len_of(Axis(0));
         let x: Array2<f64> = Array2::random((n, num), Uniform::new(0.0, 1.0));
 
-        let result = lobpcg(|y| a.dot(&y), x, |_| {}, None, 1e-10, 2 * n, order);
+        let result = lobpcg(|y| a.dot(&y), x, |_| {}, None, 1e-5, n, order);
         match result {
             EigResult::Ok(vals, _, r_norms) | EigResult::Err(vals, _, r_norms, _) => {
                 // check convergence

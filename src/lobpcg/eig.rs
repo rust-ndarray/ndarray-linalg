@@ -4,6 +4,7 @@ use crate::{Lapack, Scalar};
 ///
 use ndarray::prelude::*;
 use ndarray::stack;
+use ndarray::ScalarOperand;
 use ndarray_rand::rand_distr::Uniform;
 use ndarray_rand::RandomExt;
 use num_traits::{Float, NumCast};
@@ -23,7 +24,7 @@ pub struct TruncatedEig<A: Scalar> {
     maxiter: usize,
 }
 
-impl<A: Scalar + Lapack + PartialOrd + Default> TruncatedEig<A> {
+impl<A: Float + Scalar + ScalarOperand + Lapack + PartialOrd + Default> TruncatedEig<A> {
     pub fn new(problem: Array2<A>, order: Order) -> TruncatedEig<A> {
         TruncatedEig {
             precision: NumCast::from(1e-5).unwrap(),
@@ -88,7 +89,7 @@ impl<A: Scalar + Lapack + PartialOrd + Default> TruncatedEig<A> {
     }
 }
 
-impl<A: Float + Scalar + Lapack + PartialOrd + Default> IntoIterator for TruncatedEig<A> {
+impl<A: Float + Scalar + ScalarOperand + Lapack + PartialOrd + Default> IntoIterator for TruncatedEig<A> {
     type Item = (Array1<A>, Array2<A>);
     type IntoIter = TruncatedEigIterator<A>;
 
@@ -111,7 +112,7 @@ pub struct TruncatedEigIterator<A: Scalar> {
     eig: TruncatedEig<A>,
 }
 
-impl<A: Float + Scalar + Lapack + PartialOrd + Default> Iterator for TruncatedEigIterator<A> {
+impl<A: Float + Scalar + ScalarOperand + Lapack + PartialOrd + Default> Iterator for TruncatedEigIterator<A> {
     type Item = (Array1<A>, Array2<A>);
 
     fn next(&mut self) -> Option<Self::Item> {

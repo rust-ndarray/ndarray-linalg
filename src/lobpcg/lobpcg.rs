@@ -7,7 +7,8 @@ use crate::{cholesky::*, close_l2, eigh::*, norm::*, triangular::*};
 use crate::{Lapack, Scalar};
 use ndarray::prelude::*;
 use ndarray::OwnedRepr;
-use num_traits::NumCast;
+use ndarray::ScalarOperand;
+use num_traits::{NumCast, Float};
 
 /// Find largest or smallest eigenvalues
 #[derive(Debug, Clone)]
@@ -136,7 +137,7 @@ fn orthonormalize<T: Scalar + Lapack>(v: Array2<T>) -> Result<(Array2<T>, Array2
 /// for it. All iterations are tracked and the optimal solution returned. In case of an error a
 /// special variant `EigResult::NotConverged` additionally carries the error. This can happen when
 /// the precision of the matrix is too low (switch from `f32` to `f64` for example).
-pub fn lobpcg<A: Scalar + Lapack + PartialOrd + Default, F: Fn(ArrayView2<A>) -> Array2<A>, G: Fn(ArrayViewMut2<A>)>(
+pub fn lobpcg<A: Float + Scalar + Lapack + ScalarOperand + PartialOrd + Default, F: Fn(ArrayView2<A>) -> Array2<A>, G: Fn(ArrayViewMut2<A>)>(
     a: F,
     mut x: Array2<A>,
     m: G,
@@ -193,15 +194,17 @@ pub fn lobpcg<A: Scalar + Lapack + PartialOrd + Default, F: Fn(ArrayView2<A>) ->
     let mut ax = ax.dot(&eig_block);
 
     let mut activemask = vec![true; size_x];
-    let mut residual_norms = Vec::new();
+    let mut residual_norms_history = Vec::new();
     let mut best_result = None;
 
     let mut previous_block_size = size_x;
 
     let mut ident: Array2<A> = Array2::eye(size_x);
     let ident0: Array2<A> = Array2::eye(size_x);
+    let two: A = NumCast::from(2.0).unwrap();
 
     let mut ap: Option<(Array2<A>, Array2<A>)> = None;
+    let mut explicit_gram_flag = false;
 
     let final_norm = loop {
         // calculate residual
@@ -212,17 +215,17 @@ pub fn lobpcg<A: Scalar + Lapack + PartialOrd + Default, F: Fn(ArrayView2<A>) ->
         let r = &ax - &lambda_x;
 
         // calculate L2 norm of error for every eigenvalue
-        let tmp = r.gencolumns().into_iter().map(|x| x.norm()).collect::<Vec<A::Real>>();
-        residual_norms.push(tmp.clone());
+        let residual_norms = r.gencolumns().into_iter().map(|x| x.norm()).collect::<Vec<A::Real>>();
+        residual_norms_history.push(residual_norms.clone());
 
         // compare best result and update if we improved
-        let sum_rnorm: A::Real = tmp.iter().cloned().sum();
+        let sum_rnorm: A::Real = residual_norms.iter().cloned().sum();
         if best_result.as_ref().map(|x: &(_,_,Vec<A::Real>)| x.2.iter().cloned().sum::<A::Real>() > sum_rnorm).unwrap_or(true) {
-            best_result = Some((lambda.clone(), x.clone(), tmp.clone()));
+            best_result = Some((lambda.clone(), x.clone(), residual_norms.clone()));
         }
 
         // disable eigenvalues which are below the tolerance threshold
-        activemask = tmp.iter().zip(activemask.iter()).map(|(x, a)| *x > tol && *a).collect();
+        activemask = residual_norms.iter().zip(activemask.iter()).map(|(x, a)| *x > tol && *a).collect();
 
         // resize identity block if necessary
         let current_block_size = activemask.iter().filter(|x| **x).count();
@@ -234,17 +237,19 @@ pub fn lobpcg<A: Scalar + Lapack + PartialOrd + Default, F: Fn(ArrayView2<A>) ->
         // if we are below the threshold for all eigenvalue or exceeded the number of iteration,
         // abort
         if current_block_size == 0 || iter == 0 {
-            break Ok(tmp);
+            break Ok(residual_norms);
         }
 
         // select active eigenvalues, apply pre-conditioner, orthogonalize to Y and orthonormalize
         let mut active_block_r = ndarray_mask(r.view(), &activemask);
         // apply preconditioner
         m(active_block_r.view_mut());
-        // apply constraints
+        // apply constraints to the preconditioned residuals
         if let (Some(ref y), Some(ref fact_yy)) = (&y, &fact_yy) {
             apply_constraints(active_block_r.view_mut(), fact_yy, y.view());
         }
+        // orthogonalize the preconditioned residual to x
+        active_block_r -= &x.dot(&x.t().dot(&active_block_r));
 
         let (r, _) = match orthonormalize(active_block_r) {
             Ok(x) => x,
@@ -253,57 +258,99 @@ pub fn lobpcg<A: Scalar + Lapack + PartialOrd + Default, F: Fn(ArrayView2<A>) ->
 
         let ar = a(r.view());
 
-        // perform the Rayleigh Ritz procedure
-        let xaw = x.t().dot(&ar);
-        let waw = r.t().dot(&ar);
-        let xw = x.t().dot(&r);
+        let max_rnorm = if A::epsilon() > NumCast::from(1e-8).unwrap() {
+            NumCast::from(1.0).unwrap()
+        } else {
+            NumCast::from(1.0e-8).unwrap()
+        };
 
-        // compute symmetric gram matrices
-        let (gram_a, gram_b, active_p, active_ap) = if let Some((ref p, ref ap)) = ap {
+        // if we once below the max_rnorm enable explicit gram flag
+        let max_norm = residual_norms.into_iter().fold(A::Real::neg_infinity(), A::Real::max);
+
+        explicit_gram_flag = max_norm <= max_rnorm || explicit_gram_flag;
+
+        // perform the Rayleigh Ritz procedure
+        let xar = x.t().dot(&ar);
+        let mut rar = r.t().dot(&ar);
+
+        let (xax, xx, rr, xr) = if explicit_gram_flag {
+            rar = (&rar + &rar.t()) / two;
+            let xax = x.t().dot(&ax);
+
+            (
+                (&xax + &xax.t()) / two,
+                x.t().dot(&x),
+                r.t().dot(&r),
+                x.t().dot(&r)
+            )
+        } else {
+            (
+                lambda_diag,
+                ident0.clone(),
+                ident.clone(),
+                Array2::zeros((size_x, current_block_size))
+            )
+        };
+
+        let p_ap: Option<(_,_)> = ap.as_ref().and_then(|(p, ap)| {
             let active_p = ndarray_mask(p.view(), &activemask);
             let active_ap = ndarray_mask(ap.view(), &activemask);
 
-            let (active_p, p_r) = orthonormalize(active_p).unwrap();
+            if let Ok((active_p, p_r)) = orthonormalize(active_p) {
+                if let Ok(active_ap) = p_r.solve_triangular(UPLO::Lower, Diag::NonUnit, &active_ap.reversed_axes()) {
+                    let active_ap = active_ap.reversed_axes();
+            
+                    Some((active_p, active_ap))
+                } else {
+                    None
+                }
+            } else {
+                None
+            }
+        });
 
-            let active_ap = match p_r.solve_triangular(UPLO::Lower, Diag::NonUnit, &active_ap.reversed_axes()) {
-                Ok(x) => x,
-                Err(err) => break Err(err),
+        // compute symmetric gram matrices
+        let (gram_a, gram_b) = if let Some((active_p, active_ap)) = &p_ap {
+            let xap = x.t().dot(active_ap);
+            let rap = r.t().dot(active_ap);
+            let pap = active_p.t().dot(active_ap);
+            let xp = x.t().dot(active_p);
+            let rp = r.t().dot(active_p);
+            let (pap, pp) = if explicit_gram_flag {
+                (
+                    (&pap + &pap.t()) / two,
+                    active_p.t().dot(active_p)
+                )
+            } else {
+                (pap, ident.clone())
             };
-
-            let active_ap = active_ap.reversed_axes();
-
-            let xap = x.t().dot(&active_ap);
-            let wap = r.t().dot(&active_ap);
-            let pap = active_p.t().dot(&active_ap);
-            let xp = x.t().dot(&active_p);
-            let wp = r.t().dot(&active_p);
 
             (
                 stack![
                     Axis(0),
-                    stack![Axis(1), lambda_diag, xaw, xap],
-                    stack![Axis(1), xaw.t(), waw, wap],
-                    stack![Axis(1), xap.t(), wap.t(), pap]
+                    stack![Axis(1), xax, xar, xap],
+                    stack![Axis(1), xar.t(), rar, rap],
+                    stack![Axis(1), xap.t(), rap.t(), pap]
                 ],
                 stack![
                     Axis(0),
-                    stack![Axis(1), ident0, xw, xp],
-                    stack![Axis(1), xw.t(), ident, wp],
-                    stack![Axis(1), xp.t(), wp.t(), ident]
+                    stack![Axis(1), xx, xr, xp],
+                    stack![Axis(1), xr.t(), rr, rp],
+                    stack![Axis(1), xp.t(), rp.t(), pp]
                 ],
-                Some(active_p),
-                Some(active_ap),
             )
         } else {
             (
                 stack![
                     Axis(0),
-                    stack![Axis(1), lambda_diag, xaw],
-                    stack![Axis(1), xaw.t(), waw]
+                    stack![Axis(1), xax, xar],
+                    stack![Axis(1), xar.t(), rar]
                 ],
-                stack![Axis(0), stack![Axis(1), ident0, xw], stack![Axis(1), xw.t(), ident]],
-                None,
-                None,
+                stack![
+                    Axis(0), 
+                    stack![Axis(1), xx, xr], 
+                    stack![Axis(1), xr.t(), rr]
+                ],
             )
         };
 
@@ -313,7 +360,7 @@ pub fn lobpcg<A: Scalar + Lapack + PartialOrd + Default, F: Fn(ArrayView2<A>) ->
         };
         lambda = new_lambda;
 
-        let (pp, app, eig_x) = if let (Some(_), (Some(ref active_p), Some(ref active_ap))) = (ap, (active_p, active_ap))
+        let (pp, app, eig_x) = if let (Some(_), Some((active_p, active_ap))) = (ap, p_ap)
         {
             let eig_x = eig_vecs.slice(s![..size_x, ..]);
             let eig_r = eig_vecs.slice(s![size_x..size_x + current_block_size, ..]);

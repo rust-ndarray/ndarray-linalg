@@ -5,6 +5,7 @@ use super::lobpcg::{lobpcg, EigResult, Order};
 use crate::error::Result;
 use crate::{Lapack, Scalar};
 use ndarray::prelude::*;
+use ndarray::ScalarOperand;
 use ndarray_rand::rand_distr::Uniform;
 use ndarray_rand::RandomExt;
 use num_traits::{Float, NumCast};
@@ -97,7 +98,7 @@ pub struct TruncatedSvd<A: Scalar> {
     maxiter: usize,
 }
 
-impl<A: Scalar + Lapack + PartialOrd + Default> TruncatedSvd<A> {
+impl<A: Float + Scalar + ScalarOperand + Lapack + PartialOrd + Default> TruncatedSvd<A> {
     pub fn new(problem: Array2<A>, order: Order) -> TruncatedSvd<A> {
         TruncatedSvd {
             precision: NumCast::from(1e-5).unwrap(),

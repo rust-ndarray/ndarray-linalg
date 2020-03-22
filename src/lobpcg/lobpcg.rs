@@ -73,7 +73,7 @@ fn ndarray_mask<A: Scalar>(matrix: ArrayView2<A>, mask: &[bool]) -> Array2<A> {
 /// This functions takes a matrix `v` and constraint matrix `y` and orthogonalize the `v` to `y`.
 fn apply_constraints<A: Scalar + Lapack>(
     mut v: ArrayViewMut<A, Ix2>,
-    fact_yy: &CholeskyFactorized<OwnedRepr<A>>,
+    cholesky_yy: &CholeskyFactorized<OwnedRepr<A>>,
     y: ArrayView2<A>,
 ) {
     let gram_yv = y.t().dot(&v);
@@ -82,7 +82,7 @@ fn apply_constraints<A: Scalar + Lapack>(
         .gencolumns()
         .into_iter()
         .map(|x| {
-            let res = fact_yy.solvec(&x).unwrap();
+            let res = cholesky_yy.solvec(&x).unwrap();
 
             res.to_vec()
         })
@@ -120,23 +120,22 @@ fn orthonormalize<T: Scalar + Lapack>(v: Array2<T>) -> Result<(Array2<T>, Array2
 ///
 /// # Arguments
 /// * `a` - An operator defining the problem, usually a sparse (sometimes also dense) matrix
-/// multiplication. Also called the "Stiffness matrix".
-/// * `x` - Initial approximation to the k eigenvectors. If `a` has shape=(n,n), then `x` should
+/// multiplication. Also called the "stiffness matrix".
+/// * `x` - Initial approximation of the k eigenvectors. If `a` has shape=(n,n), then `x` should
 /// have shape=(n,k).
-/// * `m` - Preconditioner to `a`, by default the identity matrix. In the optimal case `m`
-/// approximates the inverse of `a`.
+/// * `m` - Preconditioner to `a`, by default the identity matrix. Should approximate the inverse
+/// of `a`.
 /// * `y` - Constraints of (n,size_y), iterations are performed in the orthogonal complement of the
 /// column-space of `y`. It must be full rank.
-/// * `tol` - The tolerance values defines at which point the solver stops the optimization. The l2-norm
-/// of the residual is compared to this value and the eigenvalue approximation returned if below
-/// the threshold.
+/// * `tol` - The tolerance values defines at which point the solver stops the optimization. The approximation
+/// of a eigenvalue stops when then l2-norm of the residual is below this threshold.
 /// * `maxiter` - The maximal number of iterations
 /// * `order` - Whether to solve for the largest or lowest eigenvalues
 ///
 /// The function returns an `EigResult` with the eigenvalue/eigenvector and achieved residual norm
 /// for it. All iterations are tracked and the optimal solution returned. In case of an error a
 /// special variant `EigResult::NotConverged` additionally carries the error. This can happen when
-/// the precision of the matrix is too low (switch from `f32` to `f64` for example).
+/// the precision of the matrix is too low (switch then from `f32` to `f64` for example).
 pub fn lobpcg<A: Float + Scalar + Lapack + ScalarOperand + PartialOrd + Default, F: Fn(ArrayView2<A>) -> Array2<A>, G: Fn(ArrayViewMut2<A>)>(
     a: F,
     mut x: Array2<A>,
@@ -163,37 +162,37 @@ pub fn lobpcg<A: Float + Scalar + Lapack + ScalarOperand + PartialOrd + Default,
     // cap the number of iteration
     let mut iter = usize::min(n * 10, maxiter);
 
-    // factorize yy for later use
-    let fact_yy = match y {
-        Some(ref y) => {
-            let fact_yy = y.t().dot(y).factorizec(UPLO::Lower).unwrap();
+    // calculate cholesky factorization of YY' and apply constraints to initial guess
+    let cholesky_yy = y.as_ref().map(|y| {
+        let cholesky_yy = y.t().dot(y).factorizec(UPLO::Lower).unwrap();
+        apply_constraints(x.view_mut(), &cholesky_yy, y.view());
+        cholesky_yy
+    });
 
-            apply_constraints(x.view_mut(), &fact_yy, y.view());
-            Some(fact_yy)
-        }
-        None => None,
-    };
-
-    // orthonormalize the initial guess and calculate matrices AX and XAX
+    // orthonormalize the initial guess
     let (x, _) = match orthonormalize(x) {
         Ok(x) => x,
         Err(err) => return EigResult::NoResult(err),
     };
 
+    // calculate AX and XAX for Rayleigh quotient
     let ax = a(x.view());
     let xax = x.t().dot(&ax);
 
-    // perform eigenvalue decomposition of XAX as initialization
+    // perform eigenvalue decomposition of XAX
     let (mut lambda, eig_block) = match sorted_eig(xax.view(), None, size_x, &order) {
         Ok(x) => x,
         Err(err) => return EigResult::NoResult(err),
     };
 
-    // initiate X and AX with eigenvector
+    // initiate approximation of the eigenvector
     let mut x = x.dot(&eig_block);
     let mut ax = ax.dot(&eig_block);
 
+    // track residual below threshold
     let mut activemask = vec![true; size_x];
+
+    // track residuals and best result
     let mut residual_norms_history = Vec::new();
     let mut best_result = None;
 
@@ -203,7 +202,7 @@ pub fn lobpcg<A: Float + Scalar + Lapack + ScalarOperand + PartialOrd + Default,
     let ident0: Array2<A> = Array2::eye(size_x);
     let two: A = NumCast::from(2.0).unwrap();
 
-    let mut ap: Option<(Array2<A>, Array2<A>)> = None;
+    let mut previous_p_ap: Option<(Array2<A>, Array2<A>)> = None;
     let mut explicit_gram_flag = true;
 
     let final_norm = loop {
@@ -245,8 +244,8 @@ pub fn lobpcg<A: Float + Scalar + Lapack + ScalarOperand + PartialOrd + Default,
         // apply preconditioner
         m(active_block_r.view_mut());
         // apply constraints to the preconditioned residuals
-        if let (Some(ref y), Some(ref fact_yy)) = (&y, &fact_yy) {
-            apply_constraints(active_block_r.view_mut(), fact_yy, y.view());
+        if let (Some(ref y), Some(ref cholesky_yy)) = (&y, &cholesky_yy) {
+            apply_constraints(active_block_r.view_mut(), cholesky_yy, y.view());
         }
         // orthogonalize the preconditioned residual to x
         active_block_r -= &x.dot(&x.t().dot(&active_block_r));
@@ -273,6 +272,9 @@ pub fn lobpcg<A: Float + Scalar + Lapack + ScalarOperand + PartialOrd + Default,
         let xar = x.t().dot(&ar);
         let mut rar = r.t().dot(&ar);
 
+        // for small residuals calculate covariance matrices explicitely, otherwise approximate
+        // them such that X is orthogonal and uncorrelated to the residual R and use eigenvalues of
+        // previous decomposition
         let (xax, xx, rr, xr) = if explicit_gram_flag {
             rar = (&rar + &rar.t()) / two;
             let xax = x.t().dot(&ax);
@@ -292,7 +294,8 @@ pub fn lobpcg<A: Float + Scalar + Lapack + ScalarOperand + PartialOrd + Default,
             )
         };
 
-        let p_ap = ap.as_ref()
+        // mask and orthonormalize P and AP
+        let p_ap = previous_p_ap.as_ref()
             .and_then(|(p, ap)| {
                 let active_p = ndarray_mask(p.view(), &activemask);
                 let active_ap = ndarray_mask(ap.view(), &activemask);
@@ -300,6 +303,7 @@ pub fn lobpcg<A: Float + Scalar + Lapack + ScalarOperand + PartialOrd + Default,
                 orthonormalize(active_p).map(|x| (active_ap, x)).ok()
             })
             .and_then(|(active_ap, (active_p, p_r))| {
+                // orthonormalize AP with R^{-1} of A
                 let active_ap = active_ap.reversed_axes();
                 p_r.solve_triangular(UPLO::Lower, Diag::NonUnit, &active_ap)
                     .map(|active_ap| (active_p, active_ap.reversed_axes()))
@@ -351,52 +355,63 @@ pub fn lobpcg<A: Float + Scalar + Lapack + ScalarOperand + PartialOrd + Default,
             )
         };
 
+        // apply Rayleigh-Ritz method for (A - lambda) to calculate optimal expansion coefficients
         let (new_lambda, eig_vecs) = match sorted_eig(gram_a.view(), Some(gram_b.view()), size_x, &order) {
             Ok(x) => x,
             Err(err) => {
                 // restart if the eigproblem decomposition failed
-                if ap.is_some() {
-                    ap = None;
+                if previous_p_ap.is_some() {
+                    previous_p_ap = None;
                     continue;
-                } else {
+                } else { // or break if restart is not possible
                     break Err(err);
                 }
             }
         };
         lambda = new_lambda;
 
-        let (pp, app, eig_x) = if let Some((active_p, active_ap)) = p_ap
+        // approximate eigenvector X and conjugate vectors P with solution of eigenproblem
+        let (p, ap, tau) = if let Some((active_p, active_ap)) = p_ap
         {
-            let eig_x = eig_vecs.slice(s![..size_x, ..]);
-            let eig_r = eig_vecs.slice(s![size_x..size_x + current_block_size, ..]);
-            let eig_p = eig_vecs.slice(s![size_x + current_block_size.., ..]);
+            // tau are eigenvalues to basis of X
+            let tau = eig_vecs.slice(s![..size_x, ..]);
+            // alpha are eigenvalues to basis of R
+            let alpha = eig_vecs.slice(s![size_x..size_x + current_block_size, ..]);
+            // gamma are eigenvalues to basis of P
+            let gamma = eig_vecs.slice(s![size_x + current_block_size.., ..]);
 
-            let pp = r.dot(&eig_r) + active_p.dot(&eig_p);
-            let app = ar.dot(&eig_r) + active_ap.dot(&eig_p);
+            // update AP and P in span{R, P} as linear combination
+            let updated_p = r.dot(&alpha) + active_p.dot(&gamma);
+            let updated_ap = ar.dot(&alpha) + active_ap.dot(&gamma);
 
-            (pp, app, eig_x)
+            (updated_p, updated_ap, tau)
         } else {
-            let eig_x = eig_vecs.slice(s![..size_x, ..]);
-            let eig_r = eig_vecs.slice(s![size_x.., ..]);
+            // tau are eigenvalues to basis of X
+            let tau = eig_vecs.slice(s![..size_x, ..]);
+            // alpha are eigenvalues to basis of R
+            let alpha = eig_vecs.slice(s![size_x.., ..]);
 
-            let pp = r.dot(&eig_r);
-            let app = ar.dot(&eig_r);
+            // update AP and P as linear combination of the residual matrix R
+            let updated_p = r.dot(&alpha);
+            let updated_ap = ar.dot(&alpha);
 
-            (pp, app, eig_x)
+            (updated_p, updated_ap, tau)
         };
 
-        x = x.dot(&eig_x) + &pp;
-        ax = ax.dot(&eig_x) + &app;
+        // update approximation of X as linear combinations of span{X, P, R}
+        x = x.dot(&tau) + &p;
+        ax = ax.dot(&tau) + &ap;
 
-        ap = Some((pp, app));
+        previous_p_ap = Some((p, ap));
 
         iter -= 1;
     };
 
+    // retrieve best result and convert norm into `A`
     let (vals, vecs, rnorm) = best_result.unwrap();
     let rnorm = rnorm.into_iter().map(|x| Scalar::from_real(x)).collect();
 
-    //dbg!(&residual_norms_history);
+    dbg!(&residual_norms_history);
 
     match final_norm {
         Ok(_) => EigResult::Ok(vals, vecs, rnorm),
@@ -468,21 +483,22 @@ mod tests {
         let n = a.len_of(Axis(0));
         let x: Array2<f64> = Array2::random((n, num), Uniform::new(0.0, 1.0));
 
-        let result = lobpcg(|y| a.dot(&y), x, |_| {}, None, 1e-5, n, order);
+        let result = lobpcg(|y| a.dot(&y), x, |_| {}, None, 1e-5, n * 2, order);
+        dbg!(&result);
         match result {
             EigResult::Ok(vals, _, r_norms) | EigResult::Err(vals, _, r_norms, _) => {
                 // check convergence
                 for (i, norm) in r_norms.into_iter().enumerate() {
-                    if norm > 0.01 {
+                    if norm > 1e-5 {
                         println!("==== Assertion Failed ====");
-                        println!("The {} eigenvalue estimation did not converge!", i);
+                        println!("The {}th eigenvalue estimation did not converge!", i);
                         panic!("Too large deviation of residual norm: {} > 0.01", norm);
                     }
                 }
 
                 // check correct order of eigenvalues
                 if ground_truth_eigvals.len() == num {
-                    close_l2(&Array1::from(ground_truth_eigvals.to_vec()), &vals, 5e-2)
+                    close_l2(&Array1::from(ground_truth_eigvals.to_vec()), &vals, num as f64 * 5e-4)
                 }
             }
             EigResult::NoResult(err) => panic!("Did not converge: {:?}", err),
@@ -519,30 +535,29 @@ mod tests {
     }
 
     #[test]
-    fn test_eigsolver_constrainted() {
+    fn test_eigsolver_constrained() {
         let diag = arr1(&[1., 2., 3., 4., 5., 6., 7., 8., 9., 10.]);
         let a = Array2::from_diag(&diag);
         let x: Array2<f64> = Array2::random((10, 1), Uniform::new(0.0, 1.0));
-        let y: Array2<f64> = arr2(&[[1.0, 0., 0., 0., 0., 0., 0., 0., 0., 0.]]).reversed_axes();
+        let y: Array2<f64> = arr2(&[[1.0, 0., 0., 0., 0., 0., 0., 0., 0., 0.], [0., 1.0, 0., 0., 0., 0., 0., 0., 0., 0.]]).reversed_axes();
 
-        let result = lobpcg(|y| a.dot(&y), x, |_| {}, Some(y), 1e-10, 100, Order::Smallest);
-        dbg!(&result);
+        let result = lobpcg(|y| a.dot(&y), x, |_| {}, Some(y), 1e-10, 50, Order::Smallest);
         match result {
             EigResult::Ok(vals, vecs, r_norms) | EigResult::Err(vals, vecs, r_norms, _) => {
                 // check convergence
                 for (i, norm) in r_norms.into_iter().enumerate() {
                     if norm > 0.01 {
                         println!("==== Assertion Failed ====");
-                        println!("The {} eigenvalue estimation did not converge!", i);
+                        println!("The {}th eigenvalue estimation did not converge!", i);
                         panic!("Too large deviation of residual norm: {} > 0.01", norm);
                     }
                 }
 
-                // should be the second eigenvalue
-                close_l2(&vals, &Array1::from(vec![2.0]), 1e-2);
+                // should be the third eigenvalue
+                close_l2(&vals, &Array1::from(vec![3.0]), 1e-10);
                 close_l2(
                     &vecs.column(0).mapv(|x| x.abs()),
-                    &arr1(&[0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]),
+                    &arr1(&[0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]),
                     1e-5,
                 );
             }

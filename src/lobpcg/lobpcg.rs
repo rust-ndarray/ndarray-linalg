@@ -8,7 +8,7 @@ use crate::{Lapack, Scalar};
 use ndarray::prelude::*;
 use ndarray::OwnedRepr;
 use ndarray::ScalarOperand;
-use num_traits::{NumCast, Float};
+use num_traits::{Float, NumCast};
 
 /// Find largest or smallest eigenvalues
 #[derive(Debug, Clone)]
@@ -20,12 +20,12 @@ pub enum Order {
 /// The result of the eigensolver
 ///
 /// In the best case the eigensolver has converged with a result better than the given threshold,
-/// then a `EigResult::Ok` gives the eigenvalues, eigenvectors and norms. If an error ocurred
-/// during the process, it is returned in `EigResult::Err`, but the best result is still returned,
-/// as it could be usable. If there is no result at all, then `EigResult::NoResult` is returned.
+/// then a `LobpcgResult::Ok` gives the eigenvalues, eigenvectors and norms. If an error ocurred
+/// during the process, it is returned in `LobpcgResult::Err`, but the best result is still returned,
+/// as it could be usable. If there is no result at all, then `LobpcgResult::NoResult` is returned.
 /// This happens if the algorithm fails in an early stage, for example if the matrix `A` is not SPD
 #[derive(Debug)]
-pub enum EigResult<A> {
+pub enum LobpcgResult<A> {
     Ok(Array1<A>, Array2<A>, Vec<A>),
     Err(Array1<A>, Array2<A>, Vec<A>, LinalgError),
     NoResult(LinalgError),
@@ -61,8 +61,10 @@ fn sorted_eig<A: Scalar + Lapack>(
 fn ndarray_mask<A: Scalar>(matrix: ArrayView2<A>, mask: &[bool]) -> Array2<A> {
     assert_eq!(mask.len(), matrix.ncols());
 
-    let indices = (0..mask.len()).zip(mask.into_iter())
-        .filter(|(_,b)| **b).map(|(a,_)| a)
+    let indices = (0..mask.len())
+        .zip(mask.into_iter())
+        .filter(|(_, b)| **b)
+        .map(|(a, _)| a)
         .collect::<Vec<usize>>();
 
     matrix.select(Axis(1), &indices)
@@ -70,7 +72,7 @@ fn ndarray_mask<A: Scalar>(matrix: ArrayView2<A>, mask: &[bool]) -> Array2<A> {
 
 /// Applies constraints ensuring that a matrix is orthogonal to it
 ///
-/// This functions takes a matrix `v` and constraint matrix `y` and orthogonalize the `v` to `y`.
+/// This functions takes a matrix `v` and constraint-matrix `y` and orthogonalize `v` to `y`.
 fn apply_constraints<A: Scalar + Lapack>(
     mut v: ArrayViewMut<A, Ix2>,
     cholesky_yy: &CholeskyFactorized<OwnedRepr<A>>,
@@ -132,11 +134,15 @@ fn orthonormalize<T: Scalar + Lapack>(v: Array2<T>) -> Result<(Array2<T>, Array2
 /// * `maxiter` - The maximal number of iterations
 /// * `order` - Whether to solve for the largest or lowest eigenvalues
 ///
-/// The function returns an `EigResult` with the eigenvalue/eigenvector and achieved residual norm
+/// The function returns an `LobpcgResult` with the eigenvalue/eigenvector and achieved residual norm
 /// for it. All iterations are tracked and the optimal solution returned. In case of an error a
-/// special variant `EigResult::NotConverged` additionally carries the error. This can happen when
+/// special variant `LobpcgResult::NotConverged` additionally carries the error. This can happen when
 /// the precision of the matrix is too low (switch then from `f32` to `f64` for example).
-pub fn lobpcg<A: Float + Scalar + Lapack + ScalarOperand + PartialOrd + Default, F: Fn(ArrayView2<A>) -> Array2<A>, G: Fn(ArrayViewMut2<A>)>(
+pub fn lobpcg<
+    A: Float + Scalar + Lapack + ScalarOperand + PartialOrd + Default,
+    F: Fn(ArrayView2<A>) -> Array2<A>,
+    G: Fn(ArrayViewMut2<A>),
+>(
     a: F,
     mut x: Array2<A>,
     m: G,
@@ -144,7 +150,7 @@ pub fn lobpcg<A: Float + Scalar + Lapack + ScalarOperand + PartialOrd + Default,
     tol: A::Real,
     maxiter: usize,
     order: Order,
-) -> EigResult<A> {
+) -> LobpcgResult<A> {
     // the initital approximation should be maximal square
     // n is the dimensionality of the problem
     let (n, size_x) = (x.nrows(), x.ncols());
@@ -172,7 +178,7 @@ pub fn lobpcg<A: Float + Scalar + Lapack + ScalarOperand + PartialOrd + Default,
     // orthonormalize the initial guess
     let (x, _) = match orthonormalize(x) {
         Ok(x) => x,
-        Err(err) => return EigResult::NoResult(err),
+        Err(err) => return LobpcgResult::NoResult(err),
     };
 
     // calculate AX and XAX for Rayleigh quotient
@@ -182,7 +188,7 @@ pub fn lobpcg<A: Float + Scalar + Lapack + ScalarOperand + PartialOrd + Default,
     // perform eigenvalue decomposition of XAX
     let (mut lambda, eig_block) = match sorted_eig(xax.view(), None, size_x, &order) {
         Ok(x) => x,
-        Err(err) => return EigResult::NoResult(err),
+        Err(err) => return LobpcgResult::NoResult(err),
     };
 
     // initiate approximation of the eigenvector
@@ -219,12 +225,20 @@ pub fn lobpcg<A: Float + Scalar + Lapack + ScalarOperand + PartialOrd + Default,
 
         // compare best result and update if we improved
         let sum_rnorm: A::Real = residual_norms.iter().cloned().sum();
-        if best_result.as_ref().map(|x: &(_,_,Vec<A::Real>)| x.2.iter().cloned().sum::<A::Real>() > sum_rnorm).unwrap_or(true) {
+        if best_result
+            .as_ref()
+            .map(|x: &(_, _, Vec<A::Real>)| x.2.iter().cloned().sum::<A::Real>() > sum_rnorm)
+            .unwrap_or(true)
+        {
             best_result = Some((lambda.clone(), x.clone(), residual_norms.clone()));
         }
 
         // disable eigenvalues which are below the tolerance threshold
-        activemask = residual_norms.iter().zip(activemask.iter()).map(|(x, a)| *x > tol && *a).collect();
+        activemask = residual_norms
+            .iter()
+            .zip(activemask.iter())
+            .map(|(x, a)| *x > tol && *a)
+            .collect();
 
         // resize identity block if necessary
         let current_block_size = activemask.iter().filter(|x| **x).count();
@@ -279,23 +293,19 @@ pub fn lobpcg<A: Float + Scalar + Lapack + ScalarOperand + PartialOrd + Default,
             rar = (&rar + &rar.t()) / two;
             let xax = x.t().dot(&ax);
 
-            (
-                (&xax + &xax.t()) / two,
-                x.t().dot(&x),
-                r.t().dot(&r),
-                x.t().dot(&r)
-            )
+            ((&xax + &xax.t()) / two, x.t().dot(&x), r.t().dot(&r), x.t().dot(&r))
         } else {
             (
                 lambda_diag,
                 ident0.clone(),
                 ident.clone(),
-                Array2::zeros((size_x, current_block_size))
+                Array2::zeros((size_x, current_block_size)),
             )
         };
 
         // mask and orthonormalize P and AP
-        let p_ap = previous_p_ap.as_ref()
+        let p_ap = previous_p_ap
+            .as_ref()
             .and_then(|(p, ap)| {
                 let active_p = ndarray_mask(p.view(), &activemask);
                 let active_ap = ndarray_mask(ap.view(), &activemask);
@@ -318,10 +328,7 @@ pub fn lobpcg<A: Float + Scalar + Lapack + ScalarOperand + PartialOrd + Default,
             let xp = x.t().dot(active_p);
             let rp = r.t().dot(active_p);
             let (pap, pp) = if explicit_gram_flag {
-                (
-                    (&pap + &pap.t()) / two,
-                    active_p.t().dot(active_p)
-                )
+                ((&pap + &pap.t()) / two, active_p.t().dot(active_p))
             } else {
                 (pap, ident.clone())
             };
@@ -342,16 +349,8 @@ pub fn lobpcg<A: Float + Scalar + Lapack + ScalarOperand + PartialOrd + Default,
             )
         } else {
             (
-                stack![
-                    Axis(0),
-                    stack![Axis(1), xax, xar],
-                    stack![Axis(1), xar.t(), rar]
-                ],
-                stack![
-                    Axis(0), 
-                    stack![Axis(1), xx, xr], 
-                    stack![Axis(1), xr.t(), rr]
-                ],
+                stack![Axis(0), stack![Axis(1), xax, xar], stack![Axis(1), xar.t(), rar]],
+                stack![Axis(0), stack![Axis(1), xx, xr], stack![Axis(1), xr.t(), rr]],
             )
         };
 
@@ -363,7 +362,8 @@ pub fn lobpcg<A: Float + Scalar + Lapack + ScalarOperand + PartialOrd + Default,
                 if previous_p_ap.is_some() {
                     previous_p_ap = None;
                     continue;
-                } else { // or break if restart is not possible
+                } else {
+                    // or break if restart is not possible
                     break Err(err);
                 }
             }
@@ -371,8 +371,7 @@ pub fn lobpcg<A: Float + Scalar + Lapack + ScalarOperand + PartialOrd + Default,
         lambda = new_lambda;
 
         // approximate eigenvector X and conjugate vectors P with solution of eigenproblem
-        let (p, ap, tau) = if let Some((active_p, active_ap)) = p_ap
-        {
+        let (p, ap, tau) = if let Some((active_p, active_ap)) = p_ap {
             // tau are eigenvalues to basis of X
             let tau = eig_vecs.slice(s![..size_x, ..]);
             // alpha are eigenvalues to basis of R
@@ -414,8 +413,8 @@ pub fn lobpcg<A: Float + Scalar + Lapack + ScalarOperand + PartialOrd + Default,
     dbg!(&residual_norms_history);
 
     match final_norm {
-        Ok(_) => EigResult::Ok(vals, vecs, rnorm),
-        Err(err) => EigResult::Err(vals, vecs, rnorm, err)
+        Ok(_) => LobpcgResult::Ok(vals, vecs, rnorm),
+        Err(err) => LobpcgResult::Err(vals, vecs, rnorm, err),
     }
 }
 
@@ -425,7 +424,7 @@ mod tests {
     use super::ndarray_mask;
     use super::orthonormalize;
     use super::sorted_eig;
-    use super::EigResult;
+    use super::LobpcgResult;
     use super::Order;
     use crate::close_l2;
     use crate::qr::*;
@@ -486,7 +485,7 @@ mod tests {
         let result = lobpcg(|y| a.dot(&y), x, |_| {}, None, 1e-5, n * 2, order);
         dbg!(&result);
         match result {
-            EigResult::Ok(vals, _, r_norms) | EigResult::Err(vals, _, r_norms, _) => {
+            LobpcgResult::Ok(vals, _, r_norms) | LobpcgResult::Err(vals, _, r_norms, _) => {
                 // check convergence
                 for (i, norm) in r_norms.into_iter().enumerate() {
                     if norm > 1e-5 {
@@ -501,7 +500,7 @@ mod tests {
                     close_l2(&Array1::from(ground_truth_eigvals.to_vec()), &vals, num as f64 * 5e-4)
                 }
             }
-            EigResult::NoResult(err) => panic!("Did not converge: {:?}", err),
+            LobpcgResult::NoResult(err) => panic!("Did not converge: {:?}", err),
         }
     }
 
@@ -539,11 +538,15 @@ mod tests {
         let diag = arr1(&[1., 2., 3., 4., 5., 6., 7., 8., 9., 10.]);
         let a = Array2::from_diag(&diag);
         let x: Array2<f64> = Array2::random((10, 1), Uniform::new(0.0, 1.0));
-        let y: Array2<f64> = arr2(&[[1.0, 0., 0., 0., 0., 0., 0., 0., 0., 0.], [0., 1.0, 0., 0., 0., 0., 0., 0., 0., 0.]]).reversed_axes();
+        let y: Array2<f64> = arr2(&[
+            [1.0, 0., 0., 0., 0., 0., 0., 0., 0., 0.],
+            [0., 1.0, 0., 0., 0., 0., 0., 0., 0., 0.],
+        ])
+        .reversed_axes();
 
         let result = lobpcg(|y| a.dot(&y), x, |_| {}, Some(y), 1e-10, 50, Order::Smallest);
         match result {
-            EigResult::Ok(vals, vecs, r_norms) | EigResult::Err(vals, vecs, r_norms, _) => {
+            LobpcgResult::Ok(vals, vecs, r_norms) | LobpcgResult::Err(vals, vecs, r_norms, _) => {
                 // check convergence
                 for (i, norm) in r_norms.into_iter().enumerate() {
                     if norm > 0.01 {
@@ -561,7 +564,7 @@ mod tests {
                     1e-5,
                 );
             }
-            EigResult::NoResult(err) => panic!("Did not converge: {:?}", err),
+            LobpcgResult::NoResult(err) => panic!("Did not converge: {:?}", err),
         }
     }
 }

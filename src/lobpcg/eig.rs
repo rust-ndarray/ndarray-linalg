@@ -1,4 +1,4 @@
-use super::lobpcg::{lobpcg, EigResult, Order};
+use super::lobpcg::{lobpcg, LobpcgResult, Order};
 use crate::{Lapack, Scalar};
 ///! Implements truncated eigenvalue decomposition
 ///
@@ -61,7 +61,7 @@ impl<A: Float + Scalar + ScalarOperand + Lapack + PartialOrd + Default> Truncate
     }
 
     // calculate the eigenvalues decompose
-    pub fn decompose(&self, num: usize) -> EigResult<A> {
+    pub fn decompose(&self, num: usize) -> LobpcgResult<A> {
         let x = Array2::random((self.problem.len_of(Axis(0)), num), Uniform::new(0.0, 1.0))
             .mapv(|x| NumCast::from(x).unwrap());
 
@@ -124,7 +124,7 @@ impl<A: Float + Scalar + ScalarOperand + Lapack + PartialOrd + Default> Iterator
         let res = self.eig.decompose(step_size);
 
         match res {
-            EigResult::Ok(vals, vecs, norms) | EigResult::Err(vals, vecs, norms, _) => {
+            LobpcgResult::Ok(vals, vecs, norms) | LobpcgResult::Err(vals, vecs, norms, _) => {
                 // abort if any eigenproblem did not converge
                 for r_norm in norms {
                     if r_norm > NumCast::from(0.1).unwrap() {
@@ -151,7 +151,7 @@ impl<A: Float + Scalar + ScalarOperand + Lapack + PartialOrd + Default> Iterator
 
                 Some((vals, vecs))
             }
-            EigResult::NoResult(_) => None,
+            LobpcgResult::NoResult(_) => None,
         }
     }
 }

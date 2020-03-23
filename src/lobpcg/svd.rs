@@ -1,7 +1,7 @@
 ///! Truncated singular value decomposition
-///! 
-///! This module computes the k largest/smallest singular values/vectors for a dense matrix. 
-use super::lobpcg::{lobpcg, EigResult, Order};
+///!
+///! This module computes the k largest/smallest singular values/vectors for a dense matrix.
+use super::lobpcg::{lobpcg, LobpcgResult, Order};
 use crate::error::Result;
 use crate::{Lapack, Scalar};
 use ndarray::prelude::*;
@@ -129,8 +129,7 @@ impl<A: Float + Scalar + ScalarOperand + Lapack + PartialOrd + Default> Truncate
         let (n, m) = (self.problem.nrows(), self.problem.ncols());
 
         // generate initial matrix
-        let x = Array2::random((usize::min(n, m), num), Uniform::new(0.0, 1.0))
-            .mapv(|x| NumCast::from(x).unwrap());
+        let x = Array2::random((usize::min(n, m), num), Uniform::new(0.0, 1.0)).mapv(|x| NumCast::from(x).unwrap());
 
         // square precision because the SVD squares the eigenvalue as well
         let precision = self.precision * self.precision;
@@ -160,13 +159,13 @@ impl<A: Float + Scalar + ScalarOperand + Lapack + PartialOrd + Default> Truncate
 
         // convert into TruncatedSvdResult
         match res {
-            EigResult::Ok(vals, vecs, _) | EigResult::Err(vals, vecs, _, _) => Ok(TruncatedSvdResult {
+            LobpcgResult::Ok(vals, vecs, _) | LobpcgResult::Err(vals, vecs, _, _) => Ok(TruncatedSvdResult {
                 problem: self.problem.clone(),
                 eigvals: vals,
                 eigvecs: vecs,
                 ngm: n > m,
             }),
-            EigResult::NoResult(err) => Err(err),
+            LobpcgResult::NoResult(err) => Err(err),
         }
     }
 }

@@ -414,8 +414,6 @@ pub fn lobpcg<
     let (vals, vecs, rnorm) = best_result.unwrap();
     let rnorm = rnorm.into_iter().map(|x| Scalar::from_real(x)).collect();
 
-    dbg!(&residual_norms_history);
-
     match final_norm {
         Ok(_) => LobpcgResult::Ok(vals, vecs, rnorm),
         Err(err) => LobpcgResult::Err(vals, vecs, rnorm, err),

@@ -6,8 +6,7 @@ use crate::error::{LinalgError, Result};
 use crate::{cholesky::*, close_l2, eigh::*, norm::*, triangular::*};
 use crate::{Lapack, Scalar};
 use ndarray::prelude::*;
-use ndarray::OwnedRepr;
-use ndarray::ScalarOperand;
+use ndarray::{OwnedRepr, ScalarOperand, Data};
 use num_traits::{Float, NumCast};
 
 /// Find largest or smallest eigenvalues
@@ -32,18 +31,18 @@ pub enum LobpcgResult<A> {
 }
 
 /// Solve full eigenvalue problem, sort by `order` and truncate to `size`
-fn sorted_eig<A: Scalar + Lapack>(
-    a: ArrayView2<A>,
-    b: Option<ArrayView2<A>>,
+fn sorted_eig<S: Data<Elem = A>, A: Scalar + Lapack>(
+    a: ArrayBase<S, Ix2>,
+    b: Option<ArrayBase<S, Ix2>>,
     size: usize,
     order: &Order,
 ) -> Result<(Array1<A>, Array2<A>)> {
+    let n = a.len_of(Axis(0));
+
     let (vals, vecs) = match b {
         Some(b) => (a, b).eigh(UPLO::Upper).map(|x| (x.0, (x.1).0))?,
         _ => a.eigh(UPLO::Upper)?,
     };
-
-    let n = a.len_of(Axis(0));
 
     Ok(match order {
         Order::Largest => (
@@ -320,55 +319,60 @@ pub fn lobpcg<
                     .ok()
             });
 
-        // compute symmetric gram matrices
-        let (gram_a, gram_b) = if let Some((active_p, active_ap)) = &p_ap {
-            let xap = x.t().dot(active_ap);
-            let rap = r.t().dot(active_ap);
-            let pap = active_p.t().dot(active_ap);
-            let xp = x.t().dot(active_p);
-            let rp = r.t().dot(active_p);
-            let (pap, pp) = if explicit_gram_flag {
-                ((&pap + &pap.t()) / two, active_p.t().dot(active_p))
-            } else {
-                (pap, ident.clone())
-            };
-
-            (
-                stack![
-                    Axis(0),
-                    stack![Axis(1), xax, xar, xap],
-                    stack![Axis(1), xar.t(), rar, rap],
-                    stack![Axis(1), xap.t(), rap.t(), pap]
-                ],
-                stack![
-                    Axis(0),
-                    stack![Axis(1), xx, xr, xp],
-                    stack![Axis(1), xr.t(), rr, rp],
-                    stack![Axis(1), xp.t(), rp.t(), pp]
-                ],
-            )
-        } else {
-            (
-                stack![Axis(0), stack![Axis(1), xax, xar], stack![Axis(1), xar.t(), rar]],
-                stack![Axis(0), stack![Axis(1), xx, xr], stack![Axis(1), xr.t(), rr]],
-            )
-        };
-
-        // apply Rayleigh-Ritz method for (A - lambda) to calculate optimal expansion coefficients
-        let (new_lambda, eig_vecs) = match sorted_eig(gram_a.view(), Some(gram_b.view()), size_x, &order) {
-            Ok(x) => x,
-            Err(err) => {
-                // restart if the eigproblem decomposition failed
-                if previous_p_ap.is_some() {
-                    previous_p_ap = None;
-                    continue;
+        // compute symmetric gram matrices and calculate solution of eigenproblem
+        //
+        // first try to compute the eigenvalue decomposition of the span{R, X, P},
+        // if this fails (or the algorithm was restarted), then just use span{R, X}
+        let result = p_ap.as_ref()
+            .ok_or(LinalgError::Lapack { return_code: 1 })
+            .and_then(|(active_p, active_ap)| {
+                let xap = x.t().dot(active_ap);
+                let rap = r.t().dot(active_ap);
+                let pap = active_p.t().dot(active_ap);
+                let xp = x.t().dot(active_p);
+                let rp = r.t().dot(active_p);
+                let (pap, pp) = if explicit_gram_flag {
+                    ((&pap + &pap.t()) / two, active_p.t().dot(active_p))
                 } else {
-                    // or break if restart is not possible
-                    break Err(err);
-                }
-            }
-        };
-        lambda = new_lambda;
+                    (pap, ident.clone())
+                };
+
+                sorted_eig(
+                    stack![
+                        Axis(0),
+                        stack![Axis(1), xax, xar, xap],
+                        stack![Axis(1), xar.t(), rar, rap],
+                        stack![Axis(1), xap.t(), rap.t(), pap]
+                    ],
+                    Some(stack![
+                        Axis(0),
+                        stack![Axis(1), xx, xr, xp],
+                        stack![Axis(1), xr.t(), rr, rp],
+                        stack![Axis(1), xp.t(), rp.t(), pp]
+                    ]),
+                    size_x,
+                    &order
+                )
+            })
+            .or_else(|_| {
+                sorted_eig(
+                    stack![Axis(0), stack![Axis(1), xax, xar], stack![Axis(1), xar.t(), rar]],
+                    Some(stack![Axis(0), stack![Axis(1), xx, xr], stack![Axis(1), xr.t(), rr]]),
+                    size_x,
+                    &order
+                )
+            });
+
+
+        // update eigenvalues and eigenvectors (lambda is also used in the next iteration)
+        let eig_vecs;
+        match result {
+            Ok((x, y)) => {
+                lambda = x;
+                eig_vecs = y;
+            },
+            Err(x) => break Err(x)
+        }
 
         // approximate eigenvector X and conjugate vectors P with solution of eigenproblem
         let (p, ap, tau) = if let Some((active_p, active_ap)) = p_ap {

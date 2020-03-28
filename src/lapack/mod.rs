@@ -1,6 +1,7 @@
 //! Define traits wrapping LAPACK routines
 
 pub mod cholesky;
+pub mod eig;
 pub mod eigh;
 pub mod opnorm;
 pub mod qr;
@@ -11,6 +12,7 @@ pub mod svddc;
 pub mod triangular;
 
 pub use self::cholesky::*;
+pub use self::eig::*;
 pub use self::eigh::*;
 pub use self::opnorm::*;
 pub use self::qr::*;
@@ -26,7 +28,7 @@ use super::types::*;
 pub type Pivot = Vec<i32>;
 
 /// Trait for primitive types which implements LAPACK subroutines
-pub trait Lapack: OperatorNorm_ + QR_ + SVD_ + SVDDC_ + Solve_ + Solveh_ + Cholesky_ + Eigh_ + Triangular_ {}
+pub trait Lapack: OperatorNorm_ + QR_ + SVD_ + SVDDC_ + Solve_ + Solveh_ + Cholesky_ + Eig_ + Eigh_ + Triangular_ {}
 
 impl Lapack for f32 {}
 impl Lapack for f64 {}

@@ -4,7 +4,10 @@ jobs:
       vmImage: 'ubuntu-18.04'
     steps:
       - script: |
-          export FC=$(which gfortran-9)
+          sudo apt-get update
+          sudo apt-get install -y gfortran
+        displayName: apt install gfortran
+      - script: |
           cargo test -v --features=openblas --no-default-features
           cargo test -v --features=openblas,serde-1 --no-default-features
         displayName: run test
@@ -14,7 +17,10 @@ jobs:
       vmImage: 'ubuntu-18.04'
     steps:
       - script: |
-          export FC=$(which gfortran-9)
+          sudo apt-get update
+          sudo apt-get install -y gfortran
+        displayName: apt install gfortran
+      - script: |
           cargo test -v --features=openblas-static --no-default-features
           cargo test -v --features=openblas-static,serde-1 --no-default-features
         displayName: run test
@@ -24,7 +30,10 @@ jobs:
       vmImage: 'ubuntu-18.04'
     steps:
       - script: |
-          export FC=$(which gfortran-9)
+          sudo apt-get update
+          sudo apt-get install -y gfortran
+        displayName: apt install gfortran
+      - script: |
           cargo test -v --features=netlib --no-default-features
           cargo test -v --features=netlib,serde-1 --no-default-features
         displayName: run test

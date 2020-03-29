@@ -23,34 +23,34 @@ static          = ["openblas-static"]
 openblas-static = ["openblas", "openblas-src"]
 
 [dependencies]
-lapacke = "0.2"
-num-traits  = "0.2"
-cauchy = "0.2.1"
-num-complex = "0.2.1"
+lapacke = "0.2.0"
+num-traits  = "0.2.11"
+cauchy = "0.2.2"
+num-complex = "0.2.4"
 rand = "0.5"
 
 [dependencies.ndarray]
-version = "0.13"
+version = "0.13.0"
 features = ["blas"]
 default-features = false
 
 [dependencies.blas-src]
-version = "0.4"
+version = "0.6.1"
 default-features = false
 
 [dependencies.lapack-src]
-version = "0.4"
+version = "0.6.0"
 default-features = false
 
 [dependencies.openblas-src]
-version = "0.7"
+version = "0.9.0"
 default-features = false
 features = ["static"]
 optional = true
 
 [dev-dependencies]
-paste = "0.1"
-criterion = "0.3"
+paste = "0.1.9"
+criterion = "0.3.1"
 
 [[bench]]
 name = "eigh"

@@ -37,12 +37,8 @@ jobs:
 
   - job: macOSIntelMKL
     pool:
-      vmImage: 'macOS-10.14'
+      vmImage: 'macOS-10.15'
     steps:
-      - script: |
-          curl -sSf https://sh.rustup.rs | sh -s -- -y
-          echo "##vso[task.setvariable variable=PATH;]$PATH:$HOME/.cargo/bin"
-        displayName: install rustup
       - script: |
           cargo test -v --features=intel-mkl --no-default-features
           cargo test -v --features=intel-mkl,serde-1 --no-default-features

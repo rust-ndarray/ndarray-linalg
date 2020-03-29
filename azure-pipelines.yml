@@ -81,6 +81,7 @@ jobs:
       vmImage: 'windows-2019'
     steps:
       - script: |
+          mkdir %USERPROFILE%\.rustup\toolchains
           curl -sSf -o rustup-init.exe https://win.rustup.rs
           rustup-init.exe -y 2>&1
           set PATH=%PATH%;%USERPROFILE%\.cargo\bin

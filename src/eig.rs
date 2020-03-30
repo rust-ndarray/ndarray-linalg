@@ -1,4 +1,4 @@
-//! Eigenvalue decomposition for Hermite matrices
+//! Eigenvalue decomposition for non-symmetric square matrices
 
 use ndarray::*;
 use crate::error::*;

@@ -7,8 +7,10 @@ use crate::types::*;
 
 /// Eigenvalue decomposition of general matrix reference
 pub trait Eig {
+    /// EigVec is the right eivenvector
     type EigVal;
     type EigVec;
+    /// Calculate eigenvalues with the right eigenvector
     fn eig(&self) -> Result<(Self::EigVal, Self::EigVec)>;
 }
 

@@ -10,7 +10,7 @@ fn solve() -> Result<(), error::LinalgError> {
     let b: Array1<c64> = random(3);
     println!("b = {:?}", &b);
     let x = a.solveh(&b)?;
-    println!("Ax = {:?}", a.dot(&x));;
+    println!("Ax = {:?}", a.dot(&x));
     Ok(())
 }
 

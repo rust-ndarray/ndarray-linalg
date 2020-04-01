@@ -94,21 +94,21 @@ impl<A: Float + PartialOrd + DivAssign<A> + 'static + MagnitudeCorrection> Trunc
 pub struct TruncatedSvd<A: Scalar> {
     order: Order,
     problem: Array2<A>,
-    precision: A::Real,
+    precision: f32,
     maxiter: usize,
 }
 
 impl<A: Float + Scalar + ScalarOperand + Lapack + PartialOrd + Default> TruncatedSvd<A> {
     pub fn new(problem: Array2<A>, order: Order) -> TruncatedSvd<A> {
         TruncatedSvd {
-            precision: NumCast::from(1e-5).unwrap(),
+            precision: 1e-5,
             maxiter: problem.len_of(Axis(0)) * 2,
             order,
             problem,
         }
     }
 
-    pub fn precision(mut self, precision: A::Real) -> Self {
+    pub fn precision(mut self, precision: f32) -> Self {
         self.precision = precision;
 
         self

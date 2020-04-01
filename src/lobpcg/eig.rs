@@ -20,14 +20,14 @@ pub struct TruncatedEig<A: Scalar> {
     problem: Array2<A>,
     pub constraints: Option<Array2<A>>,
     preconditioner: Option<Array2<A>>,
-    precision: A::Real,
+    precision: f32,
     maxiter: usize,
 }
 
 impl<A: Float + Scalar + ScalarOperand + Lapack + PartialOrd + Default> TruncatedEig<A> {
     pub fn new(problem: Array2<A>, order: Order) -> TruncatedEig<A> {
         TruncatedEig {
-            precision: NumCast::from(1e-5).unwrap(),
+            precision: 1e-5,
             maxiter: problem.len_of(Axis(0)) * 2,
             preconditioner: None,
             constraints: None,
@@ -36,7 +36,7 @@ impl<A: Float + Scalar + ScalarOperand + Lapack + PartialOrd + Default> Truncate
         }
     }
 
-    pub fn precision(mut self, precision: A::Real) -> Self {
+    pub fn precision(mut self, precision: f32) -> Self {
         self.precision = precision;
 
         self

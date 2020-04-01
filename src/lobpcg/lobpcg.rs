@@ -146,7 +146,7 @@ pub fn lobpcg<
     mut x: Array2<A>,
     m: G,
     y: Option<Array2<A>>,
-    tol: A::Real,
+    tol: f32,
     maxiter: usize,
     order: Order,
 ) -> LobpcgResult<A> {
@@ -166,6 +166,7 @@ pub fn lobpcg<
 
     // cap the number of iteration
     let mut iter = usize::min(n * 10, maxiter);
+    let tol = NumCast::from(tol).unwrap();
 
     // calculate cholesky factorization of YY' and apply constraints to initial guess
     let cholesky_yy = y.as_ref().map(|y| {

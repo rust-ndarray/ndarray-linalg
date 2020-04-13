@@ -42,8 +42,8 @@ version = "0.3"
 default-features = false
 
 [dependencies.sprs]
-git = "https://github.com/pmarks/sprs.git"
-branch = "pmarks/scan-rs"
+git = "https://github.com/nlhepler/sprs.git"
+branch = "master"
 optional = true
 
 [dependencies.openblas-src]

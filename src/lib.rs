@@ -7,6 +7,7 @@
 //! - Decomposition methods:
 //!     - [QR decomposition](qr/index.html)
 //!     - [Cholesky/LU decomposition](cholesky/index.html)
+//!     - [Eigenvalue decomposition](eig/index.html)
 //!     - [Eigenvalue decomposition for Hermite matrices](eigh/index.html)
 //!     - [**S**ingular **V**alue **D**ecomposition](svd/index.html)
 //! - Solution of linear systems:
@@ -43,6 +44,7 @@ pub mod assert;
 pub mod cholesky;
 pub mod convert;
 pub mod diagonal;
+pub mod eig;
 pub mod eigh;
 pub mod error;
 pub mod generate;
@@ -66,6 +68,7 @@ pub use assert::*;
 pub use cholesky::*;
 pub use convert::*;
 pub use diagonal::*;
+pub use eig::*;
 pub use eigh::*;
 pub use generate::*;
 pub use inner::*;

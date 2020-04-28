@@ -3,11 +3,9 @@
 ///! This module computes the k largest/smallest singular values/vectors for a dense matrix.
 use super::lobpcg::{lobpcg, LobpcgResult, Order};
 use crate::error::Result;
-use crate::{Lapack, Scalar};
+use crate::{Lapack, Scalar, generate};
 use ndarray::prelude::*;
 use ndarray::ScalarOperand;
-use ndarray_rand::rand_distr::Uniform;
-use ndarray_rand::RandomExt;
 use num_traits::{Float, NumCast};
 use std::ops::DivAssign;
 
@@ -129,7 +127,8 @@ impl<A: Float + Scalar + ScalarOperand + Lapack + PartialOrd + Default> Truncate
         let (n, m) = (self.problem.nrows(), self.problem.ncols());
 
         // generate initial matrix
-        let x = Array2::random((usize::min(n, m), num), Uniform::new(0.0, 1.0)).mapv(|x| NumCast::from(x).unwrap());
+        let x: Array2<f32> = generate::random((usize::min(n, m), num));
+        let x = x.mapv(|x| NumCast::from(x).unwrap());
 
         // square precision because the SVD squares the eigenvalue as well
         let precision = self.precision * self.precision;
@@ -190,10 +189,9 @@ impl MagnitudeCorrection for f64 {
 mod tests {
     use super::Order;
     use super::TruncatedSvd;
-    use crate::close_l2;
+    use crate::{close_l2, generate};
+
     use ndarray::{arr1, arr2, Array2};
-    use ndarray_rand::rand_distr::Uniform;
-    use ndarray_rand::RandomExt;
 
     #[test]
     fn test_truncated_svd() {
@@ -212,7 +210,7 @@ mod tests {
 
     #[test]
     fn test_truncated_svd_random() {
-        let a: Array2<f64> = Array2::random((50, 10), Uniform::new(0.0, 1.0));
+        let a: Array2<f64> = generate::random((50, 10));
 
         let res = TruncatedSvd::new(a.clone(), Order::Largest)
             .precision(1e-5)

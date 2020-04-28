@@ -304,7 +304,7 @@ pub fn lobpcg<
         };
 
         // mask and orthonormalize P and AP
-        let p_ap = previous_p_ap
+        let mut p_ap = previous_p_ap
             .as_ref()
             .and_then(|(p, ap)| {
                 let active_p = ndarray_mask(p.view(), &activemask);
@@ -356,6 +356,8 @@ pub fn lobpcg<
                 )
             })
             .or_else(|_| {
+                p_ap = None;
+
                 sorted_eig(
                     stack![Axis(0), stack![Axis(1), xax, xar], stack![Axis(1), xar.t(), rar]],
                     Some(stack![Axis(0), stack![Axis(1), xx, xr], stack![Axis(1), xr.t(), rr]]),
@@ -431,14 +433,13 @@ mod tests {
     use super::Order;
     use crate::close_l2;
     use crate::qr::*;
+    use crate::generate;
     use ndarray::prelude::*;
-    use ndarray_rand::rand_distr::Uniform;
-    use ndarray_rand::RandomExt;
 
     /// Test the `sorted_eigen` function
     #[test]
     fn test_sorted_eigen() {
-        let matrix = Array2::random((10, 10), Uniform::new(0., 10.));
+        let matrix: Array2<f64> = generate::random((10, 10)) * 10.0;
         let matrix = matrix.t().dot(&matrix);
 
         // return all eigenvectors with largest first
@@ -454,7 +455,7 @@ mod tests {
     /// Test the masking function
     #[test]
     fn test_masking() {
-        let matrix = Array2::random((10, 5), Uniform::new(0., 10.));
+        let matrix: Array2<f64> = generate::random((10, 5)) * 10.0;
         let masked_matrix = ndarray_mask(matrix.view(), &[true, true, false, true, false]);
         close_l2(&masked_matrix.slice(s![.., 2]), &matrix.slice(s![.., 3]), 1e-12);
     }
@@ -462,7 +463,7 @@ mod tests {
     /// Test orthonormalization of a random matrix
     #[test]
     fn test_orthonormalize() {
-        let matrix: Array2<f64> = Array2::random((10, 10), Uniform::new(-10., 10.));
+        let matrix: Array2<f64> = generate::random((10, 10)) * 10.0;
 
         let (n, l) = orthonormalize(matrix.clone()).unwrap();
 
@@ -483,10 +484,9 @@ mod tests {
         assert_symmetric(a);
 
         let n = a.len_of(Axis(0));
-        let x: Array2<f64> = Array2::random((n, num), Uniform::new(0.0, 1.0));
+        let x: Array2<f64> = generate::random((n, num));
 
         let result = lobpcg(|y| a.dot(&y), x, |_| {}, None, 1e-5, n * 2, order);
-        dbg!(&result);
         match result {
             LobpcgResult::Ok(vals, _, r_norms) | LobpcgResult::Err(vals, _, r_norms, _) => {
                 // check convergence
@@ -523,7 +523,7 @@ mod tests {
     #[test]
     fn test_eigsolver_constructed() {
         let n = 50;
-        let tmp = Array2::random((n, n), Uniform::new(0.0, 1.0));
+        let tmp = generate::random((n, n));
         //let (v, _) = tmp.qr_square().unwrap();
         let (v, _) = orthonormalize(tmp).unwrap();
 
@@ -540,7 +540,7 @@ mod tests {
     fn test_eigsolver_constrained() {
         let diag = arr1(&[1., 2., 3., 4., 5., 6., 7., 8., 9., 10.]);
         let a = Array2::from_diag(&diag);
-        let x: Array2<f64> = Array2::random((10, 1), Uniform::new(0.0, 1.0));
+        let x: Array2<f64> = generate::random((10, 1));
         let y: Array2<f64> = arr2(&[
             [1.0, 0., 0., 0., 0., 0., 0., 0., 0., 0.],
             [0., 1.0, 0., 0., 0., 0., 0., 0., 0., 0.],

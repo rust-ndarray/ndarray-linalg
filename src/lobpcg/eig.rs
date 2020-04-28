@@ -1,12 +1,10 @@
 use super::lobpcg::{lobpcg, LobpcgResult, Order};
-use crate::{Lapack, Scalar};
+use crate::{Lapack, Scalar, generate};
 ///! Implements truncated eigenvalue decomposition
 ///
 use ndarray::prelude::*;
 use ndarray::stack;
 use ndarray::ScalarOperand;
-use ndarray_rand::rand_distr::Uniform;
-use ndarray_rand::RandomExt;
 use num_traits::{Float, NumCast};
 
 /// Truncated eigenproblem solver
@@ -62,8 +60,8 @@ impl<A: Float + Scalar + ScalarOperand + Lapack + PartialOrd + Default> Truncate
 
     // calculate the eigenvalues decompose
     pub fn decompose(&self, num: usize) -> LobpcgResult<A> {
-        let x = Array2::random((self.problem.len_of(Axis(0)), num), Uniform::new(0.0, 1.0))
-            .mapv(|x| NumCast::from(x).unwrap());
+        let x: Array2<f64> = generate::random((self.problem.len_of(Axis(0)), num));
+        let x = x.mapv(|x| NumCast::from(x).unwrap());
 
         if let Some(ref preconditioner) = self.preconditioner {
             lobpcg(

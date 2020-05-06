@@ -6,7 +6,7 @@ use crate::error::{LinalgError, Result};
 use crate::{cholesky::*, close_l2, eigh::*, norm::*, triangular::*};
 use crate::{Lapack, Scalar};
 use ndarray::prelude::*;
-use ndarray::{OwnedRepr, ScalarOperand, Data};
+use ndarray::{Data, OwnedRepr, ScalarOperand};
 use num_traits::{Float, NumCast};
 
 /// Find largest or smallest eigenvalues
@@ -324,7 +324,8 @@ pub fn lobpcg<
         //
         // first try to compute the eigenvalue decomposition of the span{R, X, P},
         // if this fails (or the algorithm was restarted), then just use span{R, X}
-        let result = p_ap.as_ref()
+        let result = p_ap
+            .as_ref()
             .ok_or(LinalgError::Lapack { return_code: 1 })
             .and_then(|(active_p, active_ap)| {
                 let xap = x.t().dot(active_ap);
@@ -352,7 +353,7 @@ pub fn lobpcg<
                         stack![Axis(1), xp.t(), rp.t(), pp]
                     ]),
                     size_x,
-                    &order
+                    &order,
                 )
             })
             .or_else(|_| {
@@ -362,10 +363,9 @@ pub fn lobpcg<
                     stack![Axis(0), stack![Axis(1), xax, xar], stack![Axis(1), xar.t(), rar]],
                     Some(stack![Axis(0), stack![Axis(1), xx, xr], stack![Axis(1), xr.t(), rr]]),
                     size_x,
-                    &order
+                    &order,
                 )
             });
-
 
         // update eigenvalues and eigenvectors (lambda is also used in the next iteration)
         let eig_vecs;
@@ -373,8 +373,8 @@ pub fn lobpcg<
             Ok((x, y)) => {
                 lambda = x;
                 eig_vecs = y;
-            },
-            Err(x) => break Err(x)
+            }
+            Err(x) => break Err(x),
         }
 
         // approximate eigenvector X and conjugate vectors P with solution of eigenproblem
@@ -432,8 +432,8 @@ mod tests {
     use super::LobpcgResult;
     use super::Order;
     use crate::close_l2;
-    use crate::qr::*;
     use crate::generate;
+    use crate::qr::*;
     use ndarray::prelude::*;
 
     /// Test the `sorted_eigen` function

@@ -1,0 +1,35 @@
+name: Rust
+
+on: [push, pull_request]
+
+jobs:
+  linux-intel-mkl:
+    runs-on: ubuntu-18.04
+    steps:
+    - uses: actions/checkout@v1
+    - uses: actions-rs/cargo@v1
+      with:
+        command: test
+        args: --features=intel-mkl --no-default-features
+
+  linux-netlib:
+    runs-on: ubuntu-18.04
+    steps:
+    - uses: actions/checkout@v1
+    - name: apt
+      run: sudo apt update && sudo apt install -y gfortran
+    - uses: actions-rs/cargo@v1
+      with:
+        command: test
+        args: --features=netlib --no-default-features
+
+  linux-openblas:
+    runs-on: ubuntu-18.04
+    steps:
+    - uses: actions/checkout@v1
+    - name: apt
+      run: sudo apt update && sudo apt install -y gfortran
+    - uses: actions-rs/cargo@v1
+      with:
+        command: test
+        args: --features=openblas --no-default-features

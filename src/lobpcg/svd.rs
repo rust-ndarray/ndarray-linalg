@@ -158,12 +158,14 @@ impl<A: Float + Scalar + ScalarOperand + Lapack + PartialOrd + Default> Truncate
 
         // convert into TruncatedSvdResult
         match res {
-            LobpcgResult::Ok(vals, vecs, _) | LobpcgResult::Err(vals, vecs, _, _) => Ok(TruncatedSvdResult {
-                problem: self.problem.clone(),
-                eigvals: vals,
-                eigvecs: vecs,
-                ngm: n > m,
-            }),
+            LobpcgResult::Ok(vals, vecs, _) | LobpcgResult::Err(vals, vecs, _, _) => {
+                Ok(TruncatedSvdResult {
+                    problem: self.problem.clone(),
+                    eigvals: vals,
+                    eigvecs: vecs,
+                    ngm: n > m,
+                })
+            }
             LobpcgResult::NoResult(err) => Err(err),
         }
     }

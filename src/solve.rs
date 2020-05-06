@@ -84,7 +84,10 @@ pub trait Solve<A: Scalar> {
     }
     /// Solves a system of linear equations `A * x = b` where `A` is `self`, `b`
     /// is the argument, and `x` is the successful result.
-    fn solve_into<S: DataMut<Elem = A>>(&self, mut b: ArrayBase<S, Ix1>) -> Result<ArrayBase<S, Ix1>> {
+    fn solve_into<S: DataMut<Elem = A>>(
+        &self,
+        mut b: ArrayBase<S, Ix1>,
+    ) -> Result<ArrayBase<S, Ix1>> {
         self.solve_inplace(&mut b)?;
         Ok(b)
     }
@@ -104,7 +107,10 @@ pub trait Solve<A: Scalar> {
     }
     /// Solves a system of linear equations `A^T * x = b` where `A` is `self`, `b`
     /// is the argument, and `x` is the successful result.
-    fn solve_t_into<S: DataMut<Elem = A>>(&self, mut b: ArrayBase<S, Ix1>) -> Result<ArrayBase<S, Ix1>> {
+    fn solve_t_into<S: DataMut<Elem = A>>(
+        &self,
+        mut b: ArrayBase<S, Ix1>,
+    ) -> Result<ArrayBase<S, Ix1>> {
         self.solve_t_inplace(&mut b)?;
         Ok(b)
     }
@@ -124,7 +130,10 @@ pub trait Solve<A: Scalar> {
     }
     /// Solves a system of linear equations `A^H * x = b` where `A` is `self`, `b`
     /// is the argument, and `x` is the successful result.
-    fn solve_h_into<S: DataMut<Elem = A>>(&self, mut b: ArrayBase<S, Ix1>) -> Result<ArrayBase<S, Ix1>> {
+    fn solve_h_into<S: DataMut<Elem = A>>(
+        &self,
+        mut b: ArrayBase<S, Ix1>,
+    ) -> Result<ArrayBase<S, Ix1>> {
         self.solve_h_inplace(&mut b)?;
         Ok(b)
     }
@@ -151,7 +160,10 @@ where
     A: Scalar + Lapack,
     S: Data<Elem = A> + RawDataClone,
 {
-    fn solve_inplace<'a, Sb>(&self, rhs: &'a mut ArrayBase<Sb, Ix1>) -> Result<&'a mut ArrayBase<Sb, Ix1>>
+    fn solve_inplace<'a, Sb>(
+        &self,
+        rhs: &'a mut ArrayBase<Sb, Ix1>,
+    ) -> Result<&'a mut ArrayBase<Sb, Ix1>>
     where
         Sb: DataMut<Elem = A>,
     {
@@ -166,7 +178,10 @@ where
         };
         Ok(rhs)
     }
-    fn solve_t_inplace<'a, Sb>(&self, rhs: &'a mut ArrayBase<Sb, Ix1>) -> Result<&'a mut ArrayBase<Sb, Ix1>>
+    fn solve_t_inplace<'a, Sb>(
+        &self,
+        rhs: &'a mut ArrayBase<Sb, Ix1>,
+    ) -> Result<&'a mut ArrayBase<Sb, Ix1>>
     where
         Sb: DataMut<Elem = A>,
     {
@@ -181,7 +196,10 @@ where
         };
         Ok(rhs)
     }
-    fn solve_h_inplace<'a, Sb>(&self, rhs: &'a mut ArrayBase<Sb, Ix1>) -> Result<&'a mut ArrayBase<Sb, Ix1>>
+    fn solve_h_inplace<'a, Sb>(
+        &self,
+        rhs: &'a mut ArrayBase<Sb, Ix1>,
+    ) -> Result<&'a mut ArrayBase<Sb, Ix1>>
     where
         Sb: DataMut<Elem = A>,
     {
@@ -203,21 +221,30 @@ where
     A: Scalar + Lapack,
     S: Data<Elem = A>,
 {
-    fn solve_inplace<'a, Sb>(&self, rhs: &'a mut ArrayBase<Sb, Ix1>) -> Result<&'a mut ArrayBase<Sb, Ix1>>
+    fn solve_inplace<'a, Sb>(
+        &self,
+        rhs: &'a mut ArrayBase<Sb, Ix1>,
+    ) -> Result<&'a mut ArrayBase<Sb, Ix1>>
     where
         Sb: DataMut<Elem = A>,
     {
         let f = self.factorize()?;
         f.solve_inplace(rhs)
     }
-    fn solve_t_inplace<'a, Sb>(&self, rhs: &'a mut ArrayBase<Sb, Ix1>) -> Result<&'a mut ArrayBase<Sb, Ix1>>
+    fn solve_t_inplace<'a, Sb>(
+        &self,
+        rhs: &'a mut ArrayBase<Sb, Ix1>,
+    ) -> Result<&'a mut ArrayBase<Sb, Ix1>>
     where
         Sb: DataMut<Elem = A>,
     {
         let f = self.factorize()?;
         f.solve_t_inplace(rhs)
     }
-    fn solve_h_inplace<'a, Sb>(&self, rhs: &'a mut ArrayBase<Sb, Ix1>) -> Result<&'a mut ArrayBase<Sb, Ix1>>
+    fn solve_h_inplace<'a, Sb>(
+        &self,
+        rhs: &'a mut ArrayBase<Sb, Ix1>,
+    ) -> Result<&'a mut ArrayBase<Sb, Ix1>>
     where
         Sb: DataMut<Elem = A>,
     {
@@ -247,7 +274,10 @@ where
 {
     fn factorize_into(mut self) -> Result<LUFactorized<S>> {
         let ipiv = unsafe { A::lu(self.layout()?, self.as_allocated_mut()?)? };
-        Ok(LUFactorized { a: self, ipiv: ipiv })
+        Ok(LUFactorized {
+            a: self,
+            ipiv: ipiv,
+        })
     }
 }
 
@@ -285,7 +315,13 @@ where
     type Output = ArrayBase<S, Ix2>;
 
     fn inv_into(mut self) -> Result<ArrayBase<S, Ix2>> {
-        unsafe { A::inv(self.a.square_layout()?, self.a.as_allocated_mut()?, &self.ipiv)? };
+        unsafe {
+            A::inv(
+                self.a.square_layout()?,
+                self.a.as_allocated_mut()?,
+                &self.ipiv,
+            )?
+        };
         Ok(self.a)
     }
 }
@@ -399,10 +435,16 @@ where
     } else {
         -A::one()
     };
-    let (upper_sign, ln_det) = u_diag_iter.fold((A::one(), A::Real::zero()), |(upper_sign, ln_det), &elem| {
-        let abs_elem: A::Real = elem.abs();
-        (upper_sign * elem / A::from_real(abs_elem), ln_det + abs_elem.ln())
-    });
+    let (upper_sign, ln_det) = u_diag_iter.fold(
+        (A::one(), A::Real::zero()),
+        |(upper_sign, ln_det), &elem| {
+            let abs_elem: A::Real = elem.abs();
+            (
+                upper_sign * elem / A::from_real(abs_elem),
+                ln_det + abs_elem.ln(),
+            )
+        },
+    );
     (pivot_sign * upper_sign, ln_det)
 }
 
@@ -498,7 +540,13 @@ where
     S: Data<Elem = A> + RawDataClone,
 {
     fn rcond(&self) -> Result<A::Real> {
-        unsafe { A::rcond(self.a.layout()?, self.a.as_allocated()?, self.a.opnorm_one()?) }
+        unsafe {
+            A::rcond(
+                self.a.layout()?,
+                self.a.as_allocated()?,
+                self.a.opnorm_one()?,
+            )
+        }
     }
 }
 

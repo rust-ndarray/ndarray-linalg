@@ -24,7 +24,9 @@ where
         assert_eq!(self.len(), rhs.len());
         Zip::from(self)
             .and(rhs)
-            .fold_while(A::zero(), |acc, s, r| FoldWhile::Continue(acc + s.conj() * *r))
+            .fold_while(A::zero(), |acc, s, r| {
+                FoldWhile::Continue(acc + s.conj() * *r)
+            })
             .into_inner()
     }
 }

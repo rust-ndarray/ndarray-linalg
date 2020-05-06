@@ -24,9 +24,15 @@ pub enum LinalgError {
 impl fmt::Display for LinalgError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
-            LinalgError::NotSquare { rows, cols } => write!(f, "Not square: rows({}) != cols({})", rows, cols),
-            LinalgError::Lapack { return_code } => write!(f, "LAPACK: return_code = {}", return_code),
-            LinalgError::InvalidStride { s0, s1 } => write!(f, "invalid stride: s0={}, s1={}", s0, s1),
+            LinalgError::NotSquare { rows, cols } => {
+                write!(f, "Not square: rows({}) != cols({})", rows, cols)
+            }
+            LinalgError::Lapack { return_code } => {
+                write!(f, "LAPACK: return_code = {}", return_code)
+            }
+            LinalgError::InvalidStride { s0, s1 } => {
+                write!(f, "invalid stride: s0={}, s1={}", s0, s1)
+            }
             LinalgError::MemoryNotCont => write!(f, "Memory is not contiguous"),
             LinalgError::Shape(err) => write!(f, "Shape Error: {}", err),
         }

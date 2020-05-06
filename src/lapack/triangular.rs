@@ -31,7 +31,12 @@ pub trait Triangular_: Sized {
 macro_rules! impl_triangular {
     ($scalar:ty, $trtri:path, $trtrs:path) => {
         impl Triangular_ for $scalar {
-            unsafe fn inv_triangular(l: MatrixLayout, uplo: UPLO, diag: Diag, a: &mut [Self]) -> Result<()> {
+            unsafe fn inv_triangular(
+                l: MatrixLayout,
+                uplo: UPLO,
+                diag: Diag,
+                a: &mut [Self],
+            ) -> Result<()> {
                 let (n, _) = l.size();
                 let lda = l.lda();
                 let info = $trtri(l.lapacke_layout(), uplo as u8, diag as u8, n, a, lda);

@@ -166,7 +166,10 @@ where
     A: Scalar + Lapack,
     S: Data<Elem = A>,
 {
-    fn solvec_inplace<'a, Sb>(&self, b: &'a mut ArrayBase<Sb, Ix1>) -> Result<&'a mut ArrayBase<Sb, Ix1>>
+    fn solvec_inplace<'a, Sb>(
+        &self,
+        b: &'a mut ArrayBase<Sb, Ix1>,
+    ) -> Result<&'a mut ArrayBase<Sb, Ix1>>
     where
         Sb: DataMut<Elem = A>,
     {
@@ -327,7 +330,10 @@ pub trait SolveC<A: Scalar> {
     /// Solves a system of linear equations `A * x = b` with Hermitian (or real
     /// symmetric) positive definite matrix `A`, where `A` is `self`, `b` is
     /// the argument, and `x` is the successful result.
-    fn solvec_into<S: DataMut<Elem = A>>(&self, mut b: ArrayBase<S, Ix1>) -> Result<ArrayBase<S, Ix1>> {
+    fn solvec_into<S: DataMut<Elem = A>>(
+        &self,
+        mut b: ArrayBase<S, Ix1>,
+    ) -> Result<ArrayBase<S, Ix1>> {
         self.solvec_inplace(&mut b)?;
         Ok(b)
     }
@@ -346,7 +352,10 @@ where
     A: Scalar + Lapack,
     S: Data<Elem = A>,
 {
-    fn solvec_inplace<'a, Sb>(&self, b: &'a mut ArrayBase<Sb, Ix1>) -> Result<&'a mut ArrayBase<Sb, Ix1>>
+    fn solvec_inplace<'a, Sb>(
+        &self,
+        b: &'a mut ArrayBase<Sb, Ix1>,
+    ) -> Result<&'a mut ArrayBase<Sb, Ix1>>
     where
         Sb: DataMut<Elem = A>,
     {

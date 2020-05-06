@@ -14,7 +14,11 @@ pub trait SVD {
     type U;
     type VT;
     type Sigma;
-    fn svd(&self, calc_u: bool, calc_vt: bool) -> Result<(Option<Self::U>, Self::Sigma, Option<Self::VT>)>;
+    fn svd(
+        &self,
+        calc_u: bool,
+        calc_vt: bool,
+    ) -> Result<(Option<Self::U>, Self::Sigma, Option<Self::VT>)>;
 }
 
 /// singular-value decomposition
@@ -22,7 +26,11 @@ pub trait SVDInto {
     type U;
     type VT;
     type Sigma;
-    fn svd_into(self, calc_u: bool, calc_vt: bool) -> Result<(Option<Self::U>, Self::Sigma, Option<Self::VT>)>;
+    fn svd_into(
+        self,
+        calc_u: bool,
+        calc_vt: bool,
+    ) -> Result<(Option<Self::U>, Self::Sigma, Option<Self::VT>)>;
 }
 
 /// singular-value decomposition for mutable reference of matrix
@@ -30,7 +38,11 @@ pub trait SVDInplace {
     type U;
     type VT;
     type Sigma;
-    fn svd_inplace(&mut self, calc_u: bool, calc_vt: bool) -> Result<(Option<Self::U>, Self::Sigma, Option<Self::VT>)>;
+    fn svd_inplace(
+        &mut self,
+        calc_u: bool,
+        calc_vt: bool,
+    ) -> Result<(Option<Self::U>, Self::Sigma, Option<Self::VT>)>;
 }
 
 impl<A, S> SVDInto for ArrayBase<S, Ix2>
@@ -42,7 +54,11 @@ where
     type VT = Array2<A>;
     type Sigma = Array1<A::Real>;
 
-    fn svd_into(mut self, calc_u: bool, calc_vt: bool) -> Result<(Option<Self::U>, Self::Sigma, Option<Self::VT>)> {
+    fn svd_into(
+        mut self,
+        calc_u: bool,
+        calc_vt: bool,
+    ) -> Result<(Option<Self::U>, Self::Sigma, Option<Self::VT>)> {
         self.svd_inplace(calc_u, calc_vt)
     }
 }
@@ -56,7 +72,11 @@ where
     type VT = Array2<A>;
     type Sigma = Array1<A::Real>;
 
-    fn svd(&self, calc_u: bool, calc_vt: bool) -> Result<(Option<Self::U>, Self::Sigma, Option<Self::VT>)> {
+    fn svd(
+        &self,
+        calc_u: bool,
+        calc_vt: bool,
+    ) -> Result<(Option<Self::U>, Self::Sigma, Option<Self::VT>)> {
         let a = self.to_owned();
         a.svd_into(calc_u, calc_vt)
     }
@@ -71,7 +91,11 @@ where
     type VT = Array2<A>;
     type Sigma = Array1<A::Real>;
 
-    fn svd_inplace(&mut self, calc_u: bool, calc_vt: bool) -> Result<(Option<Self::U>, Self::Sigma, Option<Self::VT>)> {
+    fn svd_inplace(
+        &mut self,
+        calc_u: bool,
+        calc_vt: bool,
+    ) -> Result<(Option<Self::U>, Self::Sigma, Option<Self::VT>)> {
         let l = self.layout()?;
         let svd_res = unsafe { A::svd(l, calc_u, calc_vt, self.as_allocated_mut()?)? };
         let (n, m) = l.size();

@@ -29,7 +29,9 @@ where
         let (n, _) = layout.size();
         Ok((
             ArrayBase::from(s),
-            ArrayBase::from(t).into_shape((n as usize, n as usize)).unwrap(),
+            ArrayBase::from(t)
+                .into_shape((n as usize, n as usize))
+                .unwrap(),
         ))
     }
 }

@@ -97,7 +97,11 @@ where
 }
 
 /// Utility to execute Arnoldi iteration with Householder reflection
-pub fn arnoldi_householder<A, S>(a: impl LinearOperator<Elem = A>, v: ArrayBase<S, Ix1>, tol: A::Real) -> (Q<A>, H<A>)
+pub fn arnoldi_householder<A, S>(
+    a: impl LinearOperator<Elem = A>,
+    v: ArrayBase<S, Ix1>,
+    tol: A::Real,
+) -> (Q<A>, H<A>)
 where
     A: Scalar + Lapack,
     S: DataMut<Elem = A>,
@@ -107,7 +111,11 @@ where
 }
 
 /// Utility to execute Arnoldi iteration with modified Gram-Schmit orthogonalizer
-pub fn arnoldi_mgs<A, S>(a: impl LinearOperator<Elem = A>, v: ArrayBase<S, Ix1>, tol: A::Real) -> (Q<A>, H<A>)
+pub fn arnoldi_mgs<A, S>(
+    a: impl LinearOperator<Elem = A>,
+    v: ArrayBase<S, Ix1>,
+    tol: A::Real,
+) -> (Q<A>, H<A>)
 where
     A: Scalar + Lapack,
     S: DataMut<Elem = A>,

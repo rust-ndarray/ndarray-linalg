@@ -12,7 +12,8 @@ where
     select_rows.remove(row);
     let mut select_cols = (0..a.ncols()).collect::<Vec<_>>();
     select_cols.remove(col);
-    a.select(Axis(0), &select_rows).select(Axis(1), &select_cols)
+    a.select(Axis(0), &select_rows)
+        .select(Axis(1), &select_cols)
 }
 
 /// Computes the determinant of matrix `a`.
@@ -47,7 +48,10 @@ fn det_empty() {
             assert_eq!(a.factorize().unwrap().det().unwrap(), det);
             assert_eq!(a.factorize().unwrap().sln_det().unwrap(), (sign, ln_det));
             assert_eq!(a.factorize().unwrap().det_into().unwrap(), det);
-            assert_eq!(a.factorize().unwrap().sln_det_into().unwrap(), (sign, ln_det));
+            assert_eq!(
+                a.factorize().unwrap().sln_det_into().unwrap(),
+                (sign, ln_det)
+            );
             assert_eq!(a.det().unwrap(), det);
             assert_eq!(a.sln_det().unwrap(), (sign, ln_det));
             assert_eq!(a.clone().det_into().unwrap(), det);

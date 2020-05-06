@@ -11,7 +11,11 @@ use super::into_result;
 
 /// Wraps `*geev` for real/complex
 pub trait Eig_: Scalar {
-    unsafe fn eig(calc_v: bool, l: MatrixLayout, a: &mut [Self]) -> Result<(Vec<Self::Complex>, Vec<Self::Complex>)>;
+    unsafe fn eig(
+        calc_v: bool,
+        l: MatrixLayout,
+        a: &mut [Self],
+    ) -> Result<(Vec<Self::Complex>, Vec<Self::Complex>)>;
 }
 
 macro_rules! impl_eig_complex {

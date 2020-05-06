@@ -9,6 +9,11 @@ Changed
 -------
 - `Clone` trait for `LUFactorized` [#192](../../192)
 
+Maintenance
+-----------
+- Use GitHub Actions instead of Azure Pipeline [#193](../../193)
+- Test cargo-fmt on CI [#194](../../194)
+
 0.12.0 - 14 Oct 2019
 ====================
 

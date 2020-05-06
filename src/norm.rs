@@ -53,7 +53,10 @@ pub enum NormalizeAxis {
 }
 
 /// normalize in L2 norm
-pub fn normalize<A, S>(mut m: ArrayBase<S, Ix2>, axis: NormalizeAxis) -> (ArrayBase<S, Ix2>, Vec<A::Real>)
+pub fn normalize<A, S>(
+    mut m: ArrayBase<S, Ix2>,
+    axis: NormalizeAxis,
+) -> (ArrayBase<S, Ix2>, Vec<A::Real>)
 where
     A: Scalar + Lapack,
     S: DataMut<Elem = A>,

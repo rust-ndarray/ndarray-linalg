@@ -6,7 +6,7 @@ use crate::error::{LinalgError, Result};
 use crate::{cholesky::*, close_l2, eigh::*, norm::*, triangular::*};
 use crate::{Lapack, Scalar};
 use ndarray::prelude::*;
-use ndarray::{OwnedRepr, ScalarOperand, Data};
+use ndarray::{Data, OwnedRepr, ScalarOperand};
 use num_traits::{Float, NumCast};
 
 /// Find largest or smallest eigenvalues
@@ -46,7 +46,8 @@ fn sorted_eig<S: Data<Elem = A>, A: Scalar + Lapack>(
 
     Ok(match order {
         Order::Largest => (
-            vals.slice_move(s![n-size..; -1]).mapv(|x| Scalar::from_real(x)),
+            vals.slice_move(s![n-size..; -1])
+                .mapv(|x| Scalar::from_real(x)),
             vecs.slice_move(s![.., n-size..; -1]),
         ),
         Order::Smallest => (
@@ -220,7 +221,11 @@ pub fn lobpcg<
         let r = &ax - &lambda_x;
 
         // calculate L2 norm of error for every eigenvalue
-        let residual_norms = r.gencolumns().into_iter().map(|x| x.norm()).collect::<Vec<A::Real>>();
+        let residual_norms = r
+            .gencolumns()
+            .into_iter()
+            .map(|x| x.norm())
+            .collect::<Vec<A::Real>>();
         residual_norms_history.push(residual_norms.clone());
 
         // compare best result and update if we improved
@@ -279,7 +284,9 @@ pub fn lobpcg<
         };
 
         // if we are once below the max_rnorm, enable explicit gram flag
-        let max_norm = residual_norms.into_iter().fold(A::Real::neg_infinity(), A::Real::max);
+        let max_norm = residual_norms
+            .into_iter()
+            .fold(A::Real::neg_infinity(), A::Real::max);
         explicit_gram_flag = max_norm <= max_rnorm_float || explicit_gram_flag;
 
         // perform the Rayleigh Ritz procedure
@@ -293,7 +300,12 @@ pub fn lobpcg<
             rar = (&rar + &rar.t()) / two;
             let xax = x.t().dot(&ax);
 
-            ((&xax + &xax.t()) / two, x.t().dot(&x), r.t().dot(&r), x.t().dot(&r))
+            (
+                (&xax + &xax.t()) / two,
+                x.t().dot(&x),
+                r.t().dot(&r),
+                x.t().dot(&r),
+            )
         } else {
             (
                 lambda_diag,
@@ -324,7 +336,8 @@ pub fn lobpcg<
         //
         // first try to compute the eigenvalue decomposition of the span{R, X, P},
         // if this fails (or the algorithm was restarted), then just use span{R, X}
-        let result = p_ap.as_ref()
+        let result = p_ap
+            .as_ref()
             .ok_or(LinalgError::Lapack { return_code: 1 })
             .and_then(|(active_p, active_ap)| {
                 let xap = x.t().dot(active_ap);
@@ -352,20 +365,27 @@ pub fn lobpcg<
                         stack![Axis(1), xp.t(), rp.t(), pp]
                     ]),
                     size_x,
-                    &order
+                    &order,
                 )
             })
             .or_else(|_| {
                 p_ap = None;
 
                 sorted_eig(
-                    stack![Axis(0), stack![Axis(1), xax, xar], stack![Axis(1), xar.t(), rar]],
-                    Some(stack![Axis(0), stack![Axis(1), xx, xr], stack![Axis(1), xr.t(), rr]]),
+                    stack![
+                        Axis(0),
+                        stack![Axis(1), xax, xar],
+                        stack![Axis(1), xar.t(), rar]
+                    ],
+                    Some(stack![
+                        Axis(0),
+                        stack![Axis(1), xx, xr],
+                        stack![Axis(1), xr.t(), rr]
+                    ]),
                     size_x,
-                    &order
+                    &order,
                 )
             });
-
 
         // update eigenvalues and eigenvectors (lambda is also used in the next iteration)
         let eig_vecs;
@@ -373,8 +393,8 @@ pub fn lobpcg<
             Ok((x, y)) => {
                 lambda = x;
                 eig_vecs = y;
-            },
-            Err(x) => break Err(x)
+            }
+            Err(x) => break Err(x),
         }
 
         // approximate eigenvector X and conjugate vectors P with solution of eigenproblem
@@ -432,8 +452,8 @@ mod tests {
     use super::LobpcgResult;
     use super::Order;
     use crate::close_l2;
-    use crate::qr::*;
     use crate::generate;
+    use crate::qr::*;
     use ndarray::prelude::*;
 
     /// Test the `sorted_eigen` function
@@ -457,7 +477,11 @@ mod tests {
     fn test_masking() {
         let matrix: Array2<f64> = generate::random((10, 5)) * 10.0;
         let masked_matrix = ndarray_mask(matrix.view(), &[true, true, false, true, false]);
-        close_l2(&masked_matrix.slice(s![.., 2]), &matrix.slice(s![.., 3]), 1e-12);
+        close_l2(
+            &masked_matrix.slice(s![.., 2]),
+            &matrix.slice(s![.., 3]),
+            1e-12,
+        );
     }
 
     /// Test orthonormalization of a random matrix
@@ -500,7 +524,11 @@ mod tests {
 
                 // check correct order of eigenvalues
                 if ground_truth_eigvals.len() == num {
-                    close_l2(&Array1::from(ground_truth_eigvals.to_vec()), &vals, num as f64 * 5e-4)
+                    close_l2(
+                        &Array1::from(ground_truth_eigvals.to_vec()),
+                        &vals,
+                        num as f64 * 5e-4,
+                    )
                 }
             }
             LobpcgResult::NoResult(err) => panic!("Did not converge: {:?}", err),
@@ -511,7 +539,8 @@ mod tests {
     #[test]
     fn test_eigsolver_diag() {
         let diag = arr1(&[
-            1., 2., 3., 4., 5., 6., 7., 8., 9., 10., 11., 12., 13., 14., 15., 16., 17., 18., 19., 20.,
+            1., 2., 3., 4., 5., 6., 7., 8., 9., 10., 11., 12., 13., 14., 15., 16., 17., 18., 19.,
+            20.,
         ]);
         let a = Array2::from_diag(&diag);
 
@@ -547,7 +576,15 @@ mod tests {
         ])
         .reversed_axes();
 
-        let result = lobpcg(|y| a.dot(&y), x, |_| {}, Some(y), 1e-10, 50, Order::Smallest);
+        let result = lobpcg(
+            |y| a.dot(&y),
+            x,
+            |_| {},
+            Some(y),
+            1e-10,
+            50,
+            Order::Smallest,
+        );
         match result {
             LobpcgResult::Ok(vals, vecs, r_norms) | LobpcgResult::Err(vals, vecs, r_norms, _) => {
                 // check convergence

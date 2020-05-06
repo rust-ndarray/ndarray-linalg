@@ -18,7 +18,8 @@ pub trait Cholesky_: Sized {
     /// **Warning: Only the portion of `a` corresponding to `UPLO` is written.**
     unsafe fn inv_cholesky(l: MatrixLayout, uplo: UPLO, a: &mut [Self]) -> Result<()>;
     /// Wrapper of `*potrs`
-    unsafe fn solve_cholesky(l: MatrixLayout, uplo: UPLO, a: &[Self], b: &mut [Self]) -> Result<()>;
+    unsafe fn solve_cholesky(l: MatrixLayout, uplo: UPLO, a: &[Self], b: &mut [Self])
+        -> Result<()>;
 }
 
 macro_rules! impl_cholesky {
@@ -36,7 +37,12 @@ macro_rules! impl_cholesky {
                 into_result(info, ())
             }
 
-            unsafe fn solve_cholesky(l: MatrixLayout, uplo: UPLO, a: &[Self], b: &mut [Self]) -> Result<()> {
+            unsafe fn solve_cholesky(
+                l: MatrixLayout,
+                uplo: UPLO,
+                a: &[Self],
+                b: &mut [Self],
+            ) -> Result<()> {
                 let (n, _) = l.size();
                 let nrhs = 1;
                 let ldb = 1;

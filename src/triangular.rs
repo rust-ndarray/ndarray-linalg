@@ -27,7 +27,12 @@ where
     S: DataMut,
     D: Dimension,
 {
-    fn solve_triangular_into(&self, uplo: UPLO, diag: Diag, b: ArrayBase<S, D>) -> Result<ArrayBase<S, D>>;
+    fn solve_triangular_into(
+        &self,
+        uplo: UPLO,
+        diag: Diag,
+        b: ArrayBase<S, D>,
+    ) -> Result<ArrayBase<S, D>>;
 }
 
 /// solve a triangular system with upper triangular matrix
@@ -50,7 +55,12 @@ where
     Si: Data<Elem = A>,
     So: DataMut<Elem = A> + DataOwned,
 {
-    fn solve_triangular_into(&self, uplo: UPLO, diag: Diag, mut b: ArrayBase<So, Ix2>) -> Result<ArrayBase<So, Ix2>> {
+    fn solve_triangular_into(
+        &self,
+        uplo: UPLO,
+        diag: Diag,
+        mut b: ArrayBase<So, Ix2>,
+    ) -> Result<ArrayBase<So, Ix2>> {
         self.solve_triangular_inplace(uplo, diag, &mut b)?;
         Ok(b)
     }
@@ -86,7 +96,12 @@ where
     Si: Data<Elem = A>,
     So: DataMut<Elem = A> + DataOwned,
 {
-    fn solve_triangular(&self, uplo: UPLO, diag: Diag, b: &ArrayBase<So, Ix2>) -> Result<Array2<A>> {
+    fn solve_triangular(
+        &self,
+        uplo: UPLO,
+        diag: Diag,
+        b: &ArrayBase<So, Ix2>,
+    ) -> Result<Array2<A>> {
         let b = replicate(b);
         self.solve_triangular_into(uplo, diag, b)
     }
@@ -98,7 +113,12 @@ where
     Si: Data<Elem = A>,
     So: DataMut<Elem = A> + DataOwned,
 {
-    fn solve_triangular_into(&self, uplo: UPLO, diag: Diag, b: ArrayBase<So, Ix1>) -> Result<ArrayBase<So, Ix1>> {
+    fn solve_triangular_into(
+        &self,
+        uplo: UPLO,
+        diag: Diag,
+        b: ArrayBase<So, Ix1>,
+    ) -> Result<ArrayBase<So, Ix1>> {
         let b = into_col(b);
         let b = self.solve_triangular_into(uplo, diag, b)?;
         Ok(flatten(b))
@@ -111,7 +131,12 @@ where
     Si: Data<Elem = A>,
     So: DataMut<Elem = A> + DataOwned,
 {
-    fn solve_triangular(&self, uplo: UPLO, diag: Diag, b: &ArrayBase<So, Ix1>) -> Result<Array1<A>> {
+    fn solve_triangular(
+        &self,
+        uplo: UPLO,
+        diag: Diag,
+        b: &ArrayBase<So, Ix1>,
+    ) -> Result<Array1<A>> {
         let b = b.to_owned();
         self.solve_triangular_into(uplo, diag, b)
     }

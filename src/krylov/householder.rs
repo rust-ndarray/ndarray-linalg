@@ -71,7 +71,11 @@ impl<A: Scalar + Lapack> Householder<A> {
         S: DataMut<Elem = A>,
     {
         assert!(k < self.v.len());
-        assert_eq!(a.len(), self.dim, "Input array size mismaches to the dimension");
+        assert_eq!(
+            a.len(),
+            self.dim,
+            "Input array size mismaches to the dimension"
+        );
         reflect(&self.v[k].slice(s![k..]), &mut a.slice_mut(s![k..]));
     }
 

@@ -26,7 +26,13 @@ pub trait Solve_: Scalar + Sized {
     ///
     /// `anorm` should be the 1-norm of the matrix `a`.
     unsafe fn rcond(l: MatrixLayout, a: &[Self], anorm: Self::Real) -> Result<Self::Real>;
-    unsafe fn solve(l: MatrixLayout, t: Transpose, a: &[Self], p: &Pivot, b: &mut [Self]) -> Result<()>;
+    unsafe fn solve(
+        l: MatrixLayout,
+        t: Transpose,
+        a: &[Self],
+        p: &Pivot,
+        b: &mut [Self],
+    ) -> Result<()>;
 }
 
 macro_rules! impl_solve {
@@ -61,18 +67,58 @@ macro_rules! impl_solve {
                 into_result(info, rcond)
             }
 
-            unsafe fn solve(l: MatrixLayout, t: Transpose, a: &[Self], ipiv: &Pivot, b: &mut [Self]) -> Result<()> {
+            unsafe fn solve(
+                l: MatrixLayout,
+                t: Transpose,
+                a: &[Self],
+                ipiv: &Pivot,
+                b: &mut [Self],
+            ) -> Result<()> {
                 let (n, _) = l.size();
                 let nrhs = 1;
                 let ldb = 1;
-                let info = $getrs(l.lapacke_layout(), t as u8, n, nrhs, a, l.lda(), ipiv, b, ldb);
+                let info = $getrs(
+                    l.lapacke_layout(),
+                    t as u8,
+                    n,
+                    nrhs,
+                    a,
+                    l.lda(),
+                    ipiv,
+                    b,
+                    ldb,
+                );
                 into_result(info, ())
             }
         }
     };
 } // impl_solve!
 
-impl_solve!(f64, lapacke::dgetrf, lapacke::dgetri, lapacke::dgecon, lapacke::dgetrs);
-impl_solve!(f32, lapacke::sgetrf, lapacke::sgetri, lapacke::sgecon, lapacke::sgetrs);
-impl_solve!(c64, lapacke::zgetrf, lapacke::zgetri, lapacke::zgecon, lapacke::zgetrs);
-impl_solve!(c32, lapacke::cgetrf, lapacke::cgetri, lapacke::cgecon, lapacke::cgetrs);
+impl_solve!(
+    f64,
+    lapacke::dgetrf,
+    lapacke::dgetri,
+    lapacke::dgecon,
+    lapacke::dgetrs
+);
+impl_solve!(
+    f32,
+    lapacke::sgetrf,
+    lapacke::sgetri,
+    lapacke::sgecon,
+    lapacke::sgetrs
+);
+impl_solve!(
+    c64,
+    lapacke::zgetrf,
+    lapacke::zgetri,
+    lapacke::zgecon,
+    lapacke::zgetrs
+);
+impl_solve!(
+    c32,
+    lapacke::cgetrf,
+    lapacke::cgetri,
+    lapacke::cgecon,
+    lapacke::cgetrs
+);

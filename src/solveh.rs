@@ -77,7 +77,10 @@ pub trait SolveH<A: Scalar> {
     /// Solves a system of linear equations `A * x = b` with Hermitian (or real
     /// symmetric) matrix `A`, where `A` is `self`, `b` is the argument, and
     /// `x` is the successful result.
-    fn solveh_into<S: DataMut<Elem = A>>(&self, mut b: ArrayBase<S, Ix1>) -> Result<ArrayBase<S, Ix1>> {
+    fn solveh_into<S: DataMut<Elem = A>>(
+        &self,
+        mut b: ArrayBase<S, Ix1>,
+    ) -> Result<ArrayBase<S, Ix1>> {
         self.solveh_inplace(&mut b)?;
         Ok(b)
     }
@@ -103,7 +106,10 @@ where
     A: Scalar + Lapack,
     S: Data<Elem = A>,
 {
-    fn solveh_inplace<'a, Sb>(&self, rhs: &'a mut ArrayBase<Sb, Ix1>) -> Result<&'a mut ArrayBase<Sb, Ix1>>
+    fn solveh_inplace<'a, Sb>(
+        &self,
+        rhs: &'a mut ArrayBase<Sb, Ix1>,
+    ) -> Result<&'a mut ArrayBase<Sb, Ix1>>
     where
         Sb: DataMut<Elem = A>,
     {
@@ -125,7 +131,10 @@ where
     A: Scalar + Lapack,
     S: Data<Elem = A>,
 {
-    fn solveh_inplace<'a, Sb>(&self, rhs: &'a mut ArrayBase<Sb, Ix1>) -> Result<&'a mut ArrayBase<Sb, Ix1>>
+    fn solveh_inplace<'a, Sb>(
+        &self,
+        rhs: &'a mut ArrayBase<Sb, Ix1>,
+    ) -> Result<&'a mut ArrayBase<Sb, Ix1>>
     where
         Sb: DataMut<Elem = A>,
     {
@@ -157,7 +166,10 @@ where
 {
     fn factorizeh_into(mut self) -> Result<BKFactorized<S>> {
         let ipiv = unsafe { A::bk(self.square_layout()?, UPLO::Upper, self.as_allocated_mut()?)? };
-        Ok(BKFactorized { a: self, ipiv: ipiv })
+        Ok(BKFactorized {
+            a: self,
+            ipiv: ipiv,
+        })
     }
 }
 

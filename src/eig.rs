@@ -1,9 +1,9 @@
 //! Eigenvalue decomposition for non-symmetric square matrices
 
-use ndarray::*;
 use crate::error::*;
 use crate::layout::*;
 use crate::types::*;
+use ndarray::*;
 
 /// Eigenvalue decomposition of general matrix reference
 pub trait Eig {
@@ -27,7 +27,12 @@ where
         let layout = a.square_layout()?;
         let (s, t) = unsafe { A::eig(true, layout, a.as_allocated_mut()?)? };
         let (n, _) = layout.size();
-        Ok((ArrayBase::from(s), ArrayBase::from(t).into_shape((n as usize, n as usize)).unwrap()))
+        Ok((
+            ArrayBase::from(s),
+            ArrayBase::from(t)
+                .into_shape((n as usize, n as usize))
+                .unwrap(),
+        ))
     }
 }
 

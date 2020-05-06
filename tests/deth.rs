@@ -8,7 +8,10 @@ fn deth_empty() {
         ($elem:ty) => {
             let a: Array2<$elem> = Array2::zeros((0, 0));
             assert_eq!(a.factorizeh().unwrap().deth(), One::one());
-            assert_eq!(a.factorizeh().unwrap().sln_deth(), (One::one(), Zero::zero()));
+            assert_eq!(
+                a.factorizeh().unwrap().sln_deth(),
+                (One::one(), Zero::zero())
+            );
             assert_eq!(a.factorizeh().unwrap().deth_into(), One::one());
             assert_eq!(
                 a.factorizeh().unwrap().sln_deth_into(),
@@ -34,7 +37,10 @@ fn deth_zero() {
             assert_eq!(a.deth().unwrap(), Zero::zero());
             assert_eq!(a.sln_deth().unwrap(), (Zero::zero(), Float::neg_infinity()));
             assert_eq!(a.clone().deth_into().unwrap(), Zero::zero());
-            assert_eq!(a.sln_deth_into().unwrap(), (Zero::zero(), Float::neg_infinity()));
+            assert_eq!(
+                a.sln_deth_into().unwrap(),
+                (Zero::zero(), Float::neg_infinity())
+            );
         };
     }
     deth_zero!(f64);
@@ -71,11 +77,18 @@ fn deth() {
 
             // Compute determinant from eigenvalues.
             let (sign, ln_det) = a.eigvalsh(UPLO::Upper).unwrap().iter().fold(
-                (<$elem as Scalar>::Real::one(), <$elem as Scalar>::Real::zero()),
+                (
+                    <$elem as Scalar>::Real::one(),
+                    <$elem as Scalar>::Real::zero(),
+                ),
                 |(sign, ln_det), eigval| (sign * eigval.signum(), ln_det + eigval.abs().ln()),
             );
             let det = sign * ln_det.exp();
-            assert_aclose!(det, a.eigvalsh(UPLO::Upper).unwrap().iter().product(), $atol);
+            assert_aclose!(
+                det,
+                a.eigvalsh(UPLO::Upper).unwrap().iter().product(),
+                $atol
+            );
 
             assert_aclose!(a.factorizeh().unwrap().deth(), det, $atol);
             {

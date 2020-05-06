@@ -11,7 +11,12 @@ use super::{into_result, UPLO};
 
 /// Wraps `*syev` for real and `*heev` for complex
 pub trait Eigh_: Scalar {
-    unsafe fn eigh(calc_eigenvec: bool, l: MatrixLayout, uplo: UPLO, a: &mut [Self]) -> Result<Vec<Self::Real>>;
+    unsafe fn eigh(
+        calc_eigenvec: bool,
+        l: MatrixLayout,
+        uplo: UPLO,
+        a: &mut [Self],
+    ) -> Result<Vec<Self::Real>>;
     unsafe fn eigh_generalized(
         calc_eigenvec: bool,
         l: MatrixLayout,
@@ -24,7 +29,12 @@ pub trait Eigh_: Scalar {
 macro_rules! impl_eigh {
     ($scalar:ty, $ev:path, $evg:path) => {
         impl Eigh_ for $scalar {
-            unsafe fn eigh(calc_v: bool, l: MatrixLayout, uplo: UPLO, mut a: &mut [Self]) -> Result<Vec<Self::Real>> {
+            unsafe fn eigh(
+                calc_v: bool,
+                l: MatrixLayout,
+                uplo: UPLO,
+                mut a: &mut [Self],
+            ) -> Result<Vec<Self::Real>> {
                 let (n, _) = l.size();
                 let jobz = if calc_v { b'V' } else { b'N' };
                 let mut w = vec![Self::Real::zero(); n as usize];

@@ -3,7 +3,7 @@
 ///! This module computes the k largest/smallest singular values/vectors for a dense matrix.
 use super::lobpcg::{lobpcg, LobpcgResult, Order};
 use crate::error::Result;
-use crate::{Lapack, Scalar, generate};
+use crate::{generate, Lapack, Scalar};
 use ndarray::prelude::*;
 use ndarray::ScalarOperand;
 use num_traits::{Float, NumCast};
@@ -158,12 +158,14 @@ impl<A: Float + Scalar + ScalarOperand + Lapack + PartialOrd + Default> Truncate
 
         // convert into TruncatedSvdResult
         match res {
-            LobpcgResult::Ok(vals, vecs, _) | LobpcgResult::Err(vals, vecs, _, _) => Ok(TruncatedSvdResult {
-                problem: self.problem.clone(),
-                eigvals: vals,
-                eigvecs: vecs,
-                ngm: n > m,
-            }),
+            LobpcgResult::Ok(vals, vecs, _) | LobpcgResult::Err(vals, vecs, _, _) => {
+                Ok(TruncatedSvdResult {
+                    problem: self.problem.clone(),
+                    eigvals: vals,
+                    eigvecs: vecs,
+                    ngm: n > m,
+                })
+            }
             LobpcgResult::NoResult(err) => Err(err),
         }
     }

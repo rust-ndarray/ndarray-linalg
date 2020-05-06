@@ -16,7 +16,13 @@ pub trait Solveh_: Sized {
     /// Wrapper of `*sytri` and `*hetri`
     unsafe fn invh(l: MatrixLayout, uplo: UPLO, a: &mut [Self], ipiv: &Pivot) -> Result<()>;
     /// Wrapper of `*sytrs` and `*hetrs`
-    unsafe fn solveh(l: MatrixLayout, uplo: UPLO, a: &[Self], ipiv: &Pivot, b: &mut [Self]) -> Result<()>;
+    unsafe fn solveh(
+        l: MatrixLayout,
+        uplo: UPLO,
+        a: &[Self],
+        ipiv: &Pivot,
+        b: &mut [Self],
+    ) -> Result<()>;
 }
 
 macro_rules! impl_solveh {
@@ -34,20 +40,41 @@ macro_rules! impl_solveh {
                 }
             }
 
-            unsafe fn invh(l: MatrixLayout, uplo: UPLO, a: &mut [Self], ipiv: &Pivot) -> Result<()> {
+            unsafe fn invh(
+                l: MatrixLayout,
+                uplo: UPLO,
+                a: &mut [Self],
+                ipiv: &Pivot,
+            ) -> Result<()> {
                 let (n, _) = l.size();
                 let info = $tri(l.lapacke_layout(), uplo as u8, n, a, l.lda(), ipiv);
                 into_result(info, ())
             }
 
-            unsafe fn solveh(l: MatrixLayout, uplo: UPLO, a: &[Self], ipiv: &Pivot, b: &mut [Self]) -> Result<()> {
+            unsafe fn solveh(
+                l: MatrixLayout,
+                uplo: UPLO,
+                a: &[Self],
+                ipiv: &Pivot,
+                b: &mut [Self],
+            ) -> Result<()> {
                 let (n, _) = l.size();
                 let nrhs = 1;
                 let ldb = match l {
                     MatrixLayout::C(_) => 1,
                     MatrixLayout::F(_) => n,
                 };
-                let info = $trs(l.lapacke_layout(), uplo as u8, n, nrhs, a, l.lda(), ipiv, b, ldb);
+                let info = $trs(
+                    l.lapacke_layout(),
+                    uplo as u8,
+                    n,
+                    nrhs,
+                    a,
+                    l.lda(),
+                    ipiv,
+                    b,
+                    ldb,
+                );
                 into_result(info, ())
             }
         }

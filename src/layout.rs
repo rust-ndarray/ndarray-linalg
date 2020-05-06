@@ -129,7 +129,9 @@ where
     }
 
     fn as_allocated(&self) -> Result<&[A]> {
-        Ok(self.as_slice_memory_order().ok_or_else(|| LinalgError::MemoryNotCont)?)
+        Ok(self
+            .as_slice_memory_order()
+            .ok_or_else(|| LinalgError::MemoryNotCont)?)
     }
 }
 

@@ -15,7 +15,11 @@ pub trait SVDDC_: Scalar {
 macro_rules! impl_svdd {
     ($scalar:ty, $gesdd:path) => {
         impl SVDDC_ for $scalar {
-            unsafe fn svddc(l: MatrixLayout, jobz: UVTFlag, mut a: &mut [Self]) -> Result<SVDOutput<Self>> {
+            unsafe fn svddc(
+                l: MatrixLayout,
+                jobz: UVTFlag,
+                mut a: &mut [Self],
+            ) -> Result<SVDOutput<Self>> {
                 let (m, n) = l.size();
                 let k = m.min(n);
                 let lda = l.lda();
@@ -47,7 +51,11 @@ macro_rules! impl_svdd {
                     SVDOutput {
                         s: s,
                         u: if jobz == UVTFlag::None { None } else { Some(u) },
-                        vt: if jobz == UVTFlag::None { None } else { Some(vt) },
+                        vt: if jobz == UVTFlag::None {
+                            None
+                        } else {
+                            Some(vt)
+                        },
                     },
                 )
             }

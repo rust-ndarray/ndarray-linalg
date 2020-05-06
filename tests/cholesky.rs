@@ -16,7 +16,11 @@ fn cholesky() {
             );
 
             let lower = a_orig.cholesky(UPLO::Lower).unwrap();
-            assert_close_l2!(&lower.dot(&lower.t().mapv(|elem| elem.conj())), &a_orig, $rtol);
+            assert_close_l2!(
+                &lower.dot(&lower.t().mapv(|elem| elem.conj())),
+                &a_orig,
+                $rtol
+            );
 
             let a: Array2<$elem> = replicate(&a_orig);
             let upper = a.cholesky_into(UPLO::Upper).unwrap();
@@ -28,7 +32,11 @@ fn cholesky() {
 
             let a: Array2<$elem> = replicate(&a_orig);
             let lower = a.cholesky_into(UPLO::Lower).unwrap();
-            assert_close_l2!(&lower.dot(&lower.t().mapv(|elem| elem.conj())), &a_orig, $rtol);
+            assert_close_l2!(
+                &lower.dot(&lower.t().mapv(|elem| elem.conj())),
+                &a_orig,
+                $rtol
+            );
 
             let mut a: Array2<$elem> = replicate(&a_orig);
             {
@@ -39,12 +47,20 @@ fn cholesky() {
                     $rtol
                 );
             }
-            assert_close_l2!(&a.t().mapv(|elem| elem.conj()).dot(&upper.view()), &a_orig, $rtol);
+            assert_close_l2!(
+                &a.t().mapv(|elem| elem.conj()).dot(&upper.view()),
+                &a_orig,
+                $rtol
+            );
 
             let mut a: Array2<$elem> = replicate(&a_orig);
             {
                 let lower = a.cholesky_inplace(UPLO::Lower).unwrap();
-                assert_close_l2!(&lower.dot(&lower.t().mapv(|elem| elem.conj())), &a_orig, $rtol);
+                assert_close_l2!(
+                    &lower.dot(&lower.t().mapv(|elem| elem.conj())),
+                    &a_orig,
+                    $rtol
+                );
             }
             assert_close_l2!(&a.dot(&lower.t().mapv(|elem| elem.conj())), &a_orig, $rtol);
         };
@@ -120,7 +136,11 @@ fn cholesky_det() {
             assert_aclose!(a.factorizec(UPLO::Upper).unwrap().detc(), det, $atol);
             assert_aclose!(a.factorizec(UPLO::Upper).unwrap().ln_detc(), ln_det, $atol);
             assert_aclose!(a.factorizec(UPLO::Lower).unwrap().detc_into(), det, $atol);
-            assert_aclose!(a.factorizec(UPLO::Lower).unwrap().ln_detc_into(), ln_det, $atol);
+            assert_aclose!(
+                a.factorizec(UPLO::Lower).unwrap().ln_detc_into(),
+                ln_det,
+                $atol
+            );
             assert_aclose!(a.detc().unwrap(), det, $atol);
             assert_aclose!(a.ln_detc().unwrap(), ln_det, $atol);
             assert_aclose!(a.clone().detc_into().unwrap(), det, $atol);
@@ -145,15 +165,29 @@ fn cholesky_solve() {
             assert_close_l2!(&a.solvec(&b).unwrap(), &x, $rtol);
             assert_close_l2!(&a.solvec_into(b.clone()).unwrap(), &x, $rtol);
             assert_close_l2!(&a.solvec_inplace(&mut b.clone()).unwrap(), &x, $rtol);
-            assert_close_l2!(&a.factorizec(UPLO::Upper).unwrap().solvec(&b).unwrap(), &x, $rtol);
-            assert_close_l2!(&a.factorizec(UPLO::Lower).unwrap().solvec(&b).unwrap(), &x, $rtol);
             assert_close_l2!(
-                &a.factorizec(UPLO::Upper).unwrap().solvec_into(b.clone()).unwrap(),
+                &a.factorizec(UPLO::Upper).unwrap().solvec(&b).unwrap(),
                 &x,
                 $rtol
             );
             assert_close_l2!(
-                &a.factorizec(UPLO::Lower).unwrap().solvec_into(b.clone()).unwrap(),
+                &a.factorizec(UPLO::Lower).unwrap().solvec(&b).unwrap(),
+                &x,
+                $rtol
+            );
+            assert_close_l2!(
+                &a.factorizec(UPLO::Upper)
+                    .unwrap()
+                    .solvec_into(b.clone())
+                    .unwrap(),
+                &x,
+                $rtol
+            );
+            assert_close_l2!(
+                &a.factorizec(UPLO::Lower)
+                    .unwrap()
+                    .solvec_into(b.clone())
+                    .unwrap(),
                 &x,
                 $rtol
             );

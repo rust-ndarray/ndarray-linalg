@@ -1,5 +1,5 @@
 use super::lobpcg::{lobpcg, LobpcgResult, Order};
-use crate::{Lapack, Scalar, generate};
+use crate::{generate, Lapack, Scalar};
 ///! Implements truncated eigenvalue decomposition
 ///
 use ndarray::prelude::*;
@@ -87,7 +87,9 @@ impl<A: Float + Scalar + ScalarOperand + Lapack + PartialOrd + Default> Truncate
     }
 }
 
-impl<A: Float + Scalar + ScalarOperand + Lapack + PartialOrd + Default> IntoIterator for TruncatedEig<A> {
+impl<A: Float + Scalar + ScalarOperand + Lapack + PartialOrd + Default> IntoIterator
+    for TruncatedEig<A>
+{
     type Item = (Array1<A>, Array2<A>);
     type IntoIter = TruncatedEigIterator<A>;
 
@@ -110,7 +112,9 @@ pub struct TruncatedEigIterator<A: Scalar> {
     eig: TruncatedEig<A>,
 }
 
-impl<A: Float + Scalar + ScalarOperand + Lapack + PartialOrd + Default> Iterator for TruncatedEigIterator<A> {
+impl<A: Float + Scalar + ScalarOperand + Lapack + PartialOrd + Default> Iterator
+    for TruncatedEigIterator<A>
+{
     type Item = (Array1<A>, Array2<A>);
 
     fn next(&mut self) -> Option<Self::Item> {
@@ -163,13 +167,20 @@ mod tests {
     #[test]
     fn test_truncated_eig() {
         let diag = arr1(&[
-            1., 2., 3., 4., 5., 6., 7., 8., 9., 10., 11., 12., 13., 14., 15., 16., 17., 18., 19., 20.,
+            1., 2., 3., 4., 5., 6., 7., 8., 9., 10., 11., 12., 13., 14., 15., 16., 17., 18., 19.,
+            20.,
         ]);
         let a = Array2::from_diag(&diag);
 
-        let teig = TruncatedEig::new(a, Order::Largest).precision(1e-5).maxiter(500);
+        let teig = TruncatedEig::new(a, Order::Largest)
+            .precision(1e-5)
+            .maxiter(500);
 
-        let res = teig.into_iter().take(3).flat_map(|x| x.0.to_vec()).collect::<Vec<_>>();
+        let res = teig
+            .into_iter()
+            .take(3)
+            .flat_map(|x| x.0.to_vec())
+            .collect::<Vec<_>>();
         let ground_truth = vec![20., 19., 18.];
 
         assert!(

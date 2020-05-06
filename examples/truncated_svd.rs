@@ -8,7 +8,9 @@ fn main() {
     let a = arr2(&[[3., 2., 2.], [2., 3., -2.]]);
 
     // calculate the truncated singular value decomposition for 2 singular values
-    let result = TruncatedSvd::new(a, TruncatedOrder::Largest).decompose(2).unwrap();
+    let result = TruncatedSvd::new(a, TruncatedOrder::Largest)
+        .decompose(2)
+        .unwrap();
 
     // acquire singular values, left-singular vectors and right-singular vectors
     let (u, sigma, v_t) = result.values_vectors();

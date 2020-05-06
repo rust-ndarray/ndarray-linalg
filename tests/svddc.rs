@@ -14,7 +14,7 @@ fn test(a: &Array2<f64>, flag: UVTFlag) {
             assert!(u.is_none());
             assert!(vt.is_none());
             return;
-        },
+        }
     };
     let u: Array2<_> = u.unwrap();
     let vt: Array2<_> = vt.unwrap();
@@ -53,7 +53,7 @@ macro_rules! test_svd_impl {
                 let a = random(($n, $m).f());
                 test(&a, UVTFlag::Full);
             }
-            
+
             #[test]
             fn [<svddc_some_ $n x $m _t>]() {
                 let a = random(($n, $m).f());

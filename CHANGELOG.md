@@ -1,3 +1,14 @@
+Unreleased
+===========
+
+Added
+------
+- LOBPCG solver [#184](../../pull/184)
+
+Changed
+-------
+- `Clone` trait for `LUFactorized` [#192](../../192)
+
 0.12.0 - 14 Oct 2019
 ====================
 

@@ -55,3 +55,12 @@ jobs:
       with:
         command: test
         args: --features=openblas --no-default-features
+
+  check-format:
+    runs-on: ubuntu-18.04
+    steps:
+    - uses: actions/checkout@v1
+    - uses: actions-rs/cargo@v1
+      with:
+        command: fmt
+        args: --check

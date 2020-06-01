@@ -3,6 +3,7 @@
 pub mod cholesky;
 pub mod eig;
 pub mod eigh;
+pub mod least_squares;
 pub mod opnorm;
 pub mod qr;
 pub mod solve;
@@ -14,6 +15,7 @@ pub mod triangular;
 pub use self::cholesky::*;
 pub use self::eig::*;
 pub use self::eigh::*;
+pub use self::least_squares::*;
 pub use self::opnorm::*;
 pub use self::qr::*;
 pub use self::solve::*;

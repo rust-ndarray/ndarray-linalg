@@ -31,7 +31,7 @@ rand = "0.5"
 
 [dependencies.ndarray]
 version = "0.13.0"
-features = ["blas"]
+features = ["blas", "approx"]
 default-features = false
 
 [dependencies.blas-src]
@@ -51,6 +51,7 @@ optional = true
 [dev-dependencies]
 paste = "0.1.9"
 criterion = "0.3.1"
+approx = "0.3.2"
 
 [[bench]]
 name = "truncated_eig"

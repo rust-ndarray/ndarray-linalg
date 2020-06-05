@@ -1,14 +1,14 @@
 //! Least squares
 
 // FIXME
-// [ ] tests
-// [ ] handle multiple RHS - this could be done via a trait type parameter
+// [x] tests
+// [x] handle multiple RHS - this could be done via a trait type parameter
 // [ ] use trait to call the right lapack function and get rid of macro
 
-use ndarray::{Array, Array1, ArrayBase, Data, DataMut, Ix1, Ix2, s};
+use ndarray::{s, Array, Array1, Array2, ArrayBase, Data, DataMut, Ix1, Ix2};
 
-use crate::lapack::least_squares::*;
 use crate::error::*;
+use crate::lapack::least_squares::*;
 use crate::layout::*;
 use crate::types::*;
 
@@ -66,7 +66,10 @@ where
     A: Scalar + Lapack + LeastSquaresSvdDivideConquer_,
     S: DataMut<Elem = A>,
 {
-    fn least_squares_into(mut self, mut rhs: ArrayBase<S, Ix1>) -> Result<LeastSquaresResult<A, Ix1>> {
+    fn least_squares_into(
+        mut self,
+        mut rhs: ArrayBase<S, Ix1>,
+    ) -> Result<LeastSquaresResult<A, Ix1>> {
         self.least_squares_in_place(&mut rhs)
     }
 }
@@ -122,14 +125,15 @@ where
                 a_layout,
                 self.as_allocated_mut()?,
                 rhs_layout,
-                rhs.as_allocated_mut()?
+                rhs.as_allocated_mut()?,
             )?
         };
 
-        let solution = rhs.to_owned();
+        let solution: Array2<A> = rhs.slice(s![..self.shape()[1], ..]).to_owned();
+        let singular_values = Array::from_shape_vec((singular_values.len(),), singular_values)?;
         Ok(LeastSquaresResult {
             solution,
-            singular_values: Array::from_shape_vec((singular_values.len(),), singular_values)?,
+            singular_values,
             rank,
         })
     }
@@ -141,57 +145,59 @@ mod tests {
     use approx::AbsDiffEq;
     use ndarray::{Array1, Array2};
 
+    /// This test case is taken from the netlib documentation at
+    /// https://www.netlib.org/lapack/lapacke.html#_calling_code_dgels_code
+    /// It tests the example with the first vector on the right hand side
     #[test]
     fn netlib_lapack_example_for_dgels_1() {
-        // https://www.netlib.org/lapack/lapacke.html#_calling_code_dgels_code
-        let a: Array2<f64> = array![[1.,1.,1.],[2.,3.,4.], [3.,5.,2. ],[4.,2.,5.],[5.,4.,3.]];
-        let b: Array1<f64> = array![-10.,12.,14.,16.,18.];
-        let expected: Array1<f64> = array![2.,1.,1.];
+        let a: Array2<f64> = array![
+            [1., 1., 1.],
+            [2., 3., 4.],
+            [3., 5., 2.],
+            [4., 2., 5.],
+            [5., 4., 3.]
+        ];
+        let b: Array1<f64> = array![-10., 12., 14., 16., 18.];
+        let expected: Array1<f64> = array![2., 1., 1.];
         let result = a.least_squares(&b).unwrap();
-        
-        println!(" *****\nresult: {}\nexpected: {}\n *****", result.solution, expected);
         assert!(result.solution.abs_diff_eq(&expected, 1e-12));
     }
 
+    /// This test case is taken from the netlib documentation at
+    /// https://www.netlib.org/lapack/lapacke.html#_calling_code_dgels_code
+    /// It tests the example with the second vector on the right hand side
     #[test]
     fn netlib_lapack_example_for_dgels_2() {
-        // https://www.netlib.org/lapack/lapacke.html#_calling_code_dgels_code
-        let a: Array2<f64> = array![[1.,1.,1.],[2.,3.,4.], [3.,5.,2. ],[4.,2.,5.],[5.,4.,3.]];
+        let a: Array2<f64> = array![
+            [1., 1., 1.],
+            [2., 3., 4.],
+            [3., 5., 2.],
+            [4., 2., 5.],
+            [5., 4., 3.]
+        ];
         let b: Array1<f64> = array![-3., 14., 12., 16., 16.];
-        let expected: Array1<f64> = array![1.,1.,2.];
+        let expected: Array1<f64> = array![1., 1., 2.];
         let result = a.least_squares(&b).unwrap();
-        
-        println!(" *****\nresult: {}\nexpected: {}\n *****", result.solution, expected);
         assert!(result.solution.abs_diff_eq(&expected, 1e-12));
     }
 
-    #[test]
+    /// This test case is taken from the netlib documentation at
+    /// https://www.netlib.org/lapack/lapacke.html#_calling_code_dgels_code
+    /// It tests that the least squares solution works as expected for
+    /// multiple right hand sides
+        #[test]
     fn netlib_lapack_example_for_dgels_nrhs() {
-        // https://www.netlib.org/lapack/lapacke.html#_calling_code_dgels_code
-        let mut a: Array2<f64> = array![[1.,1.,1.],[2.,3.,4.], [3.,5.,2. ],[4.,2.,5.],[5.,4.,3.]];
-        let mut b: Array2<f64> = array![[-10.,12.,14.,16.,18.], [-3., 14., 12., 16., 16.]].t().to_owned();
-        let expected: Array2<f64> = array![[2., 1.],[1., 1.], [1.,2.]];
+        let mut a: Array2<f64> = array![
+            [1., 1., 1.],
+            [2., 3., 4.],
+            [3., 5., 2.],
+            [4., 2., 5.],
+            [5., 4., 3.]
+        ];
+        let mut b: Array2<f64> =
+            array![[-10., -3.], [12., 14.], [14., 12.], [16., 16.], [18., 16.]];
+        let expected: Array2<f64> = array![[2., 1.], [1., 1.], [1., 2.]];
         let result = a.least_squares_in_place(&mut b).unwrap();
-        
-        println!(" *****\nresult: {}\nexpected: {}\n *****", result.solution, expected);
         assert!(result.solution.abs_diff_eq(&expected, 1e-12));
     }
-
-    // FIXME: test with multiple RHS
-    // #[test]
-    // fn netlib_lapack_example_for_dgels_2() {
-    //     // https://www.netlib.org/lapack/lapacke.html#_calling_code_dgels_code
-    //     let a: Array2<f64> = array![[1.,1.,1.],[2.,3.,4.], [3.,5.,2. ],[4.,2.,5.],[5.,4.,3.]];
-    //     let b: Array1<f64> = array![-3., 14., 12., 16., 16.];
-    //     let expected: Array1<f64> = array![1.,1.,2.];
-    //     let result = a.least_squares(&b).unwrap();
-        
-    //     println!(" *****\nresult: {}\nexpected: {}\n *****", result.solution, expected);
-    //     assert!(result.solution.abs_diff_eq(&expected, 1e-12));
-//     ( -10 -3 )
-//     (  12 14 )
-// B = (  14 12 )
-//     (  16 16 )
-//     (  18 16 )
-    // }
 }

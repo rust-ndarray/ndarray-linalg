@@ -32,7 +32,6 @@ pub trait LeastSquaresSvdDivideConquer_: Scalar {
         b_layout: MatrixLayout,
         b: &mut [Self],
     ) -> Result<LeastSquaresOutput<Self>>;
-
 }
 
 macro_rules! impl_least_squares {
@@ -85,7 +84,7 @@ macro_rules! impl_least_squares {
                     },
                 )
             }
-            
+
             unsafe fn least_squares_nrhs(
                 a_layout: MatrixLayout,
                 a: &mut [Self],
@@ -93,13 +92,14 @@ macro_rules! impl_least_squares {
                 b: &mut [Self],
             ) -> Result<LeastSquaresOutput<Self>> {
                 let (m, n) = a_layout.size();
-                if m != b_layout.size().0 || a_layout.lapacke_layout() != b_layout.lapacke_layout() {
+                if m != b_layout.size().0 || a_layout.lapacke_layout() != b_layout.lapacke_layout()
+                {
                     return Err(LinalgError::Shape(ShapeError::from_kind(
                         ErrorKind::IncompatibleShape,
                     )));
                 }
                 let k = ::std::cmp::min(m, n);
-                let nrhs = 1;
+                let nrhs = b_layout.size().1;
                 let rcond: Self::Real = -1.;
                 let mut singular_values: Vec<Self::Real> = vec![Self::Real::zero(); k as usize];
                 let mut rank: i32 = 0;

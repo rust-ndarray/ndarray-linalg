@@ -10,6 +10,7 @@ pub mod solveh;
 pub mod svd;
 pub mod svddc;
 pub mod triangular;
+pub mod tridiagonal;
 
 pub use self::cholesky::*;
 pub use self::eig::*;
@@ -21,6 +22,7 @@ pub use self::solveh::*;
 pub use self::svd::*;
 pub use self::svddc::*;
 pub use self::triangular::*;
+pub use self::tridiagonal::*;
 
 use super::error::*;
 use super::types::*;
@@ -29,7 +31,7 @@ pub type Pivot = Vec<i32>;
 
 /// Trait for primitive types which implements LAPACK subroutines
 pub trait Lapack:
-    OperatorNorm_ + QR_ + SVD_ + SVDDC_ + Solve_ + Solveh_ + Cholesky_ + Eig_ + Eigh_ + Triangular_
+    OperatorNorm_ + QR_ + SVD_ + SVDDC_ + Solve_ + Solveh_ + Cholesky_ + Eig_ + Eigh_ + Triangular_ + TriDiagonal_
 {
 }
 

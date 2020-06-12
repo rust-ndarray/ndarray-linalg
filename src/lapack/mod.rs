@@ -31,7 +31,17 @@ pub type Pivot = Vec<i32>;
 
 /// Trait for primitive types which implements LAPACK subroutines
 pub trait Lapack:
-    OperatorNorm_ + QR_ + SVD_ + SVDDC_ + Solve_ + Solveh_ + Cholesky_ + Eig_ + Eigh_ + Triangular_ + TriDiagonal_
+    OperatorNorm_
+    + QR_
+    + SVD_
+    + SVDDC_
+    + Solve_
+    + Solveh_
+    + Cholesky_
+    + Eig_
+    + Eigh_
+    + Triangular_
+    + TriDiagonal_
 {
 }
 

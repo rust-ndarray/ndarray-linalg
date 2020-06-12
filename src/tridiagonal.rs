@@ -2,8 +2,8 @@
 //! &
 //! Methods for tridiagonal matrices
 
-use ndarray::*;
 use cauchy::Scalar;
+use ndarray::*;
 use num_traits::One;
 
 use crate::opnorm::OperationNorm;
@@ -34,10 +34,10 @@ pub struct TriDiagonal<A: Scalar> {
 pub trait ToTriDiagonal<A: Scalar> {
     /// Extract tridiagonal elements and layout of the raw matrix.
     /// And also calculate 1-norm.
-    /// 
+    ///
     /// If the raw matrix has some non-tridiagonal elements,
     /// they will be ignored.
-    /// 
+    ///
     /// The shape of raw matrix should be equal to or larger than (2, 2).
     fn to_tridiagonal(&self) -> Result<TriDiagonal<A>>;
 }
@@ -45,17 +45,19 @@ pub trait ToTriDiagonal<A: Scalar> {
 impl<A, S> ToTriDiagonal<A> for ArrayBase<S, Ix2>
 where
     A: Scalar + Lapack,
-    S: Data<Elem = A>
+    S: Data<Elem = A>,
 {
     fn to_tridiagonal(&self) -> Result<TriDiagonal<A>> {
         let l = self.square_layout()?;
         let (n, _) = l.size();
-        if n < 2 { panic!("Cannot make a tridiagonal matrix of shape=(1, 1)!"); }
+        if n < 2 {
+            panic!("Cannot make a tridiagonal matrix of shape=(1, 1)!");
+        }
         let n1 = self.opnorm_one()?;
 
-        let dl = self.slice(s![1..n, 0..n-1]).diag().to_owned();
-        let d =  self.diag().to_owned();
-        let du = self.slice(s![0..n-1, 1..n]).diag().to_owned();
+        let dl = self.slice(s![1..n, 0..n - 1]).diag().to_owned();
+        let d = self.diag().to_owned();
+        let du = self.slice(s![0..n - 1, 1..n]).diag().to_owned();
         Ok(TriDiagonal { l, n1, dl, d, du })
     }
 }
@@ -73,22 +75,22 @@ pub trait SolveTriDiagonal<A: Scalar, D: Dimension> {
         b: ArrayBase<S, D>,
     ) -> Result<ArrayBase<S, D>>;
     /// Solves a system of linear equations `A^T * x = b` with tridiagonal
-    /// matrix `A`, where `A` is `self`, `b` is the argument, and 
+    /// matrix `A`, where `A` is `self`, `b` is the argument, and
     /// `x` is the successful result.
     fn solve_t_tridiagonal<S: Data<Elem = A>>(&self, b: &ArrayBase<S, D>) -> Result<Array<A, D>>;
     /// Solves a system of linear equations `A^T * x = b` with tridiagonal
-    /// matrix `A`, where `A` is `self`, `b` is the argument, and 
+    /// matrix `A`, where `A` is `self`, `b` is the argument, and
     /// `x` is the successful result.
     fn solve_t_tridiagonal_into<S: DataMut<Elem = A>>(
         &self,
         b: ArrayBase<S, D>,
     ) -> Result<ArrayBase<S, D>>;
     /// Solves a system of linear equations `A^H * x = b` with tridiagonal
-    /// matrix `A`, where `A` is `self`, `b` is the argument, and 
+    /// matrix `A`, where `A` is `self`, `b` is the argument, and
     /// `x` is the successful result.
     fn solve_h_tridiagonal<S: Data<Elem = A>>(&self, b: &ArrayBase<S, D>) -> Result<Array<A, D>>;
     /// Solves a system of linear equations `A^H * x = b` with tridiagonal
-    /// matrix `A`, where `A` is `self`, `b` is the argument, and 
+    /// matrix `A`, where `A` is `self`, `b` is the argument, and
     /// `x` is the successful result.
     fn solve_h_tridiagonal_into<S: DataMut<Elem = A>>(
         &self,
@@ -155,7 +157,10 @@ where
         self.solve_tridiagonal_inplace(&mut b)?;
         Ok(b)
     }
-    fn solve_t_tridiagonal<S: Data<Elem = A>>(&self, b: &ArrayBase<S, Ix2>) -> Result<Array<A, Ix2>> {
+    fn solve_t_tridiagonal<S: Data<Elem = A>>(
+        &self,
+        b: &ArrayBase<S, Ix2>,
+    ) -> Result<Array<A, Ix2>> {
         let mut b = replicate(b);
         self.solve_t_tridiagonal_inplace(&mut b)?;
         Ok(b)
@@ -167,7 +172,10 @@ where
         self.solve_t_tridiagonal_inplace(&mut b)?;
         Ok(b)
     }
-    fn solve_h_tridiagonal<S: Data<Elem = A>>(&self, b: &ArrayBase<S, Ix2>) -> Result<Array<A, Ix2>> {
+    fn solve_h_tridiagonal<S: Data<Elem = A>>(
+        &self,
+        b: &ArrayBase<S, Ix2>,
+    ) -> Result<Array<A, Ix2>> {
         let mut b = replicate(b);
         self.solve_h_tridiagonal_inplace(&mut b)?;
         Ok(b)
@@ -186,7 +194,10 @@ where
     A: Scalar + Lapack,
     S: Data<Elem = A>,
 {
-    fn solve_tridiagonal<Sb: Data<Elem = A>>(&self, b: &ArrayBase<Sb, Ix2>) -> Result<Array<A, Ix2>> {
+    fn solve_tridiagonal<Sb: Data<Elem = A>>(
+        &self,
+        b: &ArrayBase<Sb, Ix2>,
+    ) -> Result<Array<A, Ix2>> {
         let mut b = replicate(b);
         self.solve_tridiagonal_inplace(&mut b)?;
         Ok(b)
@@ -198,7 +209,10 @@ where
         self.solve_tridiagonal_inplace(&mut b)?;
         Ok(b)
     }
-    fn solve_t_tridiagonal<Sb: Data<Elem = A>>(&self, b: &ArrayBase<Sb, Ix2>) -> Result<Array<A, Ix2>> {
+    fn solve_t_tridiagonal<Sb: Data<Elem = A>>(
+        &self,
+        b: &ArrayBase<Sb, Ix2>,
+    ) -> Result<Array<A, Ix2>> {
         let mut b = replicate(b);
         self.solve_t_tridiagonal_inplace(&mut b)?;
         Ok(b)
@@ -210,7 +224,10 @@ where
         self.solve_t_tridiagonal_inplace(&mut b)?;
         Ok(b)
     }
-    fn solve_h_tridiagonal<Sb: Data<Elem = A>>(&self, b: &ArrayBase<Sb, Ix2>) -> Result<Array<A, Ix2>> {
+    fn solve_h_tridiagonal<Sb: Data<Elem = A>>(
+        &self,
+        b: &ArrayBase<Sb, Ix2>,
+    ) -> Result<Array<A, Ix2>> {
         let mut b = replicate(b);
         self.solve_h_tridiagonal_inplace(&mut b)?;
         Ok(b)
@@ -334,7 +351,10 @@ where
         let b = self.solve_tridiagonal_into(b)?;
         Ok(flatten(b))
     }
-    fn solve_t_tridiagonal<S: Data<Elem = A>>(&self, b: &ArrayBase<S, Ix1>) -> Result<Array<A, Ix1>> {
+    fn solve_t_tridiagonal<S: Data<Elem = A>>(
+        &self,
+        b: &ArrayBase<S, Ix1>,
+    ) -> Result<Array<A, Ix1>> {
         let b = b.to_owned();
         self.solve_t_tridiagonal_into(b)
     }
@@ -346,7 +366,10 @@ where
         let b = self.solve_t_tridiagonal_into(b)?;
         Ok(flatten(b))
     }
-    fn solve_h_tridiagonal<S: Data<Elem = A>>(&self, b: &ArrayBase<S, Ix1>) -> Result<Array<A, Ix1>> {
+    fn solve_h_tridiagonal<S: Data<Elem = A>>(
+        &self,
+        b: &ArrayBase<S, Ix1>,
+    ) -> Result<Array<A, Ix1>> {
         let b = b.to_owned();
         self.solve_h_tridiagonal_into(b)
     }
@@ -365,7 +388,10 @@ where
     A: Scalar + Lapack,
     S: Data<Elem = A>,
 {
-    fn solve_tridiagonal<Sb: Data<Elem = A>>(&self, b: &ArrayBase<Sb, Ix1>) -> Result<Array<A, Ix1>> {
+    fn solve_tridiagonal<Sb: Data<Elem = A>>(
+        &self,
+        b: &ArrayBase<Sb, Ix1>,
+    ) -> Result<Array<A, Ix1>> {
         let b = b.to_owned();
         self.solve_tridiagonal_into(b)
     }
@@ -378,7 +404,10 @@ where
         let b = f.solve_tridiagonal_into(b)?;
         Ok(flatten(b))
     }
-    fn solve_t_tridiagonal<Sb: Data<Elem = A>>(&self, b: &ArrayBase<Sb, Ix1>) -> Result<Array<A, Ix1>> {
+    fn solve_t_tridiagonal<Sb: Data<Elem = A>>(
+        &self,
+        b: &ArrayBase<Sb, Ix1>,
+    ) -> Result<Array<A, Ix1>> {
         let b = b.to_owned();
         self.solve_t_tridiagonal_into(b)
     }
@@ -391,7 +420,10 @@ where
         let b = f.solve_t_tridiagonal_into(b)?;
         Ok(flatten(b))
     }
-    fn solve_h_tridiagonal<Sb: Data<Elem = A>>(&self, b: &ArrayBase<Sb, Ix1>) -> Result<Array<A, Ix1>> {
+    fn solve_h_tridiagonal<Sb: Data<Elem = A>>(
+        &self,
+        b: &ArrayBase<Sb, Ix1>,
+    ) -> Result<Array<A, Ix1>> {
         let b = b.to_owned();
         self.solve_h_tridiagonal_into(b)
     }
@@ -429,7 +461,7 @@ where
         Ok(LUFactorizedTriDiagonal {
             a: self,
             du2: du2,
-            ipiv: ipiv
+            ipiv: ipiv,
         })
     }
 }
@@ -448,7 +480,7 @@ where
 impl<A, S> FactorizeTriDiagonal<A> for ArrayBase<S, Ix2>
 where
     A: Scalar + Lapack,
-    S: Data<Elem = A>
+    S: Data<Elem = A>,
 {
     fn factorize_tridiagonal(&self) -> Result<LUFactorizedTriDiagonal<A>> {
         let mut a = self.to_tridiagonal()?;
@@ -462,19 +494,19 @@ where
 /// where {a_1, a_2, ..., a_n} are diagonal elements,
 /// {b_1, b_2, ..., b_{n-1}} are super-diagonal elements, and
 /// {c_1, c_2, ..., c_{n-1}} are sub-diagonal elements of matrix.
-/// 
+///
 /// f[n] is used to calculate the determinant.
 /// (https://en.wikipedia.org/wiki/Tridiagonal_matrix#Determinant)
-/// 
+///
 /// In the future, the vector `f` can be used to calculate the inverce matrix.
 /// (https://en.wikipedia.org/wiki/Tridiagonal_matrix#Inversion)
 fn rec_rel<A: Scalar>(tridiag: &TriDiagonal<A>) -> Vec<A> {
     let n = tridiag.d.shape()[0];
-    let mut f = Vec::with_capacity(n+1);
+    let mut f = Vec::with_capacity(n + 1);
     f.push(One::one());
     f.push(tridiag.d[0]);
     for i in 1..n {
-        f.push(tridiag.d[i] * f[i] - tridiag.dl[i-1] * tridiag.du[i-1] * f[i-1]);
+        f.push(tridiag.d[i] * f[i] - tridiag.dl[i - 1] * tridiag.du[i - 1] * f[i - 1]);
     }
     f
 }
@@ -483,7 +515,7 @@ fn rec_rel<A: Scalar>(tridiag: &TriDiagonal<A>) -> Vec<A> {
 pub trait DeterminantTriDiagonal<A: Scalar> {
     /// Computes the determinant of the matrix.
     /// Unlike `.det()` of Determinant trait, this method
-    /// doesn't returns the natural logarithm of the determinant 
+    /// doesn't returns the natural logarithm of the determinant
     /// but the determinant itself.
     fn det_tridiagonal(&self) -> Result<A>;
 }

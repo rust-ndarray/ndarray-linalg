@@ -10,7 +10,7 @@ use super::{into_result, Pivot, Transpose};
 
 use crate::error::*;
 use crate::layout::MatrixLayout;
-use crate::tridiagonal::{TriDiagonal, LUFactorizedTriDiagonal};
+use crate::tridiagonal::{LUFactorizedTriDiagonal, TriDiagonal};
 use crate::types::*;
 
 /// Wraps `*gttrf`, `*gtcon` and `*gttrs`
@@ -24,7 +24,8 @@ pub trait TriDiagonal_: Scalar + Sized {
         lu: &LUFactorizedTriDiagonal<Self>,
         bl: MatrixLayout,
         t: Transpose,
-        b: &mut [Self]) -> Result<()>;
+        b: &mut [Self],
+    ) -> Result<()>;
 }
 
 macro_rules! impl_tridiagonal {
@@ -32,20 +33,20 @@ macro_rules! impl_tridiagonal {
         impl TriDiagonal_ for $scalar {
             unsafe fn lu_tridiagonal(a: &mut TriDiagonal<Self>) -> Result<(Array1<Self>, Pivot)> {
                 let (n, _) = a.l.size();
-                let dl  = a.dl.as_slice_mut().unwrap();
-                let d   = a.d.as_slice_mut().unwrap();
-                let du  = a.du.as_slice_mut().unwrap();
-                let mut du2 = vec![Zero::zero(); (n-2) as usize];
+                let dl = a.dl.as_slice_mut().unwrap();
+                let d = a.d.as_slice_mut().unwrap();
+                let du = a.du.as_slice_mut().unwrap();
+                let mut du2 = vec![Zero::zero(); (n - 2) as usize];
                 let mut ipiv = vec![0; n as usize];
                 let info = $gttrf(n, dl, d, du, &mut du2, &mut ipiv);
                 into_result(info, (arr1(&du2), ipiv))
             }
-            
+
             unsafe fn rcond_tridiagonal(lu: &LUFactorizedTriDiagonal<Self>) -> Result<Self::Real> {
                 let (n, _) = lu.a.l.size();
-                let dl  = lu.a.dl.as_slice().unwrap();
-                let d   = lu.a.d.as_slice().unwrap();
-                let du  = lu.a.du.as_slice().unwrap();
+                let dl = lu.a.dl.as_slice().unwrap();
+                let d = lu.a.d.as_slice().unwrap();
+                let du = lu.a.du.as_slice().unwrap();
                 let du2 = lu.du2.as_slice().unwrap();
                 let ipiv = &lu.ipiv;
                 let anorm = lu.a.n1;
@@ -68,13 +69,13 @@ macro_rules! impl_tridiagonal {
                 lu: &LUFactorizedTriDiagonal<Self>,
                 bl: MatrixLayout,
                 t: Transpose,
-                b: &mut [Self]
+                b: &mut [Self],
             ) -> Result<()> {
                 let (n, _) = lu.a.l.size();
                 let (_, nrhs) = bl.size();
-                let dl  = lu.a.dl.as_slice().unwrap();
-                let d   = lu.a.d.as_slice().unwrap();
-                let du  = lu.a.du.as_slice().unwrap();
+                let dl = lu.a.dl.as_slice().unwrap();
+                let d = lu.a.d.as_slice().unwrap();
+                let du = lu.a.du.as_slice().unwrap();
                 let du2 = lu.du2.as_slice().unwrap();
                 let ipiv = &lu.ipiv;
                 let ldb = bl.lda();

@@ -126,6 +126,21 @@ fn solve_tridiagonal_random_t() {
 }
 
 #[test]
+fn to_tridiagonal_solve_random() {
+    let mut a: Array2<f64> = random((3, 3));
+    a[[0, 2]] = 0.0;
+    a[[2, 0]] = 0.0;
+    let tridiag = a.to_tridiagonal().unwrap();
+    let x: Array1<f64> = random(3);
+    let b1 = a.dot(&x);
+    let b2 = b1.clone();
+    let y1 = tridiag.solve_tridiagonal_into(b1).unwrap();
+    let y2 = a.solve_into(b2).unwrap();
+    assert_close_l2!(&x, &y1, 1e-7);
+    assert_close_l2!(&y1, &y2, 1e-7);
+}
+
+#[test]
 fn det_tridiagonal_f64() {
     let a: Array2<f64> = arr2(&[[10.0, -9.0, 0.0], [7.0, -12.0, 11.0], [0.0, 10.0, 3.0]]);
     assert_aclose!(a.det_tridiagonal().unwrap(), -1271.0, 1e-7);

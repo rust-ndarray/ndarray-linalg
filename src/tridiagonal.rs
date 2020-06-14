@@ -189,6 +189,57 @@ where
     }
 }
 
+impl<A> SolveTriDiagonal<A, Ix2> for TriDiagonal<A>
+where
+    A: Scalar + Lapack,
+{
+    fn solve_tridiagonal<Sb: Data<Elem = A>>(
+        &self,
+        b: &ArrayBase<Sb, Ix2>,
+    ) -> Result<Array<A, Ix2>> {
+        let mut b = replicate(b);
+        self.solve_tridiagonal_inplace(&mut b)?;
+        Ok(b)
+    }
+    fn solve_tridiagonal_into<Sb: DataMut<Elem = A>>(
+        &self,
+        mut b: ArrayBase<Sb, Ix2>,
+    ) -> Result<ArrayBase<Sb, Ix2>> {
+        self.solve_tridiagonal_inplace(&mut b)?;
+        Ok(b)
+    }
+    fn solve_t_tridiagonal<Sb: Data<Elem = A>>(
+        &self,
+        b: &ArrayBase<Sb, Ix2>,
+    ) -> Result<Array<A, Ix2>> {
+        let mut b = replicate(b);
+        self.solve_t_tridiagonal_inplace(&mut b)?;
+        Ok(b)
+    }
+    fn solve_t_tridiagonal_into<Sb: DataMut<Elem = A>>(
+        &self,
+        mut b: ArrayBase<Sb, Ix2>,
+    ) -> Result<ArrayBase<Sb, Ix2>> {
+        self.solve_t_tridiagonal_inplace(&mut b)?;
+        Ok(b)
+    }
+    fn solve_h_tridiagonal<Sb: Data<Elem = A>>(
+        &self,
+        b: &ArrayBase<Sb, Ix2>,
+    ) -> Result<Array<A, Ix2>> {
+        let mut b = replicate(b);
+        self.solve_h_tridiagonal_inplace(&mut b)?;
+        Ok(b)
+    }
+    fn solve_h_tridiagonal_into<Sb: DataMut<Elem = A>>(
+        &self,
+        mut b: ArrayBase<Sb, Ix2>,
+    ) -> Result<ArrayBase<Sb, Ix2>> {
+        self.solve_h_tridiagonal_inplace(&mut b)?;
+        Ok(b)
+    }
+}
+
 impl<A, S> SolveTriDiagonal<A, Ix2> for ArrayBase<S, Ix2>
 where
     A: Scalar + Lapack,
@@ -298,6 +349,42 @@ where
     }
 }
 
+impl<A> SolveTriDiagonalInplace<A, Ix2> for TriDiagonal<A>
+where
+    A: Scalar + Lapack,
+{
+    fn solve_tridiagonal_inplace<'a, Sb>(
+        &self,
+        rhs: &'a mut ArrayBase<Sb, Ix2>,
+    ) -> Result<&'a mut ArrayBase<Sb, Ix2>>
+    where
+        Sb: DataMut<Elem = A>,
+    {
+        let f = self.factorize_tridiagonal()?;
+        f.solve_tridiagonal_inplace(rhs)
+    }
+    fn solve_t_tridiagonal_inplace<'a, Sb>(
+        &self,
+        rhs: &'a mut ArrayBase<Sb, Ix2>,
+    ) -> Result<&'a mut ArrayBase<Sb, Ix2>>
+    where
+        Sb: DataMut<Elem = A>,
+    {
+        let f = self.factorize_tridiagonal()?;
+        f.solve_t_tridiagonal_inplace(rhs)
+    }
+    fn solve_h_tridiagonal_inplace<'a, Sb>(
+        &self,
+        rhs: &'a mut ArrayBase<Sb, Ix2>,
+    ) -> Result<&'a mut ArrayBase<Sb, Ix2>>
+    where
+        Sb: DataMut<Elem = A>,
+    {
+        let f = self.factorize_tridiagonal()?;
+        f.solve_h_tridiagonal_inplace(rhs)
+    }
+}
+
 impl<A, S> SolveTriDiagonalInplace<A, Ix2> for ArrayBase<S, Ix2>
 where
     A: Scalar + Lapack,
@@ -379,6 +466,60 @@ where
     ) -> Result<ArrayBase<S, Ix1>> {
         let b = into_col(b);
         let b = self.solve_h_tridiagonal_into(b)?;
+        Ok(flatten(b))
+    }
+}
+
+impl<A> SolveTriDiagonal<A, Ix1> for TriDiagonal<A>
+where
+    A: Scalar + Lapack,
+{
+    fn solve_tridiagonal<Sb: Data<Elem = A>>(
+        &self,
+        b: &ArrayBase<Sb, Ix1>,
+    ) -> Result<Array<A, Ix1>> {
+        let b = b.to_owned();
+        self.solve_tridiagonal_into(b)
+    }
+    fn solve_tridiagonal_into<Sb: DataMut<Elem = A>>(
+        &self,
+        b: ArrayBase<Sb, Ix1>,
+    ) -> Result<ArrayBase<Sb, Ix1>> {
+        let b = into_col(b);
+        let f = self.factorize_tridiagonal()?;
+        let b = f.solve_tridiagonal_into(b)?;
+        Ok(flatten(b))
+    }
+    fn solve_t_tridiagonal<Sb: Data<Elem = A>>(
+        &self,
+        b: &ArrayBase<Sb, Ix1>,
+    ) -> Result<Array<A, Ix1>> {
+        let b = b.to_owned();
+        self.solve_t_tridiagonal_into(b)
+    }
+    fn solve_t_tridiagonal_into<Sb: DataMut<Elem = A>>(
+        &self,
+        b: ArrayBase<Sb, Ix1>,
+    ) -> Result<ArrayBase<Sb, Ix1>> {
+        let b = into_col(b);
+        let f = self.factorize_tridiagonal()?;
+        let b = f.solve_t_tridiagonal_into(b)?;
+        Ok(flatten(b))
+    }
+    fn solve_h_tridiagonal<Sb: Data<Elem = A>>(
+        &self,
+        b: &ArrayBase<Sb, Ix1>,
+    ) -> Result<Array<A, Ix1>> {
+        let b = b.to_owned();
+        self.solve_h_tridiagonal_into(b)
+    }
+    fn solve_h_tridiagonal_into<Sb: DataMut<Elem = A>>(
+        &self,
+        b: ArrayBase<Sb, Ix1>,
+    ) -> Result<ArrayBase<Sb, Ix1>> {
+        let b = into_col(b);
+        let f = self.factorize_tridiagonal()?;
+        let b = f.solve_h_tridiagonal_into(b)?;
         Ok(flatten(b))
     }
 }

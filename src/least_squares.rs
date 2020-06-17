@@ -60,7 +60,7 @@
 //! // `a` and `b` have been moved, no longer valid
 //! ```
 
-use ndarray::{s, Array, Array1, Array2, ArrayBase, Axis, Data, DataMut, Ix1, Ix2};
+use ndarray::{s, Array, Array1, Array2, ArrayBase, Axis, Data, DataMut, DataOwned, Ix1, Ix2};
 
 use crate::error::*;
 use crate::lapack::least_squares::*;
@@ -72,11 +72,11 @@ pub trait Ix1OrIx2<E: Scalar> {
 }
 
 impl<E: Scalar> Ix1OrIx2<E> for Ix1 {
-    type ScalarOrArray1 = E;
+    type ScalarOrArray1 = E::Real;
 }
 
 impl<E: Scalar> Ix1OrIx2<E> for Ix2 {
-    type ScalarOrArray1 = Array1<E>;
+    type ScalarOrArray1 = Array1<E::Real>;
 }
 
 /// Result of a LeastSquares computation
@@ -213,7 +213,7 @@ where
 impl<E, D> LeastSquaresSvdInto<D, E, Ix1> for ArrayBase<D, Ix2>
 where
     E: Scalar + Lapack + LeastSquaresSvdDivideConquer_,
-    D: DataMut<Elem = E>,
+    D: DataMut<Elem = E> + DataOwned<Elem = E>,
 {
     /// Solve a least squares problem of the form `Ax = rhs`
     /// by calling `A.least_squares(rhs)`, where `rhs` is a
@@ -265,7 +265,7 @@ where
 impl<E, D> LeastSquaresSvdInPlace<D, E, Ix1> for ArrayBase<D, Ix2>
 where
     E: Scalar + Lapack + LeastSquaresSvdDivideConquer_,
-    D: DataMut<Elem = E>,
+    D: DataMut<Elem = E> + DataOwned<Elem = E>,
 {
     /// Solve a least squares problem of the form `Ax = rhs`
     /// by calling `A.least_squares(rhs)`, where `rhs` is a
@@ -278,29 +278,45 @@ where
         &mut self,
         rhs: &mut ArrayBase<D, Ix1>,
     ) -> Result<LeastSquaresResult<E, Ix1>> {
-        let a_layout = self.layout()?;
-        let LeastSquaresOutput::<E> {
-            singular_values,
-            rank,
-        } = unsafe {
-            <E as LeastSquaresSvdDivideConquer_>::least_squares(
-                a_layout,
-                self.as_allocated_mut()?,
-                rhs.as_slice_memory_order_mut()
-                    .ok_or_else(|| LinalgError::MemoryNotCont)?,
-            )?
-        };
-
         let (m, n) = (self.shape()[0], self.shape()[1]);
-        let solution = rhs.slice(s![0..n]).to_owned();
-        let residual_sum_of_squares = compute_residual_scalar(m, n, rank, &rhs);
-        Ok(LeastSquaresResult {
-            solution,
-            singular_values: Array::from_shape_vec((singular_values.len(),), singular_values)?,
-            rank,
-            residual_sum_of_squares,
-        })
+        if n > m { 
+            // we need a new rhs b/c it will be overwritten with the solution
+            // for which we need `n` entries
+            let mut new_rhs = ArrayBase::<D, Ix1>::zeros((n,));
+            new_rhs.slice_mut(s![0..m]).assign(rhs);
+            compute_least_squares(self, &mut new_rhs)
+        } else { 
+            compute_least_squares(self, rhs)
+        }
     }
+}
+
+fn compute_least_squares<E, D>(a: &mut ArrayBase<D, Ix2>, rhs: &mut ArrayBase<D, Ix1>) -> Result<LeastSquaresResult<E, Ix1>> 
+    where
+        E: Scalar + Lapack + LeastSquaresSvdDivideConquer_,
+        D: DataMut<Elem = E>,
+{
+    let LeastSquaresOutput::<E> {
+        singular_values,
+        rank,
+    } = unsafe {
+        <E as LeastSquaresSvdDivideConquer_>::least_squares(
+            a.layout()?,
+            a.as_allocated_mut()?,
+            rhs.as_slice_memory_order_mut()
+                .ok_or_else(|| LinalgError::MemoryNotCont)?,
+        )?
+    };
+
+    let (m, n) = (a.shape()[0], a.shape()[1]);
+    let solution = rhs.slice(s![0..n]).to_owned();
+    let residual_sum_of_squares = compute_residual_scalar(m, n, rank, &rhs);
+    Ok(LeastSquaresResult {
+        solution,
+        singular_values: Array::from_shape_vec((singular_values.len(),), singular_values)?,
+        rank,
+        residual_sum_of_squares,
+    })
 }
 
 fn compute_residual_scalar<E: Scalar, D: Data<Elem = E>>(
@@ -308,11 +324,11 @@ fn compute_residual_scalar<E: Scalar, D: Data<Elem = E>>(
     n: usize,
     rank: i32,
     b: &ArrayBase<D, Ix1>,
-) -> Option<E> {
+) -> Option<E::Real> {
     if m < n || n != rank as usize {
         return None;
     }
-    Some(b.slice(s![n..]).mapv(|x| x.powi(2)).sum())
+    Some(b.slice(s![n..]).mapv(|x| x.powi(2).abs()).sum())
 }
 
 /// Solve least squares for mutable references and a matrix
@@ -369,11 +385,11 @@ fn compute_residual_array1<E: Scalar, D: Data<Elem = E>>(
     n: usize,
     rank: i32,
     b: &ArrayBase<D, Ix2>,
-) -> Option<Array1<E>> {
+) -> Option<Array1<E::Real>> {
     if m < n || n != rank as usize {
         return None;
     }
-    Some(b.slice(s![n.., ..]).mapv(|x| x.powi(2)).sum_axis(Axis(0)))
+    Some(b.slice(s![n.., ..]).mapv(|x| x.powi(2).abs()).sum_axis(Axis(0)))
 }
 
 #[cfg(test)]
@@ -381,6 +397,99 @@ mod tests {
     use super::*;
     use approx::AbsDiffEq;
     use ndarray::{Array1, Array2};
+    use num_complex::Complex;
+
+    /// This test case is adapted from the scipy test suite for the
+    /// scipy lstsq function
+    /// https://github.com/scipy/scipy/blob/v1.4.1/scipy/linalg/tests/test_basic.py
+    #[test]
+    fn scipy_test_simple_exact() {
+        let a = array![[1., 20.], [-30., 4.]];
+        let bs = vec![
+            array![[1., 0.], [0., 1.]],
+            array![[1.], [0.]],
+            array![[2., 1.], [-30., 4.]],
+        ];
+        for b in &bs {
+            let res = a.least_squares(b).unwrap();
+            assert_eq!(res.rank, 2);
+            let b_hat = a.dot(&res.solution);
+            let rssq = (b - &b_hat).mapv(|x| x.powi(2)).sum_axis(Axis(0));
+            assert!(res
+                .residual_sum_of_squares
+                .unwrap()
+                .abs_diff_eq(&rssq, 1e-12));
+            assert!(b_hat.abs_diff_eq(&b, 1e-12));
+        }
+    }
+
+    /// This test case is adapted from the scipy test suite for the
+    /// scipy lstsq function
+    /// https://github.com/scipy/scipy/blob/v1.4.1/scipy/linalg/tests/test_basic.py
+    #[test]
+    fn scipy_test_simple_overdetermined() {
+        let a: Array2<f64> = array![[1., 2.], [4., 5.], [3., 4.]];
+        let b: Array1<f64> = array![1., 2., 3.];
+        let res = a.least_squares(&b).unwrap();
+        assert_eq!(res.rank, 2);
+        let b_hat = a.dot(&res.solution);
+        let rssq = (&b - &b_hat).mapv(|x| x.powi(2)).sum();
+        assert!(res
+            .residual_sum_of_squares
+            .unwrap()
+            .abs_diff_eq(&rssq, 1e-12));
+        assert!(res
+            .solution
+            .abs_diff_eq(&array![-0.428571428571429, 0.85714285714285], 1e-12));
+    }
+
+    fn c(re: f64, im: f64) -> Complex<f64> {
+        Complex::new(re, im)
+    }
+
+    /// This test case is adapted from the scipy test suite for the
+    /// scipy lstsq function
+    /// https://github.com/scipy/scipy/blob/v1.4.1/scipy/linalg/tests/test_basic.py
+    #[test]
+    fn scipy_test_simple_overdetermined_complex() {
+        let a: Array2<c64> = array![
+            [c(1., 2.), c(2., 0.)],
+            [c(4., 0.), c(5., 0.)],
+            [c(3., 0.), c(4., 0.)]
+        ];
+        let b: Array1<c64> = array![c(1., 0.), c(2., 4.), c(3., 0.)];
+        let res = a.least_squares(&b).unwrap();
+        assert_eq!(res.rank, 2);
+        let b_hat = a.dot(&res.solution);
+        let rssq = (&b_hat - &b).mapv(|x| x.powi(2).abs()).sum();
+        assert!(res
+            .residual_sum_of_squares
+            .unwrap()
+            .abs_diff_eq(&rssq, 1e-12));
+        assert!(res.solution.abs_diff_eq(
+            &array![
+                c(-0.4831460674157303, 0.258426966292135),
+                c(0.921348314606741, 0.292134831460674)
+            ],
+            1e-12
+        ));
+    }
+
+    /// This test case is adapted from the scipy test suite for the
+    /// scipy lstsq function
+    /// https://github.com/scipy/scipy/blob/v1.4.1/scipy/linalg/tests/test_basic.py
+    #[test]
+    fn scipy_test_simple_underdetermined() {
+        let a: Array2<f64> = array![[1., 2., 3.], [4., 5., 6.]];
+        let b: Array1<f64> = array![1., 2.];
+        let res = a.least_squares(&b).unwrap();
+        assert_eq!(res.rank, 2);
+        assert!(res.residual_sum_of_squares.is_none());
+        let expected = array![-0.055555555555555, 0.111111111111111, 0.277777777777777];
+        println!("actual:   {}", res.solution);
+        println!("expected: {}", expected);
+        assert!(res.solution.abs_diff_eq(&expected, 1e-12));
+    }
 
     /// This test case is taken from the netlib documentation at
     /// https://www.netlib.org/lapack/lapacke.html#_calling_code_dgels_code
@@ -439,14 +548,16 @@ mod tests {
             [4., 2., 5.],
             [5., 4., 3.]
         ];
-        let b: Array2<f64> =
-            array![[-10., -3.], [12., 14.], [14., 12.], [16., 16.], [18., 16.]];
+        let b: Array2<f64> = array![[-10., -3.], [12., 14.], [14., 12.], [16., 16.], [18., 16.]];
         let expected: Array2<f64> = array![[2., 1.], [1., 1.], [1., 2.]];
         let result = a.least_squares(&b).unwrap();
         assert!(result.solution.abs_diff_eq(&expected, 1e-12));
 
         let residual = &b - &a.dot(&result.solution);
         let residual_ssq = residual.mapv(|x| x.powi(2)).sum_axis(Axis(0));
-        assert!(result.residual_sum_of_squares.unwrap().abs_diff_eq(&residual_ssq, 1e-12));
+        assert!(result
+            .residual_sum_of_squares
+            .unwrap()
+            .abs_diff_eq(&residual_ssq, 1e-12));
     }
 }

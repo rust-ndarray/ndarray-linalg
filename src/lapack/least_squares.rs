@@ -43,7 +43,7 @@ macro_rules! impl_least_squares {
                 b: &mut [Self],
             ) -> Result<LeastSquaresOutput<Self>> {
                 let (m, n) = a_layout.size();
-                if m as usize != b.len() {
+                if (m as usize) > b.len() || (n as usize) > b.len() {
                     return Err(LinalgError::Shape(ShapeError::from_kind(
                         ErrorKind::IncompatibleShape,
                     )));

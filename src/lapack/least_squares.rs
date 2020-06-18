@@ -92,7 +92,9 @@ macro_rules! impl_least_squares {
                 b: &mut [Self],
             ) -> Result<LeastSquaresOutput<Self>> {
                 let (m, n) = a_layout.size();
-                if m != b_layout.size().0 || a_layout.lapacke_layout() != b_layout.lapacke_layout()
+                if (m as usize) > b.len()
+                    || (n as usize) > b.len()
+                    || a_layout.lapacke_layout() != b_layout.lapacke_layout()
                 {
                     return Err(LinalgError::Shape(ShapeError::from_kind(
                         ErrorKind::IncompatibleShape,

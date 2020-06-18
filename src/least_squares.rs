@@ -60,7 +60,7 @@
 //! // `a` and `b` have been moved, no longer valid
 //! ```
 
-use ndarray::{s, Array, Array1, Array2, ArrayBase, Axis, Data, DataMut, DataOwned, Ix1, Ix2};
+use ndarray::{s, Array, Array1, Array2, ArrayBase, Axis, Data, DataMut, Ix1, Ix2};
 
 use crate::error::*;
 use crate::lapack::least_squares::*;
@@ -213,7 +213,7 @@ where
 impl<E, D> LeastSquaresSvdInto<D, E, Ix1> for ArrayBase<D, Ix2>
 where
     E: Scalar + Lapack + LeastSquaresSvdDivideConquer_,
-    D: DataMut<Elem = E> + DataOwned<Elem = E>,
+    D: DataMut<Elem = E>, 
 {
     /// Solve a least squares problem of the form `Ax = rhs`
     /// by calling `A.least_squares(rhs)`, where `rhs` is a
@@ -239,7 +239,7 @@ where
 impl<E, D> LeastSquaresSvdInto<D, E, Ix2> for ArrayBase<D, Ix2>
 where
     E: Scalar + Lapack + LeastSquaresSvdDivideConquer_,
-    D: DataMut<Elem = E>,
+    D: DataMut<Elem = E>, 
 {
     /// Solve a least squares problem of the form `Ax = rhs`
     /// by calling `A.least_squares(rhs)`, where `rhs` is a
@@ -265,7 +265,7 @@ where
 impl<E, D> LeastSquaresSvdInPlace<D, E, Ix1> for ArrayBase<D, Ix2>
 where
     E: Scalar + Lapack + LeastSquaresSvdDivideConquer_,
-    D: DataMut<Elem = E> + DataOwned<Elem = E>,
+    D: DataMut<Elem = E>,
 {
     /// Solve a least squares problem of the form `Ax = rhs`
     /// by calling `A.least_squares(rhs)`, where `rhs` is a
@@ -279,22 +279,26 @@ where
         rhs: &mut ArrayBase<D, Ix1>,
     ) -> Result<LeastSquaresResult<E, Ix1>> {
         let (m, n) = (self.shape()[0], self.shape()[1]);
-        if n > m { 
+        if n > m {
             // we need a new rhs b/c it will be overwritten with the solution
             // for which we need `n` entries
-            let mut new_rhs = ArrayBase::<D, Ix1>::zeros((n,));
+            let mut new_rhs = Array1::<E>::zeros((n,));
             new_rhs.slice_mut(s![0..m]).assign(rhs);
-            compute_least_squares(self, &mut new_rhs)
-        } else { 
-            compute_least_squares(self, rhs)
+            compute_least_squares_srhs(self, &mut new_rhs)
+        } else {
+            compute_least_squares_srhs(self, rhs)
         }
     }
 }
 
-fn compute_least_squares<E, D>(a: &mut ArrayBase<D, Ix2>, rhs: &mut ArrayBase<D, Ix1>) -> Result<LeastSquaresResult<E, Ix1>> 
-    where
-        E: Scalar + Lapack + LeastSquaresSvdDivideConquer_,
-        D: DataMut<Elem = E>,
+fn compute_least_squares_srhs<E, D1, D2>(
+    a: &mut ArrayBase<D1, Ix2>,
+    rhs: &mut ArrayBase<D2, Ix1>,
+) -> Result<LeastSquaresResult<E, Ix1>>
+where
+    E: Scalar + Lapack + LeastSquaresSvdDivideConquer_,
+    D1: DataMut<Elem = E>,
+    D2: DataMut<Elem = E>,
 {
     let LeastSquaresOutput::<E> {
         singular_values,
@@ -353,31 +357,53 @@ where
         &mut self,
         rhs: &mut ArrayBase<D, Ix2>,
     ) -> Result<LeastSquaresResult<E, Ix2>> {
-        let a_layout = self.layout()?;
-        let rhs_layout = rhs.layout()?;
-        let LeastSquaresOutput::<E> {
-            singular_values,
-            rank,
-        } = unsafe {
-            <E as LeastSquaresSvdDivideConquer_>::least_squares_nrhs(
-                a_layout,
-                self.as_allocated_mut()?,
-                rhs_layout,
-                rhs.as_allocated_mut()?,
-            )?
-        };
-
-        let solution: Array2<E> = rhs.slice(s![..self.shape()[1], ..]).to_owned();
-        let singular_values = Array::from_shape_vec((singular_values.len(),), singular_values)?;
         let (m, n) = (self.shape()[0], self.shape()[1]);
-        let residual_sum_of_squares = compute_residual_array1(m, n, rank, &rhs);
-        Ok(LeastSquaresResult {
-            solution,
-            singular_values,
-            rank,
-            residual_sum_of_squares,
-        })
+        if n > m {
+            // we need a new rhs b/c it will be overwritten with the solution
+            // for which we need `n` entries
+            let k = rhs.shape()[1];
+            let mut new_rhs = Array2::<E>::zeros((n, k));
+            new_rhs.slice_mut(s![0..m, ..]).assign(rhs);
+            compute_least_squares_nrhs(self, &mut new_rhs)
+        } else {
+            compute_least_squares_nrhs(self, rhs)
+        }
     }
+}
+
+fn compute_least_squares_nrhs<E, D1, D2>(
+    a: &mut ArrayBase<D1, Ix2>,
+    rhs: &mut ArrayBase<D2, Ix2>,
+) -> Result<LeastSquaresResult<E, Ix2>>
+where
+    E: Scalar + Lapack + LeastSquaresSvdDivideConquer_,
+    D1: DataMut<Elem = E>,
+    D2: DataMut<Elem = E>,
+{
+    let a_layout = a.layout()?;
+    let rhs_layout = rhs.layout()?;
+    let LeastSquaresOutput::<E> {
+        singular_values,
+        rank,
+    } = unsafe {
+        <E as LeastSquaresSvdDivideConquer_>::least_squares_nrhs(
+            a_layout,
+            a.as_allocated_mut()?,
+            rhs_layout,
+            rhs.as_allocated_mut()?,
+        )?
+    };
+
+    let solution: Array2<E> = rhs.slice(s![..a.shape()[1], ..]).to_owned();
+    let singular_values = Array::from_shape_vec((singular_values.len(),), singular_values)?;
+    let (m, n) = (a.shape()[0], a.shape()[1]);
+    let residual_sum_of_squares = compute_residual_array1(m, n, rank, &rhs);
+    Ok(LeastSquaresResult {
+        solution,
+        singular_values,
+        rank,
+        residual_sum_of_squares,
+    })
 }
 
 fn compute_residual_array1<E: Scalar, D: Data<Elem = E>>(
@@ -389,19 +415,25 @@ fn compute_residual_array1<E: Scalar, D: Data<Elem = E>>(
     if m < n || n != rank as usize {
         return None;
     }
-    Some(b.slice(s![n.., ..]).mapv(|x| x.powi(2).abs()).sum_axis(Axis(0)))
+    Some(
+        b.slice(s![n.., ..])
+            .mapv(|x| x.powi(2).abs())
+            .sum_axis(Axis(0)),
+    )
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
     use approx::AbsDiffEq;
-    use ndarray::{Array1, Array2};
+    use ndarray::{ArcArray1, ArcArray2, Array1, Array2, CowArray};
     use num_complex::Complex;
 
-    /// This test case is adapted from the scipy test suite for the
-    /// scipy lstsq function
+    ///////////////////////////////////////////////////////////////////////////
+    /// Test cases taken from the scipy test suite for the scipy lstsq function
     /// https://github.com/scipy/scipy/blob/v1.4.1/scipy/linalg/tests/test_basic.py
+    ///////////////////////////////////////////////////////////////////////////
+
     #[test]
     fn scipy_test_simple_exact() {
         let a = array![[1., 20.], [-30., 4.]];
@@ -423,9 +455,6 @@ mod tests {
         }
     }
 
-    /// This test case is adapted from the scipy test suite for the
-    /// scipy lstsq function
-    /// https://github.com/scipy/scipy/blob/v1.4.1/scipy/linalg/tests/test_basic.py
     #[test]
     fn scipy_test_simple_overdetermined() {
         let a: Array2<f64> = array![[1., 2.], [4., 5.], [3., 4.]];
@@ -443,13 +472,27 @@ mod tests {
             .abs_diff_eq(&array![-0.428571428571429, 0.85714285714285], 1e-12));
     }
 
+    #[test]
+    fn scipy_test_simple_overdetermined_f32() {
+        let a: Array2<f32> = array![[1., 2.], [4., 5.], [3., 4.]];
+        let b: Array1<f32> = array![1., 2., 3.];
+        let res = a.least_squares(&b).unwrap();
+        assert_eq!(res.rank, 2);
+        let b_hat = a.dot(&res.solution);
+        let rssq = (&b - &b_hat).mapv(|x| x.powi(2)).sum();
+        assert!(res
+            .residual_sum_of_squares
+            .unwrap()
+            .abs_diff_eq(&rssq, 1e-6));
+        assert!(res
+            .solution
+            .abs_diff_eq(&array![-0.428571428571429, 0.85714285714285], 1e-6));
+    }
+
     fn c(re: f64, im: f64) -> Complex<f64> {
         Complex::new(re, im)
     }
 
-    /// This test case is adapted from the scipy test suite for the
-    /// scipy lstsq function
-    /// https://github.com/scipy/scipy/blob/v1.4.1/scipy/linalg/tests/test_basic.py
     #[test]
     fn scipy_test_simple_overdetermined_complex() {
         let a: Array2<c64> = array![
@@ -475,9 +518,6 @@ mod tests {
         ));
     }
 
-    /// This test case is adapted from the scipy test suite for the
-    /// scipy lstsq function
-    /// https://github.com/scipy/scipy/blob/v1.4.1/scipy/linalg/tests/test_basic.py
     #[test]
     fn scipy_test_simple_underdetermined() {
         let a: Array2<f64> = array![[1., 2., 3.], [4., 5., 6.]];
@@ -486,14 +526,159 @@ mod tests {
         assert_eq!(res.rank, 2);
         assert!(res.residual_sum_of_squares.is_none());
         let expected = array![-0.055555555555555, 0.111111111111111, 0.277777777777777];
-        println!("actual:   {}", res.solution);
-        println!("expected: {}", expected);
         assert!(res.solution.abs_diff_eq(&expected, 1e-12));
     }
 
-    /// This test case is taken from the netlib documentation at
+    /// This test case tests the underdetermined case for multiple right hand
+    /// sides. Adapted from scipy lstsq tests.
+    #[test]
+    fn scipy_test_simple_underdetermined_nrhs() {
+        let a: Array2<f64> = array![[1., 2., 3.], [4., 5., 6.]];
+        let b: Array2<f64> = array![[1., 1.], [2., 2.]];
+        let res = a.least_squares(&b).unwrap();
+        assert_eq!(res.rank, 2);
+        assert!(res.residual_sum_of_squares.is_none());
+        let expected = array![
+            [-0.055555555555555, -0.055555555555555],
+            [0.111111111111111, 0.111111111111111],
+            [0.277777777777777, 0.277777777777777]
+        ];
+        assert!(res.solution.abs_diff_eq(&expected, 1e-12));
+    }
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// Test that the different lest squares traits work as intended on the
+    /// different array types. 
+    /// 
+    ///               | least_squares | ls_into | ls_in_place |
+    /// --------------+---------------+---------+-------------+
+    /// Array         | yes           | yes     | yes         |
+    /// ArcArray      | yes           | no      | no          |
+    /// CowArray      | yes           | yes     | yes         |
+    /// ArrayView     | yes           | no      | no          |
+    /// ArrayViewMut  | yes           | no      | yes         |
+    ///////////////////////////////////////////////////////////////////////////
+
+    fn assert_result<D: Data<Elem = f64>>(
+        a: &ArrayBase<D, Ix2>,
+        b: &ArrayBase<D, Ix1>,
+        res: &LeastSquaresResult<f64, Ix1>,
+    ) {
+        assert_eq!(res.rank, 2);
+        let b_hat = a.dot(&res.solution);
+        let rssq = (b - &b_hat).mapv(|x| x.powi(2)).sum();
+        assert!(res
+            .residual_sum_of_squares
+            .unwrap()
+            .abs_diff_eq(&rssq, 1e-12));
+        assert!(res
+            .solution
+            .abs_diff_eq(&array![-0.428571428571429, 0.85714285714285], 1e-12));
+    }
+
+    #[test]
+    fn test_least_squares_on_arc() {
+        let a: ArcArray2<f64> = array![[1., 2.], [4., 5.], [3., 4.]].into_shared();
+        let b: ArcArray1<f64> = array![1., 2., 3.].into_shared();
+        let res = a.least_squares(&b).unwrap();
+        assert_result(&a, &b, &res);
+    }
+
+    #[test]
+    fn test_least_squares_on_cow() {
+        let a = CowArray::from(array![[1., 2.], [4., 5.], [3., 4.]]);
+        let b = CowArray::from(array![1., 2., 3.]);
+        let res = a.least_squares(&b).unwrap();
+        assert_result(&a, &b, &res);
+    }
+
+    #[test]
+    fn test_least_squares_on_view() {
+        let a: Array2<f64> = array![[1., 2.], [4., 5.], [3., 4.]];
+        let b: Array1<f64> = array![1., 2., 3.];
+        let av = a.view();
+        let bv = b.view();
+        let res = av.least_squares(&bv).unwrap();
+        assert_result(&av, &bv, &res);
+    }
+
+    #[test]
+    fn test_least_squares_on_view_mut() {
+        let mut a: Array2<f64> = array![[1., 2.], [4., 5.], [3., 4.]];
+        let mut b: Array1<f64> = array![1., 2., 3.];
+        let av = a.view_mut();
+        let bv = b.view_mut();
+        let res = av.least_squares(&bv).unwrap();
+        assert_result(&av, &bv, &res);
+    }
+
+    #[test]
+    fn test_least_squares_into_on_owned() {
+        let a: Array2<f64> = array![[1., 2.], [4., 5.], [3., 4.]];
+        let b: Array1<f64> = array![1., 2., 3.];
+        let ac = a.clone();
+        let bc = b.clone();
+        let res = ac.least_squares_into(bc).unwrap();
+        assert_result(&a, &b, &res);
+    }
+
+    #[test]
+    fn test_least_squares_into_on_arc() {
+        let a: ArcArray2<f64> = array![[1., 2.], [4., 5.], [3., 4.]].into_shared();
+        let b: ArcArray1<f64> = array![1., 2., 3.].into_shared();
+        let a2 = a.clone();
+        let b2 = b.clone();
+        let res = a2.least_squares_into(b2).unwrap();
+        assert_result(&a, &b, &res);
+    }
+
+    #[test]
+    fn test_least_squares_into_on_cow() {
+        let a = CowArray::from(array![[1., 2.], [4., 5.], [3., 4.]]);
+        let b = CowArray::from(array![1., 2., 3.]);
+        let a2 = a.clone();
+        let b2 = b.clone();
+        let res = a2.least_squares_into(b2).unwrap();
+        assert_result(&a, &b, &res);
+    }
+
+    #[test]
+    fn test_least_squares_in_place_on_owned() {
+        let a = array![[1., 2.], [4., 5.], [3., 4.]];
+        let b = array![1., 2., 3.];
+        let mut a2 = a.clone();
+        let mut b2 = b.clone();
+        let res = a2.least_squares_in_place(&mut b2).unwrap();
+        assert_result(&a, &b, &res);
+    }
+
+    #[test]
+    fn test_least_squares_in_place_on_cow() {
+        let a = CowArray::from(array![[1., 2.], [4., 5.], [3., 4.]]);
+        let b = CowArray::from(array![1., 2., 3.]);
+        let mut a2 = a.clone();
+        let mut b2 = b.clone();
+        let res = a2.least_squares_in_place(&mut b2).unwrap();
+        assert_result(&a, &b, &res);
+    }
+
+    #[test]
+    fn test_least_squares_in_place_on_mut_view() {
+        let a = array![[1., 2.], [4., 5.], [3., 4.]];
+        let b = array![1., 2., 3.];
+        let mut a2 = a.clone();
+        let mut b2 = b.clone();
+        let av = &mut a2.view_mut();
+        let bv = &mut b2.view_mut();
+        let res = av.least_squares_in_place(bv).unwrap();
+        assert_result(&a, &b, &res);
+    }
+
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// Test cases taken from the netlib documentation at
     /// https://www.netlib.org/lapack/lapacke.html#_calling_code_dgels_code
-    /// It tests the example with the first vector on the right hand side
+    ///////////////////////////////////////////////////////////////////////////
     #[test]
     fn netlib_lapack_example_for_dgels_1() {
         let a: Array2<f64> = array![
@@ -513,9 +698,6 @@ mod tests {
         assert!((resid_ssq - residual.dot(&residual)).abs() < 1e-12);
     }
 
-    /// This test case is taken from the netlib documentation at
-    /// https://www.netlib.org/lapack/lapacke.html#_calling_code_dgels_code
-    /// It tests the example with the second vector on the right hand side
     #[test]
     fn netlib_lapack_example_for_dgels_2() {
         let a: Array2<f64> = array![
@@ -535,10 +717,6 @@ mod tests {
         assert!((resid_ssq - residual.dot(&residual)).abs() < 1e-12);
     }
 
-    /// This test case is taken from the netlib documentation at
-    /// https://www.netlib.org/lapack/lapacke.html#_calling_code_dgels_code
-    /// It tests that the least squares solution works as expected for
-    /// multiple right hand sides
     #[test]
     fn netlib_lapack_example_for_dgels_nrhs() {
         let a: Array2<f64> = array![

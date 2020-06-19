@@ -10,6 +10,7 @@ use super::{into_result, Pivot, Transpose};
 
 use crate::error::*;
 use crate::layout::MatrixLayout;
+use crate::opnorm::*;
 use crate::tridiagonal::{LUFactorizedTriDiagonal, TriDiagonal};
 use crate::types::*;
 
@@ -17,7 +18,9 @@ use crate::types::*;
 pub trait TriDiagonal_: Scalar + Sized {
     /// Computes the LU factorization of a tridiagonal `m x n` matrix `a` using
     /// partial pivoting with row interchanges.
-    unsafe fn lu_tridiagonal(a: &mut TriDiagonal<Self>) -> Result<(Array1<Self>, Pivot)>;
+    unsafe fn lu_tridiagonal(
+        a: &mut TriDiagonal<Self>,
+    ) -> Result<(Array1<Self>, Self::Real, Pivot)>;
     /// Estimates the the reciprocal of the condition number of the tridiagonal matrix in 1-norm.
     unsafe fn rcond_tridiagonal(lu: &LUFactorizedTriDiagonal<Self>) -> Result<Self::Real>;
     unsafe fn solve_tridiagonal(
@@ -31,15 +34,18 @@ pub trait TriDiagonal_: Scalar + Sized {
 macro_rules! impl_tridiagonal {
     ($scalar:ty, $gttrf:path, $gtcon:path, $gttrs:path) => {
         impl TriDiagonal_ for $scalar {
-            unsafe fn lu_tridiagonal(a: &mut TriDiagonal<Self>) -> Result<(Array1<Self>, Pivot)> {
+            unsafe fn lu_tridiagonal(
+                a: &mut TriDiagonal<Self>,
+            ) -> Result<(Array1<Self>, Self::Real, Pivot)> {
                 let (n, _) = a.l.size();
+                let anom = a.opnorm_one()?;
                 let dl = a.dl.as_slice_mut().unwrap();
                 let d = a.d.as_slice_mut().unwrap();
                 let du = a.du.as_slice_mut().unwrap();
                 let mut du2 = vec![Zero::zero(); (n - 2) as usize];
                 let mut ipiv = vec![0; n as usize];
                 let info = $gttrf(n, dl, d, du, &mut du2, &mut ipiv);
-                into_result(info, (arr1(&du2), ipiv))
+                into_result(info, (arr1(&du2), anom, ipiv))
             }
 
             unsafe fn rcond_tridiagonal(lu: &LUFactorizedTriDiagonal<Self>) -> Result<Self::Real> {
@@ -49,7 +55,7 @@ macro_rules! impl_tridiagonal {
                 let du = lu.a.du.as_slice().unwrap();
                 let du2 = lu.du2.as_slice().unwrap();
                 let ipiv = &lu.ipiv;
-                let anorm = lu.a.n1;
+                let anorm = lu.anom;
                 let mut rcond = Self::Real::zero();
                 let info = $gtcon(
                     NormType::One as u8,

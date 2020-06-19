@@ -2,11 +2,11 @@
 //! &
 //! Methods for tridiagonal matrices
 
+use std::ops::{Index, IndexMut};
+
 use cauchy::Scalar;
 use ndarray::*;
 use num_traits::One;
-
-use crate::opnorm::OperationNorm;
 
 use super::convert::*;
 use super::error::*;
@@ -14,14 +14,11 @@ use super::lapack::*;
 use super::layout::*;
 
 /// Represents a tridiagonal matrix as 3 one-dimensional vectors.
-/// This struct also holds the layout and 1-norm of the raw matrix
-/// for some methods (eg. rcond_tridiagonal()).
-#[derive(Clone)]
+/// This struct also holds the layout of the raw matrix.
+#[derive(Clone, PartialEq)]
 pub struct TriDiagonal<A: Scalar> {
     /// layout of raw matrix
     pub l: MatrixLayout,
-    /// the one norm of raw matrix
-    pub n1: <A as Scalar>::Real,
     /// (n-1) sub-diagonal elements of matrix.
     pub dl: Array1<A>,
     /// (n) diagonal elements of matrix.
@@ -30,10 +27,73 @@ pub struct TriDiagonal<A: Scalar> {
     pub du: Array1<A>,
 }
 
+pub trait TridiagIndex {
+    fn to_tuple(&self) -> (i32, i32);
+}
+impl TridiagIndex for [Ix; 2] {
+    fn to_tuple(&self) -> (i32, i32) {
+        (self[0] as i32, self[1] as i32)
+    }
+}
+
+fn debug_bounds_check_tridiag(n: i32, row: i32, col: i32) {
+    if std::cmp::max(row, col) >= n {
+        panic!(
+            "ndarray: index {:?} is out of bounds for array of shape {}",
+            [row, col],
+            n
+        );
+    }
+}
+
+impl<A, I> Index<I> for TriDiagonal<A>
+where
+    A: Scalar,
+    I: TridiagIndex,
+{
+    type Output = A;
+    #[inline]
+    fn index(&self, index: I) -> &A {
+        let (n, _) = self.l.size();
+        let (row, col) = index.to_tuple();
+        debug_bounds_check_tridiag(n, row, col);
+        match row - col {
+            0 => &self.d[row as usize],
+            1 => &self.dl[col as usize],
+            -1 => &self.du[row as usize],
+            _ => panic!(
+                "ndarray-linalg::tridiagonal: index {:?} is not tridiagonal element",
+                [row, col]
+            ),
+        }
+    }
+}
+
+impl<A, I> IndexMut<I> for TriDiagonal<A>
+where
+    A: Scalar,
+    I: TridiagIndex,
+{
+    #[inline]
+    fn index_mut(&mut self, index: I) -> &mut A {
+        let (n, _) = self.l.size();
+        let (row, col) = index.to_tuple();
+        debug_bounds_check_tridiag(n, row, col);
+        match row - col {
+            0 => &mut self.d[row as usize],
+            1 => &mut self.dl[col as usize],
+            -1 => &mut self.du[row as usize],
+            _ => panic!(
+                "ndarray-linalg::tridiagonal: index {:?} is not tridiagonal element",
+                [row, col]
+            ),
+        }
+    }
+}
+
 /// An interface for making a TriDiagonal struct.
 pub trait ToTriDiagonal<A: Scalar> {
     /// Extract tridiagonal elements and layout of the raw matrix.
-    /// And also calculate 1-norm.
     ///
     /// If the raw matrix has some non-tridiagonal elements,
     /// they will be ignored.
@@ -53,12 +113,11 @@ where
         if n < 2 {
             panic!("Cannot make a tridiagonal matrix of shape=(1, 1)!");
         }
-        let n1 = self.opnorm_one()?;
 
         let dl = self.slice(s![1..n, 0..n - 1]).diag().to_owned();
         let d = self.diag().to_owned();
         let du = self.slice(s![0..n - 1, 1..n]).diag().to_owned();
-        Ok(TriDiagonal { l, n1, dl, d, du })
+        Ok(TriDiagonal { l, dl, d, du })
     }
 }
 
@@ -130,13 +189,14 @@ pub trait SolveTriDiagonalInplace<A: Scalar, D: Dimension> {
 pub struct LUFactorizedTriDiagonal<A: Scalar> {
     /// A tridiagonal matrix which consists of
     /// - l : layout of raw matrix
-    /// - n1: the one norm of raw matrix
     /// - dl: (n-1) multipliers that define the matrix L.
     /// - d : (n) diagonal elements of the upper triangular matrix U.
     /// - du: (n-1) elements of the first super-diagonal of U.
     pub a: TriDiagonal<A>,
     /// (n-2) elements of the second super-diagonal of U.
     pub du2: Array1<A>,
+    /// 1-norm of raw matrix (used in .rcond_tridiagonal()).
+    pub anom: A::Real,
     /// The pivot indices that define the permutation matrix `P`.
     pub ipiv: Pivot,
 }
@@ -598,10 +658,11 @@ where
     A: Scalar + Lapack,
 {
     fn factorize_tridiagonal_into(mut self) -> Result<LUFactorizedTriDiagonal<A>> {
-        let (du2, ipiv) = unsafe { A::lu_tridiagonal(&mut self)? };
+        let (du2, anom, ipiv) = unsafe { A::lu_tridiagonal(&mut self)? };
         Ok(LUFactorizedTriDiagonal {
             a: self,
             du2: du2,
+            anom: anom,
             ipiv: ipiv,
         })
     }
@@ -613,8 +674,8 @@ where
 {
     fn factorize_tridiagonal(&self) -> Result<LUFactorizedTriDiagonal<A>> {
         let mut a = self.clone();
-        let (du2, ipiv) = unsafe { A::lu_tridiagonal(&mut a)? };
-        Ok(LUFactorizedTriDiagonal { a, du2, ipiv })
+        let (du2, anom, ipiv) = unsafe { A::lu_tridiagonal(&mut a)? };
+        Ok(LUFactorizedTriDiagonal { a, du2, anom, ipiv })
     }
 }
 
@@ -625,8 +686,8 @@ where
 {
     fn factorize_tridiagonal(&self) -> Result<LUFactorizedTriDiagonal<A>> {
         let mut a = self.to_tridiagonal()?;
-        let (du2, ipiv) = unsafe { A::lu_tridiagonal(&mut a)? };
-        Ok(LUFactorizedTriDiagonal { a, du2, ipiv })
+        let (du2, anom, ipiv) = unsafe { A::lu_tridiagonal(&mut a)? };
+        Ok(LUFactorizedTriDiagonal { a, du2, anom, ipiv })
     }
 }
 

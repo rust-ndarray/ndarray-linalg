@@ -11,6 +11,37 @@ fn to_tridiagonal() {
 }
 
 #[test]
+fn tridiagonal_index() {
+    let a: Array2<f64> = arr2(&[[1.0, 2.0, 3.0], [4.0, 5.0, 6.0], [7.0, 8.0, 9.0]]);
+    let t1 = a.to_tridiagonal().unwrap();
+    let mut t2 = Array2::<f64>::eye(3).to_tridiagonal().unwrap();
+    t2[[0, 1]] = 2.0;
+    t2[[1, 0]] = 4.0;
+    t2[[1, 1]] += 4.0;
+    t2[[1, 2]] = 6.0;
+    t2[[2, 1]] = 8.0;
+    t2[[2, 2]] += 8.0;
+    assert_eq!(t1.dl, t2.dl);
+    assert_eq!(t1.d, t2.d);
+    assert_eq!(t1.du, t2.du);
+}
+
+#[test]
+fn opnorm_tridiagonal() {
+    let mut a: Array2<f64> = random((4, 4));
+    a[[0, 2]] = 0.0;
+    a[[0, 3]] = 0.0;
+    a[[1, 3]] = 0.0;
+    a[[2, 0]] = 0.0;
+    a[[3, 0]] = 0.0;
+    a[[3, 1]] = 0.0;
+    let t = a.to_tridiagonal().unwrap();
+    assert_aclose!(a.opnorm_one().unwrap(), t.opnorm_one().unwrap(), 1e-7);
+    assert_aclose!(a.opnorm_inf().unwrap(), t.opnorm_inf().unwrap(), 1e-7);
+    assert_aclose!(a.opnorm_fro().unwrap(), t.opnorm_fro().unwrap(), 1e-7);
+}
+
+#[test]
 fn solve_tridiagonal_f64() {
     // https://www.nag-j.co.jp/lapack/dgttrs.htm
     let a: Array2<f64> = arr2(&[

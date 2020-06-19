@@ -2,8 +2,10 @@
 
 use ndarray::*;
 
+use crate::convert::*;
 use crate::error::*;
 use crate::layout::*;
+use crate::tridiagonal::TriDiagonal;
 use crate::types::*;
 
 pub use crate::lapack::NormType;
@@ -43,6 +45,57 @@ where
     fn opnorm(&self, t: NormType) -> Result<Self::Output> {
         let l = self.layout()?;
         let a = self.as_allocated()?;
+        Ok(unsafe { A::opnorm(t, l, a) })
+    }
+}
+
+impl<A> OperationNorm for TriDiagonal<A>
+where
+    A: Scalar + Lapack,
+{
+    type Output = A::Real;
+
+    fn opnorm(&self, t: NormType) -> Result<Self::Output> {
+        let arr = match t {
+            NormType::One => {
+                let zl: Array1<A> = Array::zeros(1);
+                let zu: Array1<A> = Array::zeros(1);
+                let dl = stack![Axis(0), self.dl.to_owned(), zl];
+                let du = stack![Axis(0), zu, self.du.to_owned()];
+                let arr = stack![
+                    Axis(0),
+                    into_row(du),
+                    into_row(self.d.to_owned()),
+                    into_row(dl)
+                ];
+                arr
+            }
+            NormType::Infinity => {
+                let zl: Array1<A> = Array::zeros(1);
+                let zu: Array1<A> = Array::zeros(1);
+                let dl = stack![Axis(0), zl, self.dl.to_owned()];
+                let du = stack![Axis(0), self.du.to_owned(), zu];
+                let arr = stack![
+                    Axis(1),
+                    into_col(dl),
+                    into_col(self.d.to_owned()),
+                    into_col(du)
+                ];
+                arr
+            }
+            NormType::Frobenius => {
+                let arr = stack![
+                    Axis(1),
+                    into_row(self.dl.to_owned()),
+                    into_row(self.d.to_owned()),
+                    into_row(self.du.to_owned())
+                ];
+                arr
+            }
+        };
+
+        let l = arr.layout()?;
+        let a = arr.as_allocated()?;
         Ok(unsafe { A::opnorm(t, l, a) })
     }
 }

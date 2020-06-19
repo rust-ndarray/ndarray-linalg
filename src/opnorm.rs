@@ -56,7 +56,18 @@ where
     type Output = A::Real;
 
     fn opnorm(&self, t: NormType) -> Result<Self::Output> {
+        // `self` is a tridiagonal matrix like,
+        // [d0, u1,  0,   ...,       0,
+        //  l1, d1, u2,            ...,
+        //   0, l2, d2, 
+        //  ...           ...,  u{n-1},
+        //   0,  ...,  l{n-1},  d{n-1},]
         let arr = match t {
+            // opnorm_one() calculates muximum column sum.
+            // Therefore, This part align the columns and make a (3 x n) matrix like,
+            // [ 0, u1, u2, ..., u{n-1},
+            //  d0, d1, d2, ..., d{n-1},
+            //  l1, l2, l3, ...,      0,]
             NormType::One => {
                 let zl: Array1<A> = Array::zeros(1);
                 let zu: Array1<A> = Array::zeros(1);
@@ -70,6 +81,13 @@ where
                 ];
                 arr
             }
+            // opnorm_inf() calculates muximum row sum.
+            // Therefore, This part align the rows and make a (n x 3) matrix like,
+            // [     0,     d0,     u1,
+            //      l1,     d1,     u2,
+            //      l2,     d2,     u3,
+            //     ...,    ...,    ...,
+            //  l{n-1}, d{n-1},      0,]
             NormType::Infinity => {
                 let zl: Array1<A> = Array::zeros(1);
                 let zu: Array1<A> = Array::zeros(1);
@@ -83,6 +101,10 @@ where
                 ];
                 arr
             }
+            // opnorm_fro() calculates square root of sum of squares.
+            // Because it is independent of the shape of matrix,
+            // this part make a (1 x (3n-2)) matrix like,
+            // [l1, ..., l{n-1}, d0, ..., d{n-1}, u1, ..., u{n-1}]
             NormType::Frobenius => {
                 let arr = stack![
                     Axis(1),

@@ -59,7 +59,7 @@ where
         // `self` is a tridiagonal matrix like,
         // [d0, u1,  0,   ...,       0,
         //  l1, d1, u2,            ...,
-        //   0, l2, d2, 
+        //   0, l2, d2,
         //  ...           ...,  u{n-1},
         //   0,  ...,  l{n-1},  d{n-1},]
         let arr = match t {

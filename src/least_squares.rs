@@ -738,4 +738,44 @@ mod tests {
             .unwrap()
             .abs_diff_eq(&residual_ssq, 1e-12));
     }
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// Testing error cases
+    ///////////////////////////////////////////////////////////////////////////
+    use ndarray::ErrorKind;
+    use crate::layout::MatrixLayout;
+
+    #[test]
+    fn test_incompatible_shape_error_on_mismatching_num_rows() {
+        let a: Array2<f64> = array![[1., 2.], [4., 5.], [3., 4.]];
+        let b: Array1<f64> = array![1., 2.];
+        let res = a.least_squares(&b);
+        match res {
+            Err(err) =>
+                match err {
+                    LinalgError::Shape(shape_error) =>
+                        assert_eq!(shape_error.kind(), ErrorKind::IncompatibleShape),
+                    _ => panic!("Expected ShapeError")
+                },
+            _ => panic!("Expected Err()")
+        }
+    }
+
+    #[test]
+    fn test_incompatible_shape_error_on_mismatching_layout() {
+        let a: Array2<f64> = array![[1., 2.], [4., 5.], [3., 4.]];
+        let b = array![[1.], [2.]].t().to_owned();
+        assert_eq!(b.layout().unwrap(), MatrixLayout::F((2, 1)));
+
+        let res = a.least_squares(&b);
+        match res {
+            Err(err) =>
+                match err {
+                    LinalgError::Shape(shape_error) =>
+                        assert_eq!(shape_error.kind(), ErrorKind::IncompatibleShape),
+                    _ => panic!("Expected ShapeError")
+                },
+            _ => panic!("Expected Err()")
+        }
+    }
 }

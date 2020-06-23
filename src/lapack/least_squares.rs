@@ -63,19 +63,13 @@ macro_rules! impl_least_squares {
                     a_layout.lda(),
                     b,
                     // this is the 'leading dimension of b', in the case where
-                    // b is a single vector, this should be 1
+                    // b is a single vector, this is 1
                     nrhs,
                     &mut singular_values,
                     rcond,
                     &mut rank,
                 );
 
-                // FIXME: make use of this fact (from lapack docs)
-                // https://www.netlib.org/lapack/explore-html/d7/d3b/group__double_g_esolve_ga94bd4a63a6dacf523e25ff617719f752
-                // could check how this is done by scipy here: https://github.com/scipy/scipy/blob/v1.4.1/scipy/linalg/basic.py#L1047-L1246
-                // If m >= n and RANK = n, the residual
-                // sum-of-squares for the solution in the i-th column is given
-                // by the sum of squares of elements n+1:m in that column.
                 into_result(
                     status,
                     LeastSquaresOutput {
@@ -114,20 +108,12 @@ macro_rules! impl_least_squares {
                     a,
                     a_layout.lda(),
                     b,
-                    // this is the 'leading dimension of b', in the case where
-                    // b is a single vector, this should be 1
                     b_layout.lda(),
                     &mut singular_values,
                     rcond,
                     &mut rank,
                 );
 
-                // FIXME: make use of this fact (from lapack docs)
-                // https://www.netlib.org/lapack/explore-html/d7/d3b/group__double_g_esolve_ga94bd4a63a6dacf523e25ff617719f752
-                // could check how this is done by scipy here: https://github.com/scipy/scipy/blob/v1.4.1/scipy/linalg/basic.py#L1047-L1246
-                // If m >= n and RANK = n, the residual
-                // sum-of-squares for the solution in the i-th column is given
-                // by the sum of squares of elements n+1:m in that column.
                 into_result(
                     status,
                     LeastSquaresOutput {

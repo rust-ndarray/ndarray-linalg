@@ -52,7 +52,6 @@ optional = true
 paste = "0.1.9"
 criterion = "0.3.1"
 approx = { version = "0.3.2", features = ["num-complex"] }
-num-complex = "0.3.0"
 
 [[bench]]
 name = "truncated_eig"

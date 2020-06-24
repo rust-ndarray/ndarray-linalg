@@ -27,7 +27,7 @@
 //! ## Example
 //! ```rust
 //! use approx::AbsDiffEq; // for abs_diff_eq
-//! use ndarray::{Array1, Array2};
+//! use ndarray::{array, Array1, Array2};
 //! use ndarray_linalg::{LeastSquaresSvd, LeastSquaresSvdInto, LeastSquaresSvdInPlace};
 //!
 //! let a: Array2<f64> = array![
@@ -213,7 +213,7 @@ where
 impl<E, D> LeastSquaresSvdInto<D, E, Ix1> for ArrayBase<D, Ix2>
 where
     E: Scalar + Lapack + LeastSquaresSvdDivideConquer_,
-    D: DataMut<Elem = E>, 
+    D: DataMut<Elem = E>,
 {
     /// Solve a least squares problem of the form `Ax = rhs`
     /// by calling `A.least_squares(rhs)`, where `rhs` is a
@@ -239,7 +239,7 @@ where
 impl<E, D> LeastSquaresSvdInto<D, E, Ix2> for ArrayBase<D, Ix2>
 where
     E: Scalar + Lapack + LeastSquaresSvdDivideConquer_,
-    D: DataMut<Elem = E>, 
+    D: DataMut<Elem = E>,
 {
     /// Solve a least squares problem of the form `Ax = rhs`
     /// by calling `A.least_squares(rhs)`, where `rhs` is a
@@ -548,8 +548,8 @@ mod tests {
 
     ///////////////////////////////////////////////////////////////////////////
     /// Test that the different lest squares traits work as intended on the
-    /// different array types. 
-    /// 
+    /// different array types.
+    ///
     ///               | least_squares | ls_into | ls_in_place |
     /// --------------+---------------+---------+-------------+
     /// Array         | yes           | yes     | yes         |
@@ -674,7 +674,6 @@ mod tests {
         assert_result(&a, &b, &res);
     }
 
-
     ///////////////////////////////////////////////////////////////////////////
     /// Test cases taken from the netlib documentation at
     /// https://www.netlib.org/lapack/lapacke.html#_calling_code_dgels_code
@@ -742,8 +741,8 @@ mod tests {
     ///////////////////////////////////////////////////////////////////////////
     /// Testing error cases
     ///////////////////////////////////////////////////////////////////////////
-    use ndarray::ErrorKind;
     use crate::layout::MatrixLayout;
+    use ndarray::ErrorKind;
 
     #[test]
     fn test_incompatible_shape_error_on_mismatching_num_rows() {
@@ -751,13 +750,13 @@ mod tests {
         let b: Array1<f64> = array![1., 2.];
         let res = a.least_squares(&b);
         match res {
-            Err(err) =>
-                match err {
-                    LinalgError::Shape(shape_error) =>
-                        assert_eq!(shape_error.kind(), ErrorKind::IncompatibleShape),
-                    _ => panic!("Expected ShapeError")
-                },
-            _ => panic!("Expected Err()")
+            Err(err) => match err {
+                LinalgError::Shape(shape_error) => {
+                    assert_eq!(shape_error.kind(), ErrorKind::IncompatibleShape)
+                }
+                _ => panic!("Expected ShapeError"),
+            },
+            _ => panic!("Expected Err()"),
         }
     }
 
@@ -769,13 +768,13 @@ mod tests {
 
         let res = a.least_squares(&b);
         match res {
-            Err(err) =>
-                match err {
-                    LinalgError::Shape(shape_error) =>
-                        assert_eq!(shape_error.kind(), ErrorKind::IncompatibleShape),
-                    _ => panic!("Expected ShapeError")
-                },
-            _ => panic!("Expected Err()")
+            Err(err) => match err {
+                LinalgError::Shape(shape_error) => {
+                    assert_eq!(shape_error.kind(), ErrorKind::IncompatibleShape)
+                }
+                _ => panic!("Expected ShapeError"),
+            },
+            _ => panic!("Expected Err()"),
         }
     }
 }

@@ -6,7 +6,7 @@ edition = "2018"
 
 description   = "Linear algebra package for rust-ndarray using LAPACK"
 documentation = "https://docs.rs/ndarray-linalg/"
-repository    = "https://github.com/termoshtt/ndarray-linalg"
+repository    = "https://github.com/rust-ndarray/ndarray-linalg"
 keywords      = ["ndarray", "lapack", "matrix"]
 license       = "MIT"
 readme        = "README.md"

@@ -60,24 +60,12 @@
 //! // `a` and `b` have been moved, no longer valid
 //! ```
 
-use ndarray::{s, Array, Array1, Array2, ArrayBase, Axis, Data, DataMut, Ix1, Ix2};
+use ndarray::{s, Array, Array1, Array2, ArrayBase, Axis, Data, DataMut, Dimension, Ix0, Ix1, Ix2};
 
 use crate::error::*;
 use crate::lapack::least_squares::*;
 use crate::layout::*;
 use crate::types::*;
-
-pub trait Ix1OrIx2<E: Scalar> {
-    type ScalarOrArray1;
-}
-
-impl<E: Scalar> Ix1OrIx2<E> for Ix1 {
-    type ScalarOrArray1 = E::Real;
-}
-
-impl<E: Scalar> Ix1OrIx2<E> for Ix2 {
-    type ScalarOrArray1 = Array1<E::Real>;
-}
 
 /// Result of a LeastSquares computation
 ///
@@ -88,7 +76,7 @@ impl<E: Scalar> Ix1OrIx2<E> for Ix2 {
 /// is a `m x 1` column vector. If `I` is `Ix2`, the RHS is a `n x k` matrix
 /// (which can be seen as solving `Ax = b` k times for different b) and
 /// the solution is a `m x k` matrix.
-pub struct LeastSquaresResult<E: Scalar, I: Ix1OrIx2<E>> {
+pub struct LeastSquaresResult<E: Scalar, I: Dimension> {
     /// The singular values of the matrix A in `Ax = b`
     pub singular_values: Array1<E::Real>,
     /// The solution vector or matrix `x` which is the best
@@ -97,16 +85,16 @@ pub struct LeastSquaresResult<E: Scalar, I: Ix1OrIx2<E>> {
     /// The rank of the matrix A in `Ax = b`
     pub rank: i32,
     /// If n < m and rank(A) == n, the sum of squares
-    /// If b is a (m x 1) vector, this is a single value
-    /// If b is a m x k matrix, this is a k x 1 column vector
-    pub residual_sum_of_squares: Option<I::ScalarOrArray1>,
+    /// If b is a (m x 1) vector, this is a 0-dimensional array (single value)
+    /// If b is a (m x k) matrix, this is a (k x 1) column vector
+    pub residual_sum_of_squares: Option<Array<E::Real, I::Smaller>>,
 }
 /// Solve least squares for immutable references
 pub trait LeastSquaresSvd<D, E, I>
 where
     D: Data<Elem = E>,
     E: Scalar + Lapack,
-    I: Ix1OrIx2<E>,
+    I: Dimension,
 {
     /// Solve a least squares problem of the form `Ax = rhs`
     /// by calling `A.least_squares(&rhs)`. `A` and `rhs`
@@ -123,7 +111,7 @@ pub trait LeastSquaresSvdInto<D, E, I>
 where
     D: Data<Elem = E>,
     E: Scalar + Lapack,
-    I: Ix1OrIx2<E>,
+    I: Dimension,
 {
     /// Solve a least squares problem of the form `Ax = rhs`
     /// by calling `A.least_squares(rhs)`, consuming both `A`
@@ -142,7 +130,7 @@ pub trait LeastSquaresSvdInPlace<D, E, I>
 where
     D: Data<Elem = E>,
     E: Scalar + Lapack,
-    I: Ix1OrIx2<E>,
+    I: Dimension,
 {
     /// Solve a least squares problem of the form `Ax = rhs`
     /// by calling `A.least_squares(&mut rhs)`, overwriting both `A`
@@ -328,11 +316,13 @@ fn compute_residual_scalar<E: Scalar, D: Data<Elem = E>>(
     n: usize,
     rank: i32,
     b: &ArrayBase<D, Ix1>,
-) -> Option<E::Real> {
+) -> Option<Array<E::Real, Ix0>> {
     if m < n || n != rank as usize {
         return None;
     }
-    Some(b.slice(s![n..]).mapv(|x| x.powi(2).abs()).sum())
+    let mut arr: Array<E::Real, Ix0> = Array::zeros(());
+    arr[()] = b.slice(s![n..]).mapv(|x| x.powi(2).abs()).sum();
+    Some(arr)
 }
 
 /// Solve least squares for mutable references and a matrix
@@ -429,11 +419,10 @@ mod tests {
     use ndarray::{ArcArray1, ArcArray2, Array1, Array2, CowArray};
     use num_complex::Complex;
 
-    ///////////////////////////////////////////////////////////////////////////
-    /// Test cases taken from the scipy test suite for the scipy lstsq function
-    /// https://github.com/scipy/scipy/blob/v1.4.1/scipy/linalg/tests/test_basic.py
-    ///////////////////////////////////////////////////////////////////////////
-
+    //
+    // Test cases taken from the scipy test suite for the scipy lstsq function
+    // https://github.com/scipy/scipy/blob/v1.4.1/scipy/linalg/tests/test_basic.py
+    //
     #[test]
     fn scipy_test_simple_exact() {
         let a = array![[1., 20.], [-30., 4.]];
@@ -463,10 +452,7 @@ mod tests {
         assert_eq!(res.rank, 2);
         let b_hat = a.dot(&res.solution);
         let rssq = (&b - &b_hat).mapv(|x| x.powi(2)).sum();
-        assert!(res
-            .residual_sum_of_squares
-            .unwrap()
-            .abs_diff_eq(&rssq, 1e-12));
+        assert!(res.residual_sum_of_squares.unwrap()[()].abs_diff_eq(&rssq, 1e-12));
         assert!(res
             .solution
             .abs_diff_eq(&array![-0.428571428571429, 0.85714285714285], 1e-12));
@@ -480,10 +466,7 @@ mod tests {
         assert_eq!(res.rank, 2);
         let b_hat = a.dot(&res.solution);
         let rssq = (&b - &b_hat).mapv(|x| x.powi(2)).sum();
-        assert!(res
-            .residual_sum_of_squares
-            .unwrap()
-            .abs_diff_eq(&rssq, 1e-6));
+        assert!(res.residual_sum_of_squares.unwrap()[()].abs_diff_eq(&rssq, 1e-6));
         assert!(res
             .solution
             .abs_diff_eq(&array![-0.428571428571429, 0.85714285714285], 1e-6));
@@ -505,10 +488,7 @@ mod tests {
         assert_eq!(res.rank, 2);
         let b_hat = a.dot(&res.solution);
         let rssq = (&b_hat - &b).mapv(|x| x.powi(2).abs()).sum();
-        assert!(res
-            .residual_sum_of_squares
-            .unwrap()
-            .abs_diff_eq(&rssq, 1e-12));
+        assert!(res.residual_sum_of_squares.unwrap()[()].abs_diff_eq(&rssq, 1e-12));
         assert!(res.solution.abs_diff_eq(
             &array![
                 c(-0.4831460674157303, 0.258426966292135),
@@ -546,18 +526,18 @@ mod tests {
         assert!(res.solution.abs_diff_eq(&expected, 1e-12));
     }
 
-    ///////////////////////////////////////////////////////////////////////////
-    /// Test that the different lest squares traits work as intended on the
-    /// different array types.
-    ///
-    ///               | least_squares | ls_into | ls_in_place |
-    /// --------------+---------------+---------+-------------+
-    /// Array         | yes           | yes     | yes         |
-    /// ArcArray      | yes           | no      | no          |
-    /// CowArray      | yes           | yes     | yes         |
-    /// ArrayView     | yes           | no      | no          |
-    /// ArrayViewMut  | yes           | no      | yes         |
-    ///////////////////////////////////////////////////////////////////////////
+    //
+    // Test that the different lest squares traits work as intended on the
+    // different array types.
+    //
+    //               | least_squares | ls_into | ls_in_place |
+    // --------------+---------------+---------+-------------+
+    // Array         | yes           | yes     | yes         |
+    // ArcArray      | yes           | no      | no          |
+    // CowArray      | yes           | yes     | yes         |
+    // ArrayView     | yes           | no      | no          |
+    // ArrayViewMut  | yes           | no      | yes         |
+    //
 
     fn assert_result<D: Data<Elem = f64>>(
         a: &ArrayBase<D, Ix2>,
@@ -567,10 +547,7 @@ mod tests {
         assert_eq!(res.rank, 2);
         let b_hat = a.dot(&res.solution);
         let rssq = (b - &b_hat).mapv(|x| x.powi(2)).sum();
-        assert!(res
-            .residual_sum_of_squares
-            .unwrap()
-            .abs_diff_eq(&rssq, 1e-12));
+        assert!(res.residual_sum_of_squares.as_ref().unwrap()[()].abs_diff_eq(&rssq, 1e-12));
         assert!(res
             .solution
             .abs_diff_eq(&array![-0.428571428571429, 0.85714285714285], 1e-12));
@@ -674,10 +651,10 @@ mod tests {
         assert_result(&a, &b, &res);
     }
 
-    ///////////////////////////////////////////////////////////////////////////
-    /// Test cases taken from the netlib documentation at
-    /// https://www.netlib.org/lapack/lapacke.html#_calling_code_dgels_code
-    ///////////////////////////////////////////////////////////////////////////
+    //
+    // Test cases taken from the netlib documentation at
+    // https://www.netlib.org/lapack/lapacke.html#_calling_code_dgels_code
+    //
     #[test]
     fn netlib_lapack_example_for_dgels_1() {
         let a: Array2<f64> = array![
@@ -694,7 +671,7 @@ mod tests {
 
         let residual = b - a.dot(&result.solution);
         let resid_ssq = result.residual_sum_of_squares.unwrap();
-        assert!((resid_ssq - residual.dot(&residual)).abs() < 1e-12);
+        assert!((resid_ssq[()] - residual.dot(&residual)).abs() < 1e-12);
     }
 
     #[test]
@@ -713,7 +690,7 @@ mod tests {
 
         let residual = b - a.dot(&result.solution);
         let resid_ssq = result.residual_sum_of_squares.unwrap();
-        assert!((resid_ssq - residual.dot(&residual)).abs() < 1e-12);
+        assert!((resid_ssq[()] - residual.dot(&residual)).abs() < 1e-12);
     }
 
     #[test]
@@ -738,9 +715,9 @@ mod tests {
             .abs_diff_eq(&residual_ssq, 1e-12));
     }
 
-    ///////////////////////////////////////////////////////////////////////////
-    /// Testing error cases
-    ///////////////////////////////////////////////////////////////////////////
+    //
+    // Testing error cases
+    //
     use crate::layout::MatrixLayout;
     use ndarray::ErrorKind;
 

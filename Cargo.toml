@@ -13,8 +13,8 @@ readme        = "README.md"
 categories    = ["algorithms", "science"]
 
 [features]
-default    = []
-intel-mkl  = ["lapack-src/intel-mkl", "blas-src/intel-mkl"]
+default    = ["intel-mkl"]
+intel-mkl  = ["lapack-src/intel-mkl", "blas-src/intel-mkl", "intel-mkl-sys"]
 netlib     = ["lapack-src/netlib", "blas-src/netlib"]
 openblas   = ["lapack-src/openblas", "blas-src/openblas"]
 serde-1    = ["ndarray/serde-1", "num-complex/serde"]
@@ -39,13 +39,18 @@ version = "0.6.1"
 default-features = false
 
 [dependencies.lapack-src]
-version = "0.6.0"
+version = "0.6"
 default-features = false
 
 [dependencies.openblas-src]
 version = "0.9.0"
 default-features = false
 features = ["static"]
+optional = true
+
+[dependencies.intel-mkl-sys]
+version = "0.1"
+default-features = false
 optional = true
 
 [dev-dependencies]

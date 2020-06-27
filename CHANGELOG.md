@@ -3,6 +3,7 @@ Unreleased
 
 Added
 ------
+- Least square problems https://github.com/rust-ndarray/ndarray-linalg/pull/197
 - LOBPCG solver https://github.com/rust-ndarray/ndarray-linalg/pull/184
 
 Changed
@@ -11,6 +12,7 @@ Changed
 
 Maintenance
 -----------
+- Fix repository URL https://github.com/rust-ndarray/ndarray-linalg/pull/198
 - Use GitHub Actions instead of Azure Pipeline https://github.com/rust-ndarray/ndarray-linalg/pull/193
 - Test cargo-fmt on CI https://github.com/rust-ndarray/ndarray-linalg/pull/194
 

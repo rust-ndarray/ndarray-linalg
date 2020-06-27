@@ -77,3 +77,22 @@ extern crate ndarray;
 extern crate ndarray_linalg;
 extern crate openblas_src; // or another backend of your choice
 ```
+
+Generate document with KaTeX
+------------------------------
+
+You need to set `RUSTDOCFLAGS` explicitly:
+
+```shell
+RUSTDOCFLAGS="--html-in-header katex-header.html" cargo doc --no-deps
+```
+
+This **only** works for `--no-deps` build because `katex-header.html` does not exists for dependent crates.
+If you wish to set `RUSTDOCFLAGS` automatically in this crate, you can put [.cargo/config](https://doc.rust-lang.org/cargo/reference/config.html):
+
+```toml
+[build]
+rustdocflags = ["--html-in-header", "katex-header.html"]
+```
+
+But, be sure that this works only for `--no-deps`. `cargo doc` will fail with this `.cargo/config`.

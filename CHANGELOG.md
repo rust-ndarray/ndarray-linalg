@@ -3,11 +3,13 @@ Unreleased
 
 Added
 ------
+- KaTeX support in rustdoc https://github.com/rust-ndarray/ndarray-linalg/pull/202
 - Least square problems https://github.com/rust-ndarray/ndarray-linalg/pull/197
 - LOBPCG solver https://github.com/rust-ndarray/ndarray-linalg/pull/184
 
 Changed
 -------
+- Grouping and Plot in benchmark https://github.com/rust-ndarray/ndarray-linalg/pull/200
 - `Clone` trait for `LUFactorized` https://github.com/rust-ndarray/ndarray-linalg/pull/192
 
 Maintenance

@@ -41,7 +41,7 @@ pub trait Lapack:
     + Eig_
     + Eigh_
     + Triangular_
-    + TriDiagonal_
+    + Tridiagonal_
 {
 }
 

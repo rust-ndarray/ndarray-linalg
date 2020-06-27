@@ -2,19 +2,19 @@ use ndarray::*;
 use ndarray_linalg::*;
 
 #[test]
-fn to_tridiagonal() {
+fn extract_tridiagonal() {
     let a: Array2<f64> = arr2(&[[1.0, 2.0, 3.0], [4.0, 5.0, 6.0], [7.0, 8.0, 9.0]]);
-    let t = a.to_tridiagonal().unwrap();
-    assert_close_l2!(&t.dl, &arr1(&[4.0, 8.0]), 1e-7);
-    assert_close_l2!(&t.d, &arr1(&[1.0, 5.0, 9.0]), 1e-7);
-    assert_close_l2!(&t.du, &arr1(&[2.0, 6.0]), 1e-7);
+    let t = a.extract_tridiagonal().unwrap();
+    assert_close_l2!(&arr1(&t.dl), &arr1(&[4.0, 8.0]), 1e-7);
+    assert_close_l2!(&arr1(&t.d), &arr1(&[1.0, 5.0, 9.0]), 1e-7);
+    assert_close_l2!(&arr1(&t.du), &arr1(&[2.0, 6.0]), 1e-7);
 }
 
 #[test]
 fn tridiagonal_index() {
     let a: Array2<f64> = arr2(&[[1.0, 2.0, 3.0], [4.0, 5.0, 6.0], [7.0, 8.0, 9.0]]);
-    let t1 = a.to_tridiagonal().unwrap();
-    let mut t2 = Array2::<f64>::eye(3).to_tridiagonal().unwrap();
+    let t1 = a.extract_tridiagonal().unwrap();
+    let mut t2 = Array2::<f64>::eye(3).extract_tridiagonal().unwrap();
     t2[[0, 1]] = 2.0;
     t2[[1, 0]] = 4.0;
     t2[[1, 1]] += 4.0;
@@ -35,7 +35,7 @@ fn opnorm_tridiagonal() {
     a[[2, 0]] = 0.0;
     a[[3, 0]] = 0.0;
     a[[3, 1]] = 0.0;
-    let t = a.to_tridiagonal().unwrap();
+    let t = a.extract_tridiagonal().unwrap();
     assert_aclose!(a.opnorm_one().unwrap(), t.opnorm_one().unwrap(), 1e-7);
     assert_aclose!(a.opnorm_inf().unwrap(), t.opnorm_inf().unwrap(), 1e-7);
     assert_aclose!(a.opnorm_fro().unwrap(), t.opnorm_fro().unwrap(), 1e-7);
@@ -157,11 +157,11 @@ fn solve_tridiagonal_random_t() {
 }
 
 #[test]
-fn to_tridiagonal_solve_random() {
+fn extract_tridiagonal_solve_random() {
     let mut a: Array2<f64> = random((3, 3));
     a[[0, 2]] = 0.0;
     a[[2, 0]] = 0.0;
-    let tridiag = a.to_tridiagonal().unwrap();
+    let tridiag = a.extract_tridiagonal().unwrap();
     let x: Array1<f64> = random(3);
     let b1 = a.dot(&x);
     let b2 = b1.clone();

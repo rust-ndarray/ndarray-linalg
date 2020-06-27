@@ -17,6 +17,12 @@ pub enum LinalgError {
     InvalidStride { s0: Ixs, s1: Ixs },
     /// Memory is not aligned continously
     MemoryNotCont,
+    /// Obj cannot be made from a (rows, cols) matrix
+    NotStandardShape {
+        obj: &'static str,
+        rows: i32,
+        cols: i32,
+    },
     /// Strides of the array is not supported
     Shape(ShapeError),
 }
@@ -34,6 +40,11 @@ impl fmt::Display for LinalgError {
                 write!(f, "invalid stride: s0={}, s1={}", s0, s1)
             }
             LinalgError::MemoryNotCont => write!(f, "Memory is not contiguous"),
+            LinalgError::NotStandardShape { obj, rows, cols } => write!(
+                f,
+                "{} cannot be made from a ({}, {}) matrix",
+                obj, rows, cols
+            ),
             LinalgError::Shape(err) => write!(f, "Shape Error: {}", err),
         }
     }

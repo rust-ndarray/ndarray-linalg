@@ -27,4 +27,8 @@ fn factorize() -> Result<(), error::LinalgError> {
 fn main() {
     solve().unwrap();
     factorize().unwrap();
+    match arr2(&[[0.0]]).extract_tridiagonal() {
+        Ok(_) => {}
+        Err(err) => println!("{}", err),
+    }
 }

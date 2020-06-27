@@ -5,7 +5,7 @@ use ndarray::*;
 use crate::convert::*;
 use crate::error::*;
 use crate::layout::*;
-use crate::tridiagonal::TriDiagonal;
+use crate::tridiagonal::Tridiagonal;
 use crate::types::*;
 
 pub use crate::lapack::NormType;
@@ -49,7 +49,7 @@ where
     }
 }
 
-impl<A> OperationNorm for TriDiagonal<A>
+impl<A> OperationNorm for Tridiagonal<A>
 where
     A: Scalar + Lapack,
 {
@@ -73,12 +73,7 @@ where
                 let zu: Array1<A> = Array::zeros(1);
                 let dl = stack![Axis(0), self.dl.to_owned(), zl];
                 let du = stack![Axis(0), zu, self.du.to_owned()];
-                let arr = stack![
-                    Axis(0),
-                    into_row(du),
-                    into_row(self.d.to_owned()),
-                    into_row(dl)
-                ];
+                let arr = stack![Axis(0), into_row(du), into_row(arr1(&self.d)), into_row(dl)];
                 arr
             }
             // opnorm_inf() calculates muximum row sum.
@@ -93,12 +88,7 @@ where
                 let zu: Array1<A> = Array::zeros(1);
                 let dl = stack![Axis(0), zl, self.dl.to_owned()];
                 let du = stack![Axis(0), self.du.to_owned(), zu];
-                let arr = stack![
-                    Axis(1),
-                    into_col(dl),
-                    into_col(self.d.to_owned()),
-                    into_col(du)
-                ];
+                let arr = stack![Axis(1), into_col(dl), into_col(arr1(&self.d)), into_col(du)];
                 arr
             }
             // opnorm_fro() calculates square root of sum of squares.
@@ -108,9 +98,9 @@ where
             NormType::Frobenius => {
                 let arr = stack![
                     Axis(1),
-                    into_row(self.dl.to_owned()),
-                    into_row(self.d.to_owned()),
-                    into_row(self.du.to_owned())
+                    into_row(arr1(&self.dl)),
+                    into_row(arr1(&self.d)),
+                    into_row(arr1(&self.du))
                 ];
                 arr
             }

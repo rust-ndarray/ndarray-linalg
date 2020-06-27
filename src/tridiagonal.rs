@@ -1,4 +1,4 @@
-//! Vectors as a TriDiagonal matrix
+//! Vectors as a Tridiagonal matrix
 //! &
 //! Methods for tridiagonal matrices
 
@@ -16,15 +16,15 @@ use super::layout::*;
 /// Represents a tridiagonal matrix as 3 one-dimensional vectors.
 /// This struct also holds the layout of the raw matrix.
 #[derive(Clone, PartialEq)]
-pub struct TriDiagonal<A: Scalar> {
+pub struct Tridiagonal<A: Scalar> {
     /// layout of raw matrix
     pub l: MatrixLayout,
     /// (n-1) sub-diagonal elements of matrix.
-    pub dl: Array1<A>,
+    pub dl: Vec<A>,
     /// (n) diagonal elements of matrix.
-    pub d: Array1<A>,
+    pub d: Vec<A>,
     /// (n-1) super-diagonal elements of matrix.
-    pub du: Array1<A>,
+    pub du: Vec<A>,
 }
 
 pub trait TridiagIndex {
@@ -36,17 +36,7 @@ impl TridiagIndex for [Ix; 2] {
     }
 }
 
-fn debug_bounds_check_tridiag(n: i32, row: i32, col: i32) {
-    if std::cmp::max(row, col) >= n {
-        panic!(
-            "ndarray: index {:?} is out of bounds for array of shape {}",
-            [row, col],
-            n
-        );
-    }
-}
-
-impl<A, I> Index<I> for TriDiagonal<A>
+impl<A, I> Index<I> for Tridiagonal<A>
 where
     A: Scalar,
     I: TridiagIndex,
@@ -56,7 +46,12 @@ where
     fn index(&self, index: I) -> &A {
         let (n, _) = self.l.size();
         let (row, col) = index.to_tuple();
-        debug_bounds_check_tridiag(n, row, col);
+        assert!(
+            std::cmp::max(row, col) < n,
+            "ndarray: index {:?} is out of bounds for array of shape {}",
+            [row, col],
+            n
+        );
         match row - col {
             0 => &self.d[row as usize],
             1 => &self.dl[col as usize],
@@ -69,7 +64,7 @@ where
     }
 }
 
-impl<A, I> IndexMut<I> for TriDiagonal<A>
+impl<A, I> IndexMut<I> for Tridiagonal<A>
 where
     A: Scalar,
     I: TridiagIndex,
@@ -78,7 +73,12 @@ where
     fn index_mut(&mut self, index: I) -> &mut A {
         let (n, _) = self.l.size();
         let (row, col) = index.to_tuple();
-        debug_bounds_check_tridiag(n, row, col);
+        assert!(
+            std::cmp::max(row, col) < n,
+            "ndarray: index {:?} is out of bounds for array of shape {}",
+            [row, col],
+            n
+        );
         match row - col {
             0 => &mut self.d[row as usize],
             1 => &mut self.dl[col as usize],
@@ -91,37 +91,41 @@ where
     }
 }
 
-/// An interface for making a TriDiagonal struct.
-pub trait ToTriDiagonal<A: Scalar> {
+/// An interface for making a Tridiagonal struct.
+pub trait ToTridiagonal<A: Scalar> {
     /// Extract tridiagonal elements and layout of the raw matrix.
     ///
     /// If the raw matrix has some non-tridiagonal elements,
     /// they will be ignored.
     ///
     /// The shape of raw matrix should be equal to or larger than (2, 2).
-    fn to_tridiagonal(&self) -> Result<TriDiagonal<A>>;
+    fn extract_tridiagonal(&self) -> Result<Tridiagonal<A>>;
 }
 
-impl<A, S> ToTriDiagonal<A> for ArrayBase<S, Ix2>
+impl<A, S> ToTridiagonal<A> for ArrayBase<S, Ix2>
 where
     A: Scalar + Lapack,
     S: Data<Elem = A>,
 {
-    fn to_tridiagonal(&self) -> Result<TriDiagonal<A>> {
+    fn extract_tridiagonal(&self) -> Result<Tridiagonal<A>> {
         let l = self.square_layout()?;
         let (n, _) = l.size();
         if n < 2 {
-            panic!("Cannot make a tridiagonal matrix of shape=(1, 1)!");
+            return Err(LinalgError::NotStandardShape {
+                obj: "Tridiagonal",
+                rows: 1,
+                cols: 1,
+            });
         }
 
-        let dl = self.slice(s![1..n, 0..n - 1]).diag().to_owned();
-        let d = self.diag().to_owned();
-        let du = self.slice(s![0..n - 1, 1..n]).diag().to_owned();
-        Ok(TriDiagonal { l, dl, d, du })
+        let dl = self.slice(s![1..n, 0..n - 1]).diag().to_vec();
+        let d = self.diag().to_vec();
+        let du = self.slice(s![0..n - 1, 1..n]).diag().to_vec();
+        Ok(Tridiagonal { l, dl, d, du })
     }
 }
 
-pub trait SolveTriDiagonal<A: Scalar, D: Dimension> {
+pub trait SolveTridiagonal<A: Scalar, D: Dimension> {
     /// Solves a system of linear equations `A * x = b` with tridiagonal
     /// matrix `A`, where `A` is `self`, `b` is the argument, and
     /// `x` is the successful result.
@@ -157,7 +161,7 @@ pub trait SolveTriDiagonal<A: Scalar, D: Dimension> {
     ) -> Result<ArrayBase<S, D>>;
 }
 
-pub trait SolveTriDiagonalInplace<A: Scalar, D: Dimension> {
+pub trait SolveTridiagonalInplace<A: Scalar, D: Dimension> {
     /// Solves a system of linear equations `A * x = b` tridiagonal
     /// matrix `A`, where `A` is `self`, `b` is the argument, and
     /// `x` is the successful result. The value of `x` is also assigned to the
@@ -186,22 +190,22 @@ pub trait SolveTriDiagonalInplace<A: Scalar, D: Dimension> {
 
 /// Represents the LU factorization of a tridiagonal matrix `A` as `A = P*L*U`.
 #[derive(Clone)]
-pub struct LUFactorizedTriDiagonal<A: Scalar> {
+pub struct LUFactorizedTridiagonal<A: Scalar> {
     /// A tridiagonal matrix which consists of
     /// - l : layout of raw matrix
     /// - dl: (n-1) multipliers that define the matrix L.
     /// - d : (n) diagonal elements of the upper triangular matrix U.
     /// - du: (n-1) elements of the first super-diagonal of U.
-    pub a: TriDiagonal<A>,
+    pub a: Tridiagonal<A>,
     /// (n-2) elements of the second super-diagonal of U.
-    pub du2: Array1<A>,
+    pub du2: Vec<A>,
     /// 1-norm of raw matrix (used in .rcond_tridiagonal()).
     pub anom: A::Real,
     /// The pivot indices that define the permutation matrix `P`.
     pub ipiv: Pivot,
 }
 
-impl<A> SolveTriDiagonal<A, Ix2> for LUFactorizedTriDiagonal<A>
+impl<A> SolveTridiagonal<A, Ix2> for LUFactorizedTridiagonal<A>
 where
     A: Scalar + Lapack,
 {
@@ -249,7 +253,7 @@ where
     }
 }
 
-impl<A> SolveTriDiagonal<A, Ix2> for TriDiagonal<A>
+impl<A> SolveTridiagonal<A, Ix2> for Tridiagonal<A>
 where
     A: Scalar + Lapack,
 {
@@ -300,7 +304,7 @@ where
     }
 }
 
-impl<A, S> SolveTriDiagonal<A, Ix2> for ArrayBase<S, Ix2>
+impl<A, S> SolveTridiagonal<A, Ix2> for ArrayBase<S, Ix2>
 where
     A: Scalar + Lapack,
     S: Data<Elem = A>,
@@ -352,7 +356,7 @@ where
     }
 }
 
-impl<A> SolveTriDiagonalInplace<A, Ix2> for LUFactorizedTriDiagonal<A>
+impl<A> SolveTridiagonalInplace<A, Ix2> for LUFactorizedTridiagonal<A>
 where
     A: Scalar + Lapack,
 {
@@ -409,7 +413,7 @@ where
     }
 }
 
-impl<A> SolveTriDiagonalInplace<A, Ix2> for TriDiagonal<A>
+impl<A> SolveTridiagonalInplace<A, Ix2> for Tridiagonal<A>
 where
     A: Scalar + Lapack,
 {
@@ -445,7 +449,7 @@ where
     }
 }
 
-impl<A, S> SolveTriDiagonalInplace<A, Ix2> for ArrayBase<S, Ix2>
+impl<A, S> SolveTridiagonalInplace<A, Ix2> for ArrayBase<S, Ix2>
 where
     A: Scalar + Lapack,
     S: Data<Elem = A>,
@@ -482,7 +486,7 @@ where
     }
 }
 
-impl<A> SolveTriDiagonal<A, Ix1> for LUFactorizedTriDiagonal<A>
+impl<A> SolveTridiagonal<A, Ix1> for LUFactorizedTridiagonal<A>
 where
     A: Scalar + Lapack,
 {
@@ -530,7 +534,7 @@ where
     }
 }
 
-impl<A> SolveTriDiagonal<A, Ix1> for TriDiagonal<A>
+impl<A> SolveTridiagonal<A, Ix1> for Tridiagonal<A>
 where
     A: Scalar + Lapack,
 {
@@ -584,7 +588,7 @@ where
     }
 }
 
-impl<A, S> SolveTriDiagonal<A, Ix1> for ArrayBase<S, Ix2>
+impl<A, S> SolveTridiagonal<A, Ix1> for ArrayBase<S, Ix2>
 where
     A: Scalar + Lapack,
     S: Data<Elem = A>,
@@ -640,26 +644,26 @@ where
 }
 
 /// An interface for computing LU factorizations of tridiagonal matrix refs.
-pub trait FactorizeTriDiagonal<A: Scalar> {
+pub trait FactorizeTridiagonal<A: Scalar> {
     /// Computes the LU factorization `A = P*L*U`, where `P` is a permutation
     /// matrix.
-    fn factorize_tridiagonal(&self) -> Result<LUFactorizedTriDiagonal<A>>;
+    fn factorize_tridiagonal(&self) -> Result<LUFactorizedTridiagonal<A>>;
 }
 
 /// An interface for computing LU factorizations of tridiagonal matrices.
-pub trait FactorizeTriDiagonalInto<A: Scalar> {
+pub trait FactorizeTridiagonalInto<A: Scalar> {
     /// Computes the LU factorization `A = P*L*U`, where `P` is a permutation
     /// matrix.
-    fn factorize_tridiagonal_into(self) -> Result<LUFactorizedTriDiagonal<A>>;
+    fn factorize_tridiagonal_into(self) -> Result<LUFactorizedTridiagonal<A>>;
 }
 
-impl<A> FactorizeTriDiagonalInto<A> for TriDiagonal<A>
+impl<A> FactorizeTridiagonalInto<A> for Tridiagonal<A>
 where
     A: Scalar + Lapack,
 {
-    fn factorize_tridiagonal_into(mut self) -> Result<LUFactorizedTriDiagonal<A>> {
+    fn factorize_tridiagonal_into(mut self) -> Result<LUFactorizedTridiagonal<A>> {
         let (du2, anom, ipiv) = unsafe { A::lu_tridiagonal(&mut self)? };
-        Ok(LUFactorizedTriDiagonal {
+        Ok(LUFactorizedTridiagonal {
             a: self,
             du2: du2,
             anom: anom,
@@ -668,26 +672,26 @@ where
     }
 }
 
-impl<A> FactorizeTriDiagonal<A> for TriDiagonal<A>
+impl<A> FactorizeTridiagonal<A> for Tridiagonal<A>
 where
     A: Scalar + Lapack,
 {
-    fn factorize_tridiagonal(&self) -> Result<LUFactorizedTriDiagonal<A>> {
+    fn factorize_tridiagonal(&self) -> Result<LUFactorizedTridiagonal<A>> {
         let mut a = self.clone();
         let (du2, anom, ipiv) = unsafe { A::lu_tridiagonal(&mut a)? };
-        Ok(LUFactorizedTriDiagonal { a, du2, anom, ipiv })
+        Ok(LUFactorizedTridiagonal { a, du2, anom, ipiv })
     }
 }
 
-impl<A, S> FactorizeTriDiagonal<A> for ArrayBase<S, Ix2>
+impl<A, S> FactorizeTridiagonal<A> for ArrayBase<S, Ix2>
 where
     A: Scalar + Lapack,
     S: Data<Elem = A>,
 {
-    fn factorize_tridiagonal(&self) -> Result<LUFactorizedTriDiagonal<A>> {
-        let mut a = self.to_tridiagonal()?;
+    fn factorize_tridiagonal(&self) -> Result<LUFactorizedTridiagonal<A>> {
+        let mut a = self.extract_tridiagonal()?;
         let (du2, anom, ipiv) = unsafe { A::lu_tridiagonal(&mut a)? };
-        Ok(LUFactorizedTriDiagonal { a, du2, anom, ipiv })
+        Ok(LUFactorizedTridiagonal { a, du2, anom, ipiv })
     }
 }
 
@@ -702,8 +706,8 @@ where
 ///
 /// In the future, the vector `f` can be used to calculate the inverce matrix.
 /// (https://en.wikipedia.org/wiki/Tridiagonal_matrix#Inversion)
-fn rec_rel<A: Scalar>(tridiag: &TriDiagonal<A>) -> Vec<A> {
-    let n = tridiag.d.shape()[0];
+fn rec_rel<A: Scalar>(tridiag: &Tridiagonal<A>) -> Vec<A> {
+    let n = tridiag.d.len();
     let mut f = Vec::with_capacity(n + 1);
     f.push(One::one());
     f.push(tridiag.d[0]);
@@ -714,7 +718,7 @@ fn rec_rel<A: Scalar>(tridiag: &TriDiagonal<A>) -> Vec<A> {
 }
 
 /// An interface for calculating determinants of tridiagonal matrix refs.
-pub trait DeterminantTriDiagonal<A: Scalar> {
+pub trait DeterminantTridiagonal<A: Scalar> {
     /// Computes the determinant of the matrix.
     /// Unlike `.det()` of Determinant trait, this method
     /// doesn't returns the natural logarithm of the determinant
@@ -722,30 +726,30 @@ pub trait DeterminantTriDiagonal<A: Scalar> {
     fn det_tridiagonal(&self) -> Result<A>;
 }
 
-impl<A> DeterminantTriDiagonal<A> for TriDiagonal<A>
+impl<A> DeterminantTridiagonal<A> for Tridiagonal<A>
 where
     A: Scalar,
 {
     fn det_tridiagonal(&self) -> Result<A> {
-        let n = self.d.shape()[0];
+        let n = self.d.len();
         Ok(rec_rel(&self)[n])
     }
 }
 
-impl<A, S> DeterminantTriDiagonal<A> for ArrayBase<S, Ix2>
+impl<A, S> DeterminantTridiagonal<A> for ArrayBase<S, Ix2>
 where
     A: Scalar + Lapack,
     S: Data<Elem = A>,
 {
     fn det_tridiagonal(&self) -> Result<A> {
-        let tridiag = self.to_tridiagonal()?;
-        let n = tridiag.d.shape()[0];
+        let tridiag = self.extract_tridiagonal()?;
+        let n = tridiag.d.len();
         Ok(rec_rel(&tridiag)[n])
     }
 }
 
 /// An interface for *estimating* the reciprocal condition number of tridiagonal matrix refs.
-pub trait ReciprocalConditionNumTriDiagonal<A: Scalar> {
+pub trait ReciprocalConditionNumTridiagonal<A: Scalar> {
     /// *Estimates* the reciprocal of the condition number of the tridiagonal matrix in
     /// 1-norm.
     ///
@@ -759,7 +763,7 @@ pub trait ReciprocalConditionNumTriDiagonal<A: Scalar> {
 }
 
 /// An interface for *estimating* the reciprocal condition number of tridiagonal matrices.
-pub trait ReciprocalConditionNumTriDiagonalInto<A: Scalar> {
+pub trait ReciprocalConditionNumTridiagonalInto<A: Scalar> {
     /// *Estimates* the reciprocal of the condition number of the tridiagonal matrix in
     /// 1-norm.
     ///
@@ -772,7 +776,7 @@ pub trait ReciprocalConditionNumTriDiagonalInto<A: Scalar> {
     fn rcond_tridiagonal_into(self) -> Result<A::Real>;
 }
 
-impl<A> ReciprocalConditionNumTriDiagonal<A> for LUFactorizedTriDiagonal<A>
+impl<A> ReciprocalConditionNumTridiagonal<A> for LUFactorizedTridiagonal<A>
 where
     A: Scalar + Lapack,
 {
@@ -781,7 +785,7 @@ where
     }
 }
 
-impl<A> ReciprocalConditionNumTriDiagonalInto<A> for LUFactorizedTriDiagonal<A>
+impl<A> ReciprocalConditionNumTridiagonalInto<A> for LUFactorizedTridiagonal<A>
 where
     A: Scalar + Lapack,
 {
@@ -790,7 +794,7 @@ where
     }
 }
 
-impl<A, S> ReciprocalConditionNumTriDiagonal<A> for ArrayBase<S, Ix2>
+impl<A, S> ReciprocalConditionNumTridiagonal<A> for ArrayBase<S, Ix2>
 where
     A: Scalar + Lapack,
     S: Data<Elem = A>,

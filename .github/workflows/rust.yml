@@ -7,7 +7,7 @@ on:
   pull_request: {}
 
 jobs:
-  windows-intel-mkl:
+  windows:
     runs-on: windows-2019
     steps:
     - uses: actions/checkout@v1
@@ -16,45 +16,46 @@ jobs:
         command: test
         args: --features=intel-mkl --no-default-features
 
-  macos-intel-mkl:
+  macos:
     runs-on: macos-10.15
+    env:
+      CC: gcc-9
+      FC: gfortran-9
+      LIBRARY_PATH: /usr/local/opt/gcc/lib/gcc/9
+    strategy:
+      fail-fast: false
+      matrix:
+        feature:
+          - netlib
+          - openblas
+          - intel-mkl
     steps:
     - uses: actions/checkout@v1
     - uses: actions-rs/cargo@v1
       with:
         command: test
-        args: --features=intel-mkl --no-default-features
+        args: --features=${{ matrix.feature }} --no-default-features
 
-  linux-intel-mkl:
+  linux:
     runs-on: ubuntu-18.04
+    strategy:
+      fail-fast: false
+      matrix:
+        feature:
+          - netlib
+          - openblas
+          - intel-mkl
     steps:
     - uses: actions/checkout@v1
+    - name: apt-install gfortran
+      run: |
+        sudo apt update
+        sudo apt install -y gfortran
+      if: ${{ matrix.feature != 'intel-mkl' }}
     - uses: actions-rs/cargo@v1
       with:
         command: test
-        args: --features=intel-mkl --no-default-features
-
-  linux-netlib:
-    runs-on: ubuntu-18.04
-    steps:
-    - uses: actions/checkout@v1
-    - name: apt
-      run: sudo apt update && sudo apt install -y gfortran
-    - uses: actions-rs/cargo@v1
-      with:
-        command: test
-        args: --features=netlib --no-default-features
-
-  linux-openblas:
-    runs-on: ubuntu-18.04
-    steps:
-    - uses: actions/checkout@v1
-    - name: apt
-      run: sudo apt update && sudo apt install -y gfortran
-    - uses: actions-rs/cargo@v1
-      with:
-        command: test
-        args: --features=openblas --no-default-features
+        args: --features=${{ matrix.feature }} --no-default-features
 
   check-format:
     runs-on: ubuntu-18.04

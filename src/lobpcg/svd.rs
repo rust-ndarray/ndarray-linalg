@@ -160,7 +160,7 @@ impl<A: Float + Scalar + ScalarOperand + Lapack + PartialOrd + Default> Truncate
         match res {
             LobpcgResult::Ok(vals, vecs, _) | LobpcgResult::Err(vals, vecs, _, _) => {
                 Ok(TruncatedSvdResult {
-                    problem: self.problem.clone(),
+                    problem: self.problem,
                     eigvals: vals,
                     eigvecs: vecs,
                     ngm: n > m,

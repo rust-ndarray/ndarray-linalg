@@ -46,12 +46,11 @@ fn sorted_eig<S: Data<Elem = A>, A: Scalar + Lapack>(
 
     Ok(match order {
         Order::Largest => (
-            vals.slice_move(s![n-size..; -1])
-                .mapv(|x| Scalar::from_real(x)),
+            vals.slice_move(s![n-size..; -1]).mapv(Scalar::from_real),
             vecs.slice_move(s![.., n-size..; -1]),
         ),
         Order::Smallest => (
-            vals.slice_move(s![..size]).mapv(|x| Scalar::from_real(x)),
+            vals.slice_move(s![..size]).mapv(Scalar::from_real),
             vecs.slice_move(s![.., ..size]),
         ),
     })
@@ -62,7 +61,7 @@ fn ndarray_mask<A: Scalar>(matrix: ArrayView2<A>, mask: &[bool]) -> Array2<A> {
     assert_eq!(mask.len(), matrix.ncols());
 
     let indices = (0..mask.len())
-        .zip(mask.into_iter())
+        .zip(mask.iter())
         .filter(|(_, b)| **b)
         .map(|(a, _)| a)
         .collect::<Vec<usize>>();
@@ -435,7 +434,7 @@ pub fn lobpcg<
 
     // retrieve best result and convert norm into `A`
     let (vals, vecs, rnorm) = best_result.unwrap();
-    let rnorm = rnorm.into_iter().map(|x| Scalar::from_real(x)).collect();
+    let rnorm = rnorm.into_iter().map(Scalar::from_real).collect();
 
     match final_norm {
         Ok(_) => LobpcgResult::Ok(vals, vecs, rnorm),

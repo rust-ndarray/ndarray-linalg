@@ -1,7 +1,5 @@
 //! Implement linear solver and inverse matrix
 
-use lapacke;
-
 use super::{into_result, Transpose, UPLO};
 
 use crate::error::*;

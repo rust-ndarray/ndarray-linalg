@@ -38,6 +38,13 @@
 //!  - [Random matrix generators](generate/index.html)
 //!  - [Scalar trait](types/trait.Scalar.html)
 
+#![allow(
+    clippy::module_inception,
+    clippy::many_single_char_names,
+    clippy::type_complexity,
+    clippy::ptr_arg
+)]
+
 #[macro_use]
 extern crate ndarray;
 

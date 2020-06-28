@@ -1,6 +1,5 @@
 //! Singular-value decomposition
 
-use lapacke;
 use num_traits::Zero;
 
 use crate::error::*;
@@ -79,7 +78,7 @@ macro_rules! impl_svd {
                 into_result(
                     info,
                     SVDOutput {
-                        s: s,
+                        s,
                         u: if calc_u { Some(u) } else { None },
                         vt: if calc_vt { Some(vt) } else { None },
                     },

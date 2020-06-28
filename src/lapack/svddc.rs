@@ -1,4 +1,3 @@
-use lapacke;
 use num_traits::Zero;
 
 use crate::error::*;
@@ -49,7 +48,7 @@ macro_rules! impl_svdd {
                 into_result(
                     info,
                     SVDOutput {
-                        s: s,
+                        s,
                         u: if jobz == UVTFlag::None { None } else { Some(u) },
                         vt: if jobz == UVTFlag::None {
                             None

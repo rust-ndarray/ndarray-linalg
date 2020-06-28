@@ -1,5 +1,7 @@
 //! Define traits wrapping LAPACK routines
 
+#![allow(clippy::missing_safety_doc)]
+
 pub mod cholesky;
 pub mod eig;
 pub mod eigh;

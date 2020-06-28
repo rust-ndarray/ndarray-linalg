@@ -298,7 +298,7 @@ where
     fn factorizec_into(self, uplo: UPLO) -> Result<CholeskyFactorized<S>> {
         Ok(CholeskyFactorized {
             factor: self.cholesky_into(uplo)?,
-            uplo: uplo,
+            uplo,
         })
     }
 }
@@ -311,7 +311,7 @@ where
     fn factorizec(&self, uplo: UPLO) -> Result<CholeskyFactorized<OwnedRepr<A>>> {
         Ok(CholeskyFactorized {
             factor: self.cholesky(uplo)?,
-            uplo: uplo,
+            uplo,
         })
     }
 }

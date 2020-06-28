@@ -1,6 +1,5 @@
 //! Solve linear problem using LU decomposition
 
-use lapacke;
 use num_traits::Zero;
 
 use crate::error::*;

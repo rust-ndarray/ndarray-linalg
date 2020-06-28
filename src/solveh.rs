@@ -166,10 +166,7 @@ where
 {
     fn factorizeh_into(mut self) -> Result<BKFactorized<S>> {
         let ipiv = unsafe { A::bk(self.square_layout()?, UPLO::Upper, self.as_allocated_mut()?)? };
-        Ok(BKFactorized {
-            a: self,
-            ipiv: ipiv,
-        })
+        Ok(BKFactorized { a: self, ipiv })
     }
 }
 
@@ -181,7 +178,7 @@ where
     fn factorizeh(&self) -> Result<BKFactorized<OwnedRepr<A>>> {
         let mut a: Array2<A> = replicate(self);
         let ipiv = unsafe { A::bk(a.square_layout()?, UPLO::Upper, a.as_allocated_mut()?)? };
-        Ok(BKFactorized { a: a, ipiv: ipiv })
+        Ok(BKFactorized { a, ipiv })
     }
 }
 
@@ -326,8 +323,8 @@ where
             // 1x1 block at k, must be real.
             let elem = unsafe { a.uget((k, k)) }.re();
             debug_assert_eq!(elem.im(), Zero::zero());
-            sign = sign * elem.signum();
-            ln_det = ln_det + elem.abs().ln();
+            sign *= elem.signum();
+            ln_det += elem.abs().ln();
         } else {
             // 2x2 block at k..k+2.
 
@@ -347,8 +344,8 @@ where
 
             // Determinant of 2x2 block.
             let block_det = upper_diag * lower_diag - off_diag.square();
-            sign = sign * block_det.signum();
-            ln_det = ln_det + block_det.abs().ln();
+            sign *= block_det.signum();
+            ln_det += block_det.abs().ln();
 
             // Skip the k+1 ipiv value.
             ipiv_enum.next();

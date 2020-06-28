@@ -2,8 +2,6 @@
 //!
 //! See also [the manual of dsytrf](http://www.netlib.org/lapack/lapack-3.1.1/html/dsytrf.f.html)
 
-use lapacke;
-
 use crate::error::*;
 use crate::layout::MatrixLayout;
 use crate::types::*;

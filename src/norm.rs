@@ -65,7 +65,7 @@ where
     for mut v in m.axis_iter_mut(Axis(axis as usize)) {
         let n = v.norm();
         ms.push(n);
-        v.map_inplace(|x| *x = *x / A::from_real(n))
+        v.map_inplace(|x| *x /= A::from_real(n))
     }
     (m, ms)
 }

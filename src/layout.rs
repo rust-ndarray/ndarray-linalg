@@ -1,6 +1,5 @@
 //! Memory layout of matrices
 
-use lapacke;
 use ndarray::*;
 
 use super::error::*;
@@ -45,6 +44,10 @@ impl MatrixLayout {
             MatrixLayout::C((row, _)) => row,
             MatrixLayout::F((col, _)) => col,
         }
+    }
+
+    pub fn is_empty(&self) -> bool {
+        self.len() == 0
     }
 
     pub fn lapacke_layout(&self) -> lapacke::Layout {

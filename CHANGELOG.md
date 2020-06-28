@@ -1,8 +1,12 @@
 Unreleased
-===========
+-----------
+
+0.12.1 - 28 June 2020
+----------------------
 
 Added
 ------
+- Tridiagonal matrix support https://github.com/rust-ndarray/ndarray-linalg/pull/196
 - KaTeX support in rustdoc https://github.com/rust-ndarray/ndarray-linalg/pull/202
 - Least square problems https://github.com/rust-ndarray/ndarray-linalg/pull/197
 - LOBPCG solver https://github.com/rust-ndarray/ndarray-linalg/pull/184

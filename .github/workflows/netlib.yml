@@ -1,0 +1,55 @@
+name: netlib-backend
+
+on:
+  push:
+    branches:
+      - master
+  pull_request: {}
+
+jobs:
+  linux:
+    strategy:
+      fail-fast: false
+      matrix:
+        feature:
+          - system
+          - static
+    runs-on: ubuntu-18.04
+    steps:
+      - uses: actions/checkout@v1
+      - name: apt install gfortran
+        run: |
+          sudo apt update
+          sudo apt install -y gfortran
+      - name: apt install netlib
+        run: |
+          sudo apt update
+          sudo apt install -y libblas-dev liblapack-dev liblapacke-dev
+        if: ${{ matrix.feature == 'system' }}
+      - uses: actions-rs/cargo@v1
+        with:
+          command: test
+          args: >
+            --no-default-features
+            --features=netlib-${{ matrix.feature }}
+
+  macos:
+    strategy:
+      fail-fast: false
+      matrix:
+        feature:
+          - system
+          - static
+    runs-on: macos-10.15
+    env:
+      CC: gcc-9
+      FC: gfortran-9
+      LIBRARY_PATH: /usr/local/opt/gcc/lib/gcc/9
+    steps:
+      - uses: actions/checkout@v1
+      - uses: actions-rs/cargo@v1
+        with:
+          command: test
+          args: >
+            --no-default-features
+            --features=netlib-${{ matrix.feature }}

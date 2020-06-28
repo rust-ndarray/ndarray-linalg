@@ -1,0 +1,61 @@
+name: intel-mkl-backend
+
+on:
+  push:
+    branches:
+      - master
+  pull_request: {}
+
+jobs:
+  windows:
+    strategy:
+      fail-fast: false
+      matrix:
+        feature:
+          - mkl-static-lp64-seq
+          - mkl-dynamic-lp64-seq
+    runs-on: windows-2019
+    steps:
+      - uses: actions/checkout@v1
+      - uses: actions-rs/cargo@v1
+        with:
+          command: test
+          args: >
+            --no-default-features
+            --features=${{ matrix.feature }}
+
+  macos:
+    strategy:
+      fail-fast: false
+      matrix:
+        feature:
+          - mkl-dynamic-lp64-iomp
+          - mkl-dynamic-lp64-seq
+    runs-on: macos-10.15
+    steps:
+      - uses: actions/checkout@v1
+      - uses: actions-rs/cargo@v1
+        with:
+          command: test
+          args: >
+            --no-default-features
+            --features=${{ matrix.feature }}
+
+  linux:
+    strategy:
+      fail-fast: false
+      matrix:
+        feature:
+          - mkl-static-lp64-iomp
+          - mkl-static-lp64-seq
+          - mkl-dynamic-lp64-iomp
+          - mkl-dynamic-lp64-seq
+    runs-on: ubuntu-18.04
+    steps:
+      - uses: actions/checkout@v1
+      - uses: actions-rs/cargo@v1
+        with:
+          command: test
+          args: >
+            --no-default-features
+            --features=${{ matrix.feature }}

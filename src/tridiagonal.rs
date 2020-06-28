@@ -92,7 +92,7 @@ where
 }
 
 /// An interface for making a Tridiagonal struct.
-pub trait ToTridiagonal<A: Scalar> {
+pub trait ExtractTridiagonal<A: Scalar> {
     /// Extract tridiagonal elements and layout of the raw matrix.
     ///
     /// If the raw matrix has some non-tridiagonal elements,
@@ -102,7 +102,7 @@ pub trait ToTridiagonal<A: Scalar> {
     fn extract_tridiagonal(&self) -> Result<Tridiagonal<A>>;
 }
 
-impl<A, S> ToTridiagonal<A> for ArrayBase<S, Ix2>
+impl<A, S> ExtractTridiagonal<A> for ArrayBase<S, Ix2>
 where
     A: Scalar + Lapack,
     S: Data<Elem = A>,

@@ -14,6 +14,7 @@
 //!    - [General matrices](solve/index.html)
 //!    - [Triangular matrices](triangular/index.html)
 //!    - [Hermitian/real symmetric matrices](solveh/index.html)
+//!    - [Tridiagonal matrices](tridiagonal/index.html)
 //! - [Inverse matrix computation](solve/trait.Inverse.html)
 //!
 //! Naming Convention
@@ -67,6 +68,7 @@ pub mod svd;
 pub mod svddc;
 pub mod trace;
 pub mod triangular;
+pub mod tridiagonal;
 pub mod types;
 
 pub use assert::*;
@@ -90,4 +92,5 @@ pub use svd::*;
 pub use svddc::*;
 pub use trace::*;
 pub use triangular::*;
+pub use tridiagonal::*;
 pub use types::*;

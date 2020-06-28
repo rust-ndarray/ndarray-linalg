@@ -43,11 +43,11 @@ ndarray-linalg = { version = "0.12", features = ["openblas"] }
 
 ### Tested Environments
 
-|Backend | Linux | Windows | macOS |
-|:-------|:-----:|:-------:|:-----:|
-|OpenBLAS|✔️|❌|❌|
-|Netlib|✔️|❌|❌|
-|Intel MKL|✔️|✔️|✔️|
+|Backend  | Linux | Windows | macOS |
+|:--------|:-----:|:-------:|:-----:|
+|OpenBLAS |✔️      |-        |✔️      |
+|Netlib   |✔️      |-        |✔️      |
+|Intel MKL|✔️      |✔️        |✔️      |
 
 ### For librarian
 If you creating a library depending on this crate, we encourage you not to link any backend:

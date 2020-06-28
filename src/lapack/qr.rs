@@ -1,6 +1,5 @@
 //! QR decomposition
 
-use lapacke;
 use num_traits::Zero;
 use std::cmp::min;
 

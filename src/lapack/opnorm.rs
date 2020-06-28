@@ -1,6 +1,5 @@
 //! Operator norms of matrices
 
-use lapacke;
 use lapacke::Layout::ColumnMajor as cm;
 
 use crate::layout::MatrixLayout;

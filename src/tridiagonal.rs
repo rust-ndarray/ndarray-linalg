@@ -665,9 +665,9 @@ where
         let (du2, anom, ipiv) = unsafe { A::lu_tridiagonal(&mut self)? };
         Ok(LUFactorizedTridiagonal {
             a: self,
-            du2: du2,
-            anom: anom,
-            ipiv: ipiv,
+            du2,
+            anom,
+            ipiv,
         })
     }
 }

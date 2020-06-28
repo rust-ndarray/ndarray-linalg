@@ -1,7 +1,6 @@
 //! Implement linear solver using LU decomposition
 //! for tridiagonal matrix
 
-use lapacke;
 use num_traits::Zero;
 
 use super::NormType;

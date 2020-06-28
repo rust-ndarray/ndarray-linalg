@@ -1,6 +1,5 @@
 //! Eigenvalue decomposition for general matrices
 
-use lapacke;
 use num_traits::Zero;
 
 use crate::error::*;

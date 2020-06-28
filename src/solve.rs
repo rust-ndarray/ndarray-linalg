@@ -274,10 +274,7 @@ where
 {
     fn factorize_into(mut self) -> Result<LUFactorized<S>> {
         let ipiv = unsafe { A::lu(self.layout()?, self.as_allocated_mut()?)? };
-        Ok(LUFactorized {
-            a: self,
-            ipiv: ipiv,
-        })
+        Ok(LUFactorized { a: self, ipiv })
     }
 }
 
@@ -289,7 +286,7 @@ where
     fn factorize(&self) -> Result<LUFactorized<OwnedRepr<A>>> {
         let mut a: Array2<A> = replicate(self);
         let ipiv = unsafe { A::lu(a.layout()?, a.as_allocated_mut()?)? };
-        Ok(LUFactorized { a: a, ipiv: ipiv })
+        Ok(LUFactorized { a, ipiv })
     }
 }
 

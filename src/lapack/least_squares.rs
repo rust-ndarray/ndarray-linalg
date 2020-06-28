@@ -1,6 +1,5 @@
 //! Least squares
 
-use lapacke;
 use ndarray::{ErrorKind, ShapeError};
 use num_traits::Zero;
 

@@ -1,7 +1,5 @@
 //! Cholesky decomposition
 
-use lapacke;
-
 use crate::error::*;
 use crate::layout::MatrixLayout;
 use crate::types::*;

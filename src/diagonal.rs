@@ -42,7 +42,7 @@ where
         S: DataMut<Elem = A>,
     {
         for (val, d) in a.iter_mut().zip(self.diag.iter()) {
-            *val = *val * *d;
+            *val *= *d;
         }
     }
 }

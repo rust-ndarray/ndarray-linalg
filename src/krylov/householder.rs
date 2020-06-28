@@ -13,7 +13,7 @@ where
     A: Scalar + Lapack,
     S: DataMut<Elem = A>,
 {
-    assert!(x.len() > 0);
+    assert!(!x.is_empty());
     let norm = x.norm_l2();
     let alpha = -x[0].mul_real(norm / x[0].abs());
     x[0] -= alpha;

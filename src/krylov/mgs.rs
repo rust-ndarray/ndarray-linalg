@@ -51,7 +51,7 @@ impl<A: Scalar + Lapack> Orthogonalizer for MGS<A> {
         for i in 0..self.len() {
             let q = &self.q[i];
             let c = q.inner(&a);
-            azip!((a in &mut *a, &q in q) *a = *a - c * q);
+            azip!((a in &mut *a, &q in q) *a -= c * q);
             coef[i] = c;
         }
         let nrm = a.norm_l2();
@@ -88,7 +88,7 @@ impl<A: Scalar + Lapack> Orthogonalizer for MGS<A> {
             // Linearly dependent
             return AppendResult::Dependent(coef);
         }
-        azip!((a in &mut *a) *a = *a / A::from_real(nrm));
+        azip!((a in &mut *a) *a /= A::from_real(nrm));
         self.q.push(a.to_owned());
         AppendResult::Added(coef)
     }

@@ -41,8 +41,19 @@
 #[macro_use]
 extern crate ndarray;
 
-extern crate blas_src;
-extern crate lapack_src;
+#[cfg(any(
+    feature = "mkl-static-lp64-iomp",
+    feature = "mkl-static-lp64-seq",
+    feature = "mkl-dynamic-lp64-iomp",
+    feature = "mkl-dynamic-lp64-seq",
+))]
+extern crate intel_mkl_src as _src;
+
+#[cfg(any(feature = "openblas-system", feature = "openblas-static"))]
+extern crate openblas_src as _src;
+
+#[cfg(any(feature = "netlib-system", feature = "netlib-static"))]
+extern crate netlib_src as _src;
 
 pub mod assert;
 pub mod cholesky;

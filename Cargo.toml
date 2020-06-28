@@ -13,40 +13,33 @@ readme        = "README.md"
 categories    = ["algorithms", "science"]
 
 [features]
-default    = []
-intel-mkl  = ["lapack-src/intel-mkl", "blas-src/intel-mkl"]
-netlib     = ["lapack-src/netlib", "blas-src/netlib"]
-openblas   = ["lapack-src/openblas", "blas-src/openblas"]
-serde-1    = ["ndarray/serde-1", "num-complex/serde"]
+default = []
 
-static          = ["openblas-static"]
-openblas-static = ["openblas", "openblas-src"]
+netlib    = ["netlib-static"]
+openblas  = ["openblas-static"]
+intel-mkl = ["mkl-static-lp64-seq"]
+
+netlib-static = ["netlib-src/static"]
+netlib-system = ["netlib-src/system"]
+openblas-static = ["openblas-src/static"]
+openblas-system = ["openblas-src/system"]
+
+mkl-static-lp64-iomp   = ["intel-mkl-src/mkl-static-lp64-iomp"]
+mkl-static-lp64-seq    = ["intel-mkl-src/mkl-static-lp64-seq"]
+mkl-dynamic-lp64-iomp  = ["intel-mkl-src/mkl-dynamic-lp64-iomp"]
+mkl-dynamic-lp64-seq   = ["intel-mkl-src/mkl-dynamic-lp64-seq"]
 
 [dependencies]
-lapacke = "0.2.0"
-num-traits  = "0.2.11"
 cauchy = "0.2.2"
-num-complex = "0.2.4"
+lapacke = "0.2.0"
+ndarray = { version = "0.13", features = ["blas", "approx", "serde-1"], default-features = false }
+num-complex = { version = "0.2", features = ["serde"] }
+num-traits  = "0.2.11"
 rand = "0.5"
 
-[dependencies.ndarray]
-version = "0.13.0"
-features = ["blas", "approx"]
-default-features = false
-
-[dependencies.blas-src]
-version = "0.6.1"
-default-features = false
-
-[dependencies.lapack-src]
-version = "0.6.0"
-default-features = false
-
-[dependencies.openblas-src]
-version = "0.9.0"
-default-features = false
-features = ["static"]
-optional = true
+openblas-src  = { version = "0.9.0", optional = true }
+netlib-src    = { version = "0.8.0", optional = true }
+intel-mkl-src = { version = "0.6.0", default-features = false, features = ["download"], optional = true }
 
 [dev-dependencies]
 paste = "0.1.9"

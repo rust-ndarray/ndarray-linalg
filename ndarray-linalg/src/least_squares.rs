@@ -735,7 +735,7 @@ mod tests {
     fn test_incompatible_shape_error_on_mismatching_layout() {
         let a: Array2<f64> = array![[1., 2.], [4., 5.], [3., 4.]];
         let b = array![[1.], [2.]].t().to_owned();
-        assert_eq!(b.layout().unwrap(), MatrixLayout::F((2, 1)));
+        assert_eq!(b.layout().unwrap(), MatrixLayout::F { col: 2, lda: 1 });
 
         let res = a.least_squares(&b);
         match res {

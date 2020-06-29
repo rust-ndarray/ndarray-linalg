@@ -58,8 +58,8 @@ macro_rules! impl_solveh {
                 let (n, _) = l.size();
                 let nrhs = 1;
                 let ldb = match l {
-                    MatrixLayout::C(_) => 1,
-                    MatrixLayout::F(_) => n,
+                    MatrixLayout::C { .. } => 1,
+                    MatrixLayout::F { .. } => n,
                 };
                 $trs(
                     l.lapacke_layout(),

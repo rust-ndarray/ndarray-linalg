@@ -28,10 +28,16 @@ where
         let shape = self.shape();
         let strides = self.strides();
         if shape[0] == strides[1] as usize {
-            return Ok(MatrixLayout::F((self.ncols() as i32, self.nrows() as i32)));
+            return Ok(MatrixLayout::F {
+                col: self.ncols() as i32,
+                lda: self.nrows() as i32,
+            });
         }
         if shape[1] == strides[0] as usize {
-            return Ok(MatrixLayout::C((self.nrows() as i32, self.ncols() as i32)));
+            return Ok(MatrixLayout::C {
+                row: self.nrows() as i32,
+                lda: self.ncols() as i32,
+            });
         }
         Err(LinalgError::InvalidStride {
             s0: strides[0],

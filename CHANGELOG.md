@@ -1,6 +1,10 @@
 Unreleased
 -----------
 
+Changed
+--------
+- Fix for clippy, and add CI check https://github.com/rust-ndarray/ndarray-linalg/pull/205
+
 0.12.1 - 28 June 2020
 ----------------------
 

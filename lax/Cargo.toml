@@ -15,6 +15,7 @@ thiserror = "1"
 cauchy = "0.2"
 lapacke = "0.2.0"
 num-traits = "0.2"
+lapack = "*"
 
 [dependencies.blas-src]
 version = "0.6.1"

@@ -1,4 +1,4 @@
-//! Memory layout of matrices
+//! Convert ndarray into LAPACK-compatible matrix format
 
 use super::error::*;
 use ndarray::*;

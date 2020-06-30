@@ -1,10 +1,10 @@
-//! Define traits wrapping LAPACK routines
-
-#![allow(clippy::missing_safety_doc)]
+//! Linear Algebra eXtension (LAX)
 
 pub mod cholesky;
 pub mod eig;
 pub mod eigh;
+pub mod error;
+pub mod layout;
 pub mod least_squares;
 pub mod opnorm;
 pub mod qr;
@@ -28,8 +28,7 @@ pub use self::svddc::*;
 pub use self::triangular::*;
 pub use self::tridiagonal::*;
 
-use super::error::*;
-use super::types::*;
+use cauchy::*;
 
 pub type Pivot = Vec<i32>;
 
@@ -53,22 +52,6 @@ impl Lapack for f32 {}
 impl Lapack for f64 {}
 impl Lapack for c32 {}
 impl Lapack for c64 {}
-
-trait AsLapackResult {
-    fn as_lapack_result(self) -> Result<()>;
-}
-
-impl AsLapackResult for i32 {
-    fn as_lapack_result(self) -> Result<()> {
-        if self > 0 {
-            return Err(LinalgError::LapackComputationalFailure { return_code: self });
-        }
-        if self < 0 {
-            return Err(LinalgError::LapackInvalidValue { return_code: self });
-        }
-        Ok(())
-    }
-}
 
 /// Upper/Lower specification for seveal usages
 #[derive(Debug, Clone, Copy)]

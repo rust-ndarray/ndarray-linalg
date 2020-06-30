@@ -11,8 +11,10 @@ netlib     = ["lapack-src/netlib", "blas-src/netlib"]
 openblas   = ["lapack-src/openblas", "blas-src/openblas"]
 
 [dependencies]
+thiserror = "1"
 cauchy = "0.2"
 lapacke = "0.2.0"
+num-traits = "0.2"
 
 [dependencies.blas-src]
 version = "0.6.1"

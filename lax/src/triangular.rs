@@ -1,7 +1,8 @@
 //! Implement linear solver and inverse matrix
 
 use super::*;
-use crate::{error::*, layout::MatrixLayout, types::*};
+use crate::{error::*, layout::MatrixLayout};
+use cauchy::*;
 
 #[derive(Debug, Clone, Copy)]
 #[repr(u8)]

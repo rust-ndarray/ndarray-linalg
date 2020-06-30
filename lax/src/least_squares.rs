@@ -1,8 +1,7 @@
 //! Least squares
 
-use super::*;
-use crate::{error::*, layout::MatrixLayout, types::*};
-use ndarray::{ErrorKind, ShapeError};
+use crate::{error::*, layout::MatrixLayout};
+use cauchy::*;
 use num_traits::Zero;
 
 /// Result of LeastSquares
@@ -39,9 +38,7 @@ macro_rules! impl_least_squares {
             ) -> Result<LeastSquaresOutput<Self>> {
                 let (m, n) = a_layout.size();
                 if (m as usize) > b.len() || (n as usize) > b.len() {
-                    return Err(LinalgError::Shape(ShapeError::from_kind(
-                        ErrorKind::IncompatibleShape,
-                    )));
+                    return Err(Error::InvalidShape);
                 }
                 let k = ::std::cmp::min(m, n);
                 let nrhs = 1;
@@ -83,9 +80,7 @@ macro_rules! impl_least_squares {
                     || (n as usize) > b.len()
                     || a_layout.lapacke_layout() != b_layout.lapacke_layout()
                 {
-                    return Err(LinalgError::Shape(ShapeError::from_kind(
-                        ErrorKind::IncompatibleShape,
-                    )));
+                    return Err(Error::InvalidShape);
                 }
                 let k = ::std::cmp::min(m, n);
                 let nrhs = b_layout.size().1;

@@ -1,7 +1,7 @@
 //! QR decomposition
 
-use super::*;
-use crate::{error::*, layout::MatrixLayout, types::*};
+use crate::{error::*, layout::MatrixLayout};
+use cauchy::*;
 use num_traits::Zero;
 use std::cmp::min;
 

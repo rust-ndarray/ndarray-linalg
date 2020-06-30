@@ -1,7 +1,8 @@
 //! Cholesky decomposition
 
 use super::*;
-use crate::{error::*, layout::MatrixLayout, types::*};
+use crate::{error::*, layout::MatrixLayout};
+use cauchy::*;
 
 pub trait Cholesky_: Sized {
     /// Cholesky: wrapper of `*potrf`

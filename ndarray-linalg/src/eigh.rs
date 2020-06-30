@@ -99,7 +99,7 @@ where
             MatrixLayout::C { .. } => self.swap_axes(0, 1),
             MatrixLayout::F { .. } => {}
         }
-        let s = unsafe { A::eigh(true, self.square_layout()?, uplo, self.as_allocated_mut()?)? };
+        let s = A::eigh(true, self.square_layout()?, uplo, self.as_allocated_mut()?)?;
         Ok((ArrayBase::from(s), self))
     }
 }
@@ -126,15 +126,13 @@ where
             MatrixLayout::F { .. } => {}
         }
 
-        let s = unsafe {
-            A::eigh_generalized(
-                true,
-                self.0.square_layout()?,
-                uplo,
-                self.0.as_allocated_mut()?,
-                self.1.as_allocated_mut()?,
-            )?
-        };
+        let s = A::eigh_generalized(
+            true,
+            self.0.square_layout()?,
+            uplo,
+            self.0.as_allocated_mut()?,
+            self.1.as_allocated_mut()?,
+        )?;
 
         Ok((ArrayBase::from(s), self))
     }
@@ -191,7 +189,7 @@ where
     type EigVal = Array1<A::Real>;
 
     fn eigvalsh_inplace(&mut self, uplo: UPLO) -> Result<Self::EigVal> {
-        let s = unsafe { A::eigh(true, self.square_layout()?, uplo, self.as_allocated_mut()?)? };
+        let s = A::eigh(true, self.square_layout()?, uplo, self.as_allocated_mut()?)?;
         Ok(ArrayBase::from(s))
     }
 }

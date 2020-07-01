@@ -48,9 +48,6 @@
 #[macro_use]
 extern crate ndarray;
 
-extern crate blas_src;
-extern crate lapack_src;
-
 extern crate lax as lapack;
 
 pub mod assert;
@@ -63,7 +60,6 @@ pub mod error;
 pub mod generate;
 pub mod inner;
 pub mod krylov;
-pub mod lapack;
 pub mod layout;
 pub mod least_squares;
 pub mod lobpcg;

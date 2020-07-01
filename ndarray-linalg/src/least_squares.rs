@@ -719,7 +719,6 @@ mod tests {
     // Testing error cases
     //
     use crate::layout::MatrixLayout;
-    use ndarray::ErrorKind;
 
     #[test]
     fn test_incompatible_shape_error_on_mismatching_num_rows() {
@@ -727,12 +726,7 @@ mod tests {
         let b: Array1<f64> = array![1., 2.];
         let res = a.least_squares(&b);
         match res {
-            Err(err) => match err {
-                LinalgError::Shape(shape_error) => {
-                    assert_eq!(shape_error.kind(), ErrorKind::IncompatibleShape)
-                }
-                _ => panic!("Expected ShapeError"),
-            },
+            Err(LinalgError::Lapack(err)) if matches!(err, lapack::error::Error::InvalidShape) => {}
             _ => panic!("Expected Err()"),
         }
     }
@@ -745,12 +739,7 @@ mod tests {
 
         let res = a.least_squares(&b);
         match res {
-            Err(err) => match err {
-                LinalgError::Shape(shape_error) => {
-                    assert_eq!(shape_error.kind(), ErrorKind::IncompatibleShape)
-                }
-                _ => panic!("Expected ShapeError"),
-            },
+            Err(LinalgError::Lapack(err)) if matches!(err, lapack::error::Error::InvalidShape) => {}
             _ => panic!("Expected Err()"),
         }
     }

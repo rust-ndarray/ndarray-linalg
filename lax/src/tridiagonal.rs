@@ -39,8 +39,6 @@ pub struct LUFactorizedTridiagonal<A: Scalar> {
     pub a: Tridiagonal<A>,
     /// (n-2) elements of the second super-diagonal of U.
     pub du2: Vec<A>,
-    /// 1-norm of raw matrix (used in .rcond_tridiagonal()).
-    pub anom: A::Real,
     /// The pivot indices that define the permutation matrix `P`.
     pub ipiv: Pivot,
 }

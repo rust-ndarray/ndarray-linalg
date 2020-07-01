@@ -566,13 +566,8 @@ where
     A: Scalar + Lapack,
 {
     fn factorize_tridiagonal_into(mut self) -> Result<LUFactorizedTridiagonal<A>> {
-        let (du2, anom, ipiv) = unsafe { A::lu_tridiagonal(&mut self)? };
-        Ok(LUFactorizedTridiagonal {
-            a: self,
-            du2,
-            anom,
-            ipiv,
-        })
+        let (du2, ipiv) = unsafe { A::lu_tridiagonal(&mut self)? };
+        Ok(LUFactorizedTridiagonal { a: self, du2, ipiv })
     }
 }
 
@@ -582,8 +577,8 @@ where
 {
     fn factorize_tridiagonal(&self) -> Result<LUFactorizedTridiagonal<A>> {
         let mut a = self.clone();
-        let (du2, anom, ipiv) = unsafe { A::lu_tridiagonal(&mut a)? };
-        Ok(LUFactorizedTridiagonal { a, du2, anom, ipiv })
+        let (du2, ipiv) = unsafe { A::lu_tridiagonal(&mut a)? };
+        Ok(LUFactorizedTridiagonal { a, du2, ipiv })
     }
 }
 
@@ -594,8 +589,8 @@ where
 {
     fn factorize_tridiagonal(&self) -> Result<LUFactorizedTridiagonal<A>> {
         let mut a = self.extract_tridiagonal()?;
-        let (du2, anom, ipiv) = unsafe { A::lu_tridiagonal(&mut a)? };
-        Ok(LUFactorizedTridiagonal { a, du2, anom, ipiv })
+        let (du2, ipiv) = unsafe { A::lu_tridiagonal(&mut a)? };
+        Ok(LUFactorizedTridiagonal { a, du2, ipiv })
     }
 }
 

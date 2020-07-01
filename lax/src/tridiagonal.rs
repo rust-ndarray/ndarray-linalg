@@ -30,11 +30,10 @@ pub struct Tridiagonal<A: Scalar> {
 
 impl<A: Scalar> Tridiagonal<A> {
     fn opnorm_one(&self) -> A::Real {
-        let n = self.l.len() as usize;
         let mut col_sum: Vec<A::Real> = self.d.iter().map(|val| val.abs()).collect();
-        for i in 0..n - 1 {
-            if i < n - 1 {
-                col_sum[i] += self.dl[i + 1].abs();
+        for i in 0..col_sum.len() {
+            if i < self.dl.len() {
+                col_sum[i] += self.dl[i].abs();
             }
             if i > 0 {
                 col_sum[i] += self.du[i - 1].abs();

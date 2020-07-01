@@ -28,6 +28,28 @@ pub struct Tridiagonal<A: Scalar> {
     pub du: Vec<A>,
 }
 
+impl<A: Scalar> Tridiagonal<A> {
+    fn opnorm_one(&self) -> A::Real {
+        let n = self.l.len() as usize;
+        let mut col_sum: Vec<A::Real> = self.d.iter().map(|val| val.abs()).collect();
+        for i in 0..n - 1 {
+            if i < n - 1 {
+                col_sum[i] += self.dl[i + 1].abs();
+            }
+            if i > 0 {
+                col_sum[i] += self.du[i - 1].abs();
+            }
+        }
+        let mut max = A::Real::zero();
+        for &val in &col_sum {
+            if max < val {
+                max = val;
+            }
+        }
+        max
+    }
+}
+
 /// Represents the LU factorization of a tridiagonal matrix `A` as `A = P*L*U`.
 #[derive(Clone, PartialEq)]
 pub struct LUFactorizedTridiagonal<A: Scalar> {
@@ -41,6 +63,8 @@ pub struct LUFactorizedTridiagonal<A: Scalar> {
     pub du2: Vec<A>,
     /// The pivot indices that define the permutation matrix `P`.
     pub ipiv: Pivot,
+
+    a_opnorm_one: A::Real,
 }
 
 impl<A: Scalar> Index<(i32, i32)> for Tridiagonal<A> {
@@ -66,6 +90,14 @@ impl<A: Scalar> Index<(i32, i32)> for Tridiagonal<A> {
     }
 }
 
+impl<A: Scalar> Index<[i32; 2]> for Tridiagonal<A> {
+    type Output = A;
+    #[inline]
+    fn index(&self, [row, col]: [i32; 2]) -> &A {
+        &self[(row, col)]
+    }
+}
+
 impl<A: Scalar> IndexMut<(i32, i32)> for Tridiagonal<A> {
     #[inline]
     fn index_mut(&mut self, (row, col): (i32, i32)) -> &mut A {
@@ -88,11 +120,18 @@ impl<A: Scalar> IndexMut<(i32, i32)> for Tridiagonal<A> {
     }
 }
 
+impl<A: Scalar> IndexMut<[i32; 2]> for Tridiagonal<A> {
+    #[inline]
+    fn index_mut(&mut self, [row, col]: [i32; 2]) -> &mut A {
+        &mut self[(row, col)]
+    }
+}
+
 /// Wraps `*gttrf`, `*gtcon` and `*gttrs`
 pub trait Tridiagonal_: Scalar + Sized {
     /// Computes the LU factorization of a tridiagonal `m x n` matrix `a` using
     /// partial pivoting with row interchanges.
-    unsafe fn lu_tridiagonal(a: &mut Tridiagonal<Self>) -> Result<(Vec<Self>, Pivot)>;
+    unsafe fn lu_tridiagonal(a: Tridiagonal<Self>) -> Result<LUFactorizedTridiagonal<Self>>;
 
     unsafe fn rcond_tridiagonal(lu: &LUFactorizedTridiagonal<Self>) -> Result<Self::Real>;
 
@@ -107,19 +146,27 @@ pub trait Tridiagonal_: Scalar + Sized {
 macro_rules! impl_tridiagonal {
     ($scalar:ty, $gttrf:path, $gtcon:path, $gttrs:path) => {
         impl Tridiagonal_ for $scalar {
-            unsafe fn lu_tridiagonal(a: &mut Tridiagonal<Self>) -> Result<(Vec<Self>, Pivot)> {
+            unsafe fn lu_tridiagonal(
+                mut a: Tridiagonal<Self>,
+            ) -> Result<LUFactorizedTridiagonal<Self>> {
                 let (n, _) = a.l.size();
                 let mut du2 = vec![Zero::zero(); (n - 2) as usize];
                 let mut ipiv = vec![0; n as usize];
+                // We have to calc one-norm before LU factorization
+                let a_opnorm_one = a.opnorm_one();
                 $gttrf(n, &mut a.dl, &mut a.d, &mut a.du, &mut du2, &mut ipiv)
                     .as_lapack_result()?;
-                Ok((du2, ipiv))
+                Ok(LUFactorizedTridiagonal {
+                    a,
+                    du2,
+                    ipiv,
+                    a_opnorm_one,
+                })
             }
 
             unsafe fn rcond_tridiagonal(lu: &LUFactorizedTridiagonal<Self>) -> Result<Self::Real> {
                 let (n, _) = lu.a.l.size();
                 let ipiv = &lu.ipiv;
-                let anorm = lu.anom;
                 let mut rcond = Self::Real::zero();
                 $gtcon(
                     NormType::One as u8,
@@ -129,7 +176,7 @@ macro_rules! impl_tridiagonal {
                     &lu.a.du,
                     &lu.du2,
                     ipiv,
-                    anorm,
+                    lu.a_opnorm_one,
                     &mut rcond,
                 )
                 .as_lapack_result()?;

@@ -1,5 +1,8 @@
 //! Linear Algebra eXtension (LAX)
 
+extern crate blas_src;
+extern crate lapack_src;
+
 pub mod cholesky;
 pub mod eig;
 pub mod eigh;

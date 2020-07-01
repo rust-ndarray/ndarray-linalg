@@ -12,6 +12,12 @@ license       = "MIT"
 readme        = "README.md"
 categories    = ["algorithms", "science"]
 
+[features]
+default   = []
+intel-mkl = ["lax/intel-mkl"]
+netlib    = ["lax/netlib"]
+openblas  = ["lax/openblas"]
+
 [dependencies]
 cauchy = "0.2.2"
 num-complex = "0.2.4"
@@ -28,7 +34,6 @@ default-features = false
 version = "0.1.0"
 path = "../lax"
 default-features = false
-features = ["openblas"]
 
 [dev-dependencies]
 paste = "0.1.9"

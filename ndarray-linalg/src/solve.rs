@@ -476,7 +476,8 @@ where
         self.ensure_square()?;
         match self.factorize() {
             Ok(fac) => fac.sln_det(),
-            Err(LinalgError::LapackComputationalFailure { .. }) => {
+            Err(LinalgError::Lapack(e)) if matches!(e, lapack::error::Error::LapackComputationalFailure {..}) =>
+            {
                 // The determinant is zero.
                 Ok((A::zero(), A::Real::neg_infinity()))
             }
@@ -494,7 +495,8 @@ where
         self.ensure_square()?;
         match self.factorize_into() {
             Ok(fac) => fac.sln_det_into(),
-            Err(LinalgError::LapackComputationalFailure { .. }) => {
+            Err(LinalgError::Lapack(e)) if matches!(e, lapack::error::Error::LapackComputationalFailure { .. }) =>
+            {
                 // The determinant is zero.
                 Ok((A::zero(), A::Real::neg_infinity()))
             }
@@ -538,11 +540,11 @@ where
 {
     fn rcond(&self) -> Result<A::Real> {
         unsafe {
-            A::rcond(
+            Ok(A::rcond(
                 self.a.layout()?,
                 self.a.as_allocated()?,
                 self.a.opnorm_one()?,
-            )
+            )?)
         }
     }
 }

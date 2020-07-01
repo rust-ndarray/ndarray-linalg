@@ -476,7 +476,7 @@ where
         self.ensure_square()?;
         match self.factorize() {
             Ok(fac) => fac.sln_det(),
-            Err(LinalgError::Lapack { return_code }) if return_code > 0 => {
+            Err(LinalgError::LapackComputationalFailure { .. }) => {
                 // The determinant is zero.
                 Ok((A::zero(), A::Real::neg_infinity()))
             }
@@ -494,7 +494,7 @@ where
         self.ensure_square()?;
         match self.factorize_into() {
             Ok(fac) => fac.sln_det_into(),
-            Err(LinalgError::Lapack { return_code }) if return_code > 0 => {
+            Err(LinalgError::LapackComputationalFailure { .. }) => {
                 // The determinant is zero.
                 Ok((A::zero(), A::Real::neg_infinity()))
             }

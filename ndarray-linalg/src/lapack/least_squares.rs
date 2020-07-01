@@ -1,13 +1,9 @@
 //! Least squares
 
+use super::*;
+use crate::{error::*, layout::MatrixLayout, types::*};
 use ndarray::{ErrorKind, ShapeError};
 use num_traits::Zero;
-
-use crate::error::*;
-use crate::layout::MatrixLayout;
-use crate::types::*;
-
-use super::into_result;
 
 /// Result of LeastSquares
 pub struct LeastSquaresOutput<A: Scalar> {
@@ -53,7 +49,7 @@ macro_rules! impl_least_squares {
                 let mut singular_values: Vec<Self::Real> = vec![Self::Real::zero(); k as usize];
                 let mut rank: i32 = 0;
 
-                let status = $gelsd(
+                $gelsd(
                     a_layout.lapacke_layout(),
                     m,
                     n,
@@ -67,15 +63,13 @@ macro_rules! impl_least_squares {
                     &mut singular_values,
                     rcond,
                     &mut rank,
-                );
-
-                into_result(
-                    status,
-                    LeastSquaresOutput {
-                        singular_values,
-                        rank,
-                    },
                 )
+                .as_lapack_result()?;
+
+                Ok(LeastSquaresOutput {
+                    singular_values,
+                    rank,
+                })
             }
 
             unsafe fn least_squares_nrhs(
@@ -99,7 +93,7 @@ macro_rules! impl_least_squares {
                 let mut singular_values: Vec<Self::Real> = vec![Self::Real::zero(); k as usize];
                 let mut rank: i32 = 0;
 
-                let status = $gelsd(
+                $gelsd(
                     a_layout.lapacke_layout(),
                     m,
                     n,
@@ -111,15 +105,12 @@ macro_rules! impl_least_squares {
                     &mut singular_values,
                     rcond,
                     &mut rank,
-                );
-
-                into_result(
-                    status,
-                    LeastSquaresOutput {
-                        singular_values,
-                        rank,
-                    },
                 )
+                .as_lapack_result()?;
+                Ok(LeastSquaresOutput {
+                    singular_values,
+                    rank,
+                })
             }
         }
     };

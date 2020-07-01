@@ -1,16 +1,9 @@
 //! Implement linear solver using LU decomposition
 //! for tridiagonal matrix
 
+use super::*;
+use crate::{error::*, layout::MatrixLayout, opnorm::*, tridiagonal::*, types::*};
 use num_traits::Zero;
-
-use super::NormType;
-use super::{into_result, Pivot, Transpose};
-
-use crate::error::*;
-use crate::layout::MatrixLayout;
-use crate::opnorm::*;
-use crate::tridiagonal::{LUFactorizedTridiagonal, Tridiagonal};
-use crate::types::*;
 
 /// Wraps `*gttrf`, `*gtcon` and `*gttrs`
 pub trait Tridiagonal_: Scalar + Sized {
@@ -37,8 +30,9 @@ macro_rules! impl_tridiagonal {
                 let anom = a.opnorm_one()?;
                 let mut du2 = vec![Zero::zero(); (n - 2) as usize];
                 let mut ipiv = vec![0; n as usize];
-                let info = $gttrf(n, &mut a.dl, &mut a.d, &mut a.du, &mut du2, &mut ipiv);
-                into_result(info, (du2, anom, ipiv))
+                $gttrf(n, &mut a.dl, &mut a.d, &mut a.du, &mut du2, &mut ipiv)
+                    .as_lapack_result()?;
+                Ok((du2, anom, ipiv))
             }
 
             unsafe fn rcond_tridiagonal(lu: &LUFactorizedTridiagonal<Self>) -> Result<Self::Real> {
@@ -46,7 +40,7 @@ macro_rules! impl_tridiagonal {
                 let ipiv = &lu.ipiv;
                 let anorm = lu.anom;
                 let mut rcond = Self::Real::zero();
-                let info = $gtcon(
+                $gtcon(
                     NormType::One as u8,
                     n,
                     &lu.a.dl,
@@ -56,8 +50,9 @@ macro_rules! impl_tridiagonal {
                     ipiv,
                     anorm,
                     &mut rcond,
-                );
-                into_result(info, rcond)
+                )
+                .as_lapack_result()?;
+                Ok(rcond)
             }
 
             unsafe fn solve_tridiagonal(
@@ -70,7 +65,7 @@ macro_rules! impl_tridiagonal {
                 let (_, nrhs) = bl.size();
                 let ipiv = &lu.ipiv;
                 let ldb = bl.lda();
-                let info = $gttrs(
+                $gttrs(
                     lu.a.l.lapacke_layout(),
                     t as u8,
                     n,
@@ -82,8 +77,9 @@ macro_rules! impl_tridiagonal {
                     ipiv,
                     b,
                     ldb,
-                );
-                into_result(info, ())
+                )
+                .as_lapack_result()?;
+                Ok(())
             }
         }
     };

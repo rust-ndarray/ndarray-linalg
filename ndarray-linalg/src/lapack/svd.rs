@@ -1,12 +1,8 @@
 //! Singular-value decomposition
 
+use super::*;
+use crate::{error::*, layout::MatrixLayout, types::*};
 use num_traits::Zero;
-
-use crate::error::*;
-use crate::layout::MatrixLayout;
-use crate::types::*;
-
-use super::into_result;
 
 #[repr(u8)]
 enum FlagSVD {
@@ -60,7 +56,7 @@ macro_rules! impl_svd {
                 };
                 let mut s = vec![Self::Real::zero(); k as usize];
                 let mut superb = vec![Self::Real::zero(); (k - 1) as usize];
-                let info = $gesvd(
+                $gesvd(
                     l.lapacke_layout(),
                     ju as u8,
                     jvt as u8,
@@ -74,15 +70,13 @@ macro_rules! impl_svd {
                     &mut vt,
                     ldvt,
                     &mut superb,
-                );
-                into_result(
-                    info,
-                    SVDOutput {
-                        s,
-                        u: if calc_u { Some(u) } else { None },
-                        vt: if calc_vt { Some(vt) } else { None },
-                    },
                 )
+                .as_lapack_result()?;
+                Ok(SVDOutput {
+                    s,
+                    u: if calc_u { Some(u) } else { None },
+                    vt: if calc_vt { Some(vt) } else { None },
+                })
             }
         }
     };

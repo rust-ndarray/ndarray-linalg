@@ -1,13 +1,8 @@
 //! Solve linear problem using LU decomposition
 
+use super::*;
+use crate::{error::*, layout::MatrixLayout, types::*};
 use num_traits::Zero;
-
-use crate::error::*;
-use crate::layout::MatrixLayout;
-use crate::types::*;
-
-use super::NormType;
-use super::{into_result, Pivot, Transpose};
 
 /// Wraps `*getrf`, `*getri`, and `*getrs`
 pub trait Solve_: Scalar + Sized {
@@ -41,20 +36,20 @@ macro_rules! impl_solve {
                 let (row, col) = l.size();
                 let k = ::std::cmp::min(row, col);
                 let mut ipiv = vec![0; k as usize];
-                let info = $getrf(l.lapacke_layout(), row, col, a, l.lda(), &mut ipiv);
-                into_result(info, ipiv)
+                $getrf(l.lapacke_layout(), row, col, a, l.lda(), &mut ipiv).as_lapack_result()?;
+                Ok(ipiv)
             }
 
             unsafe fn inv(l: MatrixLayout, a: &mut [Self], ipiv: &Pivot) -> Result<()> {
                 let (n, _) = l.size();
-                let info = $getri(l.lapacke_layout(), n, a, l.lda(), ipiv);
-                into_result(info, ())
+                $getri(l.lapacke_layout(), n, a, l.lda(), ipiv).as_lapack_result()?;
+                Ok(())
             }
 
             unsafe fn rcond(l: MatrixLayout, a: &[Self], anorm: Self::Real) -> Result<Self::Real> {
                 let (n, _) = l.size();
                 let mut rcond = Self::Real::zero();
-                let info = $gecon(
+                $gecon(
                     l.lapacke_layout(),
                     NormType::One as u8,
                     n,
@@ -62,8 +57,9 @@ macro_rules! impl_solve {
                     l.lda(),
                     anorm,
                     &mut rcond,
-                );
-                into_result(info, rcond)
+                )
+                .as_lapack_result()?;
+                Ok(rcond)
             }
 
             unsafe fn solve(
@@ -76,7 +72,7 @@ macro_rules! impl_solve {
                 let (n, _) = l.size();
                 let nrhs = 1;
                 let ldb = 1;
-                let info = $getrs(
+                $getrs(
                     l.lapacke_layout(),
                     t as u8,
                     n,
@@ -86,8 +82,9 @@ macro_rules! impl_solve {
                     ipiv,
                     b,
                     ldb,
-                );
-                into_result(info, ())
+                )
+                .as_lapack_result()?;
+                Ok(())
             }
         }
     };

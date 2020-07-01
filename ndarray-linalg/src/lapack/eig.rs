@@ -1,12 +1,8 @@
 //! Eigenvalue decomposition for general matrices
 
+use super::*;
+use crate::{error::*, layout::MatrixLayout, types::*};
 use num_traits::Zero;
-
-use crate::error::*;
-use crate::layout::MatrixLayout;
-use crate::types::*;
-
-use super::into_result;
 
 /// Wraps `*geev` for real/complex
 pub trait Eig_: Scalar {
@@ -30,7 +26,7 @@ macro_rules! impl_eig_complex {
                 let mut w = vec![Self::Complex::zero(); n as usize];
                 let mut vl = Vec::new();
                 let mut vr = vec![Self::Complex::zero(); (n * n) as usize];
-                let info = $ev(
+                $ev(
                     l.lapacke_layout(),
                     b'N',
                     jobvr,
@@ -42,8 +38,9 @@ macro_rules! impl_eig_complex {
                     n,
                     &mut vr,
                     n,
-                );
-                into_result(info, (w, vr))
+                )
+                .as_lapack_result()?;
+                Ok((w, vr))
             }
         }
     };
@@ -82,6 +79,7 @@ macro_rules! impl_eig_real {
                     .zip(wi.iter())
                     .map(|(&r, &i)| Self::Complex::new(r, i))
                     .collect();
+
                 // If the j-th eigenvalue is real, then
                 // eigenvector = [ vr[j], vr[j+n], vr[j+2*n], ... ].
                 //
@@ -121,7 +119,8 @@ macro_rules! impl_eig_real {
                     })
                     .collect();
 
-                into_result(info, (w, v))
+                info.as_lapack_result()?;
+                Ok((w, v))
             }
         }
     };

@@ -1,11 +1,6 @@
+use super::*;
+use crate::{error::*, layout::MatrixLayout, svddc::UVTFlag, types::*};
 use num_traits::Zero;
-
-use crate::error::*;
-use crate::layout::MatrixLayout;
-use crate::svddc::UVTFlag;
-use crate::types::*;
-
-use super::{into_result, SVDOutput};
 
 pub trait SVDDC_: Scalar {
     unsafe fn svddc(l: MatrixLayout, jobz: UVTFlag, a: &mut [Self]) -> Result<SVDOutput<Self>>;
@@ -32,7 +27,7 @@ macro_rules! impl_svdd {
                 let ldu = l.resized(m, ucol).lda();
                 let mut vt = vec![Self::zero(); (vtrow * n).max(1) as usize];
                 let ldvt = l.resized(vtrow, n).lda();
-                let info = $gesdd(
+                $gesdd(
                     l.lapacke_layout(),
                     jobz as u8,
                     m,
@@ -44,19 +39,17 @@ macro_rules! impl_svdd {
                     ldu,
                     &mut vt,
                     ldvt,
-                );
-                into_result(
-                    info,
-                    SVDOutput {
-                        s,
-                        u: if jobz == UVTFlag::None { None } else { Some(u) },
-                        vt: if jobz == UVTFlag::None {
-                            None
-                        } else {
-                            Some(vt)
-                        },
-                    },
                 )
+                .as_lapack_result()?;
+                Ok(SVDOutput {
+                    s,
+                    u: if jobz == UVTFlag::None { None } else { Some(u) },
+                    vt: if jobz == UVTFlag::None {
+                        None
+                    } else {
+                        Some(vt)
+                    },
+                })
             }
         }
     };

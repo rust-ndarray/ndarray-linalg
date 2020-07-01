@@ -1,13 +1,9 @@
 //! QR decomposition
 
+use super::*;
+use crate::{error::*, layout::MatrixLayout, types::*};
 use num_traits::Zero;
 use std::cmp::min;
-
-use crate::error::*;
-use crate::layout::MatrixLayout;
-use crate::types::*;
-
-use super::into_result;
 
 /// Wraps `*geqrf` and `*orgqr` (`*ungqr` for complex numbers)
 pub trait QR_: Sized {
@@ -23,15 +19,15 @@ macro_rules! impl_qr {
                 let (row, col) = l.size();
                 let k = min(row, col);
                 let mut tau = vec![Self::zero(); k as usize];
-                let info = $qrf(l.lapacke_layout(), row, col, &mut a, l.lda(), &mut tau);
-                into_result(info, tau)
+                $qrf(l.lapacke_layout(), row, col, &mut a, l.lda(), &mut tau).as_lapack_result()?;
+                Ok(tau)
             }
 
             unsafe fn q(l: MatrixLayout, mut a: &mut [Self], tau: &[Self]) -> Result<()> {
                 let (row, col) = l.size();
                 let k = min(row, col);
-                let info = $gqr(l.lapacke_layout(), row, k, k, &mut a, l.lda(), &tau);
-                into_result(info, ())
+                $gqr(l.lapacke_layout(), row, k, k, &mut a, l.lda(), &tau).as_lapack_result()?;
+                Ok(())
             }
 
             unsafe fn qr(l: MatrixLayout, a: &mut [Self]) -> Result<Vec<Self>> {

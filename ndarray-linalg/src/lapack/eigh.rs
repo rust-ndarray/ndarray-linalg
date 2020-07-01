@@ -1,12 +1,8 @@
 //! Eigenvalue decomposition for Hermite matrices
 
+use super::*;
+use crate::{error::*, layout::MatrixLayout, types::*};
 use num_traits::Zero;
-
-use crate::error::*;
-use crate::layout::MatrixLayout;
-use crate::types::*;
-
-use super::{into_result, UPLO};
 
 /// Wraps `*syev` for real and `*heev` for complex
 pub trait Eigh_: Scalar {
@@ -37,8 +33,9 @@ macro_rules! impl_eigh {
                 let (n, _) = l.size();
                 let jobz = if calc_v { b'V' } else { b'N' };
                 let mut w = vec![Self::Real::zero(); n as usize];
-                let info = $ev(l.lapacke_layout(), jobz, uplo as u8, n, &mut a, n, &mut w);
-                into_result(info, w)
+                $ev(l.lapacke_layout(), jobz, uplo as u8, n, &mut a, n, &mut w)
+                    .as_lapack_result()?;
+                Ok(w)
             }
 
             unsafe fn eigh_generalized(
@@ -51,7 +48,7 @@ macro_rules! impl_eigh {
                 let (n, _) = l.size();
                 let jobz = if calc_v { b'V' } else { b'N' };
                 let mut w = vec![Self::Real::zero(); n as usize];
-                let info = $evg(
+                $evg(
                     l.lapacke_layout(),
                     1,
                     jobz,
@@ -62,8 +59,9 @@ macro_rules! impl_eigh {
                     &mut b,
                     n,
                     &mut w,
-                );
-                into_result(info, w)
+                )
+                .as_lapack_result()?;
+                Ok(w)
             }
         }
     };

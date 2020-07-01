@@ -54,11 +54,19 @@ impl Lapack for f64 {}
 impl Lapack for c32 {}
 impl Lapack for c64 {}
 
-pub fn into_result<T>(return_code: i32, val: T) -> Result<T> {
-    if return_code == 0 {
-        Ok(val)
-    } else {
-        Err(LinalgError::Lapack { return_code })
+trait AsLapackResult {
+    fn as_lapack_result(self) -> Result<()>;
+}
+
+impl AsLapackResult for i32 {
+    fn as_lapack_result(self) -> Result<()> {
+        if self > 0 {
+            return Err(LinalgError::LapackComputationalFailure { return_code: self });
+        }
+        if self < 0 {
+            return Err(LinalgError::LapackInvalidValue { return_code: self });
+        }
+        Ok(())
     }
 }
 

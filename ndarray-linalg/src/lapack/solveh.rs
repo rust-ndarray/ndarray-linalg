@@ -2,11 +2,8 @@
 //!
 //! See also [the manual of dsytrf](http://www.netlib.org/lapack/lapack-3.1.1/html/dsytrf.f.html)
 
-use crate::error::*;
-use crate::layout::MatrixLayout;
-use crate::types::*;
-
-use super::{into_result, Pivot, UPLO};
+use super::*;
+use crate::{error::*, layout::MatrixLayout, types::*};
 
 pub trait Solveh_: Sized {
     /// Bunch-Kaufman: wrapper of `*sytrf` and `*hetrf`
@@ -33,8 +30,9 @@ macro_rules! impl_solveh {
                     // Work around bug in LAPACKE functions.
                     Ok(ipiv)
                 } else {
-                    let info = $trf(l.lapacke_layout(), uplo as u8, n, a, l.lda(), &mut ipiv);
-                    into_result(info, ipiv)
+                    $trf(l.lapacke_layout(), uplo as u8, n, a, l.lda(), &mut ipiv)
+                        .as_lapack_result()?;
+                    Ok(ipiv)
                 }
             }
 
@@ -45,8 +43,8 @@ macro_rules! impl_solveh {
                 ipiv: &Pivot,
             ) -> Result<()> {
                 let (n, _) = l.size();
-                let info = $tri(l.lapacke_layout(), uplo as u8, n, a, l.lda(), ipiv);
-                into_result(info, ())
+                $tri(l.lapacke_layout(), uplo as u8, n, a, l.lda(), ipiv).as_lapack_result()?;
+                Ok(())
             }
 
             unsafe fn solveh(
@@ -62,7 +60,7 @@ macro_rules! impl_solveh {
                     MatrixLayout::C(_) => 1,
                     MatrixLayout::F(_) => n,
                 };
-                let info = $trs(
+                $trs(
                     l.lapacke_layout(),
                     uplo as u8,
                     n,
@@ -72,8 +70,9 @@ macro_rules! impl_solveh {
                     ipiv,
                     b,
                     ldb,
-                );
-                into_result(info, ())
+                )
+                .as_lapack_result()?;
+                Ok(())
             }
         }
     };

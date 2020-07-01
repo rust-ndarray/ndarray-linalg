@@ -1,10 +1,7 @@
 //! Cholesky decomposition
 
-use crate::error::*;
-use crate::layout::MatrixLayout;
-use crate::types::*;
-
-use super::{into_result, UPLO};
+use super::*;
+use crate::{error::*, layout::MatrixLayout, types::*};
 
 pub trait Cholesky_: Sized {
     /// Cholesky: wrapper of `*potrf`
@@ -25,14 +22,14 @@ macro_rules! impl_cholesky {
         impl Cholesky_ for $scalar {
             unsafe fn cholesky(l: MatrixLayout, uplo: UPLO, a: &mut [Self]) -> Result<()> {
                 let (n, _) = l.size();
-                let info = $trf(l.lapacke_layout(), uplo as u8, n, a, n);
-                into_result(info, ())
+                $trf(l.lapacke_layout(), uplo as u8, n, a, n).as_lapack_result()?;
+                Ok(())
             }
 
             unsafe fn inv_cholesky(l: MatrixLayout, uplo: UPLO, a: &mut [Self]) -> Result<()> {
                 let (n, _) = l.size();
-                let info = $tri(l.lapacke_layout(), uplo as u8, n, a, l.lda());
-                into_result(info, ())
+                $tri(l.lapacke_layout(), uplo as u8, n, a, l.lda()).as_lapack_result()?;
+                Ok(())
             }
 
             unsafe fn solve_cholesky(
@@ -44,8 +41,9 @@ macro_rules! impl_cholesky {
                 let (n, _) = l.size();
                 let nrhs = 1;
                 let ldb = 1;
-                let info = $trs(l.lapacke_layout(), uplo as u8, n, nrhs, a, l.lda(), b, ldb);
-                into_result(info, ())
+                $trs(l.lapacke_layout(), uplo as u8, n, nrhs, a, l.lda(), b, ldb)
+                    .as_lapack_result()?;
+                Ok(())
             }
         }
     };

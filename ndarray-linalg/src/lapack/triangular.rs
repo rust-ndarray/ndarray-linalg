@@ -1,10 +1,7 @@
 //! Implement linear solver and inverse matrix
 
-use super::{into_result, Transpose, UPLO};
-
-use crate::error::*;
-use crate::layout::MatrixLayout;
-use crate::types::*;
+use super::*;
+use crate::{error::*, layout::MatrixLayout, types::*};
 
 #[derive(Debug, Clone, Copy)]
 #[repr(u8)]
@@ -37,8 +34,8 @@ macro_rules! impl_triangular {
             ) -> Result<()> {
                 let (n, _) = l.size();
                 let lda = l.lda();
-                let info = $trtri(l.lapacke_layout(), uplo as u8, diag as u8, n, a, lda);
-                into_result(info, ())
+                $trtri(l.lapacke_layout(), uplo as u8, diag as u8, n, a, lda).as_lapack_result()?;
+                Ok(())
             }
 
             unsafe fn solve_triangular(
@@ -53,7 +50,7 @@ macro_rules! impl_triangular {
                 let lda = al.lda();
                 let (_, nrhs) = bl.size();
                 let ldb = bl.lda();
-                let info = $trtrs(
+                $trtrs(
                     al.lapacke_layout(),
                     uplo as u8,
                     Transpose::No as u8,
@@ -64,8 +61,9 @@ macro_rules! impl_triangular {
                     lda,
                     &mut b,
                     ldb,
-                );
-                into_result(info, ())
+                )
+                .as_lapack_result()?;
+                Ok(())
             }
         }
     };

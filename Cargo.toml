@@ -28,6 +28,7 @@ num-traits  = "0.2.11"
 cauchy = "0.2.2"
 num-complex = "0.2.4"
 rand = "0.5"
+thiserror = "1.0.20"
 
 [dependencies.ndarray]
 version = "0.13.0"

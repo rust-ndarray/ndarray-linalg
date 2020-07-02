@@ -36,11 +36,11 @@ where
     S: DataOwned<Elem = A>,
 {
     match l {
-        MatrixLayout::C((row, col)) => {
-            Ok(ArrayBase::from_shape_vec((row as usize, col as usize), a)?)
+        MatrixLayout::C { row, lda } => {
+            Ok(ArrayBase::from_shape_vec((row as usize, lda as usize), a)?)
         }
-        MatrixLayout::F((col, row)) => Ok(ArrayBase::from_shape_vec(
-            (row as usize, col as usize).f(),
+        MatrixLayout::F { col, lda } => Ok(ArrayBase::from_shape_vec(
+            (lda as usize, col as usize).f(),
             a,
         )?),
     }
@@ -52,11 +52,11 @@ where
     S: DataOwned<Elem = A>,
 {
     match l {
-        MatrixLayout::C((row, col)) => unsafe {
-            ArrayBase::uninitialized((row as usize, col as usize))
+        MatrixLayout::C { row, lda } => unsafe {
+            ArrayBase::uninitialized((row as usize, lda as usize))
         },
-        MatrixLayout::F((col, row)) => unsafe {
-            ArrayBase::uninitialized((row as usize, col as usize).f())
+        MatrixLayout::F { col, lda } => unsafe {
+            ArrayBase::uninitialized((lda as usize, col as usize).f())
         },
     }
 }

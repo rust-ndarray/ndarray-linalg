@@ -96,8 +96,8 @@ where
         let layout = self.square_layout()?;
         // XXX Force layout to be Fortran (see #146)
         match layout {
-            MatrixLayout::C(_) => self.swap_axes(0, 1),
-            MatrixLayout::F(_) => {}
+            MatrixLayout::C { .. } => self.swap_axes(0, 1),
+            MatrixLayout::F { .. } => {}
         }
         let s = unsafe { A::eigh(true, self.square_layout()?, uplo, self.as_allocated_mut()?)? };
         Ok((ArrayBase::from(s), self))
@@ -116,14 +116,14 @@ where
         let layout = self.0.square_layout()?;
         // XXX Force layout to be Fortran (see #146)
         match layout {
-            MatrixLayout::C(_) => self.0.swap_axes(0, 1),
-            MatrixLayout::F(_) => {}
+            MatrixLayout::C { .. } => self.0.swap_axes(0, 1),
+            MatrixLayout::F { .. } => {}
         }
 
         let layout = self.1.square_layout()?;
         match layout {
-            MatrixLayout::C(_) => self.1.swap_axes(0, 1),
-            MatrixLayout::F(_) => {}
+            MatrixLayout::C { .. } => self.1.swap_axes(0, 1),
+            MatrixLayout::F { .. } => {}
         }
 
         let s = unsafe {

@@ -1,2 +1,5 @@
 [workspace]
-members = ["ndarray-linalg"]
+members = [
+  "ndarray-linalg",
+  "lax",
+]

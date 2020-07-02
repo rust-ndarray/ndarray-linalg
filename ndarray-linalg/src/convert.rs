@@ -35,7 +35,15 @@ pub fn into_matrix<A, S>(l: MatrixLayout, a: Vec<A>) -> Result<ArrayBase<S, Ix2>
 where
     S: DataOwned<Elem = A>,
 {
-    Ok(ArrayBase::from_shape_vec(l.as_shape(), a)?)
+    match l {
+        MatrixLayout::C((row, col)) => {
+            Ok(ArrayBase::from_shape_vec((row as usize, col as usize), a)?)
+        }
+        MatrixLayout::F((col, row)) => Ok(ArrayBase::from_shape_vec(
+            (row as usize, col as usize).f(),
+            a,
+        )?),
+    }
 }
 
 fn uninitialized<A, S>(l: MatrixLayout) -> ArrayBase<S, Ix2>
@@ -43,7 +51,14 @@ where
     A: Copy,
     S: DataOwned<Elem = A>,
 {
-    unsafe { ArrayBase::uninitialized(l.as_shape()) }
+    match l {
+        MatrixLayout::C((row, col)) => unsafe {
+            ArrayBase::uninitialized((row as usize, col as usize))
+        },
+        MatrixLayout::F((col, row)) => unsafe {
+            ArrayBase::uninitialized((row as usize, col as usize).f())
+        },
+    }
 }
 
 pub fn replicate<A, Sv, So, D>(a: &ArrayBase<Sv, D>) -> ArrayBase<So, D>

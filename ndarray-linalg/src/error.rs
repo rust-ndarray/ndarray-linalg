@@ -12,17 +12,9 @@ pub enum LinalgError {
     #[error("Not square: rows({}) != cols({})", rows, cols)]
     NotSquare { rows: i32, cols: i32 },
 
-    #[error(
-        "Invalid value for LAPACK subroutine {}-th argument",
-        -return_code
-    )]
-    LapackInvalidValue { return_code: i32 },
-
-    #[error(
-        "Comutational failure in LAPACK subroutine: return_code = {}",
-        return_code
-    )]
-    LapackComputationalFailure { return_code: i32 },
+    /// LAPACK subroutine returns non-zero code
+    #[error(transparent)]
+    Lapack(#[from] lapack::error::Error),
 
     /// Strides of the array is not supported
     #[error("invalid stride: s0={}, s1={}", s0, s1)]

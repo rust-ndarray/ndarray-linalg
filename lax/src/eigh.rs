@@ -1,7 +1,8 @@
 //! Eigenvalue decomposition for Hermite matrices
 
 use super::*;
-use crate::{error::*, layout::MatrixLayout, types::*};
+use crate::{error::*, layout::MatrixLayout};
+use cauchy::*;
 use num_traits::Zero;
 
 /// Wraps `*syev` for real and `*heev` for complex

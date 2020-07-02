@@ -337,7 +337,9 @@ pub fn lobpcg<
         // if this fails (or the algorithm was restarted), then just use span{R, X}
         let result = p_ap
             .as_ref()
-            .ok_or(LinalgError::LapackComputationalFailure { return_code: 1 })
+            .ok_or(LinalgError::Lapack(
+                lapack::error::Error::LapackComputationalFailure { return_code: 1 },
+            ))
             .and_then(|(active_p, active_ap)| {
                 let xap = x.t().dot(active_ap);
                 let rap = r.t().dot(active_ap);

@@ -1,9 +1,8 @@
 //! Operator norms of matrices
 
-use lapacke::Layout::ColumnMajor as cm;
-
 use crate::layout::MatrixLayout;
-use crate::types::*;
+use cauchy::*;
+use lapacke::Layout::ColumnMajor as cm;
 
 pub use super::NormType;
 

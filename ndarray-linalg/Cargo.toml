@@ -13,20 +13,15 @@ readme        = "README.md"
 categories    = ["algorithms", "science"]
 
 [features]
-default    = []
-intel-mkl  = ["lapack-src/intel-mkl", "blas-src/intel-mkl"]
-netlib     = ["lapack-src/netlib", "blas-src/netlib"]
-openblas   = ["lapack-src/openblas", "blas-src/openblas"]
-serde-1    = ["ndarray/serde-1", "num-complex/serde"]
-
-static          = ["openblas-static"]
-openblas-static = ["openblas", "openblas-src"]
+default   = []
+intel-mkl = ["lax/intel-mkl"]
+netlib    = ["lax/netlib"]
+openblas  = ["lax/openblas"]
 
 [dependencies]
-lapacke = "0.2.0"
-num-traits  = "0.2.11"
 cauchy = "0.2.2"
 num-complex = "0.2.4"
+num-traits  = "0.2.11"
 rand = "0.5"
 thiserror = "1.0.20"
 
@@ -35,19 +30,10 @@ version = "0.13.0"
 features = ["blas", "approx"]
 default-features = false
 
-[dependencies.blas-src]
-version = "0.6.1"
+[dependencies.lax]
+version = "0.1.0"
+path = "../lax"
 default-features = false
-
-[dependencies.lapack-src]
-version = "0.6.0"
-default-features = false
-
-[dependencies.openblas-src]
-version = "0.9.0"
-default-features = false
-features = ["static"]
-optional = true
 
 [dev-dependencies]
 paste = "0.1.9"

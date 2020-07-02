@@ -7,19 +7,7 @@ use super::error::*;
 use super::layout::*;
 use super::types::*;
 
-/// Specifies how many of the columns of *U* and rows of *V*ᵀ are computed and returned.
-///
-/// For an input array of shape *m*×*n*, the following are computed:
-#[derive(Clone, Copy, Eq, PartialEq)]
-#[repr(u8)]
-pub enum UVTFlag {
-    /// All *m* columns of *U* and all *n* rows of *V*ᵀ.
-    Full = b'A',
-    /// The first min(*m*,*n*) columns of *U* and the first min(*m*,*n*) rows of *V*ᵀ.
-    Some = b'S',
-    /// No columns of *U* or rows of *V*ᵀ.
-    None = b'N',
-}
+pub use lapack::svddc::UVTFlag;
 
 /// Singular-value decomposition of matrix (copying) by divide-and-conquer
 pub trait SVDDC {

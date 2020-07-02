@@ -3,7 +3,8 @@
 //! See also [the manual of dsytrf](http://www.netlib.org/lapack/lapack-3.1.1/html/dsytrf.f.html)
 
 use super::*;
-use crate::{error::*, layout::MatrixLayout, types::*};
+use crate::{error::*, layout::MatrixLayout};
+use cauchy::*;
 
 pub trait Solveh_: Sized {
     /// Bunch-Kaufman: wrapper of `*sytrf` and `*hetrf`

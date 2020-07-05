@@ -1,190 +1,289 @@
 use ndarray::*;
 use ndarray_linalg::*;
 
-#[test]
-fn dgeev() {
-    // https://software.intel.com/sites/products/documentation/doclib/mkl_sa/11/mkl_lapack_examples/dgeev_ex.f.htm
-    let a: Array2<f64> = arr2(&[
-        [-1.01, 0.86, -4.60, 3.31, -4.81],
-        [3.98, 0.53, -7.04, 5.29, 3.55],
-        [3.30, 8.26, -3.89, 8.20, -1.51],
-        [4.43, 4.96, -7.66, -7.33, 6.18],
-        [7.31, -6.43, -6.16, 2.47, 5.58],
-    ]);
-    let (e, vecs): (Array1<_>, Array2<_>) = (&a).eig().unwrap();
-    assert_close_l2!(
-        &e,
-        &arr1(&[
-            c64::new(2.86, 10.76),
-            c64::new(2.86, -10.76),
-            c64::new(-0.69, 4.70),
-            c64::new(-0.69, -4.70),
-            c64::new(-10.46, 0.00)
-        ]),
-        1.0e-3
-    );
-
-    /*
-    let answer = &arr2(&[[c64::new(  0.11,  0.17), c64::new(  0.11, -0.17), c64::new(  0.73,  0.00), c64::new(  0.73,  0.00), c64::new(  0.46,  0.00)],
-                         [c64::new(  0.41, -0.26), c64::new(  0.41,  0.26), c64::new( -0.03, -0.02), c64::new( -0.03,  0.02), c64::new(  0.34,  0.00)],
-                         [c64::new(  0.10, -0.51), c64::new(  0.10,  0.51), c64::new(  0.19, -0.29), c64::new(  0.19,  0.29), c64::new(  0.31,  0.00)],
-                         [c64::new(  0.40, -0.09), c64::new(  0.40,  0.09), c64::new( -0.08, -0.08), c64::new( -0.08,  0.08), c64::new( -0.74,  0.00)],
-                         [c64::new(  0.54,  0.00), c64::new(  0.54,  0.00), c64::new( -0.29, -0.49), c64::new( -0.29,  0.49), c64::new(  0.16,  0.00)]]);
-    */
-
-    let a_c: Array2<c64> = a.map(|f| c64::new(*f, 0.0));
-    for (i, v) in vecs.axis_iter(Axis(1)).enumerate() {
-        let av = a_c.dot(&v);
-        let ev = v.mapv(|f| e[i] * f);
-        assert_close_l2!(&av, &ev, 1.0e-7);
-    }
-}
-
-#[test]
-fn fgeev() {
-    // https://software.intel.com/sites/products/documentation/doclib/mkl_sa/11/mkl_lapack_examples/dgeev_ex.f.htm
-    let a: Array2<f32> = arr2(&[
-        [-1.01, 0.86, -4.60, 3.31, -4.81],
-        [3.98, 0.53, -7.04, 5.29, 3.55],
-        [3.30, 8.26, -3.89, 8.20, -1.51],
-        [4.43, 4.96, -7.66, -7.33, 6.18],
-        [7.31, -6.43, -6.16, 2.47, 5.58],
-    ]);
-    let (e, vecs): (Array1<_>, Array2<_>) = (&a).eig().unwrap();
-    assert_close_l2!(
-        &e,
-        &arr1(&[
-            c32::new(2.86, 10.76),
-            c32::new(2.86, -10.76),
-            c32::new(-0.69, 4.70),
-            c32::new(-0.69, -4.70),
-            c32::new(-10.46, 0.00)
-        ]),
-        1.0e-3
-    );
-
-    /*
-    let answer = &arr2(&[[c32::new(  0.11,  0.17), c32::new(  0.11, -0.17), c32::new(  0.73,  0.00), c32::new(  0.73,  0.00), c32::new(  0.46,  0.00)],
-                         [c32::new(  0.41, -0.26), c32::new(  0.41,  0.26), c32::new( -0.03, -0.02), c32::new( -0.03,  0.02), c32::new(  0.34,  0.00)],
-                         [c32::new(  0.10, -0.51), c32::new(  0.10,  0.51), c32::new(  0.19, -0.29), c32::new(  0.19,  0.29), c32::new(  0.31,  0.00)],
-                         [c32::new(  0.40, -0.09), c32::new(  0.40,  0.09), c32::new( -0.08, -0.08), c32::new( -0.08,  0.08), c32::new( -0.74,  0.00)],
-                         [c32::new(  0.54,  0.00), c32::new(  0.54,  0.00), c32::new( -0.29, -0.49), c32::new( -0.29,  0.49), c32::new(  0.16,  0.00)]]);
-    */
-
-    let a_c: Array2<c32> = a.map(|f| c32::new(*f, 0.0));
-    for (i, v) in vecs.axis_iter(Axis(1)).enumerate() {
-        let av = a_c.dot(&v);
-        let ev = v.mapv(|f| e[i] * f);
-        assert_close_l2!(&av, &ev, 1.0e-5);
-    }
-}
-
-#[test]
-fn zgeev() {
-    // https://software.intel.com/sites/products/documentation/doclib/mkl_sa/11/mkl_lapack_examples/zgeev_ex.f.htm
-    let a: Array2<c64> = arr2(&[
-        [
-            c64::new(-3.84, 2.25),
-            c64::new(-8.94, -4.75),
-            c64::new(8.95, -6.53),
-            c64::new(-9.87, 4.82),
-        ],
-        [
-            c64::new(-0.66, 0.83),
-            c64::new(-4.40, -3.82),
-            c64::new(-3.50, -4.26),
-            c64::new(-3.15, 7.36),
-        ],
-        [
-            c64::new(-3.99, -4.73),
-            c64::new(-5.88, -6.60),
-            c64::new(-3.36, -0.40),
-            c64::new(-0.75, 5.23),
-        ],
-        [
-            c64::new(7.74, 4.18),
-            c64::new(3.66, -7.53),
-            c64::new(2.58, 3.60),
-            c64::new(4.59, 5.41),
-        ],
-    ]);
-    let (e, vecs): (Array1<_>, Array2<_>) = (&a).eig().unwrap();
-    assert_close_l2!(
-        &e,
-        &arr1(&[
-            c64::new(-9.43, -12.98),
-            c64::new(-3.44, 12.69),
-            c64::new(0.11, -3.40),
-            c64::new(5.76, 7.13)
-        ]),
-        1.0e-3
-    );
-
-    /*
-    let answer = &arr2(&[[c64::new(  0.43,  0.33), c64::new(  0.83,  0.00), c64::new(  0.60,  0.00), c64::new( -0.31,  0.03)],
-                         [c64::new(  0.51, -0.03), c64::new(  0.08, -0.25), c64::new( -0.40, -0.20), c64::new(  0.04,  0.34)],
-                         [c64::new(  0.62,  0.00), c64::new( -0.25,  0.28), c64::new( -0.09, -0.48), c64::new(  0.36,  0.06)],
-                         [c64::new( -0.23,  0.11), c64::new( -0.10, -0.32), c64::new( -0.43,  0.13), c64::new(  0.81,  0.00)]]);
-    */
-
-    for (i, v) in vecs.axis_iter(Axis(1)).enumerate() {
+// Test Av_i = e_i v_i for i = 0..n
+fn test_eig<T: Scalar>(a: Array2<T>, eigs: Array1<T::Complex>, vecs: Array2<T::Complex>)
+where
+    T::Complex: Lapack,
+{
+    println!("a\n{:+.4}", &a);
+    println!("eigs\n{:+.4}", &eigs);
+    println!("vec\n{:+.4}", &vecs);
+    let a: Array2<T::Complex> = a.map(|v| v.as_c());
+    for (&e, v) in eigs.iter().zip(vecs.axis_iter(Axis(1))) {
         let av = a.dot(&v);
-        let ev = v.mapv(|f| e[i] * f);
-        assert_close_l2!(&av, &ev, 1.0e-7);
+        let ev = v.mapv(|val| val * e);
+        println!("av = {:+.4}", &av);
+        println!("ev = {:+.4}", &ev);
+        assert_close_l2!(&av, &ev, T::real(1e-3));
     }
 }
 
-#[test]
-fn cgeev() {
-    // https://software.intel.com/sites/products/documentation/doclib/mkl_sa/11/mkl_lapack_examples/zgeev_ex.f.htm
-    let a: Array2<c32> = arr2(&[
+// Test case for real Eigenvalue problem
+//
+//  -1.01   0.86  -4.60   3.31  -4.81
+//   3.98   0.53  -7.04   5.29   3.55
+//   3.30   8.26  -3.89   8.20  -1.51
+//   4.43   4.96  -7.66  -7.33   6.18
+//   7.31  -6.43  -6.16   2.47   5.58
+//
+// Eigenvalues
+// (  2.86, 10.76) (  2.86,-10.76) ( -0.69,  4.70) ( -0.69, -4.70) -10.46
+//
+// Left eigenvectors
+// (  0.04,  0.29) (  0.04, -0.29) ( -0.13, -0.33) ( -0.13,  0.33)   0.04
+// (  0.62,  0.00) (  0.62,  0.00) (  0.69,  0.00) (  0.69,  0.00)   0.56
+// ( -0.04, -0.58) ( -0.04,  0.58) ( -0.39, -0.07) ( -0.39,  0.07)  -0.13
+// (  0.28,  0.01) (  0.28, -0.01) ( -0.02, -0.19) ( -0.02,  0.19)  -0.80
+// ( -0.04,  0.34) ( -0.04, -0.34) ( -0.40,  0.22) ( -0.40, -0.22)   0.18
+//
+// Right eigenvectors
+// (  0.11,  0.17) (  0.11, -0.17) (  0.73,  0.00) (  0.73,  0.00)   0.46
+// (  0.41, -0.26) (  0.41,  0.26) ( -0.03, -0.02) ( -0.03,  0.02)   0.34
+// (  0.10, -0.51) (  0.10,  0.51) (  0.19, -0.29) (  0.19,  0.29)   0.31
+// (  0.40, -0.09) (  0.40,  0.09) ( -0.08, -0.08) ( -0.08,  0.08)  -0.74
+// (  0.54,  0.00) (  0.54,  0.00) ( -0.29, -0.49) ( -0.29,  0.49)   0.16
+//
+// - https://software.intel.com/sites/products/documentation/doclib/mkl_sa/11/mkl_lapack_examples/dgeev_ex.f.htm
+//
+fn test_matrix_real<T: Scalar>() -> Array2<T::Real> {
+    array![
         [
-            c32::new(-3.84, 2.25),
-            c32::new(-8.94, -4.75),
-            c32::new(8.95, -6.53),
-            c32::new(-9.87, 4.82),
+            T::real(-1.01),
+            T::real(0.86),
+            T::real(-4.60),
+            T::real(3.31),
+            T::real(-4.81)
         ],
         [
-            c32::new(-0.66, 0.83),
-            c32::new(-4.40, -3.82),
-            c32::new(-3.50, -4.26),
-            c32::new(-3.15, 7.36),
+            T::real(3.98),
+            T::real(0.53),
+            T::real(-7.04),
+            T::real(5.29),
+            T::real(3.55)
         ],
         [
-            c32::new(-3.99, -4.73),
-            c32::new(-5.88, -6.60),
-            c32::new(-3.36, -0.40),
-            c32::new(-0.75, 5.23),
+            T::real(3.30),
+            T::real(8.26),
+            T::real(-3.89),
+            T::real(8.20),
+            T::real(-1.51)
         ],
         [
-            c32::new(7.74, 4.18),
-            c32::new(3.66, -7.53),
-            c32::new(2.58, 3.60),
-            c32::new(4.59, 5.41),
+            T::real(4.43),
+            T::real(4.96),
+            T::real(-7.66),
+            T::real(-7.33),
+            T::real(6.18)
         ],
-    ]);
-    let (e, vecs): (Array1<_>, Array2<_>) = (&a).eig().unwrap();
-    assert_close_l2!(
-        &e,
-        &arr1(&[
-            c32::new(-9.43, -12.98),
-            c32::new(-3.44, 12.69),
-            c32::new(0.11, -3.40),
-            c32::new(5.76, 7.13)
-        ]),
-        1.0e-3
-    );
-
-    /*
-    let answer = &arr2(&[[c32::new(  0.43,  0.33), c32::new(  0.83,  0.00), c32::new(  0.60,  0.00), c32::new( -0.31,  0.03)],
-                         [c32::new(  0.51, -0.03), c32::new(  0.08, -0.25), c32::new( -0.40, -0.20), c32::new(  0.04,  0.34)],
-                         [c32::new(  0.62,  0.00), c32::new( -0.25,  0.28), c32::new( -0.09, -0.48), c32::new(  0.36,  0.06)],
-                         [c32::new( -0.23,  0.11), c32::new( -0.10, -0.32), c32::new( -0.43,  0.13), c32::new(  0.81,  0.00)]]);
-    */
-
-    for (i, v) in vecs.axis_iter(Axis(1)).enumerate() {
-        let av = a.dot(&v);
-        let ev = v.mapv(|f| e[i] * f);
-        assert_close_l2!(&av, &ev, 1.0e-5);
-    }
+        [
+            T::real(7.31),
+            T::real(-6.43),
+            T::real(-6.16),
+            T::real(2.47),
+            T::real(5.58)
+        ],
+    ]
 }
+
+fn test_matrix_real_t<T: Scalar>() -> Array2<T::Real> {
+    test_matrix_real::<T>().t().permuted_axes([1, 0]).to_owned()
+}
+
+fn answer_eig_real<T: Scalar>() -> Array1<T::Complex> {
+    array![
+        T::complex(-10.46, 0.00),
+        T::complex(-0.69, 4.70),
+        T::complex(-0.69, -4.70),
+        T::complex(2.86, 10.76),
+        T::complex(2.86, -10.76),
+    ]
+}
+
+// Test case for {c,z}geev
+//
+// ( -3.84,  2.25) ( -8.94, -4.75) (  8.95, -6.53) ( -9.87,  4.82)
+// ( -0.66,  0.83) ( -4.40, -3.82) ( -3.50, -4.26) ( -3.15,  7.36)
+// ( -3.99, -4.73) ( -5.88, -6.60) ( -3.36, -0.40) ( -0.75,  5.23)
+// (  7.74,  4.18) (  3.66, -7.53) (  2.58,  3.60) (  4.59,  5.41)
+//
+// Eigenvalues
+// ( -9.43,-12.98) ( -3.44, 12.69) (  0.11, -3.40) (  5.76,  7.13)
+//
+// Left eigenvectors
+// (  0.24, -0.18) (  0.61,  0.00) ( -0.18, -0.33) (  0.28,  0.09)
+// (  0.79,  0.00) ( -0.05, -0.27) (  0.82,  0.00) ( -0.55,  0.16)
+// (  0.22, -0.27) ( -0.21,  0.53) ( -0.37,  0.15) (  0.45,  0.09)
+// ( -0.02,  0.41) (  0.40, -0.24) (  0.06,  0.12) (  0.62,  0.00)
+//
+// Right eigenvectors
+// (  0.43,  0.33) (  0.83,  0.00) (  0.60,  0.00) ( -0.31,  0.03)
+// (  0.51, -0.03) (  0.08, -0.25) ( -0.40, -0.20) (  0.04,  0.34)
+// (  0.62,  0.00) ( -0.25,  0.28) ( -0.09, -0.48) (  0.36,  0.06)
+// ( -0.23,  0.11) ( -0.10, -0.32) ( -0.43,  0.13) (  0.81,  0.00)
+//
+// - https://software.intel.com/sites/products/documentation/doclib/mkl_sa/11/mkl_lapack_examples/zgeev_ex.f.htm
+//
+fn test_matrix_complex<T: Scalar>() -> Array2<T::Complex> {
+    array![
+        [
+            T::complex(-3.84, 2.25),
+            T::complex(-8.94, -4.75),
+            T::complex(8.95, -6.53),
+            T::complex(-9.87, 4.82)
+        ],
+        [
+            T::complex(-0.66, 0.83),
+            T::complex(-4.40, -3.82),
+            T::complex(-3.50, -4.26),
+            T::complex(-3.15, 7.36)
+        ],
+        [
+            T::complex(-3.99, -4.73),
+            T::complex(-5.88, -6.60),
+            T::complex(-3.36, -0.40),
+            T::complex(-0.75, 5.23)
+        ],
+        [
+            T::complex(7.74, 4.18),
+            T::complex(3.66, -7.53),
+            T::complex(2.58, 3.60),
+            T::complex(4.59, 5.41)
+        ]
+    ]
+}
+
+fn test_matrix_complex_t<T: Scalar>() -> Array2<T::Complex> {
+    test_matrix_complex::<T>()
+        .t()
+        .permuted_axes([1, 0])
+        .to_owned()
+}
+
+fn answer_eig_complex<T: Scalar>() -> Array1<T::Complex> {
+    array![
+        T::complex(-9.43, -12.98),
+        T::complex(-3.44, 12.69),
+        T::complex(0.11, -3.40),
+        T::complex(5.76, 7.13)
+    ]
+}
+
+// re-evaluated eigenvalues in f64 accuracy
+fn answer_eigvectors_complex<T: Scalar>() -> Array2<T::Complex> {
+    array![
+        [
+            T::complex(0.4308565200776108, 0.32681273781262143),
+            T::complex(0.8256820507672813, 0.),
+            T::complex(0.5983959785539453, 0.),
+            T::complex(-0.30543190348437826, 0.03333164861799901)
+        ],
+        [
+            T::complex(0.5087414602970965, -0.02883342170692809),
+            T::complex(0.07502916788141115, -0.2487285045091665),
+            T::complex(-0.40047616275207687, -0.2014492227625603),
+            T::complex(0.03978282815783273, 0.34450765221546126)
+        ],
+        [
+            T::complex(0.6198496527657755, 0.),
+            T::complex(-0.24575578997801528, 0.27887240221169646),
+            T::complex(-0.09008001907594984, -0.4752646215391732),
+            T::complex(0.3583254365159844, 0.06064506988524665)
+        ],
+        [
+            T::complex(-0.22692824331926856, 0.11043927846403584),
+            T::complex(-0.10343406372814358, -0.3192014653632327),
+            T::complex(-0.43484029549540404, 0.13372491785816037),
+            T::complex(0.8082432893178352, 0.)
+        ]
+    ]
+}
+
+macro_rules! impl_test_real {
+    ($real:ty) => {
+        paste::item! {
+            #[test]
+            fn [<$real _eigvals >]() {
+                let a = test_matrix_real::<$real>();
+                let (e, _vecs) = a.eig().unwrap();
+                assert_close_l2!(&e, &answer_eig_real::<$real>(), 1.0e-3);
+            }
+
+            #[test]
+            fn [<$real _eigvals_t>]() {
+                let a = test_matrix_real_t::<$real>();
+                let (e, _vecs) = a.eig().unwrap();
+                assert_close_l2!(&e, &answer_eig_real::<$real>(), 1.0e-3);
+            }
+
+            #[test]
+            fn [<$real _eig>]() {
+                let a = test_matrix_real::<$real>();
+                let (e, vecs) = a.eig().unwrap();
+                test_eig(a, e, vecs);
+            }
+
+            #[test]
+            fn [<$real _eig_t>]() {
+                let a = test_matrix_real_t::<$real>();
+                let (e, vecs) = a.eig().unwrap();
+                test_eig(a, e, vecs);
+            }
+
+        } // paste::item!
+    };
+}
+
+impl_test_real!(f32);
+impl_test_real!(f64);
+
+macro_rules! impl_test_complex {
+    ($complex:ty) => {
+        paste::item! {
+            #[test]
+            fn [<$complex _eigvals >]() {
+                let a = test_matrix_complex::<$complex>();
+                let (e, _vecs) = a.eig().unwrap();
+                assert_close_l2!(&e, &answer_eig_complex::<$complex>(), 1.0e-3);
+            }
+
+            #[test]
+            fn [<$complex _eigvals_t>]() {
+                let a = test_matrix_complex_t::<$complex>();
+                let (e, _vecs) = a.eig().unwrap();
+                assert_close_l2!(&e, &answer_eig_complex::<$complex>(), 1.0e-3);
+            }
+
+            #[test]
+            fn [<$complex _eigvector>]() {
+                let a = test_matrix_complex::<$complex>();
+                let (_e, vecs) = a.eig().unwrap();
+                assert_close_l2!(&vecs, &answer_eigvectors_complex::<$complex>(), 1.0e-3);
+            }
+
+            #[test]
+            fn [<$complex _eigvector_t>]() {
+                let a = test_matrix_complex_t::<$complex>();
+                let (_e, vecs) = a.eig().unwrap();
+                assert_close_l2!(&vecs, &answer_eigvectors_complex::<$complex>(), 1.0e-3);
+            }
+
+            #[test]
+            fn [<$complex _eig>]() {
+                let a = test_matrix_complex::<$complex>();
+                let (e, vecs) = a.eig().unwrap();
+                test_eig(a, e, vecs);
+            }
+
+            #[test]
+            fn [<$complex _eig_t>]() {
+                let a = test_matrix_complex_t::<$complex>();
+                let (e, vecs) = a.eig().unwrap();
+                test_eig(a, e, vecs);
+            }
+        } // paste::item!
+    };
+}
+
+impl_test_complex!(c32);
+impl_test_complex!(c64);

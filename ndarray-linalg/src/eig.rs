@@ -48,13 +48,11 @@ where
     fn eig(&self) -> Result<(Self::EigVal, Self::EigVec)> {
         let mut a = self.to_owned();
         let layout = a.square_layout()?;
-        let (s, t) = unsafe { A::eig(true, layout, a.as_allocated_mut()?)? };
-        let (n, _) = layout.size();
+        let (s, t) = A::eig(true, layout, a.as_allocated_mut()?)?;
+        let n = layout.len() as usize;
         Ok((
             ArrayBase::from(s),
-            ArrayBase::from(t)
-                .into_shape((n as usize, n as usize))
-                .unwrap(),
+            Array2::from_shape_vec((n, n).f(), t).unwrap(),
         ))
     }
 }
@@ -74,7 +72,7 @@ where
 
     fn eigvals(&self) -> Result<Self::EigVal> {
         let mut a = self.to_owned();
-        let (s, _) = unsafe { A::eig(true, a.square_layout()?, a.as_allocated_mut()?)? };
+        let (s, _) = A::eig(true, a.square_layout()?, a.as_allocated_mut()?)?;
         Ok(ArrayBase::from(s))
     }
 }

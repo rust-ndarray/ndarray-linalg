@@ -20,9 +20,13 @@ macro_rules! impl_rcond_real {
 
                 let mut work = vec![Self::zero(); 4 * n as usize];
                 let mut iwork = vec![0; n as usize];
+                let norm_type = match l {
+                    MatrixLayout::C { .. } => NormType::Infinity,
+                    MatrixLayout::F { .. } => NormType::One,
+                } as u8;
                 unsafe {
                     $gecon(
-                        NormType::One as u8,
+                        norm_type,
                         n,
                         a,
                         l.lda(),
@@ -53,9 +57,13 @@ macro_rules! impl_rcond_complex {
                 let mut info = 0;
                 let mut work = vec![Self::zero(); 2 * n as usize];
                 let mut rwork = vec![Self::Real::zero(); 2 * n as usize];
+                let norm_type = match l {
+                    MatrixLayout::C { .. } => NormType::Infinity,
+                    MatrixLayout::F { .. } => NormType::One,
+                } as u8;
                 unsafe {
                     $gecon(
-                        NormType::One as u8,
+                        norm_type,
                         n,
                         a,
                         l.lda(),

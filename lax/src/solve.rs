@@ -29,6 +29,10 @@ macro_rules! impl_solve {
             fn lu(l: MatrixLayout, a: &mut [Self]) -> Result<Pivot> {
                 let (row, col) = l.size();
                 assert_eq!(a.len() as i32, row * col);
+                if row == 0 || col == 0 {
+                    // Do nothing for empty matrix
+                    return Ok(Vec::new());
+                }
                 let k = ::std::cmp::min(row, col);
                 let mut ipiv = vec![0; k as usize];
                 let mut info = 0;

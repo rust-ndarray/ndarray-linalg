@@ -314,6 +314,7 @@ where
     S: Data<Elem = A>,
     A: Scalar + Lapack,
 {
+    let layout = a.layout().unwrap();
     let mut sign = A::Real::one();
     let mut ln_det = A::Real::zero();
     let mut ipiv_enum = ipiv_iter.enumerate();
@@ -337,9 +338,15 @@ where
             debug_assert_eq!(lower_diag.im(), Zero::zero());
 
             // Off-diagonal elements, can be complex.
-            let off_diag = match uplo {
-                UPLO::Upper => unsafe { a.uget((k, k + 1)) },
-                UPLO::Lower => unsafe { a.uget((k + 1, k)) },
+            let off_diag = match layout {
+                MatrixLayout::C { .. } => match uplo {
+                    UPLO::Upper => unsafe { a.uget((k + 1, k)) },
+                    UPLO::Lower => unsafe { a.uget((k, k + 1)) },
+                },
+                MatrixLayout::F { .. } => match uplo {
+                    UPLO::Upper => unsafe { a.uget((k, k + 1)) },
+                    UPLO::Lower => unsafe { a.uget((k + 1, k)) },
+                },
             };
 
             // Determinant of 2x2 block.

@@ -113,15 +113,13 @@ where
     where
         Sb: DataMut<Elem = A>,
     {
-        unsafe {
-            A::solveh(
-                self.a.square_layout()?,
-                UPLO::Upper,
-                self.a.as_allocated()?,
-                &self.ipiv,
-                rhs.as_slice_mut().unwrap(),
-            )?
-        };
+        A::solveh(
+            self.a.square_layout()?,
+            UPLO::Upper,
+            self.a.as_allocated()?,
+            &self.ipiv,
+            rhs.as_slice_mut().unwrap(),
+        )?;
         Ok(rhs)
     }
 }
@@ -165,7 +163,7 @@ where
     S: DataMut<Elem = A>,
 {
     fn factorizeh_into(mut self) -> Result<BKFactorized<S>> {
-        let ipiv = unsafe { A::bk(self.square_layout()?, UPLO::Upper, self.as_allocated_mut()?)? };
+        let ipiv = A::bk(self.square_layout()?, UPLO::Upper, self.as_allocated_mut()?)?;
         Ok(BKFactorized { a: self, ipiv })
     }
 }
@@ -177,7 +175,7 @@ where
 {
     fn factorizeh(&self) -> Result<BKFactorized<OwnedRepr<A>>> {
         let mut a: Array2<A> = replicate(self);
-        let ipiv = unsafe { A::bk(a.square_layout()?, UPLO::Upper, a.as_allocated_mut()?)? };
+        let ipiv = A::bk(a.square_layout()?, UPLO::Upper, a.as_allocated_mut()?)?;
         Ok(BKFactorized { a, ipiv })
     }
 }
@@ -204,14 +202,12 @@ where
     type Output = ArrayBase<S, Ix2>;
 
     fn invh_into(mut self) -> Result<ArrayBase<S, Ix2>> {
-        unsafe {
-            A::invh(
-                self.a.square_layout()?,
-                UPLO::Upper,
-                self.a.as_allocated_mut()?,
-                &self.ipiv,
-            )?
-        };
+        A::invh(
+            self.a.square_layout()?,
+            UPLO::Upper,
+            self.a.as_allocated_mut()?,
+            &self.ipiv,
+        )?;
         triangular_fill_hermitian(&mut self.a, UPLO::Upper);
         Ok(self.a)
     }

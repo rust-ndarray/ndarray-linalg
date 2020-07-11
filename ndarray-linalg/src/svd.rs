@@ -4,7 +4,6 @@
 
 use ndarray::*;
 
-use super::convert::*;
 use super::error::*;
 use super::layout::*;
 use super::types::*;
@@ -99,12 +98,27 @@ where
         let l = self.layout()?;
         let svd_res = unsafe { A::svd(l, calc_u, calc_vt, self.as_allocated_mut()?)? };
         let (n, m) = l.size();
-        let u = svd_res
-            .u
-            .map(|u| into_matrix(l.resized(n, n), u).expect("Size of U mismatches"));
-        let vt = svd_res
-            .vt
-            .map(|vt| into_matrix(l.resized(m, m), vt).expect("Size of VT mismatches"));
+        let n = n as usize;
+        let m = m as usize;
+
+        let u = svd_res.u.map(|u| {
+            assert_eq!(u.len(), n * n);
+            match l {
+                MatrixLayout::F { .. } => Array::from_shape_vec((n, n).f(), u),
+                MatrixLayout::C { .. } => Array::from_shape_vec((n, n), u),
+            }
+            .unwrap()
+        });
+
+        let vt = svd_res.vt.map(|vt| {
+            assert_eq!(vt.len(), m * m);
+            match l {
+                MatrixLayout::F { .. } => Array::from_shape_vec((m, m).f(), vt),
+                MatrixLayout::C { .. } => Array::from_shape_vec((m, m), vt),
+            }
+            .unwrap()
+        });
+
         let s = ArrayBase::from(svd_res.s);
         Ok((u, s, vt))
     }

@@ -2,7 +2,6 @@
 
 use ndarray::*;
 
-use super::convert::*;
 use super::error::*;
 use super::layout::*;
 use super::types::*;
@@ -85,19 +84,36 @@ where
     ) -> Result<(Option<Self::U>, Self::Sigma, Option<Self::VT>)> {
         let l = self.layout()?;
         let svd_res = unsafe { A::svddc(l, uvt_flag, self.as_allocated_mut()?)? };
-        let (m, n) = l.size();
-        let k = m.min(n);
-        let (ldu, tdu, ldvt, tdvt) = match uvt_flag {
-            UVTFlag::Full => (m, m, n, n),
-            UVTFlag::Some => (m, k, k, n),
-            UVTFlag::None => (1, 1, 1, 1),
+        let (n, m) = l.size();
+        let k = std::cmp::min(n, m);
+        let n = n as usize;
+        let m = m as usize;
+        let k = k as usize;
+
+        let (u_col, vt_row) = match uvt_flag {
+            UVTFlag::Full => (n, m),
+            UVTFlag::Some => (k, k),
+            UVTFlag::None => (0, 0),
         };
-        let u = svd_res
-            .u
-            .map(|u| into_matrix(l.resized(ldu, tdu), u).expect("Size of U mismatches"));
-        let vt = svd_res
-            .vt
-            .map(|vt| into_matrix(l.resized(ldvt, tdvt), vt).expect("Size of VT mismatches"));
+
+        let u = svd_res.u.map(|u| {
+            assert_eq!(u.len(), n * u_col);
+            match l {
+                MatrixLayout::F { .. } => Array::from_shape_vec((n, u_col).f(), u),
+                MatrixLayout::C { .. } => Array::from_shape_vec((n, u_col), u),
+            }
+            .unwrap()
+        });
+
+        let vt = svd_res.vt.map(|vt| {
+            assert_eq!(vt.len(), m * vt_row);
+            match l {
+                MatrixLayout::F { .. } => Array::from_shape_vec((vt_row, m).f(), vt),
+                MatrixLayout::C { .. } => Array::from_shape_vec((vt_row, m), vt),
+            }
+            .unwrap()
+        });
+
         let s = ArrayBase::from(svd_res.s);
         Ok((u, s, vt))
     }

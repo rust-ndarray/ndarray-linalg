@@ -1,7 +1,7 @@
 use super::*;
 use crate::{error::*, layout::MatrixLayout};
 use cauchy::*;
-use num_traits::Zero;
+use num_traits::{ToPrimitive, Zero};
 
 /// Specifies how many of the columns of *U* and rows of *V*ᵀ are computed and returned.
 ///
@@ -29,49 +29,81 @@ macro_rules! impl_svddc_real {
                 jobz: UVTFlag,
                 mut a: &mut [Self],
             ) -> Result<SVDOutput<Self>> {
-                let (m, n) = l.size();
+                let m = l.lda();
+                let n = l.len();
                 let k = m.min(n);
-                let lda = l.lda();
-                let (ucol, vtrow) = match jobz {
-                    UVTFlag::Full => (m, n),
+                let mut s = vec![Self::Real::zero(); k as usize];
+
+                let (u_col, vt_row) = match jobz {
+                    UVTFlag::Full | UVTFlag::None => (m, n),
                     UVTFlag::Some => (k, k),
-                    UVTFlag::None => (1, 1),
                 };
-                let mut s = vec![Self::Real::zero(); k.max(1) as usize];
-                let mut u = vec![Self::zero(); (m * ucol).max(1) as usize];
-                let ldu = l.resized(m, ucol).lda();
-                let mut vt = vec![Self::zero(); (vtrow * n).max(1) as usize];
-                let ldvt = l.resized(vtrow, n).lda();
+                let (mut u, mut vt) = match jobz {
+                    UVTFlag::Full => (
+                        Some(vec![Self::zero(); (m * m) as usize]),
+                        Some(vec![Self::zero(); (n * n) as usize]),
+                    ),
+                    UVTFlag::Some => (
+                        Some(vec![Self::zero(); (m * u_col) as usize]),
+                        Some(vec![Self::zero(); (n * vt_row) as usize]),
+                    ),
+                    UVTFlag::None => (None, None),
+                };
+
+                // eval work size
+                let mut info = 0;
+                let mut iwork = vec![0; 8 * k as usize];
+                let mut work_size = [Self::zero()];
                 $gesdd(
-                    l.lapacke_layout(),
                     jobz as u8,
                     m,
                     n,
                     &mut a,
-                    lda,
+                    m,
                     &mut s,
-                    &mut u,
-                    ldu,
-                    &mut vt,
-                    ldvt,
-                )
-                .as_lapack_result()?;
-                Ok(SVDOutput {
-                    s,
-                    u: if jobz == UVTFlag::None { None } else { Some(u) },
-                    vt: if jobz == UVTFlag::None {
-                        None
-                    } else {
-                        Some(vt)
-                    },
-                })
+                    u.as_mut().map(|x| x.as_mut_slice()).unwrap_or(&mut []),
+                    m,
+                    vt.as_mut().map(|x| x.as_mut_slice()).unwrap_or(&mut []),
+                    vt_row,
+                    &mut work_size,
+                    -1,
+                    &mut iwork,
+                    &mut info,
+                );
+                info.as_lapack_result()?;
+
+                // do svd
+                let lwork = work_size[0].to_usize().unwrap();
+                let mut work = vec![Self::zero(); lwork];
+                $gesdd(
+                    jobz as u8,
+                    m,
+                    n,
+                    &mut a,
+                    m,
+                    &mut s,
+                    u.as_mut().map(|x| x.as_mut_slice()).unwrap_or(&mut []),
+                    m,
+                    vt.as_mut().map(|x| x.as_mut_slice()).unwrap_or(&mut []),
+                    vt_row,
+                    &mut work,
+                    lwork as i32,
+                    &mut iwork,
+                    &mut info,
+                );
+                info.as_lapack_result()?;
+
+                match l {
+                    MatrixLayout::F { .. } => Ok(SVDOutput { s, u, vt }),
+                    MatrixLayout::C { .. } => Ok(SVDOutput { s, u: vt, vt: u }),
+                }
             }
         }
     };
 }
 
-impl_svddc_real!(f32, lapacke::sgesdd);
-impl_svddc_real!(f64, lapacke::dgesdd);
+impl_svddc_real!(f32, lapack::sgesdd);
+impl_svddc_real!(f64, lapack::dgesdd);
 
 macro_rules! impl_svddc_complex {
     ($scalar:ty, $gesdd:path) => {

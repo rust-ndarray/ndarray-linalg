@@ -2,23 +2,23 @@ use criterion::*;
 use ndarray::*;
 use ndarray_linalg::*;
 
-fn eigh_small(c: &mut Criterion) {
-    let mut group = c.benchmark_group("eigh");
+fn factorize_small(c: &mut Criterion) {
+    let mut group = c.benchmark_group("factorize");
     for &n in &[4, 8, 16, 32, 64, 128] {
         group.bench_with_input(BenchmarkId::new("C", n), &n, |b, n| {
             let a: Array2<f64> = random((*n, *n));
             b.iter(|| {
-                let (_e, _vecs) = a.eigh(UPLO::Upper).unwrap();
+                let _lu = a.factorize().unwrap();
             })
         });
         group.bench_with_input(BenchmarkId::new("F", n), &n, |b, n| {
             let a: Array2<f64> = random((*n, *n).f());
             b.iter(|| {
-                let (_e, _vecs) = a.eigh(UPLO::Upper).unwrap();
+                let _lu = a.factorize().unwrap();
             })
         });
     }
 }
 
-criterion_group!(eigh, eigh_small);
-criterion_main!(eigh);
+criterion_group!(factorize, factorize_small);
+criterion_main!(factorize);

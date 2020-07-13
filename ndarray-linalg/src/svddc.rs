@@ -1,11 +1,7 @@
 //! Singular-value decomposition (SVD) by divide-and-conquer (?gesdd)
 
+use super::{convert::*, error::*, layout::*, types::*};
 use ndarray::*;
-
-use super::convert::*;
-use super::error::*;
-use super::layout::*;
-use super::types::*;
 
 pub use lapack::svddc::UVTFlag;
 
@@ -87,17 +83,21 @@ where
         let svd_res = unsafe { A::svddc(l, uvt_flag, self.as_allocated_mut()?)? };
         let (m, n) = l.size();
         let k = m.min(n);
-        let (ldu, tdu, ldvt, tdvt) = match uvt_flag {
-            UVTFlag::Full => (m, m, n, n),
-            UVTFlag::Some => (m, k, k, n),
-            UVTFlag::None => (1, 1, 1, 1),
+
+        let (u_col, vt_row) = match uvt_flag {
+            UVTFlag::Full => (m, n),
+            UVTFlag::Some => (k, k),
+            UVTFlag::None => (0, 0),
         };
+
         let u = svd_res
             .u
-            .map(|u| into_matrix(l.resized(ldu, tdu), u).expect("Size of U mismatches"));
+            .map(|u| into_matrix(l.resized(m, u_col), u).unwrap());
+
         let vt = svd_res
             .vt
-            .map(|vt| into_matrix(l.resized(ldvt, tdvt), vt).expect("Size of VT mismatches"));
+            .map(|vt| into_matrix(l.resized(vt_row, n), vt).unwrap());
+
         let s = ArrayBase::from(svd_res.s);
         Ok((u, s, vt))
     }

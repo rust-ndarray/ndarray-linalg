@@ -21,8 +21,14 @@ pub trait SVDDC_: Scalar {
     unsafe fn svddc(l: MatrixLayout, jobz: UVTFlag, a: &mut [Self]) -> Result<SVDOutput<Self>>;
 }
 
-macro_rules! impl_svddc_real {
-    ($scalar:ty, $gesdd:path) => {
+macro_rules! impl_svddc {
+    (@real, $scalar:ty, $gesdd:path) => {
+        impl_svddc!(@body, $scalar, $gesdd, );
+    };
+    (@complex, $scalar:ty, $gesdd:path) => {
+        impl_svddc!(@body, $scalar, $gesdd, rwork);
+    };
+    (@body, $scalar:ty, $gesdd:path, $($rwork_ident:ident),*) => {
         impl SVDDC_ for $scalar {
             unsafe fn svddc(
                 l: MatrixLayout,
@@ -50,6 +56,16 @@ macro_rules! impl_svddc_real {
                     UVTFlag::None => (None, None),
                 };
 
+                $( // for complex only
+                let mx = n.max(m) as usize;
+                let mn = n.min(m) as usize;
+                let lrwork = match jobz {
+                    UVTFlag::None => 7 * mn,
+                    _ => std::cmp::max(5*mn*mn + 5*mn, 2*mx*mn + 2*mn*mn + mn),
+                };
+                let mut $rwork_ident = vec![Self::Real::zero(); lrwork];
+                )*
+
                 // eval work size
                 let mut info = 0;
                 let mut iwork = vec![0; 8 * k as usize];
@@ -67,6 +83,7 @@ macro_rules! impl_svddc_real {
                     vt_row,
                     &mut work_size,
                     -1,
+                    $(&mut $rwork_ident,)*
                     &mut iwork,
                     &mut info,
                 );
@@ -88,6 +105,7 @@ macro_rules! impl_svddc_real {
                     vt_row,
                     &mut work,
                     lwork as i32,
+                    $(&mut $rwork_ident,)*
                     &mut iwork,
                     &mut info,
                 );
@@ -102,57 +120,7 @@ macro_rules! impl_svddc_real {
     };
 }
 
-impl_svddc_real!(f32, lapack::sgesdd);
-impl_svddc_real!(f64, lapack::dgesdd);
-
-macro_rules! impl_svddc_complex {
-    ($scalar:ty, $gesdd:path) => {
-        impl SVDDC_ for $scalar {
-            unsafe fn svddc(
-                l: MatrixLayout,
-                jobz: UVTFlag,
-                mut a: &mut [Self],
-            ) -> Result<SVDOutput<Self>> {
-                let (m, n) = l.size();
-                let k = m.min(n);
-                let lda = l.lda();
-                let (ucol, vtrow) = match jobz {
-                    UVTFlag::Full => (m, n),
-                    UVTFlag::Some => (k, k),
-                    UVTFlag::None => (1, 1),
-                };
-                let mut s = vec![Self::Real::zero(); k.max(1) as usize];
-                let mut u = vec![Self::zero(); (m * ucol).max(1) as usize];
-                let ldu = l.resized(m, ucol).lda();
-                let mut vt = vec![Self::zero(); (vtrow * n).max(1) as usize];
-                let ldvt = l.resized(vtrow, n).lda();
-                $gesdd(
-                    l.lapacke_layout(),
-                    jobz as u8,
-                    m,
-                    n,
-                    &mut a,
-                    lda,
-                    &mut s,
-                    &mut u,
-                    ldu,
-                    &mut vt,
-                    ldvt,
-                )
-                .as_lapack_result()?;
-                Ok(SVDOutput {
-                    s,
-                    u: if jobz == UVTFlag::None { None } else { Some(u) },
-                    vt: if jobz == UVTFlag::None {
-                        None
-                    } else {
-                        Some(vt)
-                    },
-                })
-            }
-        }
-    };
-}
-
-impl_svddc_complex!(c32, lapacke::cgesdd);
-impl_svddc_complex!(c64, lapacke::zgesdd);
+impl_svddc!(@real, f32, lapack::sgesdd);
+impl_svddc!(@real, f64, lapack::dgesdd);
+impl_svddc!(@complex, c32, lapack::cgesdd);
+impl_svddc!(@complex, c64, lapack::zgesdd);

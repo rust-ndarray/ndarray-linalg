@@ -36,65 +36,8 @@ macro_rules! impl_least_squares_real {
                 a: &mut [Self],
                 b: &mut [Self],
             ) -> Result<LeastSquaresOutput<Self>> {
-                let m = l.lda();
-                let n = l.len();
-                let k = m.min(n);
-                if (m as usize) > b.len() || (n as usize) > b.len() {
-                    return Err(Error::InvalidShape);
-                }
-                let rcond: Self::Real = -1.;
-                let mut singular_values: Vec<Self::Real> = vec![Self::Real::zero(); k as usize];
-                let mut rank: i32 = 0;
-
-                // eval work size
-                let mut info = 0;
-                let mut work_size = [Self::zero()];
-                let mut iwork_size = [0];
-                $gelsd(
-                    m,
-                    n,
-                    1, // nrhs
-                    a,
-                    m,
-                    b,
-                    b.len() as i32,
-                    &mut singular_values,
-                    rcond,
-                    &mut rank,
-                    &mut work_size,
-                    -1,
-                    &mut iwork_size,
-                    &mut info,
-                );
-                info.as_lapack_result()?;
-
-                // calc
-                let lwork = work_size[0].to_usize().unwrap();
-                let mut work = vec![Self::zero(); lwork];
-                let liwork = iwork_size[0].to_usize().unwrap();
-                let mut iwork = vec![0; liwork];
-                $gelsd(
-                    m,
-                    n,
-                    1, // nrhs
-                    a,
-                    m,
-                    b,
-                    b.len() as i32,
-                    &mut singular_values,
-                    rcond,
-                    &mut rank,
-                    &mut work,
-                    lwork as i32,
-                    &mut iwork,
-                    &mut info,
-                );
-                info.as_lapack_result()?;
-
-                Ok(LeastSquaresOutput {
-                    singular_values,
-                    rank,
-                })
+                let b_layout = l.resized(b.len() as i32, 1);
+                Self::least_squares_nrhs(l, a, b_layout, b)
             }
 
             unsafe fn least_squares_nrhs(

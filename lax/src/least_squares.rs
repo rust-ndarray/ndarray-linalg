@@ -28,25 +28,6 @@ pub trait LeastSquaresSvdDivideConquer_: Scalar {
     ) -> Result<LeastSquaresOutput<Self>>;
 }
 
-/// Eval iwork size
-///
-/// - NLVL   = INT( LOG_2( MIN( M, N ) / ( SMLSIZ + 1 ) ) ) + 1
-/// - LIWORK = 3 * MIN( M, N ) * NLVL + 11 * MIN( M, N )
-///
-/// where SMLSIZ is returned by ILAENV and is equal to the maximum size of the subproblems
-/// at the bottom of the computation tree (usually about 25).
-///
-/// We put SMLSIZ=0 to estimate NLVL as large as possible
-/// because its size will usually very small.
-fn iwork_size(m: i32, n: i32) -> usize {
-    let mn = m.min(n) as usize;
-    let nlvl = (mn.to_f32().unwrap().log2() + 1.0)
-        .max(0.0)
-        .to_usize()
-        .unwrap();
-    (3 * mn * nlvl + 11 * mn).max(1)
-}
-
 macro_rules! impl_least_squares_real {
     ($scalar:ty, $gelsd:path) => {
         impl LeastSquaresSvdDivideConquer_ for $scalar {
@@ -65,11 +46,10 @@ macro_rules! impl_least_squares_real {
                 let mut singular_values: Vec<Self::Real> = vec![Self::Real::zero(); k as usize];
                 let mut rank: i32 = 0;
 
-                let mut iwork = vec![0; iwork_size(m, n)];
-
                 // eval work size
                 let mut info = 0;
                 let mut work_size = [Self::zero()];
+                let mut iwork_size = [0];
                 $gelsd(
                     m,
                     n,
@@ -83,7 +63,7 @@ macro_rules! impl_least_squares_real {
                     &mut rank,
                     &mut work_size,
                     -1,
-                    &mut iwork,
+                    &mut iwork_size,
                     &mut info,
                 );
                 info.as_lapack_result()?;
@@ -91,6 +71,8 @@ macro_rules! impl_least_squares_real {
                 // calc
                 let lwork = work_size[0].to_usize().unwrap();
                 let mut work = vec![Self::zero(); lwork];
+                let liwork = iwork_size[0].to_usize().unwrap();
+                let mut iwork = vec![0; liwork];
                 $gelsd(
                     m,
                     n,
@@ -135,11 +117,10 @@ macro_rules! impl_least_squares_real {
                 let mut singular_values: Vec<Self::Real> = vec![Self::Real::zero(); k as usize];
                 let mut rank: i32 = 0;
 
-                let mut iwork = vec![0; iwork_size(m, n)];
-
                 // eval work size
                 let mut info = 0;
                 let mut work_size = [Self::zero()];
+                let mut iwork_size = [0];
                 $gelsd(
                     m,
                     n,
@@ -153,7 +134,7 @@ macro_rules! impl_least_squares_real {
                     &mut rank,
                     &mut work_size,
                     -1,
-                    &mut iwork,
+                    &mut iwork_size,
                     &mut info,
                 );
                 info.as_lapack_result()?;
@@ -161,6 +142,8 @@ macro_rules! impl_least_squares_real {
                 // calc
                 let lwork = work_size[0].to_usize().unwrap();
                 let mut work = vec![Self::zero(); lwork];
+                let liwork = iwork_size[0].to_usize().unwrap();
+                let mut iwork = vec![0; liwork];
                 $gelsd(
                     m,
                     n,

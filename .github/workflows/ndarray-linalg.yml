@@ -18,16 +18,10 @@ jobs:
 
   macos:
     runs-on: macos-10.15
-    env:
-      CC: gcc-9
-      FC: gfortran-9
-      LIBRARY_PATH: /usr/local/opt/gcc/lib/gcc/9
     strategy:
       fail-fast: false
       matrix:
         feature:
-          - netlib
-          - openblas
           - intel-mkl
     steps:
     - uses: actions/checkout@v1

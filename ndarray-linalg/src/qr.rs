@@ -61,7 +61,7 @@ where
 
     fn qr_square_inplace(&mut self) -> Result<(&mut Self, Self::R)> {
         let l = self.square_layout()?;
-        let r = unsafe { A::qr(l, self.as_allocated_mut()?)? };
+        let r = A::qr(l, self.as_allocated_mut()?)?;
         let r: Array2<_> = into_matrix(l, r)?;
         Ok((self, r.into_triangular(UPLO::Upper)))
     }
@@ -107,7 +107,7 @@ where
         let m = self.ncols();
         let k = ::std::cmp::min(n, m);
         let l = self.layout()?;
-        let r = unsafe { A::qr(l, self.as_allocated_mut()?)? };
+        let r = A::qr(l, self.as_allocated_mut()?)?;
         let r: Array2<_> = into_matrix(l, r)?;
         let q = self;
         Ok((take_slice(&q, n, k), take_slice_upper(&r, k, m)))

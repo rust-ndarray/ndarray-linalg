@@ -24,17 +24,29 @@ macro_rules! impl_cholesky {
         impl Cholesky_ for $scalar {
             fn cholesky(l: MatrixLayout, uplo: UPLO, a: &mut [Self]) -> Result<()> {
                 let (n, _) = l.size();
+                let mut info = 0;
+                let uplo = match l {
+                    MatrixLayout::F { .. } => uplo,
+                    MatrixLayout::C { .. } => uplo.t(),
+                };
                 unsafe {
-                    $trf(l.lapacke_layout(), uplo as u8, n, a, n).as_lapack_result()?;
+                    $trf(uplo as u8, n, a, n, &mut info);
                 }
+                info.as_lapack_result()?;
                 Ok(())
             }
 
             fn inv_cholesky(l: MatrixLayout, uplo: UPLO, a: &mut [Self]) -> Result<()> {
                 let (n, _) = l.size();
+                let mut info = 0;
+                let uplo = match l {
+                    MatrixLayout::F { .. } => uplo,
+                    MatrixLayout::C { .. } => uplo.t(),
+                };
                 unsafe {
-                    $tri(l.lapacke_layout(), uplo as u8, n, a, l.lda()).as_lapack_result()?;
+                    $tri(uplo as u8, n, a, l.lda(), &mut info);
                 }
+                info.as_lapack_result()?;
                 Ok(())
             }
 
@@ -46,18 +58,22 @@ macro_rules! impl_cholesky {
             ) -> Result<()> {
                 let (n, _) = l.size();
                 let nrhs = 1;
-                let ldb = 1;
+                let uplo = match l {
+                    MatrixLayout::F { .. } => uplo,
+                    MatrixLayout::C { .. } => uplo.t(),
+                };
+                let mut info = 0;
                 unsafe {
-                    $trs(l.lapacke_layout(), uplo as u8, n, nrhs, a, l.lda(), b, ldb)
-                        .as_lapack_result()?;
+                    $trs(uplo as u8, n, nrhs, a, l.lda(), b, n, &mut info);
                 }
+                info.as_lapack_result()?;
                 Ok(())
             }
         }
     };
 } // end macro_rules
 
-impl_cholesky!(f64, lapacke::dpotrf, lapacke::dpotri, lapacke::dpotrs);
-impl_cholesky!(f32, lapacke::spotrf, lapacke::spotri, lapacke::spotrs);
-impl_cholesky!(c64, lapacke::zpotrf, lapacke::zpotri, lapacke::zpotrs);
-impl_cholesky!(c32, lapacke::cpotrf, lapacke::cpotri, lapacke::cpotrs);
+impl_cholesky!(f64, lapack::dpotrf, lapack::dpotri, lapack::dpotrs);
+impl_cholesky!(f32, lapack::spotrf, lapack::spotri, lapack::spotrs);
+impl_cholesky!(c64, lapack::zpotrf, lapack::zpotri, lapack::zpotrs);
+impl_cholesky!(c32, lapack::cpotrf, lapack::cpotri, lapack::cpotrs);

@@ -91,7 +91,7 @@ where
 {
     let l = a.layout()?.toggle_order();
     let new = clone_with_layout(l, a);
-    ::std::mem::replace(a, new);
+    *a = new;
     Ok(a)
 }
 

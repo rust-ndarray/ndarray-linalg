@@ -65,11 +65,19 @@ macro_rules! impl_cholesky {
                 let mut info = 0;
                 if matches!(l, MatrixLayout::C { .. }) {
                     uplo = uplo.t();
+                    for val in b.iter_mut() {
+                        *val = val.conj();
+                    }
                 }
                 unsafe {
                     $trs(uplo as u8, n, nrhs, a, l.lda(), b, n, &mut info);
                 }
                 info.as_lapack_result()?;
+                if matches!(l, MatrixLayout::C { .. }) {
+                    for val in b.iter_mut() {
+                        *val = val.conj();
+                    }
+                }
                 Ok(())
             }
         }

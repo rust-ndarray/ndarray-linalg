@@ -37,6 +37,8 @@
 //! This `S` for a matrix `A` is called "leading dimension of the array A" in LAPACK document, and denoted by `lda`.
 //!
 
+use cauchy::Scalar;
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum MatrixLayout {
     C { row: i32, lda: i32 },
@@ -93,6 +95,47 @@ impl MatrixLayout {
         match *self {
             MatrixLayout::C { row, lda } => MatrixLayout::F { lda: row, col: lda },
             MatrixLayout::F { col, lda } => MatrixLayout::C { row: lda, lda: col },
+        }
+    }
+}
+
+/// In-place transpose of a square matrix by keeping F/C layout
+///
+/// Transpose for C-continuous array
+///
+/// ```rust
+/// # use lax::layout::*;
+/// let layout = MatrixLayout::C { row: 2, lda: 2 };
+/// let mut a = vec![1., 2., 3., 4.];
+/// square_transpose(layout, &mut a);
+/// assert_eq!(a, &[1., 3., 2., 4.]);
+/// ```
+///
+/// Transpose for F-continuous array
+///
+/// ```rust
+/// # use lax::layout::*;
+/// let layout = MatrixLayout::F { col: 2, lda: 2 };
+/// let mut a = vec![1., 3., 2., 4.];
+/// square_transpose(layout, &mut a);
+/// assert_eq!(a, &[1., 2., 3., 4.]);
+/// ```
+///
+/// Panics
+/// ------
+/// - If size of `a` and `layout` size mismatch
+///
+pub fn square_transpose<T: Scalar>(layout: MatrixLayout, a: &mut [T]) {
+    let (m, n) = layout.size();
+    let n = n as usize;
+    let m = m as usize;
+    assert_eq!(a.len(), n * m);
+    for i in 0..m {
+        for j in (i + 1)..n {
+            let a_ij = a[i * n + j];
+            let a_ji = a[j * m + i];
+            a[i * n + j] = a_ji.conj();
+            a[j * m + i] = a_ij.conj();
         }
     }
 }

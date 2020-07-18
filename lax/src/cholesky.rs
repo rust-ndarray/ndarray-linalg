@@ -1,7 +1,7 @@
 //! Cholesky decomposition
 
 use super::*;
-use crate::{error::*, layout::MatrixLayout};
+use crate::{error::*, layout::*};
 use cauchy::*;
 
 pub trait Cholesky_: Sized {
@@ -24,45 +24,48 @@ macro_rules! impl_cholesky {
         impl Cholesky_ for $scalar {
             fn cholesky(l: MatrixLayout, uplo: UPLO, a: &mut [Self]) -> Result<()> {
                 let (n, _) = l.size();
+                if matches!(l, MatrixLayout::C { .. }) {
+                    square_transpose(l, a);
+                }
                 let mut info = 0;
-                let uplo = match l {
-                    MatrixLayout::F { .. } => uplo,
-                    MatrixLayout::C { .. } => uplo.t(),
-                };
                 unsafe {
                     $trf(uplo as u8, n, a, n, &mut info);
                 }
                 info.as_lapack_result()?;
+                if matches!(l, MatrixLayout::C { .. }) {
+                    square_transpose(l, a);
+                }
                 Ok(())
             }
 
             fn inv_cholesky(l: MatrixLayout, uplo: UPLO, a: &mut [Self]) -> Result<()> {
                 let (n, _) = l.size();
+                if matches!(l, MatrixLayout::C { .. }) {
+                    square_transpose(l, a);
+                }
                 let mut info = 0;
-                let uplo = match l {
-                    MatrixLayout::F { .. } => uplo,
-                    MatrixLayout::C { .. } => uplo.t(),
-                };
                 unsafe {
                     $tri(uplo as u8, n, a, l.lda(), &mut info);
                 }
                 info.as_lapack_result()?;
+                if matches!(l, MatrixLayout::C { .. }) {
+                    square_transpose(l, a);
+                }
                 Ok(())
             }
 
             fn solve_cholesky(
                 l: MatrixLayout,
-                uplo: UPLO,
+                mut uplo: UPLO,
                 a: &[Self],
                 b: &mut [Self],
             ) -> Result<()> {
                 let (n, _) = l.size();
                 let nrhs = 1;
-                let uplo = match l {
-                    MatrixLayout::F { .. } => uplo,
-                    MatrixLayout::C { .. } => uplo.t(),
-                };
                 let mut info = 0;
+                if matches!(l, MatrixLayout::C { .. }) {
+                    uplo = uplo.t();
+                }
                 unsafe {
                     $trs(uplo as u8, n, nrhs, a, l.lda(), b, n, &mut info);
                 }

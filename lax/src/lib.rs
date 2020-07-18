@@ -126,6 +126,15 @@ pub enum UPLO {
     Lower = b'L',
 }
 
+impl UPLO {
+    pub fn t(self) -> Self {
+        match self {
+            UPLO::Upper => UPLO::Lower,
+            UPLO::Lower => UPLO::Upper,
+        }
+    }
+}
+
 #[derive(Debug, Clone, Copy)]
 #[repr(u8)]
 pub enum Transpose {

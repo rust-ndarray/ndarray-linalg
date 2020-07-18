@@ -155,7 +155,7 @@ where
 
     fn invc_into(self) -> Result<Self::Output> {
         let mut a = self.factor;
-        unsafe { A::inv_cholesky(a.square_layout()?, self.uplo, a.as_allocated_mut()?)? };
+        A::inv_cholesky(a.square_layout()?, self.uplo, a.as_allocated_mut()?)?;
         triangular_fill_hermitian(&mut a, self.uplo);
         Ok(a)
     }
@@ -173,14 +173,12 @@ where
     where
         Sb: DataMut<Elem = A>,
     {
-        unsafe {
-            A::solve_cholesky(
-                self.factor.square_layout()?,
-                self.uplo,
-                self.factor.as_allocated()?,
-                b.as_slice_mut().unwrap(),
-            )?
-        };
+        A::solve_cholesky(
+            self.factor.square_layout()?,
+            self.uplo,
+            self.factor.as_allocated()?,
+            b.as_slice_mut().unwrap(),
+        )?;
         Ok(b)
     }
 }
@@ -259,7 +257,7 @@ where
     S: DataMut<Elem = A>,
 {
     fn cholesky_inplace(&mut self, uplo: UPLO) -> Result<&mut Self> {
-        unsafe { A::cholesky(self.square_layout()?, uplo, self.as_allocated_mut()?)? };
+        A::cholesky(self.square_layout()?, uplo, self.as_allocated_mut()?)?;
         Ok(self.into_triangular(uplo))
     }
 }

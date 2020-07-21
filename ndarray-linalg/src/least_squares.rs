@@ -152,7 +152,7 @@ where
 /// valid representation for `ArrayBase`.
 impl<E, D> LeastSquaresSvd<D, E, Ix1> for ArrayBase<D, Ix2>
 where
-    E: Scalar + Lapack + LeastSquaresSvdDivideConquer_,
+    E: Scalar + Lapack,
     D: Data<Elem = E>,
 {
     /// Solve a least squares problem of the form `Ax = rhs`
@@ -175,7 +175,7 @@ where
 /// valid representation for `ArrayBase`.
 impl<E, D> LeastSquaresSvd<D, E, Ix2> for ArrayBase<D, Ix2>
 where
-    E: Scalar + Lapack + LeastSquaresSvdDivideConquer_,
+    E: Scalar + Lapack,
     D: Data<Elem = E>,
 {
     /// Solve a least squares problem of the form `Ax = rhs`
@@ -200,7 +200,7 @@ where
 /// valid representation for `ArrayBase`.
 impl<E, D> LeastSquaresSvdInto<D, E, Ix1> for ArrayBase<D, Ix2>
 where
-    E: Scalar + Lapack + LeastSquaresSvdDivideConquer_,
+    E: Scalar + Lapack,
     D: DataMut<Elem = E>,
 {
     /// Solve a least squares problem of the form `Ax = rhs`
@@ -226,7 +226,7 @@ where
 /// valid representation for `ArrayBase`.
 impl<E, D> LeastSquaresSvdInto<D, E, Ix2> for ArrayBase<D, Ix2>
 where
-    E: Scalar + Lapack + LeastSquaresSvdDivideConquer_,
+    E: Scalar + Lapack,
     D: DataMut<Elem = E>,
 {
     /// Solve a least squares problem of the form `Ax = rhs`
@@ -366,7 +366,7 @@ fn compute_least_squares_nrhs<E, D1, D2>(
     rhs: &mut ArrayBase<D2, Ix2>,
 ) -> Result<LeastSquaresResult<E, Ix2>>
 where
-    E: Scalar + Lapack + LeastSquaresSvdDivideConquer_,
+    E: Scalar + Lapack,
     D1: DataMut<Elem = E>,
     D2: DataMut<Elem = E>,
 {
@@ -376,7 +376,7 @@ where
         singular_values,
         rank,
     } = unsafe {
-        <E as LeastSquaresSvdDivideConquer_>::least_squares_nrhs(
+        E::least_squares_nrhs(
             a_layout,
             a.as_allocated_mut()?,
             rhs_layout,

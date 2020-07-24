@@ -36,6 +36,8 @@ macro_rules! impl_exact {
                 test_exact(a, b)
             }
 
+            /* Unsupported currently. See https://github.com/rust-ndarray/ndarray-linalg/issues/234
+
             #[test]
             fn [<least_squares_ $scalar _exact_ac_bf>]() {
                 let a: Array2<f64> = random((3, 3));
@@ -49,6 +51,8 @@ macro_rules! impl_exact {
                 let b: Array2<f64> = random((3, 2));
                 test_exact(a, b)
             }
+
+            */
 
             #[test]
             fn [<least_squares_ $scalar _exact_af_bf>]() {
@@ -104,6 +108,8 @@ macro_rules! impl_overdetermined {
                 test_overdetermined(a, b)
             }
 
+            /* Unsupported currently. See https://github.com/rust-ndarray/ndarray-linalg/issues/234
+
             #[test]
             fn [<least_squares_ $scalar _overdetermined_af_bc>]() {
                 let a: Array2<f64> = random((4, 3).f());
@@ -117,6 +123,8 @@ macro_rules! impl_overdetermined {
                 let b: Array2<f64> = random((4, 2).f());
                 test_overdetermined(a, b)
             }
+
+            */
 
             #[test]
             fn [<least_squares_ $scalar _overdetermined_af_bf>]() {
@@ -159,6 +167,8 @@ macro_rules! impl_underdetermined {
                 test_underdetermined(a, b)
             }
 
+            /* Unsupported currently. See https://github.com/rust-ndarray/ndarray-linalg/issues/234
+
             #[test]
             fn [<least_squares_ $scalar _underdetermined_af_bc>]() {
                 let a: Array2<f64> = random((3, 4).f());
@@ -172,6 +182,8 @@ macro_rules! impl_underdetermined {
                 let b: Array2<f64> = random((3, 2).f());
                 test_underdetermined(a, b)
             }
+
+            */
 
             #[test]
             fn [<least_squares_ $scalar _underdetermined_af_bf>]() {

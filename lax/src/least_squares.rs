@@ -42,6 +42,10 @@ macro_rules! impl_least_squares {
                 }
                 let k = ::std::cmp::min(m, n);
                 let nrhs = 1;
+                let ldb = match a_layout {
+                    MatrixLayout::F { .. } => m.max(n),
+                    MatrixLayout::C { .. } => 1,
+                };
                 let rcond: Self::Real = -1.;
                 let mut singular_values: Vec<Self::Real> = vec![Self::Real::zero(); k as usize];
                 let mut rank: i32 = 0;
@@ -54,9 +58,7 @@ macro_rules! impl_least_squares {
                     a,
                     a_layout.lda(),
                     b,
-                    // this is the 'leading dimension of b', in the case where
-                    // b is a single vector, this is 1
-                    nrhs,
+                    ldb,
                     &mut singular_values,
                     rcond,
                     &mut rank,

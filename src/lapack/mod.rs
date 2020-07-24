@@ -44,6 +44,7 @@ pub trait Lapack:
     + Eigh_
     + Triangular_
     + Tridiagonal_
+    + LeastSquaresSvdDivideConquer_
 {
 }
 

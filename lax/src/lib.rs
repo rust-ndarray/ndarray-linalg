@@ -110,6 +110,7 @@ pub trait Lapack:
     + Triangular_
     + Tridiagonal_
     + Rcond_
+    + LeastSquaresSvdDivideConquer_
 {
 }
 

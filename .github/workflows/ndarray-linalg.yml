@@ -28,7 +28,7 @@ jobs:
     - uses: actions-rs/cargo@v1
       with:
         command: test
-        args: --manifest-path=ndarray-linalg/Cargo.toml --features=${{ matrix.feature }} --no-default-features
+        args: --manifest-path=ndarray-linalg/Cargo.toml --features=${{ matrix.feature }} --no-default-features --all-targets
 
   linux:
     runs-on: ubuntu-18.04
@@ -49,4 +49,4 @@ jobs:
     - uses: actions-rs/cargo@v1
       with:
         command: test
-        args: --manifest-path=ndarray-linalg/Cargo.toml --features=${{ matrix.feature }} --no-default-features
+        args: --manifest-path=ndarray-linalg/Cargo.toml --features=${{ matrix.feature }} --no-default-features --all-targets

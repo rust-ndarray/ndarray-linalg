@@ -60,7 +60,7 @@
 //! // `a` and `b` have been moved, no longer valid
 //! ```
 
-use ndarray::{s, Array, Array1, Array2, ArrayBase, Axis, Data, DataMut, Dimension, Ix0, Ix1, Ix2};
+use ndarray::*;
 
 use crate::error::*;
 use crate::lapack::least_squares::*;
@@ -352,7 +352,10 @@ where
             // we need a new rhs b/c it will be overwritten with the solution
             // for which we need `n` entries
             let k = rhs.shape()[1];
-            let mut new_rhs = Array2::<E>::zeros((n, k));
+            let mut new_rhs = match self.layout()? {
+                MatrixLayout::C { .. } => Array2::<E>::zeros((n, k)),
+                MatrixLayout::F { .. } => Array2::<E>::zeros((n, k).f()),
+            };
             new_rhs.slice_mut(s![0..m, ..]).assign(rhs);
             compute_least_squares_nrhs(self, &mut new_rhs)
         } else {

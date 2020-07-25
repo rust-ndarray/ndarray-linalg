@@ -57,12 +57,12 @@ macro_rules! impl_least_squares {
                 //
                 // where
                 //   A : (m, n)
-                //   b : (m, p)
-                //   x : (n, p)
+                //   b : (max(m, n), nrhs)  // `b` has to store `x` on exit
+                //   x : (n, nrhs)
                 let (m, n) = a_layout.size();
-                let (m_, p) = b_layout.size();
+                let (m_, nrhs) = b_layout.size();
                 let k = m.min(n);
-                assert_eq!(m, m_);
+                assert!(m_ >= m);
 
                 // Transpose if a is C-continuous
                 let mut a_t = None;
@@ -98,7 +98,7 @@ macro_rules! impl_least_squares {
                 $gelsd(
                     m,
                     n,
-                    p,
+                    nrhs,
                     a_t.as_mut().map(|v| v.as_mut_slice()).unwrap_or(a),
                     a_layout.lda(),
                     b_t.as_mut().map(|v| v.as_mut_slice()).unwrap_or(b),
@@ -126,7 +126,7 @@ macro_rules! impl_least_squares {
                 $gelsd(
                     m,
                     n,
-                    p,
+                    nrhs,
                     a_t.as_mut().map(|v| v.as_mut_slice()).unwrap_or(a),
                     a_layout.lda(),
                     b_t.as_mut().map(|v| v.as_mut_slice()).unwrap_or(b),

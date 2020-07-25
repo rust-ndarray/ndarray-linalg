@@ -76,6 +76,7 @@ use crate::types::*;
 /// is a `m x 1` column vector. If `I` is `Ix2`, the RHS is a `n x k` matrix
 /// (which can be seen as solving `Ax = b` k times for different b) and
 /// the solution is a `m x k` matrix.
+#[derive(Debug, Clone)]
 pub struct LeastSquaresResult<E: Scalar, I: Dimension> {
     /// The singular values of the matrix A in `Ax = b`
     pub singular_values: Array1<E::Real>,
@@ -266,6 +267,9 @@ where
         &mut self,
         rhs: &mut ArrayBase<D, Ix1>,
     ) -> Result<LeastSquaresResult<E, Ix1>> {
+        if self.shape()[0] != rhs.shape()[0] {
+            return Err(ShapeError::from_kind(ErrorKind::IncompatibleShape).into());
+        }
         let (m, n) = (self.shape()[0], self.shape()[1]);
         if n > m {
             // we need a new rhs b/c it will be overwritten with the solution
@@ -284,21 +288,19 @@ fn compute_least_squares_srhs<E, D1, D2>(
     rhs: &mut ArrayBase<D2, Ix1>,
 ) -> Result<LeastSquaresResult<E, Ix1>>
 where
-    E: Scalar + Lapack + LeastSquaresSvdDivideConquer_,
+    E: Scalar + Lapack,
     D1: DataMut<Elem = E>,
     D2: DataMut<Elem = E>,
 {
     let LeastSquaresOutput::<E> {
         singular_values,
         rank,
-    } = unsafe {
-        <E as LeastSquaresSvdDivideConquer_>::least_squares(
-            a.layout()?,
-            a.as_allocated_mut()?,
-            rhs.as_slice_memory_order_mut()
-                .ok_or_else(|| LinalgError::MemoryNotCont)?,
-        )?
-    };
+    } = E::least_squares(
+        a.layout()?,
+        a.as_allocated_mut()?,
+        rhs.as_slice_memory_order_mut()
+            .ok_or_else(|| LinalgError::MemoryNotCont)?,
+    )?;
 
     let (m, n) = (a.shape()[0], a.shape()[1]);
     let solution = rhs.slice(s![0..n]).to_owned();
@@ -347,6 +349,9 @@ where
         &mut self,
         rhs: &mut ArrayBase<D, Ix2>,
     ) -> Result<LeastSquaresResult<E, Ix2>> {
+        if self.shape()[0] != rhs.shape()[0] {
+            return Err(ShapeError::from_kind(ErrorKind::IncompatibleShape).into());
+        }
         let (m, n) = (self.shape()[0], self.shape()[1]);
         if n > m {
             // we need a new rhs b/c it will be overwritten with the solution
@@ -378,14 +383,12 @@ where
     let LeastSquaresOutput::<E> {
         singular_values,
         rank,
-    } = unsafe {
-        E::least_squares_nrhs(
-            a_layout,
-            a.as_allocated_mut()?,
-            rhs_layout,
-            rhs.as_allocated_mut()?,
-        )?
-    };
+    } = E::least_squares_nrhs(
+        a_layout,
+        a.as_allocated_mut()?,
+        rhs_layout,
+        rhs.as_allocated_mut()?,
+    )?;
 
     let solution: Array2<E> = rhs.slice(s![..a.shape()[1], ..]).to_owned();
     let singular_values = Array::from_shape_vec((singular_values.len(),), singular_values)?;
@@ -549,28 +552,13 @@ mod tests {
     //
     // Testing error cases
     //
-
     #[test]
     fn incompatible_shape_error_on_mismatching_num_rows() {
         let a: Array2<f64> = array![[1., 2.], [4., 5.], [3., 4.]];
         let b: Array1<f64> = array![1., 2.];
-        let res = a.least_squares(&b);
-        match res {
-            Err(LinalgError::Lapack(err)) if matches!(err, lax::error::Error::InvalidShape) => {}
-            _ => panic!("Expected Err()"),
-        }
-    }
-
-    #[test]
-    fn incompatible_shape_error_on_mismatching_layout() {
-        let a: Array2<f64> = array![[1., 2.], [4., 5.], [3., 4.]];
-        let b = array![[1.], [2.]].t().to_owned();
-        assert_eq!(b.layout().unwrap(), MatrixLayout::F { col: 2, lda: 1 });
-
-        let res = a.least_squares(&b);
-        match res {
-            Err(LinalgError::Lapack(err)) if matches!(err, lax::error::Error::InvalidShape) => {}
-            _ => panic!("Expected Err()"),
+        match a.least_squares(&b) {
+            Err(LinalgError::Shape(e)) if e.kind() == ErrorKind::IncompatibleShape => {}
+            _ => panic!("Should be raise IncompatibleShape"),
         }
     }
 }

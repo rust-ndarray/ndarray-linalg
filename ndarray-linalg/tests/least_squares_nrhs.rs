@@ -9,6 +9,7 @@ fn test_exact<T: Scalar + Lapack>(a: Array2<T>, b: Array2<T>) {
     assert_eq!(b.layout().unwrap().size(), (3, 2));
 
     let result = a.least_squares(&b).unwrap();
+    dbg!(&result);
     // unpack result
     let x: Array2<T> = result.solution;
     let residual_l2_square: Array1<T::Real> = result.residual_sum_of_squares.unwrap();

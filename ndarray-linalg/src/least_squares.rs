@@ -76,6 +76,7 @@ use crate::types::*;
 /// is a `m x 1` column vector. If `I` is `Ix2`, the RHS is a `n x k` matrix
 /// (which can be seen as solving `Ax = b` k times for different b) and
 /// the solution is a `m x k` matrix.
+#[derive(Debug, Clone)]
 pub struct LeastSquaresResult<E: Scalar, I: Dimension> {
     /// The singular values of the matrix A in `Ax = b`
     pub singular_values: Array1<E::Real>,

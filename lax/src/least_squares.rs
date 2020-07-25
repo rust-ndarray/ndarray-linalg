@@ -1,6 +1,6 @@
 //! Least squares
 
-use crate::{error::*, layout::MatrixLayout};
+use crate::{error::*, layout::*};
 use cauchy::*;
 use num_traits::{ToPrimitive, Zero};
 
@@ -46,16 +46,37 @@ macro_rules! impl_least_squares_real {
                 b_layout: MatrixLayout,
                 b: &mut [Self],
             ) -> Result<LeastSquaresOutput<Self>> {
-                let m = a_layout.lda();
-                let n = a_layout.len();
+                // Minimize |b - Ax|_2
+                //
+                // where
+                //   A : (m, n)
+                //   b : (m, p)
+                //   x : (n, p)
+                let (m, n) = a_layout.size();
+                let (m_, p) = b_layout.size();
                 let k = m.min(n);
-                if (m as usize) > b.len()
-                    || (n as usize) > b.len()
-                    || a_layout.lapacke_layout() != b_layout.lapacke_layout()
-                {
-                    return Err(Error::InvalidShape);
-                }
-                let (b_lda, nrhs) = b_layout.size();
+                assert_eq!(m, m_);
+
+                // Transpose if a is C-continuous
+                let mut a_t = None;
+                let a_layout = match a_layout {
+                    MatrixLayout::C { .. } => {
+                        a_t = Some(vec![Self::zero(); a.len()]);
+                        transpose(a_layout, a, a_t.as_mut().unwrap())
+                    }
+                    MatrixLayout::F { .. } => a_layout,
+                };
+
+                // Transpose if b is C-continuous
+                let mut b_t = None;
+                let b_layout = match b_layout {
+                    MatrixLayout::C { .. } => {
+                        b_t = Some(vec![Self::zero(); b.len()]);
+                        transpose(b_layout, b, b_t.as_mut().unwrap())
+                    }
+                    MatrixLayout::F { .. } => b_layout,
+                };
+
                 let rcond: Self::Real = -1.;
                 let mut singular_values: Vec<Self::Real> = vec![Self::Real::zero(); k as usize];
                 let mut rank: i32 = 0;
@@ -67,11 +88,11 @@ macro_rules! impl_least_squares_real {
                 $gelsd(
                     m,
                     n,
-                    nrhs,
-                    a,
-                    m,
-                    b,
-                    b_lda,
+                    p,
+                    a_t.as_mut().map(|v| v.as_mut_slice()).unwrap_or(a),
+                    a_layout.lda(),
+                    b_t.as_mut().map(|v| v.as_mut_slice()).unwrap_or(b),
+                    b_layout.lda(),
                     &mut singular_values,
                     rcond,
                     &mut rank,
@@ -90,11 +111,11 @@ macro_rules! impl_least_squares_real {
                 $gelsd(
                     m,
                     n,
-                    nrhs,
-                    a,
-                    m,
-                    b,
-                    b_lda,
+                    p,
+                    a_t.as_mut().map(|v| v.as_mut_slice()).unwrap_or(a),
+                    a_layout.lda(),
+                    b_t.as_mut().map(|v| v.as_mut_slice()).unwrap_or(b),
+                    b_layout.lda(),
                     &mut singular_values,
                     rcond,
                     &mut rank,
@@ -104,6 +125,12 @@ macro_rules! impl_least_squares_real {
                     &mut info,
                 );
                 info.as_lapack_result()?;
+
+                // Skip a_t -> a transpose because A has been destroyed
+                // Re-transpose b
+                if let Some(b_t) = b_t {
+                    transpose(b_layout, &b_t, b);
+                }
 
                 Ok(LeastSquaresOutput {
                     singular_values,

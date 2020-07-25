@@ -14,13 +14,13 @@ pub struct LeastSquaresOutput<A: Scalar> {
 
 /// Wraps `*gelsd`
 pub trait LeastSquaresSvdDivideConquer_: Scalar {
-    unsafe fn least_squares(
+    fn least_squares(
         a_layout: MatrixLayout,
         a: &mut [Self],
         b: &mut [Self],
     ) -> Result<LeastSquaresOutput<Self>>;
 
-    unsafe fn least_squares_nrhs(
+    fn least_squares_nrhs(
         a_layout: MatrixLayout,
         a: &mut [Self],
         b_layout: MatrixLayout,
@@ -38,7 +38,7 @@ macro_rules! impl_least_squares {
 
     (@body, $scalar:ty, $gelsd:path, $($rwork:ident),*) => {
         impl LeastSquaresSvdDivideConquer_ for $scalar {
-            unsafe fn least_squares(
+            fn least_squares(
                 l: MatrixLayout,
                 a: &mut [Self],
                 b: &mut [Self],
@@ -47,7 +47,7 @@ macro_rules! impl_least_squares {
                 Self::least_squares_nrhs(l, a, b_layout, b)
             }
 
-            unsafe fn least_squares_nrhs(
+            fn least_squares_nrhs(
                 a_layout: MatrixLayout,
                 a: &mut [Self],
                 b_layout: MatrixLayout,
@@ -95,23 +95,25 @@ macro_rules! impl_least_squares {
                 $(
                 let mut $rwork = [Self::Real::zero()];
                 )*
-                $gelsd(
-                    m,
-                    n,
-                    nrhs,
-                    a_t.as_mut().map(|v| v.as_mut_slice()).unwrap_or(a),
-                    a_layout.lda(),
-                    b_t.as_mut().map(|v| v.as_mut_slice()).unwrap_or(b),
-                    b_layout.lda(),
-                    &mut singular_values,
-                    rcond,
-                    &mut rank,
-                    &mut work_size,
-                    -1,
-                    $(&mut $rwork,)*
-                    &mut iwork_size,
-                    &mut info,
-                );
+                unsafe {
+                    $gelsd(
+                        m,
+                        n,
+                        nrhs,
+                        a_t.as_mut().map(|v| v.as_mut_slice()).unwrap_or(a),
+                        a_layout.lda(),
+                        b_t.as_mut().map(|v| v.as_mut_slice()).unwrap_or(b),
+                        b_layout.lda(),
+                        &mut singular_values,
+                        rcond,
+                        &mut rank,
+                        &mut work_size,
+                        -1,
+                        $(&mut $rwork,)*
+                        &mut iwork_size,
+                        &mut info,
+                    )
+                };
                 info.as_lapack_result()?;
 
                 // calc
@@ -123,23 +125,25 @@ macro_rules! impl_least_squares {
                 let lrwork = $rwork[0].to_usize().unwrap();
                 let mut $rwork = vec![Self::Real::zero(); lrwork];
                 )*
-                $gelsd(
-                    m,
-                    n,
-                    nrhs,
-                    a_t.as_mut().map(|v| v.as_mut_slice()).unwrap_or(a),
-                    a_layout.lda(),
-                    b_t.as_mut().map(|v| v.as_mut_slice()).unwrap_or(b),
-                    b_layout.lda(),
-                    &mut singular_values,
-                    rcond,
-                    &mut rank,
-                    &mut work,
-                    lwork as i32,
-                    $(&mut $rwork,)*
-                    &mut iwork,
-                    &mut info,
-                );
+                unsafe {
+                    $gelsd(
+                        m,
+                        n,
+                        nrhs,
+                        a_t.as_mut().map(|v| v.as_mut_slice()).unwrap_or(a),
+                        a_layout.lda(),
+                        b_t.as_mut().map(|v| v.as_mut_slice()).unwrap_or(b),
+                        b_layout.lda(),
+                        &mut singular_values,
+                        rcond,
+                        &mut rank,
+                        &mut work,
+                        lwork as i32,
+                        $(&mut $rwork,)*
+                        &mut iwork,
+                        &mut info,
+                    );
+                }
                 info.as_lapack_result()?;
 
                 // Skip a_t -> a transpose because A has been destroyed

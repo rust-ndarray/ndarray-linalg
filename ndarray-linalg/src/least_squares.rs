@@ -295,14 +295,12 @@ where
     let LeastSquaresOutput::<E> {
         singular_values,
         rank,
-    } = unsafe {
-        E::least_squares(
-            a.layout()?,
-            a.as_allocated_mut()?,
-            rhs.as_slice_memory_order_mut()
-                .ok_or_else(|| LinalgError::MemoryNotCont)?,
-        )?
-    };
+    } = E::least_squares(
+        a.layout()?,
+        a.as_allocated_mut()?,
+        rhs.as_slice_memory_order_mut()
+            .ok_or_else(|| LinalgError::MemoryNotCont)?,
+    )?;
 
     let (m, n) = (a.shape()[0], a.shape()[1]);
     let solution = rhs.slice(s![0..n]).to_owned();
@@ -385,14 +383,12 @@ where
     let LeastSquaresOutput::<E> {
         singular_values,
         rank,
-    } = unsafe {
-        E::least_squares_nrhs(
-            a_layout,
-            a.as_allocated_mut()?,
-            rhs_layout,
-            rhs.as_allocated_mut()?,
-        )?
-    };
+    } = E::least_squares_nrhs(
+        a_layout,
+        a.as_allocated_mut()?,
+        rhs_layout,
+        rhs.as_allocated_mut()?,
+    )?;
 
     let solution: Array2<E> = rhs.slice(s![..a.shape()[1], ..]).to_owned();
     let singular_values = Array::from_shape_vec((singular_values.len(),), singular_values)?;

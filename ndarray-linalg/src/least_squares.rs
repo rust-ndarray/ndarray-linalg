@@ -267,6 +267,9 @@ where
         &mut self,
         rhs: &mut ArrayBase<D, Ix1>,
     ) -> Result<LeastSquaresResult<E, Ix1>> {
+        if self.shape()[0] != rhs.shape()[0] {
+            return Err(ShapeError::from_kind(ErrorKind::IncompatibleShape).into());
+        }
         let (m, n) = (self.shape()[0], self.shape()[1]);
         if n > m {
             // we need a new rhs b/c it will be overwritten with the solution
@@ -285,7 +288,7 @@ fn compute_least_squares_srhs<E, D1, D2>(
     rhs: &mut ArrayBase<D2, Ix1>,
 ) -> Result<LeastSquaresResult<E, Ix1>>
 where
-    E: Scalar + Lapack + LeastSquaresSvdDivideConquer_,
+    E: Scalar + Lapack,
     D1: DataMut<Elem = E>,
     D2: DataMut<Elem = E>,
 {
@@ -293,7 +296,7 @@ where
         singular_values,
         rank,
     } = unsafe {
-        <E as LeastSquaresSvdDivideConquer_>::least_squares(
+        E::least_squares(
             a.layout()?,
             a.as_allocated_mut()?,
             rhs.as_slice_memory_order_mut()
@@ -348,6 +351,9 @@ where
         &mut self,
         rhs: &mut ArrayBase<D, Ix2>,
     ) -> Result<LeastSquaresResult<E, Ix2>> {
+        if self.shape()[0] != rhs.shape()[0] {
+            return Err(ShapeError::from_kind(ErrorKind::IncompatibleShape).into());
+        }
         let (m, n) = (self.shape()[0], self.shape()[1]);
         if n > m {
             // we need a new rhs b/c it will be overwritten with the solution
@@ -550,28 +556,13 @@ mod tests {
     //
     // Testing error cases
     //
-
     #[test]
     fn incompatible_shape_error_on_mismatching_num_rows() {
         let a: Array2<f64> = array![[1., 2.], [4., 5.], [3., 4.]];
         let b: Array1<f64> = array![1., 2.];
-        let res = a.least_squares(&b);
-        match res {
-            Err(LinalgError::Lapack(err)) if matches!(err, lax::error::Error::InvalidShape) => {}
-            _ => panic!("Expected Err()"),
-        }
-    }
-
-    #[test]
-    fn incompatible_shape_error_on_mismatching_layout() {
-        let a: Array2<f64> = array![[1., 2.], [4., 5.], [3., 4.]];
-        let b = array![[1.], [2.]].t().to_owned();
-        assert_eq!(b.layout().unwrap(), MatrixLayout::F { col: 2, lda: 1 });
-
-        let res = a.least_squares(&b);
-        match res {
-            Err(LinalgError::Lapack(err)) if matches!(err, lax::error::Error::InvalidShape) => {}
-            _ => panic!("Expected Err()"),
+        match a.least_squares(&b) {
+            Err(LinalgError::Shape(e)) if e.kind() == ErrorKind::IncompatibleShape => {}
+            _ => panic!("Should be raise IncompatibleShape"),
         }
     }
 }

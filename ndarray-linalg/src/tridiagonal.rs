@@ -271,14 +271,12 @@ where
     where
         Sb: DataMut<Elem = A>,
     {
-        unsafe {
-            A::solve_tridiagonal(
-                &self,
-                rhs.layout()?,
-                Transpose::No,
-                rhs.as_slice_mut().unwrap(),
-            )?
-        };
+        A::solve_tridiagonal(
+            &self,
+            rhs.layout()?,
+            Transpose::No,
+            rhs.as_slice_mut().unwrap(),
+        )?;
         Ok(rhs)
     }
     fn solve_t_tridiagonal_inplace<'a, Sb>(
@@ -288,14 +286,12 @@ where
     where
         Sb: DataMut<Elem = A>,
     {
-        unsafe {
-            A::solve_tridiagonal(
-                &self,
-                rhs.layout()?,
-                Transpose::Transpose,
-                rhs.as_slice_mut().unwrap(),
-            )?
-        };
+        A::solve_tridiagonal(
+            &self,
+            rhs.layout()?,
+            Transpose::Transpose,
+            rhs.as_slice_mut().unwrap(),
+        )?;
         Ok(rhs)
     }
     fn solve_h_tridiagonal_inplace<'a, Sb>(
@@ -305,14 +301,12 @@ where
     where
         Sb: DataMut<Elem = A>,
     {
-        unsafe {
-            A::solve_tridiagonal(
-                &self,
-                rhs.layout()?,
-                Transpose::Hermite,
-                rhs.as_slice_mut().unwrap(),
-            )?
-        };
+        A::solve_tridiagonal(
+            &self,
+            rhs.layout()?,
+            Transpose::Hermite,
+            rhs.as_slice_mut().unwrap(),
+        )?;
         Ok(rhs)
     }
 }
@@ -566,7 +560,7 @@ where
     A: Scalar + Lapack,
 {
     fn factorize_tridiagonal_into(self) -> Result<LUFactorizedTridiagonal<A>> {
-        Ok(unsafe { A::lu_tridiagonal(self)? })
+        Ok(A::lu_tridiagonal(self)?)
     }
 }
 
@@ -576,7 +570,7 @@ where
 {
     fn factorize_tridiagonal(&self) -> Result<LUFactorizedTridiagonal<A>> {
         let a = self.clone();
-        Ok(unsafe { A::lu_tridiagonal(a)? })
+        Ok(A::lu_tridiagonal(a)?)
     }
 }
 
@@ -587,7 +581,7 @@ where
 {
     fn factorize_tridiagonal(&self) -> Result<LUFactorizedTridiagonal<A>> {
         let a = self.extract_tridiagonal()?;
-        Ok(unsafe { A::lu_tridiagonal(a)? })
+        Ok(A::lu_tridiagonal(a)?)
     }
 }
 
@@ -677,7 +671,7 @@ where
     A: Scalar + Lapack,
 {
     fn rcond_tridiagonal(&self) -> Result<A::Real> {
-        unsafe { Ok(A::rcond_tridiagonal(&self)?) }
+        Ok(A::rcond_tridiagonal(&self)?)
     }
 }
 

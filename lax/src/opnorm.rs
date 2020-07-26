@@ -7,13 +7,13 @@ use num_traits::Zero;
 pub use super::NormType;
 
 pub trait OperatorNorm_: Scalar {
-    unsafe fn opnorm(t: NormType, l: MatrixLayout, a: &[Self]) -> Self::Real;
+    fn opnorm(t: NormType, l: MatrixLayout, a: &[Self]) -> Self::Real;
 }
 
 macro_rules! impl_opnorm {
     ($scalar:ty, $lange:path) => {
         impl OperatorNorm_ for $scalar {
-            unsafe fn opnorm(t: NormType, l: MatrixLayout, a: &[Self]) -> Self::Real {
+            fn opnorm(t: NormType, l: MatrixLayout, a: &[Self]) -> Self::Real {
                 let m = l.lda();
                 let n = l.len();
                 let t = match l {
@@ -25,7 +25,7 @@ macro_rules! impl_opnorm {
                 } else {
                     Vec::new()
                 };
-                $lange(t as u8, m, n, a, m, &mut work)
+                unsafe { $lange(t as u8, m, n, a, m, &mut work) }
             }
         }
     };

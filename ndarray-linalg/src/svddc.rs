@@ -80,7 +80,7 @@ where
         uvt_flag: UVTFlag,
     ) -> Result<(Option<Self::U>, Self::Sigma, Option<Self::VT>)> {
         let l = self.layout()?;
-        let svd_res = unsafe { A::svddc(l, uvt_flag, self.as_allocated_mut()?)? };
+        let svd_res = A::svddc(l, uvt_flag, self.as_allocated_mut()?)?;
         let (m, n) = l.size();
         let k = m.min(n);
 

@@ -36,12 +36,8 @@ pub struct SVDOutput<A: Scalar> {
 /// Wraps `*gesvd`
 pub trait SVD_: Scalar {
     /// Calculate singular value decomposition $ A = U \Sigma V^T $
-    unsafe fn svd(
-        l: MatrixLayout,
-        calc_u: bool,
-        calc_vt: bool,
-        a: &mut [Self],
-    ) -> Result<SVDOutput<Self>>;
+    fn svd(l: MatrixLayout, calc_u: bool, calc_vt: bool, a: &mut [Self])
+        -> Result<SVDOutput<Self>>;
 }
 
 macro_rules! impl_svd {
@@ -53,12 +49,7 @@ macro_rules! impl_svd {
     };
     (@body, $scalar:ty, $gesvd:path, $($rwork_ident:ident),*) => {
         impl SVD_ for $scalar {
-            unsafe fn svd(
-                l: MatrixLayout,
-                calc_u: bool,
-                calc_vt: bool,
-                mut a: &mut [Self],
-            ) -> Result<SVDOutput<Self>> {
+            fn svd(l: MatrixLayout, calc_u: bool, calc_vt: bool, mut a: &mut [Self],) -> Result<SVDOutput<Self>> {
                 let ju = match l {
                     MatrixLayout::F { .. } => FlagSVD::from_bool(calc_u),
                     MatrixLayout::C { .. } => FlagSVD::from_bool(calc_vt),
@@ -90,45 +81,49 @@ macro_rules! impl_svd {
                 // eval work size
                 let mut info = 0;
                 let mut work_size = [Self::zero()];
-                $gesvd(
-                    ju as u8,
-                    jvt as u8,
-                    m,
-                    n,
-                    &mut a,
-                    m,
-                    &mut s,
-                    u.as_mut().map(|x| x.as_mut_slice()).unwrap_or(&mut []),
-                    m,
-                    vt.as_mut().map(|x| x.as_mut_slice()).unwrap_or(&mut []),
-                    n,
-                    &mut work_size,
-                    -1,
-                    $(&mut $rwork_ident,)*
-                    &mut info,
-                );
+                unsafe {
+                    $gesvd(
+                        ju as u8,
+                        jvt as u8,
+                        m,
+                        n,
+                        &mut a,
+                        m,
+                        &mut s,
+                        u.as_mut().map(|x| x.as_mut_slice()).unwrap_or(&mut []),
+                        m,
+                        vt.as_mut().map(|x| x.as_mut_slice()).unwrap_or(&mut []),
+                        n,
+                        &mut work_size,
+                        -1,
+                        $(&mut $rwork_ident,)*
+                        &mut info,
+                    );
+                }
                 info.as_lapack_result()?;
 
                 // calc
                 let lwork = work_size[0].to_usize().unwrap();
                 let mut work = vec![Self::zero(); lwork];
-                $gesvd(
-                    ju as u8,
-                    jvt as u8,
-                    m,
-                    n,
-                    &mut a,
-                    m,
-                    &mut s,
-                    u.as_mut().map(|x| x.as_mut_slice()).unwrap_or(&mut []),
-                    m,
-                    vt.as_mut().map(|x| x.as_mut_slice()).unwrap_or(&mut []),
-                    n,
-                    &mut work,
-                    lwork as i32,
-                    $(&mut $rwork_ident,)*
-                    &mut info,
-                );
+                unsafe {
+                    $gesvd(
+                        ju as u8,
+                        jvt as u8,
+                        m,
+                        n,
+                        &mut a,
+                        m,
+                        &mut s,
+                        u.as_mut().map(|x| x.as_mut_slice()).unwrap_or(&mut []),
+                        m,
+                        vt.as_mut().map(|x| x.as_mut_slice()).unwrap_or(&mut []),
+                        n,
+                        &mut work,
+                        lwork as i32,
+                        $(&mut $rwork_ident,)*
+                        &mut info,
+                    );
+                }
                 info.as_lapack_result()?;
                 match l {
                     MatrixLayout::F { .. } => Ok(SVDOutput { s, u, vt }),

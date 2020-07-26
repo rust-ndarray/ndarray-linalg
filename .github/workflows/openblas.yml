@@ -1,4 +1,4 @@
-name: lax/openblas
+name: openblas
 
 on:
   push:
@@ -30,6 +30,6 @@ jobs:
         with:
           command: test
           args: >
-            --manifest-path=lax/Cargo.toml
+            --manifest-path=ndarray-linalg/Cargo.toml
             --no-default-features
             --features=openblas-${{ matrix.feature }}

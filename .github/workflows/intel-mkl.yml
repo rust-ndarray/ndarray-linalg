@@ -1,4 +1,4 @@
-name: intel-mkl-backend
+name: lax/intel-mkl
 
 on:
   push:

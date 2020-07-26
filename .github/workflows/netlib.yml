@@ -1,4 +1,4 @@
-name: netlib-backend
+name: lax/netlib
 
 on:
   push:

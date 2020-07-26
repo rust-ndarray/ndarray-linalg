@@ -1,4 +1,4 @@
-name: openblas-backend
+name: lax/openblas
 
 on:
   push:

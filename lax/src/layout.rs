@@ -80,15 +80,12 @@ impl MatrixLayout {
         self.len() == 0
     }
 
-    pub fn lapacke_layout(&self) -> lapacke::Layout {
-        match *self {
-            MatrixLayout::C { .. } => lapacke::Layout::RowMajor,
-            MatrixLayout::F { .. } => lapacke::Layout::ColumnMajor,
-        }
-    }
-
     pub fn same_order(&self, other: &MatrixLayout) -> bool {
-        self.lapacke_layout() == other.lapacke_layout()
+        match (self, other) {
+            (MatrixLayout::C { .. }, MatrixLayout::C { .. }) => true,
+            (MatrixLayout::F { .. }, MatrixLayout::F { .. }) => true,
+            _ => false,
+        }
     }
 
     pub fn toggle_order(&self) -> Self {

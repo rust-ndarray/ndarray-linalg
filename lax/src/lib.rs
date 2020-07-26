@@ -59,12 +59,7 @@
 //! [svddc]: svddck/trait.SVDDC_.html#tymethod.svddc
 //! [least_squares]: least_squares/trait.LeastSquaresSvdDivideConquer_.html#tymethod.least_squares
 
-#[cfg(any(
-    feature = "mkl-static-lp64-iomp",
-    feature = "mkl-static-lp64-seq",
-    feature = "mkl-dynamic-lp64-iomp",
-    feature = "mkl-dynamic-lp64-seq",
-))]
+#[cfg(any(feature = "intel-mkl-system", feature = "intel-mkl-static"))]
 extern crate intel_mkl_src as _src;
 
 #[cfg(any(feature = "openblas-system", feature = "openblas-static"))]

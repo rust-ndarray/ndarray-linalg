@@ -9,17 +9,16 @@ default = []
 
 netlib    = ["netlib-static"]
 openblas  = ["openblas-static"]
-intel-mkl = ["mkl-static-lp64-seq"]
+intel-mkl = ["intel-mkl-static"]
 
 netlib-static = ["netlib-src/static"]
 netlib-system = ["netlib-src/system"]
+
 openblas-static = ["openblas-src/static"]
 openblas-system = ["openblas-src/system"]
 
-mkl-static-lp64-iomp   = ["intel-mkl-src/mkl-static-lp64-iomp"]
-mkl-static-lp64-seq    = ["intel-mkl-src/mkl-static-lp64-seq"]
-mkl-dynamic-lp64-iomp  = ["intel-mkl-src/mkl-dynamic-lp64-iomp"]
-mkl-dynamic-lp64-seq   = ["intel-mkl-src/mkl-dynamic-lp64-seq"]
+intel-mkl-static = ["intel-mkl-src/mkl-static-lp64-seq", "intel-mkl-src/download"]
+intel-mkl-system = ["intel-mkl-src/mkl-dynamic-lp64-seq"]
 
 [dependencies]
 thiserror = "1.0"
@@ -30,7 +29,6 @@ lapack = "0.16.0"
 [dependencies.intel-mkl-src]
 version = "0.6.0"
 default-features = false
-features = ["download"]
 optional = true
 
 [dependencies.netlib-src]

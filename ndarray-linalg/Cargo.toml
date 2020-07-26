@@ -21,13 +21,12 @@ intel-mkl = ["lax/intel-mkl"]
 
 netlib-static   = ["lax/netlib-static"]
 netlib-system   = ["lax/netlib-system"]
+
 openblas-static = ["lax/openblas-static"]
 openblas-system = ["lax/openblas-system"]
 
-mkl-static-lp64-iomp  = ["lax/mkl-static-lp64-iomp"]
-mkl-static-lp64-seq   = ["lax/mkl-static-lp64-seq"]
-mkl-dynamic-lp64-iomp = ["lax/mkl-dynamic-lp64-iomp"]
-mkl-dynamic-lp64-seq  = ["lax/mkl-dynamic-lp64-seq"]
+intel-mkl-static = ["lax/intel-mkl-static"]
+intel-mkl-system = ["lax/intel-mkl-system"]
 
 [dependencies]
 cauchy = "0.2.2"

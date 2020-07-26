@@ -75,4 +75,4 @@ jobs:
             --no-default-features
             --features=${{ matrix.feature }}
             --doc
-        if: ${{ matrix.feature =~ 'mkl-static' }}
+        if: ${{ startsWith(matrix.feature, 'mkl-static') }}

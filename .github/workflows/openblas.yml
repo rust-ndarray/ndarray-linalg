@@ -24,7 +24,7 @@ jobs:
       - name: apt install openblas
         run: |
           sudo apt update
-          sudo apt install -y libopenblas-dev liblapacke-dev
+          sudo apt install -y libopenblas-dev
         if: ${{ matrix.feature == 'system' }}
       - uses: actions-rs/cargo@v1
         with:

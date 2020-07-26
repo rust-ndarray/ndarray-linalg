@@ -21,7 +21,7 @@ jobs:
         with:
           command: test
           args: >
-            --manifest-path=lax/Cargo.toml
+            --manifest-path=ndarray-linalg/Cargo.toml
             --no-default-features
             --features=${{ matrix.feature }}
 
@@ -40,7 +40,7 @@ jobs:
         with:
           command: test
           args: >
-            --manifest-path=lax/Cargo.toml
+            --manifest-path=ndarray-linalg/Cargo.toml
             --no-default-features
             --features=${{ matrix.feature }}
             --all-targets
@@ -62,7 +62,7 @@ jobs:
         with:
           command: test
           args: >
-            --manifest-path=lax/Cargo.toml
+            --manifest-path=ndarray-linalg/Cargo.toml
             --no-default-features
             --features=${{ matrix.feature }}
             --all-targets
@@ -71,7 +71,7 @@ jobs:
         with:
           command: test
           args: >
-            --manifest-path=lax/Cargo.toml
+            --manifest-path=ndarray-linalg/Cargo.toml
             --no-default-features
             --features=${{ matrix.feature }}
             --doc

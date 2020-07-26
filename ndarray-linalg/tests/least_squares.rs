@@ -19,7 +19,7 @@ fn test_exact<T: Scalar + Lapack>(a: Array2<T>) {
 
     // b == Ax
     let ax = a.dot(&x);
-    assert_close_l2!(&b, &ax, T::real(1.0e-4));
+    assert_close_max!(&b, &ax, T::real(1.0e-4));
 }
 
 macro_rules! impl_exact {
@@ -27,13 +27,13 @@ macro_rules! impl_exact {
         paste::item! {
             #[test]
             fn [<least_squares_ $scalar _exact>]() {
-                let a: Array2<f64> = random((3, 3));
+                let a: Array2<$scalar> = random((3, 3));
                 test_exact(a)
             }
 
             #[test]
             fn [<least_squares_ $scalar _exact_t>]() {
-                let a: Array2<f64> = random((3, 3).f());
+                let a: Array2<$scalar> = random((3, 3).f());
                 test_exact(a)
             }
         }
@@ -73,13 +73,13 @@ macro_rules! impl_overdetermined {
         paste::item! {
             #[test]
             fn [<least_squares_ $scalar _overdetermined>]() {
-                let a: Array2<f64> = random((4, 3));
+                let a: Array2<$scalar> = random((4, 3));
                 test_overdetermined(a)
             }
 
             #[test]
             fn [<least_squares_ $scalar _overdetermined_t>]() {
-                let a: Array2<f64> = random((4, 3).f());
+                let a: Array2<$scalar> = random((4, 3).f());
                 test_overdetermined(a)
             }
         }
@@ -102,7 +102,7 @@ fn test_underdetermined<T: Scalar + Lapack>(a: Array2<T>) {
     // b == Ax
     let x = result.solution;
     let ax = a.dot(&x);
-    assert_close_l2!(&b, &ax, T::real(1.0e-4));
+    assert_close_max!(&b, &ax, T::real(1.0e-4));
 }
 
 macro_rules! impl_underdetermined {
@@ -110,13 +110,13 @@ macro_rules! impl_underdetermined {
         paste::item! {
             #[test]
             fn [<least_squares_ $scalar _underdetermined>]() {
-                let a: Array2<f64> = random((3, 4));
+                let a: Array2<$scalar> = random((3, 4));
                 test_underdetermined(a)
             }
 
             #[test]
             fn [<least_squares_ $scalar _underdetermined_t>]() {
-                let a: Array2<f64> = random((3, 4).f());
+                let a: Array2<$scalar> = random((3, 4).f());
                 test_underdetermined(a)
             }
         }

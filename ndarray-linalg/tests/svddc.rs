@@ -1,13 +1,13 @@
 use ndarray::*;
 use ndarray_linalg::*;
 
-fn test(a: &Array2<f64>, flag: UVTFlag) {
+fn test<T: Scalar + Lapack>(a: &Array2<T>, flag: UVTFlag) {
     let (n, m) = a.dim();
     let k = n.min(m);
     let answer = a.clone();
     println!("a = \n{:?}", a);
     let (u, s, vt): (_, Array1<_>, _) = a.svddc(flag).unwrap();
-    let mut sm = match flag {
+    let mut sm: Array2<T> = match flag {
         UVTFlag::Full => Array::zeros((n, m)),
         UVTFlag::Some => Array::zeros((k, k)),
         UVTFlag::None => {
@@ -22,53 +22,56 @@ fn test(a: &Array2<f64>, flag: UVTFlag) {
     println!("s = \n{:?}", &s);
     println!("v = \n{:?}", &vt);
     for i in 0..k {
-        sm[(i, i)] = s[i];
+        sm[(i, i)] = T::from_real(s[i]);
     }
-    assert_close_l2!(&u.dot(&sm).dot(&vt), &answer, 1e-7);
+    assert_close_l2!(&u.dot(&sm).dot(&vt), &answer, T::real(1e-7));
 }
 
 macro_rules! test_svd_impl {
-    ($n:expr, $m:expr) => {
+    ($scalar:ty, $n:expr, $m:expr) => {
         paste::item! {
             #[test]
-            fn [<svddc_full_ $n x $m>]() {
+            fn [<svddc_ $scalar _full_ $n x $m>]() {
                 let a = random(($n, $m));
-                test(&a, UVTFlag::Full);
+                test::<$scalar>(&a, UVTFlag::Full);
             }
 
             #[test]
-            fn [<svddc_some_ $n x $m>]() {
+            fn [<svddc_ $scalar _some_ $n x $m>]() {
                 let a = random(($n, $m));
-                test(&a, UVTFlag::Some);
+                test::<$scalar>(&a, UVTFlag::Some);
             }
 
             #[test]
-            fn [<svddc_none_ $n x $m>]() {
+            fn [<svddc_ $scalar _none_ $n x $m>]() {
                 let a = random(($n, $m));
-                test(&a, UVTFlag::None);
+                test::<$scalar>(&a, UVTFlag::None);
             }
 
             #[test]
-            fn [<svddc_full_ $n x $m _t>]() {
+            fn [<svddc_ $scalar _full_ $n x $m _t>]() {
                 let a = random(($n, $m).f());
-                test(&a, UVTFlag::Full);
+                test::<$scalar>(&a, UVTFlag::Full);
             }
 
             #[test]
-            fn [<svddc_some_ $n x $m _t>]() {
+            fn [<svddc_ $scalar _some_ $n x $m _t>]() {
                 let a = random(($n, $m).f());
-                test(&a, UVTFlag::Some);
+                test::<$scalar>(&a, UVTFlag::Some);
             }
 
             #[test]
-            fn [<svddc_none_ $n x $m _t>]() {
+            fn [<svddc_ $scalar _none_ $n x $m _t>]() {
                 let a = random(($n, $m).f());
-                test(&a, UVTFlag::None);
+                test::<$scalar>(&a, UVTFlag::None);
             }
         }
     };
 }
 
-test_svd_impl!(3, 3);
-test_svd_impl!(4, 3);
-test_svd_impl!(3, 4);
+test_svd_impl!(f64, 3, 3);
+test_svd_impl!(f64, 4, 3);
+test_svd_impl!(f64, 3, 4);
+test_svd_impl!(c64, 3, 3);
+test_svd_impl!(c64, 4, 3);
+test_svd_impl!(c64, 3, 4);

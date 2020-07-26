@@ -85,7 +85,7 @@ where
             transpose_data(b)?;
         }
         let lb = b.layout()?;
-        unsafe { A::solve_triangular(la, lb, uplo, diag, a_, b.as_allocated_mut()?)? };
+        A::solve_triangular(la, lb, uplo, diag, a_, b.as_allocated_mut()?)?;
         Ok(b)
     }
 }

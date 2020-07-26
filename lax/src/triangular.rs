@@ -1,8 +1,9 @@
 //! Implement linear solver and inverse matrix
 
 use super::*;
-use crate::{error::*, layout::MatrixLayout};
+use crate::{error::*, layout::*};
 use cauchy::*;
+use num_traits::Zero;
 
 #[derive(Debug, Clone, Copy)]
 #[repr(u8)]
@@ -12,9 +13,8 @@ pub enum Diag {
 }
 
 /// Wraps `*trtri` and `*trtrs`
-pub trait Triangular_: Sized {
-    unsafe fn inv_triangular(l: MatrixLayout, uplo: UPLO, d: Diag, a: &mut [Self]) -> Result<()>;
-    unsafe fn solve_triangular(
+pub trait Triangular_: Scalar {
+    fn solve_triangular(
         al: MatrixLayout,
         bl: MatrixLayout,
         uplo: UPLO,
@@ -27,50 +27,66 @@ pub trait Triangular_: Sized {
 macro_rules! impl_triangular {
     ($scalar:ty, $trtri:path, $trtrs:path) => {
         impl Triangular_ for $scalar {
-            unsafe fn inv_triangular(
-                l: MatrixLayout,
-                uplo: UPLO,
-                diag: Diag,
-                a: &mut [Self],
-            ) -> Result<()> {
-                let (n, _) = l.size();
-                let lda = l.lda();
-                $trtri(l.lapacke_layout(), uplo as u8, diag as u8, n, a, lda).as_lapack_result()?;
-                Ok(())
-            }
-
-            unsafe fn solve_triangular(
-                al: MatrixLayout,
-                bl: MatrixLayout,
+            fn solve_triangular(
+                a_layout: MatrixLayout,
+                b_layout: MatrixLayout,
                 uplo: UPLO,
                 diag: Diag,
                 a: &[Self],
-                mut b: &mut [Self],
+                b: &mut [Self],
             ) -> Result<()> {
-                let (n, _) = al.size();
-                let lda = al.lda();
-                let (_, nrhs) = bl.size();
-                let ldb = bl.lda();
-                $trtrs(
-                    al.lapacke_layout(),
-                    uplo as u8,
-                    Transpose::No as u8,
-                    diag as u8,
-                    n,
-                    nrhs,
-                    a,
-                    lda,
-                    &mut b,
-                    ldb,
-                )
-                .as_lapack_result()?;
+                // Transpose if a is C-continuous
+                let mut a_t = None;
+                let a_layout = match a_layout {
+                    MatrixLayout::C { .. } => {
+                        a_t = Some(vec![Self::zero(); a.len()]);
+                        transpose(a_layout, a, a_t.as_mut().unwrap())
+                    }
+                    MatrixLayout::F { .. } => a_layout,
+                };
+
+                // Transpose if b is C-continuous
+                let mut b_t = None;
+                let b_layout = match b_layout {
+                    MatrixLayout::C { .. } => {
+                        b_t = Some(vec![Self::zero(); b.len()]);
+                        transpose(b_layout, b, b_t.as_mut().unwrap())
+                    }
+                    MatrixLayout::F { .. } => b_layout,
+                };
+
+                let (m, n) = a_layout.size();
+                let (n_, nrhs) = b_layout.size();
+                assert_eq!(n, n_);
+
+                let mut info = 0;
+                unsafe {
+                    $trtrs(
+                        uplo as u8,
+                        Transpose::No as u8,
+                        diag as u8,
+                        m,
+                        nrhs,
+                        a_t.as_ref().map(|v| v.as_slice()).unwrap_or(a),
+                        a_layout.lda(),
+                        b_t.as_mut().map(|v| v.as_mut_slice()).unwrap_or(b),
+                        b_layout.lda(),
+                        &mut info,
+                    );
+                }
+                info.as_lapack_result()?;
+
+                // Re-transpose b
+                if let Some(b_t) = b_t {
+                    transpose(b_layout, &b_t, b);
+                }
                 Ok(())
             }
         }
     };
 } // impl_triangular!
 
-impl_triangular!(f64, lapacke::dtrtri, lapacke::dtrtrs);
-impl_triangular!(f32, lapacke::strtri, lapacke::strtrs);
-impl_triangular!(c64, lapacke::ztrtri, lapacke::ztrtrs);
-impl_triangular!(c32, lapacke::ctrtri, lapacke::ctrtrs);
+impl_triangular!(f64, lapack::dtrtri, lapack::dtrtrs);
+impl_triangular!(f32, lapack::strtri, lapack::strtrs);
+impl_triangular!(c64, lapack::ztrtri, lapack::ztrtrs);
+impl_triangular!(c32, lapack::ctrtri, lapack::ctrtrs);

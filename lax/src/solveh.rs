@@ -5,50 +5,73 @@
 use super::*;
 use crate::{error::*, layout::MatrixLayout};
 use cauchy::*;
+use num_traits::{ToPrimitive, Zero};
 
 pub trait Solveh_: Sized {
     /// Bunch-Kaufman: wrapper of `*sytrf` and `*hetrf`
-    unsafe fn bk(l: MatrixLayout, uplo: UPLO, a: &mut [Self]) -> Result<Pivot>;
+    fn bk(l: MatrixLayout, uplo: UPLO, a: &mut [Self]) -> Result<Pivot>;
     /// Wrapper of `*sytri` and `*hetri`
-    unsafe fn invh(l: MatrixLayout, uplo: UPLO, a: &mut [Self], ipiv: &Pivot) -> Result<()>;
+    fn invh(l: MatrixLayout, uplo: UPLO, a: &mut [Self], ipiv: &Pivot) -> Result<()>;
     /// Wrapper of `*sytrs` and `*hetrs`
-    unsafe fn solveh(
-        l: MatrixLayout,
-        uplo: UPLO,
-        a: &[Self],
-        ipiv: &Pivot,
-        b: &mut [Self],
-    ) -> Result<()>;
+    fn solveh(l: MatrixLayout, uplo: UPLO, a: &[Self], ipiv: &Pivot, b: &mut [Self]) -> Result<()>;
 }
 
 macro_rules! impl_solveh {
     ($scalar:ty, $trf:path, $tri:path, $trs:path) => {
         impl Solveh_ for $scalar {
-            unsafe fn bk(l: MatrixLayout, uplo: UPLO, a: &mut [Self]) -> Result<Pivot> {
+            fn bk(l: MatrixLayout, uplo: UPLO, a: &mut [Self]) -> Result<Pivot> {
                 let (n, _) = l.size();
                 let mut ipiv = vec![0; n as usize];
                 if n == 0 {
-                    // Work around bug in LAPACKE functions.
-                    Ok(ipiv)
-                } else {
-                    $trf(l.lapacke_layout(), uplo as u8, n, a, l.lda(), &mut ipiv)
-                        .as_lapack_result()?;
-                    Ok(ipiv)
+                    return Ok(Vec::new());
                 }
+
+                // calc work size
+                let mut info = 0;
+                let mut work_size = [Self::zero()];
+                unsafe {
+                    $trf(
+                        uplo as u8,
+                        n,
+                        a,
+                        l.lda(),
+                        &mut ipiv,
+                        &mut work_size,
+                        -1,
+                        &mut info,
+                    )
+                };
+                info.as_lapack_result()?;
+
+                // actual
+                let lwork = work_size[0].to_usize().unwrap();
+                let mut work = vec![Self::zero(); lwork];
+                unsafe {
+                    $trf(
+                        uplo as u8,
+                        n,
+                        a,
+                        l.lda(),
+                        &mut ipiv,
+                        &mut work,
+                        lwork as i32,
+                        &mut info,
+                    )
+                };
+                info.as_lapack_result()?;
+                Ok(ipiv)
             }
 
-            unsafe fn invh(
-                l: MatrixLayout,
-                uplo: UPLO,
-                a: &mut [Self],
-                ipiv: &Pivot,
-            ) -> Result<()> {
+            fn invh(l: MatrixLayout, uplo: UPLO, a: &mut [Self], ipiv: &Pivot) -> Result<()> {
                 let (n, _) = l.size();
-                $tri(l.lapacke_layout(), uplo as u8, n, a, l.lda(), ipiv).as_lapack_result()?;
+                let mut info = 0;
+                let mut work = vec![Self::zero(); n as usize];
+                unsafe { $tri(uplo as u8, n, a, l.lda(), ipiv, &mut work, &mut info) };
+                info.as_lapack_result()?;
                 Ok(())
             }
 
-            unsafe fn solveh(
+            fn solveh(
                 l: MatrixLayout,
                 uplo: UPLO,
                 a: &[Self],
@@ -56,30 +79,16 @@ macro_rules! impl_solveh {
                 b: &mut [Self],
             ) -> Result<()> {
                 let (n, _) = l.size();
-                let nrhs = 1;
-                let ldb = match l {
-                    MatrixLayout::C { .. } => 1,
-                    MatrixLayout::F { .. } => n,
-                };
-                $trs(
-                    l.lapacke_layout(),
-                    uplo as u8,
-                    n,
-                    nrhs,
-                    a,
-                    l.lda(),
-                    ipiv,
-                    b,
-                    ldb,
-                )
-                .as_lapack_result()?;
+                let mut info = 0;
+                unsafe { $trs(uplo as u8, n, 1, a, l.lda(), ipiv, b, n, &mut info) };
+                info.as_lapack_result()?;
                 Ok(())
             }
         }
     };
 } // impl_solveh!
 
-impl_solveh!(f64, lapacke::dsytrf, lapacke::dsytri, lapacke::dsytrs);
-impl_solveh!(f32, lapacke::ssytrf, lapacke::ssytri, lapacke::ssytrs);
-impl_solveh!(c64, lapacke::zhetrf, lapacke::zhetri, lapacke::zhetrs);
-impl_solveh!(c32, lapacke::chetrf, lapacke::chetri, lapacke::chetrs);
+impl_solveh!(f64, lapack::dsytrf, lapack::dsytri, lapack::dsytrs);
+impl_solveh!(f32, lapack::ssytrf, lapack::ssytri, lapack::ssytrs);
+impl_solveh!(c64, lapack::zhetrf, lapack::zhetri, lapack::zhetrs);
+impl_solveh!(c32, lapack::chetrf, lapack::chetri, lapack::chetrs);

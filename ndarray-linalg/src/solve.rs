@@ -167,15 +167,13 @@ where
     where
         Sb: DataMut<Elem = A>,
     {
-        unsafe {
-            A::solve(
-                self.a.square_layout()?,
-                Transpose::No,
-                self.a.as_allocated()?,
-                &self.ipiv,
-                rhs.as_slice_mut().unwrap(),
-            )?
-        };
+        A::solve(
+            self.a.square_layout()?,
+            Transpose::No,
+            self.a.as_allocated()?,
+            &self.ipiv,
+            rhs.as_slice_mut().unwrap(),
+        )?;
         Ok(rhs)
     }
     fn solve_t_inplace<'a, Sb>(
@@ -185,15 +183,13 @@ where
     where
         Sb: DataMut<Elem = A>,
     {
-        unsafe {
-            A::solve(
-                self.a.square_layout()?,
-                Transpose::Transpose,
-                self.a.as_allocated()?,
-                &self.ipiv,
-                rhs.as_slice_mut().unwrap(),
-            )?
-        };
+        A::solve(
+            self.a.square_layout()?,
+            Transpose::Transpose,
+            self.a.as_allocated()?,
+            &self.ipiv,
+            rhs.as_slice_mut().unwrap(),
+        )?;
         Ok(rhs)
     }
     fn solve_h_inplace<'a, Sb>(
@@ -203,15 +199,13 @@ where
     where
         Sb: DataMut<Elem = A>,
     {
-        unsafe {
-            A::solve(
-                self.a.square_layout()?,
-                Transpose::Hermite,
-                self.a.as_allocated()?,
-                &self.ipiv,
-                rhs.as_slice_mut().unwrap(),
-            )?
-        };
+        A::solve(
+            self.a.square_layout()?,
+            Transpose::Hermite,
+            self.a.as_allocated()?,
+            &self.ipiv,
+            rhs.as_slice_mut().unwrap(),
+        )?;
         Ok(rhs)
     }
 }
@@ -273,7 +267,7 @@ where
     S: DataMut<Elem = A> + RawDataClone,
 {
     fn factorize_into(mut self) -> Result<LUFactorized<S>> {
-        let ipiv = unsafe { A::lu(self.layout()?, self.as_allocated_mut()?)? };
+        let ipiv = A::lu(self.layout()?, self.as_allocated_mut()?)?;
         Ok(LUFactorized { a: self, ipiv })
     }
 }
@@ -285,7 +279,7 @@ where
 {
     fn factorize(&self) -> Result<LUFactorized<OwnedRepr<A>>> {
         let mut a: Array2<A> = replicate(self);
-        let ipiv = unsafe { A::lu(a.layout()?, a.as_allocated_mut()?)? };
+        let ipiv = A::lu(a.layout()?, a.as_allocated_mut()?)?;
         Ok(LUFactorized { a, ipiv })
     }
 }
@@ -312,13 +306,11 @@ where
     type Output = ArrayBase<S, Ix2>;
 
     fn inv_into(mut self) -> Result<ArrayBase<S, Ix2>> {
-        unsafe {
-            A::inv(
-                self.a.square_layout()?,
-                self.a.as_allocated_mut()?,
-                &self.ipiv,
-            )?
-        };
+        A::inv(
+            self.a.square_layout()?,
+            self.a.as_allocated_mut()?,
+            &self.ipiv,
+        )?;
         Ok(self.a)
     }
 }
@@ -539,13 +531,11 @@ where
     S: Data<Elem = A> + RawDataClone,
 {
     fn rcond(&self) -> Result<A::Real> {
-        unsafe {
-            Ok(A::rcond(
-                self.a.layout()?,
-                self.a.as_allocated()?,
-                self.a.opnorm_one()?,
-            )?)
-        }
+        Ok(A::rcond(
+            self.a.layout()?,
+            self.a.as_allocated()?,
+            self.a.opnorm_one()?,
+        )?)
     }
 }
 

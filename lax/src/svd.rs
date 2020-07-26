@@ -2,14 +2,25 @@
 
 use crate::{error::*, layout::MatrixLayout};
 use cauchy::*;
-use num_traits::Zero;
+use num_traits::{ToPrimitive, Zero};
 
 #[repr(u8)]
+#[derive(Debug, Copy, Clone)]
 enum FlagSVD {
     All = b'A',
     // OverWrite = b'O',
     // Separately = b'S',
     No = b'N',
+}
+
+impl FlagSVD {
+    fn from_bool(calc_uv: bool) -> Self {
+        if calc_uv {
+            FlagSVD::All
+        } else {
+            FlagSVD::No
+        }
+    }
 }
 
 /// Result of SVD
@@ -24,65 +35,106 @@ pub struct SVDOutput<A: Scalar> {
 
 /// Wraps `*gesvd`
 pub trait SVD_: Scalar {
-    unsafe fn svd(
-        l: MatrixLayout,
-        calc_u: bool,
-        calc_vt: bool,
-        a: &mut [Self],
-    ) -> Result<SVDOutput<Self>>;
+    /// Calculate singular value decomposition $ A = U \Sigma V^T $
+    fn svd(l: MatrixLayout, calc_u: bool, calc_vt: bool, a: &mut [Self])
+        -> Result<SVDOutput<Self>>;
 }
 
 macro_rules! impl_svd {
-    ($scalar:ty, $gesvd:path) => {
+    (@real, $scalar:ty, $gesvd:path) => {
+        impl_svd!(@body, $scalar, $gesvd, );
+    };
+    (@complex, $scalar:ty, $gesvd:path) => {
+        impl_svd!(@body, $scalar, $gesvd, rwork);
+    };
+    (@body, $scalar:ty, $gesvd:path, $($rwork_ident:ident),*) => {
         impl SVD_ for $scalar {
-            unsafe fn svd(
-                l: MatrixLayout,
-                calc_u: bool,
-                calc_vt: bool,
-                mut a: &mut [Self],
-            ) -> Result<SVDOutput<Self>> {
-                let (m, n) = l.size();
-                let k = ::std::cmp::min(n, m);
-                let lda = l.lda();
-                let (ju, ldu, mut u) = if calc_u {
-                    (FlagSVD::All, m, vec![Self::zero(); (m * m) as usize])
-                } else {
-                    (FlagSVD::No, 1, Vec::new())
+            fn svd(l: MatrixLayout, calc_u: bool, calc_vt: bool, mut a: &mut [Self],) -> Result<SVDOutput<Self>> {
+                let ju = match l {
+                    MatrixLayout::F { .. } => FlagSVD::from_bool(calc_u),
+                    MatrixLayout::C { .. } => FlagSVD::from_bool(calc_vt),
                 };
-                let (jvt, ldvt, mut vt) = if calc_vt {
-                    (FlagSVD::All, n, vec![Self::zero(); (n * n) as usize])
-                } else {
-                    (FlagSVD::No, n, Vec::new())
+                let jvt = match l {
+                    MatrixLayout::F { .. } => FlagSVD::from_bool(calc_vt),
+                    MatrixLayout::C { .. } => FlagSVD::from_bool(calc_u),
                 };
+
+                let m = l.lda();
+                let mut u = match ju {
+                    FlagSVD::All => Some(vec![Self::zero(); (m * m) as usize]),
+                    FlagSVD::No => None,
+                };
+
+                let n = l.len();
+                let mut vt = match jvt {
+                    FlagSVD::All => Some(vec![Self::zero(); (n * n) as usize]),
+                    FlagSVD::No => None,
+                };
+
+                let k = std::cmp::min(m, n);
                 let mut s = vec![Self::Real::zero(); k as usize];
-                let mut superb = vec![Self::Real::zero(); (k - 1) as usize];
-                $gesvd(
-                    l.lapacke_layout(),
-                    ju as u8,
-                    jvt as u8,
-                    m,
-                    n,
-                    &mut a,
-                    lda,
-                    &mut s,
-                    &mut u,
-                    ldu,
-                    &mut vt,
-                    ldvt,
-                    &mut superb,
-                )
-                .as_lapack_result()?;
-                Ok(SVDOutput {
-                    s,
-                    u: if calc_u { Some(u) } else { None },
-                    vt: if calc_vt { Some(vt) } else { None },
-                })
+
+                $(
+                let mut $rwork_ident = vec![Self::Real::zero(); 5 * k as usize];
+                )*
+
+                // eval work size
+                let mut info = 0;
+                let mut work_size = [Self::zero()];
+                unsafe {
+                    $gesvd(
+                        ju as u8,
+                        jvt as u8,
+                        m,
+                        n,
+                        &mut a,
+                        m,
+                        &mut s,
+                        u.as_mut().map(|x| x.as_mut_slice()).unwrap_or(&mut []),
+                        m,
+                        vt.as_mut().map(|x| x.as_mut_slice()).unwrap_or(&mut []),
+                        n,
+                        &mut work_size,
+                        -1,
+                        $(&mut $rwork_ident,)*
+                        &mut info,
+                    );
+                }
+                info.as_lapack_result()?;
+
+                // calc
+                let lwork = work_size[0].to_usize().unwrap();
+                let mut work = vec![Self::zero(); lwork];
+                unsafe {
+                    $gesvd(
+                        ju as u8,
+                        jvt as u8,
+                        m,
+                        n,
+                        &mut a,
+                        m,
+                        &mut s,
+                        u.as_mut().map(|x| x.as_mut_slice()).unwrap_or(&mut []),
+                        m,
+                        vt.as_mut().map(|x| x.as_mut_slice()).unwrap_or(&mut []),
+                        n,
+                        &mut work,
+                        lwork as i32,
+                        $(&mut $rwork_ident,)*
+                        &mut info,
+                    );
+                }
+                info.as_lapack_result()?;
+                match l {
+                    MatrixLayout::F { .. } => Ok(SVDOutput { s, u, vt }),
+                    MatrixLayout::C { .. } => Ok(SVDOutput { s, u: vt, vt: u }),
+                }
             }
         }
     };
 } // impl_svd!
 
-impl_svd!(f64, lapacke::dgesvd);
-impl_svd!(f32, lapacke::sgesvd);
-impl_svd!(c64, lapacke::zgesvd);
-impl_svd!(c32, lapacke::cgesvd);
+impl_svd!(@real, f64, lapack::dgesvd);
+impl_svd!(@real, f32, lapack::sgesvd);
+impl_svd!(@complex, c64, lapack::zgesvd);
+impl_svd!(@complex, c32, lapack::cgesvd);

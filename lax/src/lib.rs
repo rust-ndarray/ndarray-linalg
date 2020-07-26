@@ -70,6 +70,7 @@ pub mod layout;
 pub mod least_squares;
 pub mod opnorm;
 pub mod qr;
+pub mod rcond;
 pub mod solve;
 pub mod solveh;
 pub mod svd;
@@ -83,6 +84,7 @@ pub use self::eigh::*;
 pub use self::least_squares::*;
 pub use self::opnorm::*;
 pub use self::qr::*;
+pub use self::rcond::*;
 pub use self::solve::*;
 pub use self::solveh::*;
 pub use self::svd::*;
@@ -107,6 +109,7 @@ pub trait Lapack:
     + Eigh_
     + Triangular_
     + Tridiagonal_
+    + Rcond_
     + LeastSquaresSvdDivideConquer_
 {
 }
@@ -122,6 +125,15 @@ impl Lapack for c64 {}
 pub enum UPLO {
     Upper = b'U',
     Lower = b'L',
+}
+
+impl UPLO {
+    pub fn t(self) -> Self {
+        match self {
+            UPLO::Upper => UPLO::Lower,
+            UPLO::Lower => UPLO::Upper,
+        }
+    }
 }
 
 #[derive(Debug, Clone, Copy)]

@@ -2,11 +2,12 @@
 
 use crate::{error::*, layout::MatrixLayout};
 use cauchy::*;
-use num_traits::Zero;
+use num_traits::{ToPrimitive, Zero};
 
-/// Wraps `*geev` for real/complex
+/// Wraps `*geev` for general matrices
 pub trait Eig_: Scalar {
-    unsafe fn eig(
+    /// Calculate Right eigenvalue
+    fn eig(
         calc_v: bool,
         l: MatrixLayout,
         a: &mut [Self],
@@ -16,117 +17,242 @@ pub trait Eig_: Scalar {
 macro_rules! impl_eig_complex {
     ($scalar:ty, $ev:path) => {
         impl Eig_ for $scalar {
-            unsafe fn eig(
+            fn eig(
                 calc_v: bool,
                 l: MatrixLayout,
                 mut a: &mut [Self],
             ) -> Result<(Vec<Self::Complex>, Vec<Self::Complex>)> {
                 let (n, _) = l.size();
-                let jobvr = if calc_v { b'V' } else { b'N' };
-                let mut w = vec![Self::Complex::zero(); n as usize];
-                let mut vl = Vec::new();
-                let mut vr = vec![Self::Complex::zero(); (n * n) as usize];
-                $ev(
-                    l.lapacke_layout(),
-                    b'N',
-                    jobvr,
-                    n,
-                    &mut a,
-                    n,
-                    &mut w,
-                    &mut vl,
-                    n,
-                    &mut vr,
-                    n,
-                )
-                .as_lapack_result()?;
-                Ok((w, vr))
+                // Because LAPACK assumes F-continious array, C-continious array should be taken Hermitian conjugate.
+                // However, we utilize a fact that left eigenvector of A^H corresponds to the right eigenvector of A
+                let (jobvl, jobvr) = if calc_v {
+                    match l {
+                        MatrixLayout::C { .. } => (b'V', b'N'),
+                        MatrixLayout::F { .. } => (b'N', b'V'),
+                    }
+                } else {
+                    (b'N', b'N')
+                };
+                let mut eigs = vec![Self::Complex::zero(); n as usize];
+                let mut rwork = vec![Self::Real::zero(); 2 * n as usize];
+
+                let mut vl = if jobvl == b'V' {
+                    Some(vec![Self::Complex::zero(); (n * n) as usize])
+                } else {
+                    None
+                };
+                let mut vr = if jobvr == b'V' {
+                    Some(vec![Self::Complex::zero(); (n * n) as usize])
+                } else {
+                    None
+                };
+
+                // calc work size
+                let mut info = 0;
+                let mut work_size = [Self::zero()];
+                unsafe {
+                    $ev(
+                        jobvl,
+                        jobvr,
+                        n,
+                        &mut a,
+                        n,
+                        &mut eigs,
+                        &mut vl.as_mut().map(|v| v.as_mut_slice()).unwrap_or(&mut []),
+                        n,
+                        &mut vr.as_mut().map(|v| v.as_mut_slice()).unwrap_or(&mut []),
+                        n,
+                        &mut work_size,
+                        -1,
+                        &mut rwork,
+                        &mut info,
+                    )
+                };
+                info.as_lapack_result()?;
+
+                // actal ev
+                let lwork = work_size[0].to_usize().unwrap();
+                let mut work = vec![Self::zero(); lwork];
+                unsafe {
+                    $ev(
+                        jobvl,
+                        jobvr,
+                        n,
+                        &mut a,
+                        n,
+                        &mut eigs,
+                        &mut vl.as_mut().map(|v| v.as_mut_slice()).unwrap_or(&mut []),
+                        n,
+                        &mut vr.as_mut().map(|v| v.as_mut_slice()).unwrap_or(&mut []),
+                        n,
+                        &mut work,
+                        lwork as i32,
+                        &mut rwork,
+                        &mut info,
+                    )
+                };
+                info.as_lapack_result()?;
+
+                // Hermite conjugate
+                if jobvl == b'V' {
+                    for c in vl.as_mut().unwrap().iter_mut() {
+                        c.im = -c.im
+                    }
+                }
+
+                Ok((eigs, vr.or(vl).unwrap_or(Vec::new())))
             }
         }
     };
 }
+
+impl_eig_complex!(c64, lapack::zgeev);
+impl_eig_complex!(c32, lapack::cgeev);
 
 macro_rules! impl_eig_real {
     ($scalar:ty, $ev:path) => {
         impl Eig_ for $scalar {
-            unsafe fn eig(
+            fn eig(
                 calc_v: bool,
                 l: MatrixLayout,
                 mut a: &mut [Self],
             ) -> Result<(Vec<Self::Complex>, Vec<Self::Complex>)> {
                 let (n, _) = l.size();
-                let jobvr = if calc_v { b'V' } else { b'N' };
-                let mut wr = vec![Self::Real::zero(); n as usize];
-                let mut wi = vec![Self::Real::zero(); n as usize];
-                let mut vl = Vec::new();
-                let mut vr = vec![Self::Real::zero(); (n * n) as usize];
-                let info = $ev(
-                    l.lapacke_layout(),
-                    b'N',
-                    jobvr,
-                    n,
-                    &mut a,
-                    n,
-                    &mut wr,
-                    &mut wi,
-                    &mut vl,
-                    n,
-                    &mut vr,
-                    n,
-                );
-                let w: Vec<Self::Complex> = wr
-                    .iter()
-                    .zip(wi.iter())
-                    .map(|(&r, &i)| Self::Complex::new(r, i))
-                    .collect();
+                // Because LAPACK assumes F-continious array, C-continious array should be taken Hermitian conjugate.
+                // However, we utilize a fact that left eigenvector of A^H corresponds to the right eigenvector of A
+                let (jobvl, jobvr) = if calc_v {
+                    match l {
+                        MatrixLayout::C { .. } => (b'V', b'N'),
+                        MatrixLayout::F { .. } => (b'N', b'V'),
+                    }
+                } else {
+                    (b'N', b'N')
+                };
+                let mut eig_re = vec![Self::zero(); n as usize];
+                let mut eig_im = vec![Self::zero(); n as usize];
 
-                // If the j-th eigenvalue is real, then
-                // eigenvector = [ vr[j], vr[j+n], vr[j+2*n], ... ].
-                //
-                // If the j-th and (j+1)-st eigenvalues form a complex conjugate pair,
-                // eigenvector(j)   = [ vr[j] + i*vr[j+1], vr[j+n] + i*vr[j+n+1], vr[j+2*n] + i*vr[j+2*n+1], ... ] and
-                // eigenvector(j+1) = [ vr[j] - i*vr[j+1], vr[j+n] - i*vr[j+n+1], vr[j+2*n] - i*vr[j+2*n+1], ... ].
-                //
-                // Therefore, if eigenvector(j) is written as [ v_{j0}, v_{j1}, v_{j2}, ... ],
-                // you have to make
-                // v = vec![ v_{00}, v_{10}, v_{20}, ..., v_{jk}, v_{(j+1)k}, v_{(j+2)k}, ... ] (v.len() = n*n)
-                // based on wi and vr.
-                // After that, v is converted to Array2 (see ../eig.rs).
-                let n = n as usize;
-                let mut flg = false;
-                let conj: Vec<i8> = wi
-                    .iter()
-                    .map(|&i| {
-                        if flg {
-                            flg = false;
-                            -1
-                        } else if i != 0.0 {
-                            flg = true;
-                            1
-                        } else {
-                            0
-                        }
-                    })
-                    .collect();
-                let v: Vec<Self::Complex> = (0..n * n)
-                    .map(|i| {
-                        let j = i % n;
-                        match conj[j] {
-                            1 => Self::Complex::new(vr[i], vr[i + 1]),
-                            -1 => Self::Complex::new(vr[i - 1], -vr[i]),
-                            _ => Self::Complex::new(vr[i], 0.0),
-                        }
-                    })
-                    .collect();
+                let mut vl = if jobvl == b'V' {
+                    Some(vec![Self::zero(); (n * n) as usize])
+                } else {
+                    None
+                };
+                let mut vr = if jobvr == b'V' {
+                    Some(vec![Self::zero(); (n * n) as usize])
+                } else {
+                    None
+                };
 
+                // calc work size
+                let mut info = 0;
+                let mut work_size = [0.0];
+                unsafe {
+                    $ev(
+                        jobvl,
+                        jobvr,
+                        n,
+                        &mut a,
+                        n,
+                        &mut eig_re,
+                        &mut eig_im,
+                        vl.as_mut().map(|v| v.as_mut_slice()).unwrap_or(&mut []),
+                        n,
+                        vr.as_mut().map(|v| v.as_mut_slice()).unwrap_or(&mut []),
+                        n,
+                        &mut work_size,
+                        -1,
+                        &mut info,
+                    )
+                };
                 info.as_lapack_result()?;
-                Ok((w, v))
+
+                // actual ev
+                let lwork = work_size[0].to_usize().unwrap();
+                let mut work = vec![Self::zero(); lwork];
+                unsafe {
+                    $ev(
+                        jobvl,
+                        jobvr,
+                        n,
+                        &mut a,
+                        n,
+                        &mut eig_re,
+                        &mut eig_im,
+                        vl.as_mut().map(|v| v.as_mut_slice()).unwrap_or(&mut []),
+                        n,
+                        vr.as_mut().map(|v| v.as_mut_slice()).unwrap_or(&mut []),
+                        n,
+                        &mut work,
+                        lwork as i32,
+                        &mut info,
+                    )
+                };
+                info.as_lapack_result()?;
+
+                // reconstruct eigenvalues
+                let eigs: Vec<Self::Complex> = eig_re
+                    .iter()
+                    .zip(eig_im.iter())
+                    .map(|(&re, &im)| Self::complex(re, im))
+                    .collect();
+
+                if !calc_v {
+                    return Ok((eigs, Vec::new()));
+                }
+
+                // Reconstruct eigenvectors into complex-array
+                // --------------------------------------------
+                //
+                // From LAPACK API https://software.intel.com/en-us/node/469230
+                //
+                // - If the j-th eigenvalue is real,
+                //   - v(j) = VR(:,j), the j-th column of VR.
+                //
+                // - If the j-th and (j+1)-st eigenvalues form a complex conjugate pair,
+                //   - v(j)   = VR(:,j) + i*VR(:,j+1)
+                //   - v(j+1) = VR(:,j) - i*VR(:,j+1).
+                //
+                // ```
+                //  j ->         <----pair---->  <----pair---->
+                // [ ... (real), (imag), (imag), (imag), (imag), ... ] : eigs
+                //       ^       ^       ^       ^       ^
+                //       false   false   true    false   true          : is_conjugate_pair
+                // ```
+                let n = n as usize;
+                let v = vr.or(vl).unwrap();
+                let mut eigvecs = vec![Self::Complex::zero(); n * n];
+                let mut is_conjugate_pair = false; // flag for check `j` is complex conjugate
+                for j in 0..n {
+                    if eig_im[j] == 0.0 {
+                        // j-th eigenvalue is real
+                        for i in 0..n {
+                            eigvecs[i + j * n] = Self::complex(v[i + j * n], 0.0);
+                        }
+                    } else {
+                        // j-th eigenvalue is complex
+                        // complex conjugated pair can be `j-1` or `j+1`
+                        if is_conjugate_pair {
+                            let j_pair = j - 1;
+                            assert!(j_pair < n);
+                            for i in 0..n {
+                                eigvecs[i + j * n] = Self::complex(v[i + j_pair * n], v[i + j * n]);
+                            }
+                        } else {
+                            let j_pair = j + 1;
+                            assert!(j_pair < n);
+                            for i in 0..n {
+                                eigvecs[i + j * n] =
+                                    Self::complex(v[i + j * n], -v[i + j_pair * n]);
+                            }
+                        }
+                        is_conjugate_pair = !is_conjugate_pair;
+                    }
+                }
+
+                Ok((eigs, eigvecs))
             }
         }
     };
 }
 
-impl_eig_real!(f64, lapacke::dgeev);
-impl_eig_real!(f32, lapacke::sgeev);
-impl_eig_complex!(c64, lapacke::zgeev);
-impl_eig_complex!(c32, lapacke::cgeev);
+impl_eig_real!(f64, lapack::dgeev);
+impl_eig_real!(f32, lapack::sgeev);

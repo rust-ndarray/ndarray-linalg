@@ -9,6 +9,7 @@ fn test_exact<T: Scalar + Lapack>(a: Array2<T>, b: Array2<T>) {
     assert_eq!(b.layout().unwrap().size(), (3, 2));
 
     let result = a.least_squares(&b).unwrap();
+    dbg!(&result);
     // unpack result
     let x: Array2<T> = result.solution;
     let residual_l2_square: Array1<T::Real> = result.residual_sum_of_squares.unwrap();
@@ -31,33 +32,29 @@ macro_rules! impl_exact {
         paste::item! {
             #[test]
             fn [<least_squares_ $scalar _exact_ac_bc>]() {
-                let a: Array2<f64> = random((3, 3));
-                let b: Array2<f64> = random((3, 2));
+                let a: Array2<$scalar> = random((3, 3));
+                let b: Array2<$scalar> = random((3, 2));
                 test_exact(a, b)
             }
 
-            /* Unsupported currently. See https://github.com/rust-ndarray/ndarray-linalg/issues/234
-
             #[test]
             fn [<least_squares_ $scalar _exact_ac_bf>]() {
-                let a: Array2<f64> = random((3, 3));
-                let b: Array2<f64> = random((3, 2).f());
+                let a: Array2<$scalar> = random((3, 3));
+                let b: Array2<$scalar> = random((3, 2).f());
                 test_exact(a, b)
             }
 
             #[test]
             fn [<least_squares_ $scalar _exact_af_bc>]() {
-                let a: Array2<f64> = random((3, 3).f());
-                let b: Array2<f64> = random((3, 2));
+                let a: Array2<$scalar> = random((3, 3).f());
+                let b: Array2<$scalar> = random((3, 2));
                 test_exact(a, b)
             }
 
-            */
-
             #[test]
             fn [<least_squares_ $scalar _exact_af_bf>]() {
-                let a: Array2<f64> = random((3, 3).f());
-                let b: Array2<f64> = random((3, 2).f());
+                let a: Array2<$scalar> = random((3, 3).f());
+                let b: Array2<$scalar> = random((3, 2).f());
                 test_exact(a, b)
             }
         }
@@ -103,33 +100,29 @@ macro_rules! impl_overdetermined {
         paste::item! {
             #[test]
             fn [<least_squares_ $scalar _overdetermined_ac_bc>]() {
-                let a: Array2<f64> = random((4, 3));
-                let b: Array2<f64> = random((4, 2));
+                let a: Array2<$scalar> = random((4, 3));
+                let b: Array2<$scalar> = random((4, 2));
                 test_overdetermined(a, b)
             }
 
-            /* Unsupported currently. See https://github.com/rust-ndarray/ndarray-linalg/issues/234
-
             #[test]
             fn [<least_squares_ $scalar _overdetermined_af_bc>]() {
-                let a: Array2<f64> = random((4, 3).f());
-                let b: Array2<f64> = random((4, 2));
+                let a: Array2<$scalar> = random((4, 3).f());
+                let b: Array2<$scalar> = random((4, 2));
                 test_overdetermined(a, b)
             }
 
             #[test]
             fn [<least_squares_ $scalar _overdetermined_ac_bf>]() {
-                let a: Array2<f64> = random((4, 3));
-                let b: Array2<f64> = random((4, 2).f());
+                let a: Array2<$scalar> = random((4, 3));
+                let b: Array2<$scalar> = random((4, 2).f());
                 test_overdetermined(a, b)
             }
 
-            */
-
             #[test]
             fn [<least_squares_ $scalar _overdetermined_af_bf>]() {
-                let a: Array2<f64> = random((4, 3).f());
-                let b: Array2<f64> = random((4, 2).f());
+                let a: Array2<$scalar> = random((4, 3).f());
+                let b: Array2<$scalar> = random((4, 2).f());
                 test_overdetermined(a, b)
             }
         }
@@ -162,33 +155,29 @@ macro_rules! impl_underdetermined {
         paste::item! {
             #[test]
             fn [<least_squares_ $scalar _underdetermined_ac_bc>]() {
-                let a: Array2<f64> = random((3, 4));
-                let b: Array2<f64> = random((3, 2));
+                let a: Array2<$scalar> = random((3, 4));
+                let b: Array2<$scalar> = random((3, 2));
                 test_underdetermined(a, b)
             }
 
-            /* Unsupported currently. See https://github.com/rust-ndarray/ndarray-linalg/issues/234
-
             #[test]
             fn [<least_squares_ $scalar _underdetermined_af_bc>]() {
-                let a: Array2<f64> = random((3, 4).f());
-                let b: Array2<f64> = random((3, 2));
+                let a: Array2<$scalar> = random((3, 4).f());
+                let b: Array2<$scalar> = random((3, 2));
                 test_underdetermined(a, b)
             }
 
             #[test]
             fn [<least_squares_ $scalar _underdetermined_ac_bf>]() {
-                let a: Array2<f64> = random((3, 4));
-                let b: Array2<f64> = random((3, 2).f());
+                let a: Array2<$scalar> = random((3, 4));
+                let b: Array2<$scalar> = random((3, 2).f());
                 test_underdetermined(a, b)
             }
 
-            */
-
             #[test]
             fn [<least_squares_ $scalar _underdetermined_af_bf>]() {
-                let a: Array2<f64> = random((3, 4).f());
-                let b: Array2<f64> = random((3, 2).f());
+                let a: Array2<$scalar> = random((3, 4).f());
+                let b: Array2<$scalar> = random((3, 2).f());
                 test_underdetermined(a, b)
             }
         }

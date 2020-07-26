@@ -92,11 +92,11 @@ fn test_matrix_real_t<T: Scalar>() -> Array2<T::Real> {
 
 fn answer_eig_real<T: Scalar>() -> Array1<T::Complex> {
     array![
-        T::complex(2.86, 10.76),
-        T::complex(2.86, -10.76),
+        T::complex(-10.46, 0.00),
         T::complex(-0.69, 4.70),
         T::complex(-0.69, -4.70),
-        T::complex(-10.46, 0.00),
+        T::complex(2.86, 10.76),
+        T::complex(2.86, -10.76),
     ]
 }
 

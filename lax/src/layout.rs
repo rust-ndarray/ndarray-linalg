@@ -37,6 +37,8 @@
 //! This `S` for a matrix `A` is called "leading dimension of the array A" in LAPACK document, and denoted by `lda`.
 //!
 
+use cauchy::Scalar;
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum MatrixLayout {
     C { row: i32, lda: i32 },
@@ -78,15 +80,12 @@ impl MatrixLayout {
         self.len() == 0
     }
 
-    pub fn lapacke_layout(&self) -> lapacke::Layout {
-        match *self {
-            MatrixLayout::C { .. } => lapacke::Layout::RowMajor,
-            MatrixLayout::F { .. } => lapacke::Layout::ColumnMajor,
-        }
-    }
-
     pub fn same_order(&self, other: &MatrixLayout) -> bool {
-        self.lapacke_layout() == other.lapacke_layout()
+        match (self, other) {
+            (MatrixLayout::C { .. }, MatrixLayout::C { .. }) => true,
+            (MatrixLayout::F { .. }, MatrixLayout::F { .. }) => true,
+            _ => false,
+        }
     }
 
     pub fn toggle_order(&self) -> Self {
@@ -95,4 +94,132 @@ impl MatrixLayout {
             MatrixLayout::F { col, lda } => MatrixLayout::C { row: lda, lda: col },
         }
     }
+
+    /// Transpose without changing memory representation
+    ///
+    /// C-contigious row=2, lda=3
+    ///
+    /// ```text
+    /// [[1, 2, 3]
+    ///  [4, 5, 6]]
+    /// ```
+    ///
+    /// and F-contigious col=2, lda=3
+    ///
+    /// ```text
+    /// [[1, 4]
+    ///  [2, 5]
+    ///  [3, 6]]
+    /// ```
+    ///
+    /// have same memory representation `[1, 2, 3, 4, 5, 6]`, and this toggles them.
+    ///
+    /// ```
+    /// # use lax::layout::*;
+    /// let layout = MatrixLayout::C { row: 2, lda: 3 };
+    /// assert_eq!(layout.t(), MatrixLayout::F { col: 2, lda: 3 });
+    /// ```
+    pub fn t(&self) -> Self {
+        match *self {
+            MatrixLayout::C { row, lda } => MatrixLayout::F { col: row, lda },
+            MatrixLayout::F { col, lda } => MatrixLayout::C { row: col, lda },
+        }
+    }
+}
+
+/// In-place transpose of a square matrix by keeping F/C layout
+///
+/// Transpose for C-continuous array
+///
+/// ```rust
+/// # use lax::layout::*;
+/// let layout = MatrixLayout::C { row: 2, lda: 2 };
+/// let mut a = vec![1., 2., 3., 4.];
+/// square_transpose(layout, &mut a);
+/// assert_eq!(a, &[1., 3., 2., 4.]);
+/// ```
+///
+/// Transpose for F-continuous array
+///
+/// ```rust
+/// # use lax::layout::*;
+/// let layout = MatrixLayout::F { col: 2, lda: 2 };
+/// let mut a = vec![1., 3., 2., 4.];
+/// square_transpose(layout, &mut a);
+/// assert_eq!(a, &[1., 2., 3., 4.]);
+/// ```
+///
+/// Panics
+/// ------
+/// - If size of `a` and `layout` size mismatch
+///
+pub fn square_transpose<T: Scalar>(layout: MatrixLayout, a: &mut [T]) {
+    let (m, n) = layout.size();
+    let n = n as usize;
+    let m = m as usize;
+    assert_eq!(a.len(), n * m);
+    for i in 0..m {
+        for j in (i + 1)..n {
+            let a_ij = a[i * n + j];
+            let a_ji = a[j * m + i];
+            a[i * n + j] = a_ji.conj();
+            a[j * m + i] = a_ij.conj();
+        }
+    }
+}
+
+/// Out-place transpose for general matrix
+///
+/// Inplace transpose of non-square matrices is hard.
+/// See also: https://en.wikipedia.org/wiki/In-place_matrix_transposition
+///
+/// ```rust
+/// # use lax::layout::*;
+/// let layout = MatrixLayout::C { row: 2, lda: 3 };
+/// let a = vec![1., 2., 3., 4., 5., 6.];
+/// let mut b = vec![0.0; a.len()];
+/// let l = transpose(layout, &a, &mut b);
+/// assert_eq!(l, MatrixLayout::F { col: 3, lda: 2 });
+/// assert_eq!(b, &[1., 4., 2., 5., 3., 6.]);
+/// ```
+///
+/// ```rust
+/// # use lax::layout::*;
+/// let layout = MatrixLayout::F { col: 2, lda: 3 };
+/// let a = vec![1., 2., 3., 4., 5., 6.];
+/// let mut b = vec![0.0; a.len()];
+/// let l = transpose(layout, &a, &mut b);
+/// assert_eq!(l, MatrixLayout::C { row: 3, lda: 2 });
+/// assert_eq!(b, &[1., 4., 2., 5., 3., 6.]);
+/// ```
+///
+/// Panics
+/// ------
+/// - If size of `a` and `layout` size mismatch
+///
+pub fn transpose<T: Scalar>(layout: MatrixLayout, from: &[T], to: &mut [T]) -> MatrixLayout {
+    let (m, n) = layout.size();
+    let transposed = layout.resized(n, m).t();
+    let m = m as usize;
+    let n = n as usize;
+    assert_eq!(from.len(), m * n);
+    assert_eq!(to.len(), m * n);
+
+    match layout {
+        MatrixLayout::C { .. } => {
+            for i in 0..m {
+                for j in 0..n {
+                    to[j * m + i] = from[i * n + j];
+                }
+            }
+        }
+        MatrixLayout::F { .. } => {
+            for i in 0..m {
+                for j in 0..n {
+                    to[i * n + j] = from[j * m + i];
+                }
+            }
+        }
+    }
+    transposed
 }

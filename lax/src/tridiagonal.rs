@@ -130,11 +130,11 @@ impl<A: Scalar> IndexMut<[i32; 2]> for Tridiagonal<A> {
 pub trait Tridiagonal_: Scalar + Sized {
     /// Computes the LU factorization of a tridiagonal `m x n` matrix `a` using
     /// partial pivoting with row interchanges.
-    unsafe fn lu_tridiagonal(a: Tridiagonal<Self>) -> Result<LUFactorizedTridiagonal<Self>>;
+    fn lu_tridiagonal(a: Tridiagonal<Self>) -> Result<LUFactorizedTridiagonal<Self>>;
 
-    unsafe fn rcond_tridiagonal(lu: &LUFactorizedTridiagonal<Self>) -> Result<Self::Real>;
+    fn rcond_tridiagonal(lu: &LUFactorizedTridiagonal<Self>) -> Result<Self::Real>;
 
-    unsafe fn solve_tridiagonal(
+    fn solve_tridiagonal(
         lu: &LUFactorizedTridiagonal<Self>,
         bl: MatrixLayout,
         t: Transpose,
@@ -151,18 +151,14 @@ macro_rules! impl_tridiagonal {
     };
     (@body, $scalar:ty, $gttrf:path, $gtcon:path, $gttrs:path, $($iwork:ident)*) => {
         impl Tridiagonal_ for $scalar {
-            unsafe fn lu_tridiagonal(
-                mut a: Tridiagonal<Self>,
-            ) -> Result<LUFactorizedTridiagonal<Self>> {
+            fn lu_tridiagonal(mut a: Tridiagonal<Self>) -> Result<LUFactorizedTridiagonal<Self>> {
                 let (n, _) = a.l.size();
                 let mut du2 = vec![Zero::zero(); (n - 2) as usize];
                 let mut ipiv = vec![0; n as usize];
                 // We have to calc one-norm before LU factorization
                 let a_opnorm_one = a.opnorm_one();
                 let mut info = 0;
-                $gttrf(
-                    n, &mut a.dl, &mut a.d, &mut a.du, &mut du2, &mut ipiv, &mut info,
-                );
+                unsafe { $gttrf(n, &mut a.dl, &mut a.d, &mut a.du, &mut du2, &mut ipiv, &mut info,) };
                 info.as_lapack_result()?;
                 Ok(LUFactorizedTridiagonal {
                     a,
@@ -172,7 +168,7 @@ macro_rules! impl_tridiagonal {
                 })
             }
 
-            unsafe fn rcond_tridiagonal(lu: &LUFactorizedTridiagonal<Self>) -> Result<Self::Real> {
+            fn rcond_tridiagonal(lu: &LUFactorizedTridiagonal<Self>) -> Result<Self::Real> {
                 let (n, _) = lu.a.l.size();
                 let ipiv = &lu.ipiv;
                 let mut work = vec![Self::zero(); 2 * n as usize];
@@ -181,25 +177,27 @@ macro_rules! impl_tridiagonal {
                 )*
                 let mut rcond = Self::Real::zero();
                 let mut info = 0;
-                $gtcon(
-                    NormType::One as u8,
-                    n,
-                    &lu.a.dl,
-                    &lu.a.d,
-                    &lu.a.du,
-                    &lu.du2,
-                    ipiv,
-                    lu.a_opnorm_one,
-                    &mut rcond,
-                    &mut work,
-                    $(&mut $iwork,)*
-                    &mut info,
-                );
+                unsafe {
+                    $gtcon(
+                        NormType::One as u8,
+                        n,
+                        &lu.a.dl,
+                        &lu.a.d,
+                        &lu.a.du,
+                        &lu.du2,
+                        ipiv,
+                        lu.a_opnorm_one,
+                        &mut rcond,
+                        &mut work,
+                        $(&mut $iwork,)*
+                        &mut info,
+                    );
+                }
                 info.as_lapack_result()?;
                 Ok(rcond)
             }
 
-            unsafe fn solve_tridiagonal(
+            fn solve_tridiagonal(
                 lu: &LUFactorizedTridiagonal<Self>,
                 b_layout: MatrixLayout,
                 t: Transpose,
@@ -218,19 +216,21 @@ macro_rules! impl_tridiagonal {
                 };
                 let (ldb, nrhs) = b_layout.size();
                 let mut info = 0;
-                $gttrs(
-                    t as u8,
-                    n,
-                    nrhs,
-                    &lu.a.dl,
-                    &lu.a.d,
-                    &lu.a.du,
-                    &lu.du2,
-                    ipiv,
-                    b_t.as_mut().map(|v| v.as_mut_slice()).unwrap_or(b),
-                    ldb,
-                    &mut info,
-                );
+                unsafe {
+                    $gttrs(
+                        t as u8,
+                        n,
+                        nrhs,
+                        &lu.a.dl,
+                        &lu.a.d,
+                        &lu.a.du,
+                        &lu.du2,
+                        ipiv,
+                        b_t.as_mut().map(|v| v.as_mut_slice()).unwrap_or(b),
+                        ldb,
+                        &mut info,
+                    );
+                }
                 info.as_lapack_result()?;
                 if let Some(b_t) = b_t {
                     transpose(b_layout, &b_t, b);

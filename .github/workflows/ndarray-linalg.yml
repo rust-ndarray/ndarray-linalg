@@ -1,0 +1,37 @@
+name: ndarray-linalg
+
+on:
+  push:
+    branches:
+      - master
+  pull_request: {}
+
+jobs:
+  linux:
+    strategy:
+      fail-fast: false
+      matrix:
+        feature:
+          - intel-mkl
+          - openblas
+          - netlib
+    runs-on: ubuntu-18.04
+    steps:
+      - uses: actions/checkout@v1
+      - name: apt install openblas
+        run: |
+          sudo apt update
+          sudo apt install -y gfortran libopenblas-dev liblapacke-dev
+        if: ${{ matrix.feature == 'openblas' }}
+      - name: apt install netlib
+        run: |
+          sudo apt update
+          sudo apt install -y gfortran libblas-dev liblapack-dev liblapacke-dev
+        if: ${{ matrix.feature == 'netlib' }}
+      - uses: actions-rs/cargo@v1
+        with:
+          command: test
+          args: >
+            --manifest-path=ndarray-linalg/Cargo.toml
+            --no-default-features
+            --features=${{ matrix.feature }}

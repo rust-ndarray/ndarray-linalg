@@ -2,7 +2,7 @@
 //! for tridiagonal matrix
 
 use super::*;
-use crate::{error::*, layout::MatrixLayout};
+use crate::{error::*, layout::*};
 use cauchy::*;
 use num_traits::Zero;
 use std::ops::{Index, IndexMut};
@@ -201,19 +201,40 @@ macro_rules! impl_tridiagonal {
 
             unsafe fn solve_tridiagonal(
                 lu: &LUFactorizedTridiagonal<Self>,
-                bl: MatrixLayout,
+                b_layout: MatrixLayout,
                 t: Transpose,
                 b: &mut [Self],
             ) -> Result<()> {
                 let (n, _) = lu.a.l.size();
-                let (_, nrhs) = bl.size();
                 let ipiv = &lu.ipiv;
-                let ldb = bl.lda();
+                // Transpose if b is C-continuous
+                let mut b_t = None;
+                let b_layout = match b_layout {
+                    MatrixLayout::C { .. } => {
+                        b_t = Some(vec![Self::zero(); b.len()]);
+                        transpose(b_layout, b, b_t.as_mut().unwrap())
+                    }
+                    MatrixLayout::F { .. } => b_layout,
+                };
+                let (ldb, nrhs) = b_layout.size();
                 let mut info = 0;
                 $gttrs(
-                    t as u8, n, nrhs, &lu.a.dl, &lu.a.d, &lu.a.du, &lu.du2, ipiv, b, ldb, &mut info,
+                    t as u8,
+                    n,
+                    nrhs,
+                    &lu.a.dl,
+                    &lu.a.d,
+                    &lu.a.du,
+                    &lu.du2,
+                    ipiv,
+                    b_t.as_mut().map(|v| v.as_mut_slice()).unwrap_or(b),
+                    ldb,
+                    &mut info,
                 );
                 info.as_lapack_result()?;
+                if let Some(b_t) = b_t {
+                    transpose(b_layout, &b_t, b);
+                }
                 Ok(())
             }
         }

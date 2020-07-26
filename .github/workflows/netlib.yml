@@ -30,6 +30,7 @@ jobs:
         with:
           command: test
           args: >
+            --manifest-path=ndarray-linalg/Cargo.toml
             --no-default-features
             --features=netlib-${{ matrix.feature }}
 
@@ -51,5 +52,6 @@ jobs:
         with:
           command: test
           args: >
+            --manifest-path=ndarray-linalg/Cargo.toml
             --no-default-features
             --features=netlib-${{ matrix.feature }}

@@ -1,6 +1,18 @@
 Unreleased
 -----------
 
+Added
+------
+- lax sub-crate from `ndarray_linalg::lapack` https://github.com/rust-ndarray/ndarray-linalg/pull/207
+  - cargo-workspace https://github.com/rust-ndarray/ndarray-linalg/pull/209
+
+Changed
+--------
+- Named struct for `MatrixLayout` https://github.com/rust-ndarray/ndarray-linalg/pull/211
+- Split LAPACK error into computational failure and invalid values https://github.com/rust-ndarray/ndarray-linalg/pull/210
+- Use thiserror crate https://github.com/rust-ndarray/ndarray-linalg/pull/208
+- Fix for clippy, and add CI check https://github.com/rust-ndarray/ndarray-linalg/pull/205
+
 0.12.1 - 28 June 2020
 ----------------------
 

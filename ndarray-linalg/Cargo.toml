@@ -1,0 +1,52 @@
+[package]
+name    = "ndarray-linalg"
+version = "0.13.0-alpha.0"
+authors = ["Toshiki Teramura <toshiki.teramura@gmail.com>"]
+edition = "2018"
+
+description   = "Linear algebra package for rust-ndarray using LAPACK"
+documentation = "https://docs.rs/ndarray-linalg/"
+repository    = "https://github.com/rust-ndarray/ndarray-linalg"
+keywords      = ["ndarray", "lapack", "matrix"]
+license       = "MIT"
+readme        = "README.md"
+categories    = ["algorithms", "science"]
+
+[features]
+default   = []
+intel-mkl = ["lax/intel-mkl"]
+netlib    = ["lax/netlib"]
+openblas  = ["lax/openblas"]
+
+[dependencies]
+cauchy = "0.2.2"
+num-complex = "0.2.4"
+num-traits  = "0.2.11"
+rand = "0.5"
+thiserror = "1.0.20"
+
+[dependencies.ndarray]
+version = "0.13.0"
+features = ["blas", "approx"]
+default-features = false
+
+[dependencies.lax]
+version = "0.1.0"
+path = "../lax"
+default-features = false
+
+[dev-dependencies]
+paste = "0.1.9"
+criterion = "0.3.1"
+approx = { version = "0.3.2", features = ["num-complex"] }
+
+[[bench]]
+name = "truncated_eig"
+harness = false
+
+[[bench]]
+name = "eigh"
+harness = false
+
+[package.metadata.docs.rs]
+rustdoc-args = ["--html-in-header", "katex-header.html"]

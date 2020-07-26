@@ -19,7 +19,7 @@ fn test_exact<T: Scalar + Lapack>(a: Array2<T>) {
 
     // b == Ax
     let ax = a.dot(&x);
-    assert_close_l2!(&b, &ax, T::real(1.0e-4));
+    assert_close_max!(&b, &ax, T::real(1.0e-4));
 }
 
 macro_rules! impl_exact {
@@ -102,7 +102,7 @@ fn test_underdetermined<T: Scalar + Lapack>(a: Array2<T>) {
     // b == Ax
     let x = result.solution;
     let ax = a.dot(&x);
-    assert_close_l2!(&b, &ax, T::real(1.0e-4));
+    assert_close_max!(&b, &ax, T::real(1.0e-4));
 }
 
 macro_rules! impl_underdetermined {

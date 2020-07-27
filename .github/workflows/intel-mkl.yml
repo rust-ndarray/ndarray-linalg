@@ -1,0 +1,43 @@
+name: intel-mkl
+
+on:
+  push:
+    branches:
+      - master
+  pull_request: {}
+
+jobs:
+  windows:
+    strategy:
+      fail-fast: false
+      matrix:
+        feature:
+          - intel-mkl-static
+    runs-on: windows-2019
+    steps:
+      - uses: actions/checkout@v1
+      - uses: actions-rs/cargo@v1
+        with:
+          command: test
+          args: >
+            --manifest-path=ndarray-linalg/Cargo.toml
+            --no-default-features
+            --features=${{ matrix.feature }}
+
+  linux:
+    strategy:
+      fail-fast: false
+      matrix:
+        feature:
+          - intel-mkl-static
+    runs-on: ubuntu-18.04
+    steps:
+      - uses: actions/checkout@v1
+      - uses: actions-rs/cargo@v1
+        name: cargo test
+        with:
+          command: test
+          args: >
+            --manifest-path=ndarray-linalg/Cargo.toml
+            --no-default-features
+            --features=${{ matrix.feature }}

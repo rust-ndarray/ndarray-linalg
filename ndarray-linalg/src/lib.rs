@@ -47,7 +47,6 @@
 
 #[macro_use]
 extern crate ndarray;
-
 extern crate lax as lapack;
 
 pub mod assert;

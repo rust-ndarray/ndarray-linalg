@@ -14,9 +14,19 @@ categories    = ["algorithms", "science"]
 
 [features]
 default   = []
-intel-mkl = ["lax/intel-mkl"]
+
 netlib    = ["lax/netlib"]
 openblas  = ["lax/openblas"]
+intel-mkl = ["lax/intel-mkl"]
+
+netlib-static   = ["lax/netlib-static"]
+netlib-system   = ["lax/netlib-system"]
+
+openblas-static = ["lax/openblas-static"]
+openblas-system = ["lax/openblas-system"]
+
+intel-mkl-static = ["lax/intel-mkl-static"]
+intel-mkl-system = ["lax/intel-mkl-system"]
 
 [dependencies]
 cauchy = "0.2.2"

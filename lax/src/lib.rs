@@ -59,8 +59,14 @@
 //! [svddc]: svddck/trait.SVDDC_.html#tymethod.svddc
 //! [least_squares]: least_squares/trait.LeastSquaresSvdDivideConquer_.html#tymethod.least_squares
 
-extern crate blas_src;
-extern crate lapack_src;
+#[cfg(any(feature = "intel-mkl-system", feature = "intel-mkl-static"))]
+extern crate intel_mkl_src as _src;
+
+#[cfg(any(feature = "openblas-system", feature = "openblas-static"))]
+extern crate openblas_src as _src;
+
+#[cfg(any(feature = "netlib-system", feature = "netlib-static"))]
+extern crate netlib_src as _src;
 
 pub mod cholesky;
 pub mod eig;

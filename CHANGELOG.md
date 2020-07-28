@@ -1,17 +1,34 @@
-Unreleased
------------
+Unreleased (will be 0.13.0)
+----------------------------
 
 Added
 ------
-- lax sub-crate from `ndarray_linalg::lapack` https://github.com/rust-ndarray/ndarray-linalg/pull/207
+- Split out `ndarray_linalg::lapack` as "lax" crate https://github.com/rust-ndarray/ndarray-linalg/pull/207
   - cargo-workspace https://github.com/rust-ndarray/ndarray-linalg/pull/209
 
 Changed
 --------
+- Revise tests for least-square problem https://github.com/rust-ndarray/ndarray-linalg/pull/227
+- New features for static linking https://github.com/rust-ndarray/ndarray-linalg/pull/204
+- Drop LAPACKE dependence https://github.com/rust-ndarray/ndarray-linalg/pull/206
+  - Cholesky https://github.com/rust-ndarray/ndarray-linalg/pull/225
+  - Eigenvalue for general matrix https://github.com/rust-ndarray/ndarray-linalg/pull/212
+  - Eigenvalue for symmetric/Hermitian matrix https://github.com/rust-ndarray/ndarray-linalg/pull/217
+  - least squares problem https://github.com/rust-ndarray/ndarray-linalg/pull/220
+  - QR decomposition https://github.com/rust-ndarray/ndarray-linalg/pull/224
+  - LU decomposition https://github.com/rust-ndarray/ndarray-linalg/pull/213
+  - LDL decomposition https://github.com/rust-ndarray/ndarray-linalg/pull/216
+  - SVD https://github.com/rust-ndarray/ndarray-linalg/pull/218
+  - SVD divid-and-conquer https://github.com/rust-ndarray/ndarray-linalg/pull/219
+  - Tridiagonal https://github.com/rust-ndarray/ndarray-linalg/pull/235
 - Named struct for `MatrixLayout` https://github.com/rust-ndarray/ndarray-linalg/pull/211
 - Split LAPACK error into computational failure and invalid values https://github.com/rust-ndarray/ndarray-linalg/pull/210
 - Use thiserror crate https://github.com/rust-ndarray/ndarray-linalg/pull/208
 - Fix for clippy, and add CI check https://github.com/rust-ndarray/ndarray-linalg/pull/205
+
+Maintenance
+-----------
+- Coverage report using codecov https://github.com/rust-ndarray/ndarray-linalg/pull/215
 
 0.12.1 - 28 June 2020
 ----------------------

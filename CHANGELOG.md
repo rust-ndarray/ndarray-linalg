@@ -1,6 +1,8 @@
 Unreleased (will be 0.13.0)
 ==========================
 
+https://github.com/rust-ndarray/ndarray-linalg/milestone/5
+
 Added
 ------
 - Split out `ndarray_linalg::lapack` as "lax" crate https://github.com/rust-ndarray/ndarray-linalg/pull/207

@@ -20,6 +20,26 @@ fn solve_random_t() {
 }
 
 #[test]
+fn solve_factorized() {
+    let a: Array2<f64> = random((3, 3));
+    let ans: Array1<f64> = random(3);
+    let b = a.dot(&ans);
+    let f = a.factorize_into().unwrap();
+    let x = f.solve_into(b).unwrap();
+    assert_close_l2!(&x, &ans, 1e-7);
+}
+
+#[test]
+fn solve_factorized_t() {
+    let a: Array2<f64> = random((3, 3).f());
+    let ans: Array1<f64> = random(3);
+    let b = a.dot(&ans);
+    let f = a.factorize_into().unwrap();
+    let x = f.solve_into(b).unwrap();
+    assert_close_l2!(&x, &ans, 1e-7);
+}
+
+#[test]
 fn rcond() {
     macro_rules! rcond {
         ($elem:ty, $rows:expr, $atol:expr) => {

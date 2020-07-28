@@ -1,5 +1,5 @@
 Unreleased (will be 0.13.0)
-----------------------------
+==========================
 
 Added
 ------
@@ -10,6 +10,7 @@ Changed
 --------
 - Revise tests for least-square problem https://github.com/rust-ndarray/ndarray-linalg/pull/227
 - New features for static linking https://github.com/rust-ndarray/ndarray-linalg/pull/204
+  - intel-mkl-src 0.6.0+mkl2020.1
 - Drop LAPACKE dependence https://github.com/rust-ndarray/ndarray-linalg/pull/206
   - Cholesky https://github.com/rust-ndarray/ndarray-linalg/pull/225
   - Eigenvalue for general matrix https://github.com/rust-ndarray/ndarray-linalg/pull/212
@@ -31,7 +32,7 @@ Maintenance
 - Coverage report using codecov https://github.com/rust-ndarray/ndarray-linalg/pull/215
 
 0.12.1 - 28 June 2020
-----------------------
+======================
 
 Added
 ------
@@ -68,7 +69,7 @@ Changed
 - restore `static` feature flag
 
 0.11.1 - 12 June 2019
----------------------
+======================
 
 - Hotfix for document generation https://github.com/rust-ndarray/ndarray-linalg/pull/153
 
@@ -103,7 +104,7 @@ Changed
   - intel-mkl-src becomes 0.4, which supports Windows! https://github.com/rust-ndarray/ndarray-linalg/pull/146
 
 0.10.0 - 2 Sep 2018
-=======
+===================
 
 Update Dependencies
 --------------------

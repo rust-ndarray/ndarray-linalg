@@ -21,10 +21,9 @@ pub struct EighWork<T: Scalar> {
     uplo: UPLO,
     n: i32,
     eigs: Vec<T::Real>,
-    /// Be sure that this array is only allocated by `Vec::with_capacity(n)`
-    /// and not initialized. We cannot touch its memory from Rust safely.
+    // This array is NOT initialized. Do not touch from Rust.
     work: Vec<T>,
-    /// Needs only for complex case
+    // Needs only for complex case
     rwork: Option<Vec<T::Real>>,
 }
 

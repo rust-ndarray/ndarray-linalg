@@ -100,6 +100,8 @@ pub use self::triangular::*;
 pub use self::tridiagonal::*;
 
 use cauchy::*;
+use error::*;
+use layout::*;
 
 pub type Pivot = Vec<i32>;
 
@@ -113,18 +115,58 @@ pub trait Lapack:
     + Solveh_
     + Cholesky_
     + Eig_
-    + Eigh_
     + Triangular_
     + Tridiagonal_
     + Rcond_
     + LeastSquaresSvdDivideConquer_
 {
+    fn eigh(
+        calc_eigenvec: bool,
+        layout: MatrixLayout,
+        uplo: UPLO,
+        a: &mut [Self],
+    ) -> Result<Vec<Self::Real>>;
+
+    fn eigh_generalized(
+        calc_eigenvec: bool,
+        layout: MatrixLayout,
+        uplo: UPLO,
+        a: &mut [Self],
+        b: &mut [Self],
+    ) -> Result<Vec<Self::Real>>;
 }
 
-impl Lapack for f32 {}
-impl Lapack for f64 {}
-impl Lapack for c32 {}
-impl Lapack for c64 {}
+macro_rules! impl_lapack {
+    ($scalar:ty) => {
+        impl Lapack for $scalar {
+            fn eigh(
+                calc_eigenvec: bool,
+                layout: MatrixLayout,
+                uplo: UPLO,
+                a: &mut [Self],
+            ) -> Result<Vec<Self::Real>> {
+                let mut work: EighWork<Self> = Eigh::eigh_work(calc_eigenvec, layout, uplo)?;
+                let eigs = Eigh::eigh_calc(&mut work, a)?;
+                Ok(eigs.into())
+            }
+
+            fn eigh_generalized(
+                _calc_eigenvec: bool,
+                _layout: MatrixLayout,
+                _uplo: UPLO,
+                _a: &mut [Self],
+                _b: &mut [Self],
+            ) -> Result<Vec<Self::Real>> {
+                todo!()
+            }
+        }
+    };
+}
+
+impl_lapack!(f32);
+impl_lapack!(f64);
+impl_lapack!(c32);
+impl_lapack!(c64);
 
 /// Upper/Lower specification for seveal usages
 #[derive(Debug, Clone, Copy)]

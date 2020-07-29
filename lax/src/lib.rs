@@ -74,6 +74,7 @@ pub mod layout;
 mod cholesky;
 mod eig;
 mod eigh;
+mod eigh_generalized;
 mod least_squares;
 mod opnorm;
 mod qr;
@@ -88,6 +89,7 @@ mod tridiagonal;
 pub use self::cholesky::*;
 pub use self::eig::*;
 pub use self::eigh::*;
+pub use self::eigh_generalized::*;
 pub use self::least_squares::*;
 pub use self::opnorm::*;
 pub use self::qr::*;
@@ -151,13 +153,16 @@ macro_rules! impl_lapack {
             }
 
             fn eigh_generalized(
-                _calc_eigenvec: bool,
-                _layout: MatrixLayout,
-                _uplo: UPLO,
-                _a: &mut [Self],
-                _b: &mut [Self],
+                calc_eigenvec: bool,
+                layout: MatrixLayout,
+                uplo: UPLO,
+                a: &mut [Self],
+                b: &mut [Self],
             ) -> Result<Vec<Self::Real>> {
-                todo!()
+                let mut work: EighGeneralizedWork<Self> =
+                    EighGeneralized::eigh_generalized_work(calc_eigenvec, layout, uplo)?;
+                let eigs = EighGeneralized::eigh_generalized_calc(&mut work, a, b)?;
+                Ok(eigs.into())
             }
         }
     };

@@ -57,12 +57,7 @@ macro_rules! impl_eigh_work_real {
                 assert_eq!(layout.len(), layout.lda());
                 let n = layout.len();
                 let jobz = if calc_v { b'V' } else { b'N' };
-
-                // Different from work array, eigs must be touched from Rust
-                let mut eigs = Vec::with_capacity(n as usize);
-                unsafe {
-                    eigs.set_len(n as usize);
-                }
+                let mut eigs = unsafe { vec_uninit(n as usize) };
 
                 let mut info = 0;
                 let mut work_size = [Self::Elem::zero()];
@@ -84,10 +79,7 @@ macro_rules! impl_eigh_work_real {
                 }
                 info.as_lapack_result()?;
                 let lwork = work_size[0].to_usize().unwrap();
-                let mut work = Vec::with_capacity(lwork);
-                unsafe {
-                    work.set_len(lwork);
-                }
+                let work = unsafe { vec_uninit(lwork) };
                 Ok(EighGeneralizedWork {
                     jobz,
                     uplo,
@@ -147,14 +139,11 @@ macro_rules! impl_eigh_work_complex {
                 let jobz = if calc_v { b'V' } else { b'N' };
 
                 // Different from work array, eigs must be touched from Rust
-                let mut eigs = Vec::with_capacity(n as usize);
-                unsafe {
-                    eigs.set_len(n as usize);
-                }
+                let mut eigs = unsafe { vec_uninit(n as usize) };
 
                 let mut info = 0;
                 let mut work_size = [Self::Elem::zero()];
-                let mut rwork = Vec::with_capacity(3 * n as usize - 2);
+                let mut rwork = unsafe { vec_uninit(3 * n as usize - 2) };
                 unsafe {
                     $ev(
                         &[ITYPE::AxlBx as i32],
@@ -174,10 +163,7 @@ macro_rules! impl_eigh_work_complex {
                 }
                 info.as_lapack_result()?;
                 let lwork = work_size[0].to_usize().unwrap();
-                let mut work = Vec::with_capacity(lwork);
-                unsafe {
-                    work.set_len(lwork);
-                }
+                let work = unsafe { vec_uninit(lwork) };
                 Ok(EighGeneralizedWork {
                     jobz,
                     uplo,

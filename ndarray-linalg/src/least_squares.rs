@@ -63,7 +63,7 @@
 use ndarray::*;
 
 use crate::error::*;
-use crate::lapack::least_squares::*;
+use crate::lapack::*;
 use crate::layout::*;
 use crate::types::*;
 
@@ -253,7 +253,7 @@ where
 /// valid representation for `ArrayBase`.
 impl<E, D> LeastSquaresSvdInPlace<D, E, Ix1> for ArrayBase<D, Ix2>
 where
-    E: Scalar + Lapack + LeastSquaresSvdDivideConquer_,
+    E: Scalar + Lapack,
     D: DataMut<Elem = E>,
 {
     /// Solve a least squares problem of the form `Ax = rhs`

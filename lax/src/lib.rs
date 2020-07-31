@@ -68,21 +68,22 @@ extern crate openblas_src as _src;
 #[cfg(any(feature = "netlib-system", feature = "netlib-static"))]
 extern crate netlib_src as _src;
 
-pub mod cholesky;
-pub mod eig;
-pub mod eigh;
 pub mod error;
 pub mod layout;
-pub mod least_squares;
-pub mod opnorm;
-pub mod qr;
-pub mod rcond;
-pub mod solve;
-pub mod solveh;
-pub mod svd;
-pub mod svddc;
-pub mod triangular;
-pub mod tridiagonal;
+
+mod cholesky;
+mod eig;
+mod eigh;
+mod least_squares;
+mod opnorm;
+mod qr;
+mod rcond;
+mod solve;
+mod solveh;
+mod svd;
+mod svddc;
+mod triangular;
+mod tridiagonal;
 
 pub use self::cholesky::*;
 pub use self::eig::*;
@@ -159,7 +160,7 @@ pub enum NormType {
 }
 
 impl NormType {
-    pub(crate) fn transpose(self) -> Self {
+    pub fn transpose(self) -> Self {
         match self {
             NormType::One => NormType::Infinity,
             NormType::Infinity => NormType::One,

@@ -4,8 +4,8 @@ use ndarray::*;
 
 use crate::convert::*;
 use crate::error::*;
+use crate::lapack::Tridiagonal;
 use crate::layout::*;
-use crate::tridiagonal::Tridiagonal;
 use crate::types::*;
 
 pub use crate::lapack::NormType;

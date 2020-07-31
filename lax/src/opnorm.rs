@@ -1,10 +1,9 @@
 //! Operator norms of matrices
 
+use super::NormType;
 use crate::layout::MatrixLayout;
 use cauchy::*;
 use num_traits::Zero;
-
-pub use super::NormType;
 
 pub trait OperatorNorm_: Scalar {
     fn opnorm(t: NormType, l: MatrixLayout, a: &[Self]) -> Self::Real;

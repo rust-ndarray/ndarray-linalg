@@ -10,7 +10,7 @@ use cauchy::Scalar;
 use ndarray::*;
 use num_traits::One;
 
-pub use lapack::tridiagonal::{LUFactorizedTridiagonal, Tridiagonal};
+pub use lapack::{LUFactorizedTridiagonal, Tridiagonal};
 
 /// An interface for making a Tridiagonal struct.
 pub trait ExtractTridiagonal<A: Scalar> {

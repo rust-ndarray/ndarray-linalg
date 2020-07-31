@@ -81,6 +81,7 @@ mod qr;
 mod rcond;
 mod solve;
 mod solveh;
+mod strict;
 mod svd;
 mod svddc;
 mod traits;
@@ -96,6 +97,7 @@ pub use self::qr::*;
 pub use self::rcond::*;
 pub use self::solve::*;
 pub use self::solveh::*;
+pub use self::strict::*;
 pub use self::svd::*;
 pub use self::svddc::*;
 pub use self::traits::*;
@@ -145,6 +147,18 @@ impl NormType {
             NormType::Frobenius => NormType::Frobenius,
         }
     }
+}
+
+/// Types of generalized eigenvalue problem
+#[allow(dead_code)] // FIXME create interface to use ABxlx and BAxlx
+#[repr(i32)]
+pub enum ITYPE {
+    /// Solve $ A x = \lambda B x $
+    AxlBx = 1,
+    /// Solve $ A B x = \lambda x $
+    ABxlx = 2,
+    /// Solve $ B A x = \lambda x $
+    BAxlx = 3,
 }
 
 /// Create a vector without initialization

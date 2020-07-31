@@ -5,17 +5,18 @@ use crate::{error::*, layout::MatrixLayout};
 use cauchy::*;
 use num_traits::{ToPrimitive, Zero};
 
-pub trait Eigh: Sized {
-    type Elem: Scalar;
-
+pub(crate) trait Eigh: Scalar {
     /// Allocate working memory for eigenvalue problem
-    fn eigh_work(calc_eigenvec: bool, layout: MatrixLayout, uplo: UPLO) -> Result<Self>;
+    fn eigh_work(calc_eigenvec: bool, layout: MatrixLayout, uplo: UPLO) -> Result<EighWork<Self>>;
 
     /// Solve eigenvalue problem
-    fn eigh_calc(&mut self, a: &mut [Self::Elem]) -> Result<&[<Self::Elem as Scalar>::Real]>;
+    fn eigh_calc<'work>(
+        work: &'work mut EighWork<Self>,
+        a: &mut [Self],
+    ) -> Result<&'work [Self::Real]>;
 }
 
-/// Working memory for symmetric/Hermitian eigenvalue problem. See [Eigh trait](trait.Eigh.html)
+/// Working memory for symmetric/Hermitian eigenvalue problem. See [LapackStrict trait](trait.LapackStrict.html)
 pub struct EighWork<T: Scalar> {
     jobz: u8,
     uplo: UPLO,
@@ -29,17 +30,15 @@ pub struct EighWork<T: Scalar> {
 
 macro_rules! impl_eigh_work_real {
     ($scalar:ty, $ev:path) => {
-        impl Eigh for EighWork<$scalar> {
-            type Elem = $scalar;
-
-            fn eigh_work(calc_v: bool, layout: MatrixLayout, uplo: UPLO) -> Result<Self> {
+        impl Eigh for $scalar {
+            fn eigh_work(calc_v: bool, layout: MatrixLayout, uplo: UPLO) -> Result<EighWork<Self>> {
                 assert_eq!(layout.len(), layout.lda());
                 let n = layout.len();
                 let jobz = if calc_v { b'V' } else { b'N' };
                 let mut eigs = unsafe { vec_uninit(n as usize) };
 
                 let mut info = 0;
-                let mut work_size = [Self::Elem::zero()];
+                let mut work_size = [Self::zero()];
                 unsafe {
                     $ev(
                         jobz,
@@ -66,28 +65,28 @@ macro_rules! impl_eigh_work_real {
                 })
             }
 
-            fn eigh_calc(
-                &mut self,
-                a: &mut [Self::Elem],
-            ) -> Result<&[<Self::Elem as Scalar>::Real]> {
-                assert_eq!(a.len(), (self.n * self.n) as usize);
+            fn eigh_calc<'work>(
+                work: &'work mut EighWork<Self>,
+                a: &mut [Self],
+            ) -> Result<&'work [Self::Real]> {
+                assert_eq!(a.len(), (work.n * work.n) as usize);
                 let mut info = 0;
-                let lwork = self.work.len() as i32;
+                let lwork = work.work.len() as i32;
                 unsafe {
                     $ev(
-                        self.jobz,
-                        self.uplo as u8,
-                        self.n,
+                        work.jobz,
+                        work.uplo as u8,
+                        work.n,
                         a,
-                        self.n,
-                        &mut self.eigs,
-                        &mut self.work,
+                        work.n,
+                        &mut work.eigs,
+                        &mut work.work,
                         lwork,
                         &mut info,
                     );
                 }
                 info.as_lapack_result()?;
-                Ok(&self.eigs)
+                Ok(&work.eigs)
             }
         }
     };
@@ -98,17 +97,15 @@ impl_eigh_work_real!(f64, lapack::dsyev);
 
 macro_rules! impl_eigh_work_complex {
     ($scalar:ty, $ev:path) => {
-        impl Eigh for EighWork<$scalar> {
-            type Elem = $scalar;
-
-            fn eigh_work(calc_v: bool, layout: MatrixLayout, uplo: UPLO) -> Result<Self> {
+        impl Eigh for $scalar {
+            fn eigh_work(calc_v: bool, layout: MatrixLayout, uplo: UPLO) -> Result<EighWork<Self>> {
                 assert_eq!(layout.len(), layout.lda());
                 let n = layout.len();
                 let jobz = if calc_v { b'V' } else { b'N' };
                 let mut eigs = unsafe { vec_uninit(n as usize) };
 
                 let mut info = 0;
-                let mut work_size = [Self::Elem::zero()];
+                let mut work_size = [Self::zero()];
                 let mut rwork = unsafe { vec_uninit(3 * n as usize - 2) };
                 unsafe {
                     $ev(
@@ -137,29 +134,29 @@ macro_rules! impl_eigh_work_complex {
                 })
             }
 
-            fn eigh_calc(
-                &mut self,
-                a: &mut [Self::Elem],
-            ) -> Result<&[<Self::Elem as Scalar>::Real]> {
-                assert_eq!(a.len(), (self.n * self.n) as usize);
+            fn eigh_calc<'work>(
+                work: &'work mut EighWork<Self>,
+                a: &mut [Self],
+            ) -> Result<&'work [Self::Real]> {
+                assert_eq!(a.len(), (work.n * work.n) as usize);
                 let mut info = 0;
-                let lwork = self.work.len() as i32;
+                let lwork = work.work.len() as i32;
                 unsafe {
                     $ev(
-                        self.jobz,
-                        self.uplo as u8,
-                        self.n,
+                        work.jobz,
+                        work.uplo as u8,
+                        work.n,
                         a,
-                        self.n,
-                        &mut self.eigs,
-                        &mut self.work,
+                        work.n,
+                        &mut work.eigs,
+                        &mut work.work,
                         lwork,
-                        self.rwork.as_mut().unwrap(),
+                        work.rwork.as_mut().unwrap(),
                         &mut info,
                     );
                 }
                 info.as_lapack_result()?;
-                Ok(&self.eigs)
+                Ok(&work.eigs)
             }
         }
     };

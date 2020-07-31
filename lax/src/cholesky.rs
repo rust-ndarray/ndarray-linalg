@@ -4,24 +4,16 @@ use super::*;
 use crate::{error::*, layout::*};
 use cauchy::*;
 
-pub trait Cholesky_: Sized {
-    /// Cholesky: wrapper of `*potrf`
-    ///
-    /// **Warning: Only the portion of `a` corresponding to `UPLO` is written.**
+/// Wrapper trait to switch triangular factorization `*{po,he}tr{f,i,s}`
+pub(crate) trait Cholesky: Sized {
     fn cholesky(l: MatrixLayout, uplo: UPLO, a: &mut [Self]) -> Result<()>;
-
-    /// Wrapper of `*potri`
-    ///
-    /// **Warning: Only the portion of `a` corresponding to `UPLO` is written.**
     fn inv_cholesky(l: MatrixLayout, uplo: UPLO, a: &mut [Self]) -> Result<()>;
-
-    /// Wrapper of `*potrs`
     fn solve_cholesky(l: MatrixLayout, uplo: UPLO, a: &[Self], b: &mut [Self]) -> Result<()>;
 }
 
 macro_rules! impl_cholesky {
     ($scalar:ty, $trf:path, $tri:path, $trs:path) => {
-        impl Cholesky_ for $scalar {
+        impl Cholesky for $scalar {
             fn cholesky(l: MatrixLayout, uplo: UPLO, a: &mut [Self]) -> Result<()> {
                 let (n, _) = l.size();
                 if matches!(l, MatrixLayout::C { .. }) {

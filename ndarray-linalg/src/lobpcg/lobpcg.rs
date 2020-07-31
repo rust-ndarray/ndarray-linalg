@@ -4,7 +4,8 @@
 ///which can be used as a solver for large symmetric positive definite eigenproblems.
 use crate::error::{LinalgError, Result};
 use crate::{cholesky::*, close_l2, eigh::*, norm::*, triangular::*};
-use crate::{Lapack, Scalar};
+use cauchy::Scalar;
+use lax::Lapack;
 use ndarray::prelude::*;
 use ndarray::{Data, OwnedRepr, ScalarOperand};
 use num_traits::{Float, NumCast};
@@ -338,7 +339,7 @@ pub fn lobpcg<
         let result = p_ap
             .as_ref()
             .ok_or(LinalgError::Lapack(
-                lapack::error::Error::LapackComputationalFailure { return_code: 1 },
+                lax::error::Error::LapackComputationalFailure { return_code: 1 },
             ))
             .and_then(|(active_p, active_ap)| {
                 let xap = x.t().dot(active_ap);

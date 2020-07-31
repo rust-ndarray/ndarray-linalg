@@ -1,15 +1,15 @@
 //! Methods for triangular matrices
 
+use lax::*;
 use ndarray::*;
 use num_traits::Zero;
 
 use super::convert::*;
 use super::error::*;
-use super::lapack::*;
 use super::layout::*;
 use super::types::*;
 
-pub use super::lapack::Diag;
+pub use lax::Diag;
 
 /// solve a triangular system with upper triangular matrix
 pub trait SolveTriangular<A, S, D>

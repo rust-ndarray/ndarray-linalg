@@ -3,7 +3,7 @@
 use super::{convert::*, error::*, layout::*, types::*};
 use ndarray::*;
 
-pub use lapack::svddc::UVTFlag;
+pub use lax::UVTFlag;
 
 /// Singular-value decomposition of matrix (copying) by divide-and-conquer
 pub trait SVDDC {

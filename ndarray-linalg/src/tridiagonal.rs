@@ -4,13 +4,13 @@
 
 use super::convert::*;
 use super::error::*;
-use super::lapack::*;
 use super::layout::*;
 use cauchy::Scalar;
+use lax::*;
 use ndarray::*;
 use num_traits::One;
 
-pub use lapack::tridiagonal::{LUFactorizedTridiagonal, Tridiagonal};
+pub use lax::{LUFactorizedTridiagonal, Tridiagonal};
 
 /// An interface for making a Tridiagonal struct.
 pub trait ExtractTridiagonal<A: Scalar> {

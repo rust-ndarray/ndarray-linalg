@@ -14,7 +14,7 @@ pub enum LinalgError {
 
     /// LAPACK subroutine returns non-zero code
     #[error(transparent)]
-    Lapack(#[from] lapack::error::Error),
+    Lapack(#[from] lax::error::Error),
 
     /// Strides of the array is not supported
     #[error("invalid stride: s0={}, s1={}", s0, s1)]

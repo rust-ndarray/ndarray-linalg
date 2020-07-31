@@ -1,5 +1,7 @@
 use super::lobpcg::{lobpcg, LobpcgResult, Order};
-use crate::{generate, Lapack, Scalar};
+use crate::{generate, Scalar};
+use lax::Lapack;
+
 ///! Implements truncated eigenvalue decomposition
 ///
 use ndarray::prelude::*;

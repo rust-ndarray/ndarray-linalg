@@ -1,14 +1,14 @@
 //! Operator norm
 
+use lax::Tridiagonal;
 use ndarray::*;
 
 use crate::convert::*;
 use crate::error::*;
-use crate::lapack::Tridiagonal;
 use crate::layout::*;
 use crate::types::*;
 
-pub use crate::lapack::NormType;
+pub use lax::NormType;
 
 /// Operator norm using `*lange` LAPACK routines
 ///

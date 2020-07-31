@@ -55,7 +55,7 @@ use crate::layout::*;
 use crate::opnorm::OperationNorm;
 use crate::types::*;
 
-pub use crate::lapack::{Pivot, Transpose};
+pub use lax::{Pivot, Transpose};
 
 /// An interface for solving systems of linear equations.
 ///
@@ -468,7 +468,7 @@ where
         self.ensure_square()?;
         match self.factorize() {
             Ok(fac) => fac.sln_det(),
-            Err(LinalgError::Lapack(e)) if matches!(e, lapack::error::Error::LapackComputationalFailure {..}) =>
+            Err(LinalgError::Lapack(e)) if matches!(e, lax::error::Error::LapackComputationalFailure {..}) =>
             {
                 // The determinant is zero.
                 Ok((A::zero(), A::Real::neg_infinity()))
@@ -487,7 +487,7 @@ where
         self.ensure_square()?;
         match self.factorize_into() {
             Ok(fac) => fac.sln_det_into(),
-            Err(LinalgError::Lapack(e)) if matches!(e, lapack::error::Error::LapackComputationalFailure { .. }) =>
+            Err(LinalgError::Lapack(e)) if matches!(e, lax::error::Error::LapackComputationalFailure { .. }) =>
             {
                 // The determinant is zero.
                 Ok((A::zero(), A::Real::neg_infinity()))

@@ -3,7 +3,7 @@
 use super::error::*;
 use ndarray::*;
 
-pub use lapack::layout::MatrixLayout;
+pub use lax::layout::MatrixLayout;
 
 pub trait AllocatedArray {
     type Elem;

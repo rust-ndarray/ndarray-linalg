@@ -60,10 +60,10 @@
 //! // `a` and `b` have been moved, no longer valid
 //! ```
 
+use lax::*;
 use ndarray::*;
 
 use crate::error::*;
-use crate::lapack::*;
 use crate::layout::*;
 use crate::types::*;
 

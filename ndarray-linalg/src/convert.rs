@@ -1,9 +1,9 @@
 //! utilities for convert array
 
+use lax::UPLO;
 use ndarray::*;
 
 use super::error::*;
-use super::lapack::UPLO;
 use super::layout::*;
 use super::types::*;
 

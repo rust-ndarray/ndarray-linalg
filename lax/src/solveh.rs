@@ -2,8 +2,7 @@
 //!
 //! See also [the manual of dsytrf](http://www.netlib.org/lapack/lapack-3.1.1/html/dsytrf.f.html)
 
-use super::*;
-use crate::{error::*, layout::MatrixLayout};
+use crate::{error::*, layout::MatrixLayout, *};
 use cauchy::*;
 use num_traits::{ToPrimitive, Zero};
 
@@ -21,7 +20,7 @@ macro_rules! impl_solveh {
         impl Solveh_ for $scalar {
             fn bk(l: MatrixLayout, uplo: UPLO, a: &mut [Self]) -> Result<Pivot> {
                 let (n, _) = l.size();
-                let mut ipiv = vec![0; n as usize];
+                let mut ipiv = unsafe { vec_uninit(n as usize) };
                 if n == 0 {
                     return Ok(Vec::new());
                 }
@@ -45,7 +44,7 @@ macro_rules! impl_solveh {
 
                 // actual
                 let lwork = work_size[0].to_usize().unwrap();
-                let mut work = vec![Self::zero(); lwork];
+                let mut work = unsafe { vec_uninit(lwork) };
                 unsafe {
                     $trf(
                         uplo as u8,
@@ -65,7 +64,7 @@ macro_rules! impl_solveh {
             fn invh(l: MatrixLayout, uplo: UPLO, a: &mut [Self], ipiv: &Pivot) -> Result<()> {
                 let (n, _) = l.size();
                 let mut info = 0;
-                let mut work = vec![Self::zero(); n as usize];
+                let mut work = unsafe { vec_uninit(n as usize) };
                 unsafe { $tri(uplo as u8, n, a, l.lda(), ipiv, &mut work, &mut info) };
                 info.as_lapack_result()?;
                 Ok(())

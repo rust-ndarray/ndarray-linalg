@@ -1,9 +1,7 @@
 //! Implement linear solver and inverse matrix
 
-use super::*;
-use crate::{error::*, layout::*};
+use crate::{error::*, layout::*, *};
 use cauchy::*;
-use num_traits::Zero;
 
 #[derive(Debug, Clone, Copy)]
 #[repr(u8)]
@@ -39,7 +37,7 @@ macro_rules! impl_triangular {
                 let mut a_t = None;
                 let a_layout = match a_layout {
                     MatrixLayout::C { .. } => {
-                        a_t = Some(vec![Self::zero(); a.len()]);
+                        a_t = Some(unsafe { vec_uninit(a.len()) });
                         transpose(a_layout, a, a_t.as_mut().unwrap())
                     }
                     MatrixLayout::F { .. } => a_layout,
@@ -49,7 +47,7 @@ macro_rules! impl_triangular {
                 let mut b_t = None;
                 let b_layout = match b_layout {
                     MatrixLayout::C { .. } => {
-                        b_t = Some(vec![Self::zero(); b.len()]);
+                        b_t = Some(unsafe { vec_uninit(b.len()) });
                         transpose(b_layout, b, b_t.as_mut().unwrap())
                     }
                     MatrixLayout::F { .. } => b_layout,

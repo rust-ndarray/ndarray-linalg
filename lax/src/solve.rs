@@ -1,7 +1,6 @@
 //! Solve linear problem using LU decomposition
 
-use super::*;
-use crate::{error::*, layout::MatrixLayout};
+use crate::{error::*, layout::MatrixLayout, *};
 use cauchy::*;
 use num_traits::{ToPrimitive, Zero};
 
@@ -34,7 +33,7 @@ macro_rules! impl_solve {
                     return Ok(Vec::new());
                 }
                 let k = ::std::cmp::min(row, col);
-                let mut ipiv = vec![0; k as usize];
+                let mut ipiv = unsafe { vec_uninit(k as usize) };
                 let mut info = 0;
                 unsafe { $getrf(l.lda(), l.len(), a, l.lda(), &mut ipiv, &mut info) };
                 info.as_lapack_result()?;
@@ -52,7 +51,7 @@ macro_rules! impl_solve {
 
                 // actual
                 let lwork = work_size[0].to_usize().unwrap();
-                let mut work = vec![Self::zero(); lwork];
+                let mut work = unsafe { vec_uninit(lwork) };
                 unsafe {
                     $getri(
                         l.len(),

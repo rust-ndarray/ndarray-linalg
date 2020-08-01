@@ -59,6 +59,10 @@ name = "eigh"
 harness = false
 
 [[bench]]
+name = "svd"
+harness = false
+
+[[bench]]
 name = "solve"
 harness = false
 

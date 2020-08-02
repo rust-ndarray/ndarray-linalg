@@ -42,10 +42,10 @@ macro_rules! impl_eigh {
                 assert_eq!(layout.len(), layout.lda());
                 let n = layout.len();
                 let jobz = if calc_v { b'V' } else { b'N' };
-                let mut eigs = vec![Self::Real::zero(); n as usize];
+                let mut eigs = unsafe { vec_uninit(n as usize) };
 
                 $(
-                let mut $rwork_ident = vec![Self::Real::zero(); 3 * n as usize - 2];
+                let mut $rwork_ident = unsafe { vec_uninit(3 * n as usize - 2 as usize) };
                 )*
 
                 // calc work size
@@ -69,7 +69,7 @@ macro_rules! impl_eigh {
 
                 // actual ev
                 let lwork = work_size[0].to_usize().unwrap();
-                let mut work = vec![Self::zero(); lwork];
+                let mut work = unsafe { vec_uninit(lwork) };
                 unsafe {
                     $ev(
                         jobz,
@@ -98,10 +98,10 @@ macro_rules! impl_eigh {
                 assert_eq!(layout.len(), layout.lda());
                 let n = layout.len();
                 let jobz = if calc_v { b'V' } else { b'N' };
-                let mut eigs = vec![Self::Real::zero(); n as usize];
+                let mut eigs = unsafe { vec_uninit(n as usize) };
 
                 $(
-                let mut $rwork_ident = vec![Self::Real::zero(); 3 * n as usize - 2];
+                let mut $rwork_ident = unsafe { vec_uninit(3 * n as usize - 2) };
                 )*
 
                 // calc work size
@@ -128,7 +128,7 @@ macro_rules! impl_eigh {
 
                 // actual evg
                 let lwork = work_size[0].to_usize().unwrap();
-                let mut work = vec![Self::zero(); lwork];
+                let mut work = unsafe { vec_uninit(lwork) };
                 unsafe {
                     $evg(
                         &[1],

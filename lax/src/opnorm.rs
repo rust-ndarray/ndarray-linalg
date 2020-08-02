@@ -1,9 +1,8 @@
 //! Operator norms of matrices
 
 use super::NormType;
-use crate::layout::MatrixLayout;
+use crate::{layout::MatrixLayout, *};
 use cauchy::*;
-use num_traits::Zero;
 
 pub trait OperatorNorm_: Scalar {
     fn opnorm(t: NormType, l: MatrixLayout, a: &[Self]) -> Self::Real;
@@ -20,7 +19,7 @@ macro_rules! impl_opnorm {
                     MatrixLayout::C { .. } => t.transpose(),
                 };
                 let mut work = if matches!(t, NormType::Infinity) {
-                    vec![Self::Real::zero(); m as usize]
+                    unsafe { vec_uninit(m as usize) }
                 } else {
                     Vec::new()
                 };

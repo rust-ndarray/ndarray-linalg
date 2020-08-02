@@ -1,8 +1,7 @@
 //! Implement linear solver using LU decomposition
 //! for tridiagonal matrix
 
-use super::*;
-use crate::{error::*, layout::*};
+use crate::{error::*, layout::*, *};
 use cauchy::*;
 use num_traits::Zero;
 use std::ops::{Index, IndexMut};
@@ -153,8 +152,8 @@ macro_rules! impl_tridiagonal {
         impl Tridiagonal_ for $scalar {
             fn lu_tridiagonal(mut a: Tridiagonal<Self>) -> Result<LUFactorizedTridiagonal<Self>> {
                 let (n, _) = a.l.size();
-                let mut du2 = vec![Zero::zero(); (n - 2) as usize];
-                let mut ipiv = vec![0; n as usize];
+                let mut du2 = unsafe { vec_uninit( (n - 2) as usize) };
+                let mut ipiv = unsafe { vec_uninit( n as usize) };
                 // We have to calc one-norm before LU factorization
                 let a_opnorm_one = a.opnorm_one();
                 let mut info = 0;
@@ -171,9 +170,9 @@ macro_rules! impl_tridiagonal {
             fn rcond_tridiagonal(lu: &LUFactorizedTridiagonal<Self>) -> Result<Self::Real> {
                 let (n, _) = lu.a.l.size();
                 let ipiv = &lu.ipiv;
-                let mut work = vec![Self::zero(); 2 * n as usize];
+                let mut work = unsafe { vec_uninit( 2 * n as usize) };
                 $(
-                let mut $iwork = vec![0; n as usize];
+                let mut $iwork = unsafe { vec_uninit( n as usize) };
                 )*
                 let mut rcond = Self::Real::zero();
                 let mut info = 0;
@@ -209,7 +208,7 @@ macro_rules! impl_tridiagonal {
                 let mut b_t = None;
                 let b_layout = match b_layout {
                     MatrixLayout::C { .. } => {
-                        b_t = Some(vec![Self::zero(); b.len()]);
+                        b_t = Some(unsafe { vec_uninit( b.len()) });
                         transpose(b_layout, b, b_t.as_mut().unwrap())
                     }
                     MatrixLayout::F { .. } => b_layout,

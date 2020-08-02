@@ -1,6 +1,6 @@
 //! Eigenvalue decomposition for general matrices
 
-use crate::{error::*, layout::MatrixLayout};
+use crate::{error::*, layout::MatrixLayout, *};
 use cauchy::*;
 use num_traits::{ToPrimitive, Zero};
 
@@ -33,16 +33,16 @@ macro_rules! impl_eig_complex {
                 } else {
                     (b'N', b'N')
                 };
-                let mut eigs = vec![Self::Complex::zero(); n as usize];
-                let mut rwork = vec![Self::Real::zero(); 2 * n as usize];
+                let mut eigs = unsafe { vec_uninit(n as usize) };
+                let mut rwork = unsafe { vec_uninit(2 * n as usize) };
 
                 let mut vl = if jobvl == b'V' {
-                    Some(vec![Self::Complex::zero(); (n * n) as usize])
+                    Some(unsafe { vec_uninit((n * n) as usize) })
                 } else {
                     None
                 };
                 let mut vr = if jobvr == b'V' {
-                    Some(vec![Self::Complex::zero(); (n * n) as usize])
+                    Some(unsafe { vec_uninit((n * n) as usize) })
                 } else {
                     None
                 };
@@ -72,7 +72,7 @@ macro_rules! impl_eig_complex {
 
                 // actal ev
                 let lwork = work_size[0].to_usize().unwrap();
-                let mut work = vec![Self::zero(); lwork];
+                let mut work = unsafe { vec_uninit(lwork) };
                 unsafe {
                     $ev(
                         jobvl,
@@ -128,16 +128,16 @@ macro_rules! impl_eig_real {
                 } else {
                     (b'N', b'N')
                 };
-                let mut eig_re = vec![Self::zero(); n as usize];
-                let mut eig_im = vec![Self::zero(); n as usize];
+                let mut eig_re = unsafe { vec_uninit(n as usize) };
+                let mut eig_im = unsafe { vec_uninit(n as usize) };
 
                 let mut vl = if jobvl == b'V' {
-                    Some(vec![Self::zero(); (n * n) as usize])
+                    Some(unsafe { vec_uninit((n * n) as usize) })
                 } else {
                     None
                 };
                 let mut vr = if jobvr == b'V' {
-                    Some(vec![Self::zero(); (n * n) as usize])
+                    Some(unsafe { vec_uninit((n * n) as usize) })
                 } else {
                     None
                 };
@@ -167,7 +167,7 @@ macro_rules! impl_eig_real {
 
                 // actual ev
                 let lwork = work_size[0].to_usize().unwrap();
-                let mut work = vec![Self::zero(); lwork];
+                let mut work = unsafe { vec_uninit(lwork) };
                 unsafe {
                     $ev(
                         jobvl,
@@ -219,7 +219,7 @@ macro_rules! impl_eig_real {
                 // ```
                 let n = n as usize;
                 let v = vr.or(vl).unwrap();
-                let mut eigvecs = vec![Self::Complex::zero(); n * n];
+                let mut eigvecs = unsafe { vec_uninit(n * n) };
                 let mut is_conjugate_pair = false; // flag for check `j` is complex conjugate
                 for j in 0..n {
                     if eig_im[j] == 0.0 {

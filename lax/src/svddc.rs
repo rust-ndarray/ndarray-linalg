@@ -1,5 +1,4 @@
-use super::*;
-use crate::{error::*, layout::MatrixLayout};
+use crate::{error::*, layout::MatrixLayout, *};
 use cauchy::*;
 use num_traits::{ToPrimitive, Zero};
 
@@ -34,7 +33,7 @@ macro_rules! impl_svddc {
                 let m = l.lda();
                 let n = l.len();
                 let k = m.min(n);
-                let mut s = vec![Self::Real::zero(); k as usize];
+                let mut s = unsafe { vec_uninit( k as usize) };
 
                 let (u_col, vt_row) = match jobz {
                     UVTFlag::Full | UVTFlag::None => (m, n),
@@ -42,12 +41,12 @@ macro_rules! impl_svddc {
                 };
                 let (mut u, mut vt) = match jobz {
                     UVTFlag::Full => (
-                        Some(vec![Self::zero(); (m * m) as usize]),
-                        Some(vec![Self::zero(); (n * n) as usize]),
+                        Some(unsafe { vec_uninit( (m * m) as usize) }),
+                        Some(unsafe { vec_uninit( (n * n) as usize) }),
                     ),
                     UVTFlag::Some => (
-                        Some(vec![Self::zero(); (m * u_col) as usize]),
-                        Some(vec![Self::zero(); (n * vt_row) as usize]),
+                        Some(unsafe { vec_uninit( (m * u_col) as usize) }),
+                        Some(unsafe { vec_uninit( (n * vt_row) as usize) }),
                     ),
                     UVTFlag::None => (None, None),
                 };
@@ -59,12 +58,12 @@ macro_rules! impl_svddc {
                     UVTFlag::None => 7 * mn,
                     _ => std::cmp::max(5*mn*mn + 5*mn, 2*mx*mn + 2*mn*mn + mn),
                 };
-                let mut $rwork_ident = vec![Self::Real::zero(); lrwork];
+                let mut $rwork_ident = unsafe { vec_uninit( lrwork) };
                 )*
 
                 // eval work size
                 let mut info = 0;
-                let mut iwork = vec![0; 8 * k as usize];
+                let mut iwork = unsafe { vec_uninit( 8 * k as usize) };
                 let mut work_size = [Self::zero()];
                 unsafe {
                     $gesdd(
@@ -89,7 +88,7 @@ macro_rules! impl_svddc {
 
                 // do svd
                 let lwork = work_size[0].to_usize().unwrap();
-                let mut work = vec![Self::zero(); lwork];
+                let mut work = unsafe { vec_uninit( lwork) };
                 unsafe {
                     $gesdd(
                         jobz as u8,

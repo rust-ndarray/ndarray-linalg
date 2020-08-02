@@ -1,6 +1,6 @@
 //! Least squares
 
-use crate::{error::*, layout::*};
+use crate::{error::*, layout::*, *};
 use cauchy::*;
 use num_traits::{ToPrimitive, Zero};
 
@@ -68,7 +68,7 @@ macro_rules! impl_least_squares {
                 let mut a_t = None;
                 let a_layout = match a_layout {
                     MatrixLayout::C { .. } => {
-                        a_t = Some(vec![Self::zero(); a.len()]);
+                        a_t = Some(unsafe { vec_uninit( a.len()) });
                         transpose(a_layout, a, a_t.as_mut().unwrap())
                     }
                     MatrixLayout::F { .. } => a_layout,
@@ -78,14 +78,14 @@ macro_rules! impl_least_squares {
                 let mut b_t = None;
                 let b_layout = match b_layout {
                     MatrixLayout::C { .. } => {
-                        b_t = Some(vec![Self::zero(); b.len()]);
+                        b_t = Some(unsafe { vec_uninit( b.len()) });
                         transpose(b_layout, b, b_t.as_mut().unwrap())
                     }
                     MatrixLayout::F { .. } => b_layout,
                 };
 
                 let rcond: Self::Real = -1.;
-                let mut singular_values: Vec<Self::Real> = vec![Self::Real::zero(); k as usize];
+                let mut singular_values: Vec<Self::Real> = unsafe { vec_uninit( k as usize) };
                 let mut rank: i32 = 0;
 
                 // eval work size
@@ -118,12 +118,12 @@ macro_rules! impl_least_squares {
 
                 // calc
                 let lwork = work_size[0].to_usize().unwrap();
-                let mut work = vec![Self::zero(); lwork];
+                let mut work = unsafe { vec_uninit( lwork) };
                 let liwork = iwork_size[0].to_usize().unwrap();
-                let mut iwork = vec![0; liwork];
+                let mut iwork = unsafe { vec_uninit( liwork) };
                 $(
                 let lrwork = $rwork[0].to_usize().unwrap();
-                let mut $rwork = vec![Self::Real::zero(); lrwork];
+                let mut $rwork = unsafe { vec_uninit( lrwork) };
                 )*
                 unsafe {
                     $gelsd(

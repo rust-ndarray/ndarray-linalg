@@ -1,6 +1,6 @@
 //! Singular-value decomposition
 
-use crate::{error::*, layout::MatrixLayout};
+use crate::{error::*, layout::MatrixLayout, *};
 use cauchy::*;
 use num_traits::{ToPrimitive, Zero};
 
@@ -61,21 +61,21 @@ macro_rules! impl_svd {
 
                 let m = l.lda();
                 let mut u = match ju {
-                    FlagSVD::All => Some(vec![Self::zero(); (m * m) as usize]),
+                    FlagSVD::All => Some(unsafe { vec_uninit( (m * m) as usize) }),
                     FlagSVD::No => None,
                 };
 
                 let n = l.len();
                 let mut vt = match jvt {
-                    FlagSVD::All => Some(vec![Self::zero(); (n * n) as usize]),
+                    FlagSVD::All => Some(unsafe { vec_uninit( (n * n) as usize) }),
                     FlagSVD::No => None,
                 };
 
                 let k = std::cmp::min(m, n);
-                let mut s = vec![Self::Real::zero(); k as usize];
+                let mut s = unsafe { vec_uninit( k as usize) };
 
                 $(
-                let mut $rwork_ident = vec![Self::Real::zero(); 5 * k as usize];
+                let mut $rwork_ident = unsafe { vec_uninit( 5 * k as usize) };
                 )*
 
                 // eval work size
@@ -104,7 +104,7 @@ macro_rules! impl_svd {
 
                 // calc
                 let lwork = work_size[0].to_usize().unwrap();
-                let mut work = vec![Self::zero(); lwork];
+                let mut work = unsafe { vec_uninit( lwork) };
                 unsafe {
                     $gesvd(
                         ju as u8,

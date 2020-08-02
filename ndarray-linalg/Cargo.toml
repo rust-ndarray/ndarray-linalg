@@ -63,11 +63,19 @@ name = "eigh"
 harness = false
 
 [[bench]]
+name = "qr"
+harness = false
+
+[[bench]]
 name = "svd"
 harness = false
 
 [[bench]]
 name = "solve"
+harness = false
+
+[[bench]]
+name = "solveh"
 harness = false
 
 [package.metadata.docs.rs]

@@ -55,6 +55,10 @@ name = "truncated_eig"
 harness = false
 
 [[bench]]
+name = "eig"
+harness = false
+
+[[bench]]
 name = "eigh"
 harness = false
 

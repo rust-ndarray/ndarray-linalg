@@ -1,0 +1,21 @@
+name: "GitHub Pages"
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  pages:
+    runs-on: ubuntu-18.04
+    steps:
+      - uses: actions/checkout@v2
+      - name: Generate code coverage
+        run: |
+          RUSTDOCFLAGS="--html-in-header katex-header.html" cargo doc --no-deps
+          mv target/doc public
+      - name: Deploy GitHub Pages
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./public

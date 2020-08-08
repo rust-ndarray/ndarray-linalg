@@ -1,0 +1,1 @@
+initSidebarItems({"enum":[["LobpcgResult","The result of the eigensolver"],["TruncatedOrder","Find largest or smallest eigenvalues"]],"fn":[["lobpcg","Eigenvalue solver for large symmetric positive definite (SPD) eigenproblems"]],"struct":[["TruncatedEig","Truncated eigenproblem solver"],["TruncatedSvd","Truncated singular value decomposition"]]});

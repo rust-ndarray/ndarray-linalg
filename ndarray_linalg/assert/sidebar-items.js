@@ -1,0 +1,1 @@
+initSidebarItems({"fn":[["aclose","check two values are close in terms of the absolute tolerance"],["close_l1","check two arrays are close in L1 norm"],["close_l2","check two arrays are close in L2 norm"],["close_max","check two arrays are close in maximum norm"],["rclose","check two values are close in terms of the relative tolerance"]]});

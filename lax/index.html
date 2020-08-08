@@ -1,0 +1,69 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="API documentation for the Rust `lax` crate."><meta name="keywords" content="rust, rustlang, rust-lang, lax"><title>lax - Rust</title><link rel="stylesheet" type="text/css" href="../normalize.css"><link rel="stylesheet" type="text/css" href="../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../dark.css"><link rel="stylesheet" type="text/css" href="../light.css" id="themeStyle"><script src="../storage.js"></script><noscript><link rel="stylesheet" href="../noscript.css"></noscript><link rel="shortcut icon" href="../favicon.ico"><!-- This file includes the work that is distributed in MIT or Apache-2.0 license at https://github.com/paulkernfeld/rustdoc-katex-demo -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/katex.min.css" integrity="sha384-9eLZqc9ds8eNjO3TmqPeYcDj8n+Qfa4nuSiGYa6DjLNcv9BtN69ZIulL9+8CqC9Y" crossorigin="anonymous">
+<script src="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/katex.min.js"                  integrity="sha384-K3vbOmF2BtaVai+Qk37uypf7VrgBubhQreNQe9aGsz9lB63dIFiQVlJbr92dw2Lx" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/contrib/auto-render.min.js"    integrity="sha384-kmZOZB5ObwgQnS/DuDg6TScgOiWWBiVt0plIRkZCmE6rDZGrEOQeHM5PcHi+nyqe" crossorigin="anonymous"></script>
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        renderMathInElement(document.body, {
+            delimiters: [
+                {left: "$$", right: "$$", display: true},
+                {left: "\\(", right: "\\)", display: false},
+                {left: "$", right: "$", display: false},
+                {left: "\\[", right: "\\]", display: true}
+            ]
+        });
+    });
+</script>
+
+<style type="text/css">#crate-search{background-image:url("../down-arrow.svg");}</style></head><body class="rustdoc mod"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../lax/index.html'><div class='logo-container'><img src='../rust-logo.png' alt='logo'></div></a><p class='location'>Crate lax</p><div class="sidebar-elems"><a id='all-types' href='all.html'><p>See all lax's items</p></a><div class="block items"><ul><li><a href="#modules">Modules</a></li><li><a href="#structs">Structs</a></li><li><a href="#enums">Enums</a></li><li><a href="#traits">Traits</a></li><li><a href="#types">Type Definitions</a></li></ul></div><p class='location'></p><script>window.sidebarCurrent = {name: 'lax', ty: 'mod', relpath: '../'};</script></div></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><a id="settings-menu" href="../settings.html"><img src="../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><h1 class='fqn'><span class='out-of-band'><span id='render-detail'><a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">[<span class='inner'>&#x2212;</span>]</a></span><a class='srclink' href='../src/lax/lib.rs.html#1-182' title='goto source code'>[src]</a></span><span class='in-band'>Crate <a class="mod" href=''>lax</a></span></h1><div class='docblock'><h1 id="linear-algebra-extension-lax" class="section-header"><a href="#linear-algebra-extension-lax">Linear Algebra eXtension (LAX)</a></h1>
+<p>ndarray-free safe Rust wrapper for LAPACK FFI</p>
+<h2 id="linear-equation-inverse-matrix-condition-number" class="section-header"><a href="#linear-equation-inverse-matrix-condition-number">Linear equation, Inverse matrix, Condition number</a></h2>
+<p>As the property of $A$, several types of triangular factorization are used:</p>
+<ul>
+<li>LU-decomposition for general matrix
+<ul>
+<li>$PA = LU$, where $L$ is lower matrix, $U$ is upper matrix, and $P$ is permutation matrix</li>
+</ul>
+</li>
+<li>Bunch-Kaufman diagonal pivoting method for nonpositive-definite Hermitian matrix
+<ul>
+<li>$A = U D U^\dagger$, where $U$ is upper matrix,
+$D$ is Hermitian and block diagonal with 1-by-1 and 2-by-2 diagonal blocks.</li>
+</ul>
+</li>
+</ul>
+<table><thead><tr><th align="left">matrix type</th><th align="left">Triangler factorization (TRF)</th><th align="left">Solve (TRS)</th><th align="left">Inverse matrix (TRI)</th><th align="left">Reciprocal condition number (CON)</th></tr></thead><tbody>
+<tr><td align="left">General (GE)</td><td align="left"><a href="solve/trait.Solve_.html#tymethod.lu">lu</a></td><td align="left"><a href="solve/trait.Solve_.html#tymethod.solve">solve</a></td><td align="left"><a href="solve/trait.Solve_.html#tymethod.inv">inv</a></td><td align="left"><a href="solve/trait.Solve_.html#tymethod.rcond">rcond</a></td></tr>
+<tr><td align="left">Symmetric (SY) / Hermitian (HE)</td><td align="left"><a href="solveh/trait.Solveh_.html#tymethod.bk">bk</a></td><td align="left"><a href="solveh/trait.Solveh_.html#tymethod.solveh">solveh</a></td><td align="left"><a href="solveh/trait.Solveh_.html#tymethod.invh">invh</a></td><td align="left">-</td></tr>
+</tbody></table>
+<h2 id="eigenvalue-problem" class="section-header"><a href="#eigenvalue-problem">Eigenvalue Problem</a></h2>
+<p>Solve eigenvalue problem for a matrix $A$</p>
+<p>$$ Av_i = \lambda_i v_i $$</p>
+<p>or generalized eigenvalue problem</p>
+<p>$$ Av_i = \lambda_i B v_i $$</p>
+<table><thead><tr><th align="left">matrix type</th><th align="left">Eigenvalue (EV)</th><th align="left">Generalized Eigenvalue Problem (EG)</th></tr></thead><tbody>
+<tr><td align="left">General (GE)</td><td align="left"><a href="eig/trait.Eig_.html#tymethod.eig">eig</a></td><td align="left">-</td></tr>
+<tr><td align="left">Symmetric (SY) / Hermitian (HE)</td><td align="left"><a href="eigh/trait.Eigh_.html#tymethod.eigh">eigh</a></td><td align="left"><a href="eigh/trait.Eigh_.html#tymethod.eigh_generalized">eigh_generalized</a></td></tr>
+</tbody></table>
+<h2 id="singular-value-decomposition-svd-least-square-problem" class="section-header"><a href="#singular-value-decomposition-svd-least-square-problem">Singular Value Decomposition (SVD), Least square problem</a></h2><table><thead><tr><th align="left">matrix type</th><th align="left">Singular Value Decomposition (SVD)</th><th align="left">SVD with divided-and-conquer (SDD)</th><th align="left">Least square problem (LSD)</th></tr></thead><tbody>
+<tr><td align="left">General (GE)</td><td align="left"><a href="svd/trait.SVD_.html#tymethod.svd">svd</a></td><td align="left"><a href="svddck/trait.SVDDC_.html#tymethod.svddc">svddc</a></td><td align="left"><a href="least_squares/trait.LeastSquaresSvdDivideConquer_.html#tymethod.least_squares">least_squares</a></td></tr>
+</tbody></table>
+</div><h2 id='modules' class='section-header'><a href="#modules">Modules</a></h2>
+<table><tr class='module-item'><td><a class="mod" href="error/index.html" title='lax::error mod'>error</a></td><td class='docblock-short'></td></tr><tr class='module-item'><td><a class="mod" href="layout/index.html" title='lax::layout mod'>layout</a></td><td class='docblock-short'><p>Memory layout of matrices</p>
+</td></tr></table><h2 id='structs' class='section-header'><a href="#structs">Structs</a></h2>
+<table><tr class='module-item'><td><a class="struct" href="struct.LUFactorizedTridiagonal.html" title='lax::LUFactorizedTridiagonal struct'>LUFactorizedTridiagonal</a></td><td class='docblock-short'><p>Represents the LU factorization of a tridiagonal matrix <code>A</code> as <code>A = P*L*U</code>.</p>
+</td></tr><tr class='module-item'><td><a class="struct" href="struct.LeastSquaresOutput.html" title='lax::LeastSquaresOutput struct'>LeastSquaresOutput</a></td><td class='docblock-short'><p>Result of LeastSquares</p>
+</td></tr><tr class='module-item'><td><a class="struct" href="struct.SVDOutput.html" title='lax::SVDOutput struct'>SVDOutput</a></td><td class='docblock-short'><p>Result of SVD</p>
+</td></tr><tr class='module-item'><td><a class="struct" href="struct.Tridiagonal.html" title='lax::Tridiagonal struct'>Tridiagonal</a></td><td class='docblock-short'><p>Represents a tridiagonal matrix as 3 one-dimensional vectors.</p>
+</td></tr></table><h2 id='enums' class='section-header'><a href="#enums">Enums</a></h2>
+<table><tr class='module-item'><td><a class="enum" href="enum.Diag.html" title='lax::Diag enum'>Diag</a></td><td class='docblock-short'></td></tr><tr class='module-item'><td><a class="enum" href="enum.NormType.html" title='lax::NormType enum'>NormType</a></td><td class='docblock-short'></td></tr><tr class='module-item'><td><a class="enum" href="enum.Transpose.html" title='lax::Transpose enum'>Transpose</a></td><td class='docblock-short'></td></tr><tr class='module-item'><td><a class="enum" href="enum.UPLO.html" title='lax::UPLO enum'>UPLO</a></td><td class='docblock-short'><p>Upper/Lower specification for seveal usages</p>
+</td></tr><tr class='module-item'><td><a class="enum" href="enum.UVTFlag.html" title='lax::UVTFlag enum'>UVTFlag</a></td><td class='docblock-short'><p>Specifies how many of the columns of <em>U</em> and rows of <em>V</em>ᵀ are computed and returned.</p>
+</td></tr></table><h2 id='traits' class='section-header'><a href="#traits">Traits</a></h2>
+<table><tr class='module-item'><td><a class="trait" href="trait.Cholesky_.html" title='lax::Cholesky_ trait'>Cholesky_</a></td><td class='docblock-short'></td></tr><tr class='module-item'><td><a class="trait" href="trait.Eig_.html" title='lax::Eig_ trait'>Eig_</a></td><td class='docblock-short'><p>Wraps <code>*geev</code> for general matrices</p>
+</td></tr><tr class='module-item'><td><a class="trait" href="trait.Eigh_.html" title='lax::Eigh_ trait'>Eigh_</a></td><td class='docblock-short'></td></tr><tr class='module-item'><td><a class="trait" href="trait.Lapack.html" title='lax::Lapack trait'>Lapack</a></td><td class='docblock-short'><p>Trait for primitive types which implements LAPACK subroutines</p>
+</td></tr><tr class='module-item'><td><a class="trait" href="trait.LeastSquaresSvdDivideConquer_.html" title='lax::LeastSquaresSvdDivideConquer_ trait'>LeastSquaresSvdDivideConquer_</a></td><td class='docblock-short'><p>Wraps <code>*gelsd</code></p>
+</td></tr><tr class='module-item'><td><a class="trait" href="trait.OperatorNorm_.html" title='lax::OperatorNorm_ trait'>OperatorNorm_</a></td><td class='docblock-short'></td></tr><tr class='module-item'><td><a class="trait" href="trait.QR_.html" title='lax::QR_ trait'>QR_</a></td><td class='docblock-short'></td></tr><tr class='module-item'><td><a class="trait" href="trait.Rcond_.html" title='lax::Rcond_ trait'>Rcond_</a></td><td class='docblock-short'></td></tr><tr class='module-item'><td><a class="trait" href="trait.SVDDC_.html" title='lax::SVDDC_ trait'>SVDDC_</a></td><td class='docblock-short'></td></tr><tr class='module-item'><td><a class="trait" href="trait.SVD_.html" title='lax::SVD_ trait'>SVD_</a></td><td class='docblock-short'><p>Wraps <code>*gesvd</code></p>
+</td></tr><tr class='module-item'><td><a class="trait" href="trait.Solve_.html" title='lax::Solve_ trait'>Solve_</a></td><td class='docblock-short'></td></tr><tr class='module-item'><td><a class="trait" href="trait.Solveh_.html" title='lax::Solveh_ trait'>Solveh_</a></td><td class='docblock-short'></td></tr><tr class='module-item'><td><a class="trait" href="trait.Triangular_.html" title='lax::Triangular_ trait'>Triangular_</a></td><td class='docblock-short'><p>Wraps <code>*trtri</code> and <code>*trtrs</code></p>
+</td></tr><tr class='module-item'><td><a class="trait" href="trait.Tridiagonal_.html" title='lax::Tridiagonal_ trait'>Tridiagonal_</a></td><td class='docblock-short'><p>Wraps <code>*gttrf</code>, <code>*gtcon</code> and <code>*gttrs</code></p>
+</td></tr></table><h2 id='types' class='section-header'><a href="#types">Type Definitions</a></h2>
+<table><tr class='module-item'><td><a class="type" href="type.Pivot.html" title='lax::Pivot type'>Pivot</a></td><td class='docblock-short'></td></tr></table></section><section id="search" class="content hidden"></section><section class="footer"></section><script>window.rootPath = "../";window.currentCrate = "lax";</script><script src="../main.js"></script><script defer src="../search-index.js"></script></body></html>

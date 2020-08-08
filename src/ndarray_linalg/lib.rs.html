@@ -1,0 +1,218 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `ndarray-linalg/src/lib.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>lib.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css"><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script src="../../storage.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="shortcut icon" href="../../favicon.ico"><!-- This file includes the work that is distributed in MIT or Apache-2.0 license at https://github.com/paulkernfeld/rustdoc-katex-demo -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/katex.min.css" integrity="sha384-9eLZqc9ds8eNjO3TmqPeYcDj8n+Qfa4nuSiGYa6DjLNcv9BtN69ZIulL9+8CqC9Y" crossorigin="anonymous">
+<script src="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/katex.min.js"                  integrity="sha384-K3vbOmF2BtaVai+Qk37uypf7VrgBubhQreNQe9aGsz9lB63dIFiQVlJbr92dw2Lx" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/contrib/auto-render.min.js"    integrity="sha384-kmZOZB5ObwgQnS/DuDg6TScgOiWWBiVt0plIRkZCmE6rDZGrEOQeHM5PcHi+nyqe" crossorigin="anonymous"></script>
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        renderMathInElement(document.body, {
+            delimiters: [
+                {left: "$$", right: "$$", display: true},
+                {left: "\\(", right: "\\)", display: false},
+                {left: "$", right: "$", display: false},
+                {left: "\\[", right: "\\]", display: true}
+            ]
+        });
+    });
+</script>
+
+<style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../ndarray_linalg/index.html'><div class='logo-container'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1"> 1</span>
+<span id="2"> 2</span>
+<span id="3"> 3</span>
+<span id="4"> 4</span>
+<span id="5"> 5</span>
+<span id="6"> 6</span>
+<span id="7"> 7</span>
+<span id="8"> 8</span>
+<span id="9"> 9</span>
+<span id="10">10</span>
+<span id="11">11</span>
+<span id="12">12</span>
+<span id="13">13</span>
+<span id="14">14</span>
+<span id="15">15</span>
+<span id="16">16</span>
+<span id="17">17</span>
+<span id="18">18</span>
+<span id="19">19</span>
+<span id="20">20</span>
+<span id="21">21</span>
+<span id="22">22</span>
+<span id="23">23</span>
+<span id="24">24</span>
+<span id="25">25</span>
+<span id="26">26</span>
+<span id="27">27</span>
+<span id="28">28</span>
+<span id="29">29</span>
+<span id="30">30</span>
+<span id="31">31</span>
+<span id="32">32</span>
+<span id="33">33</span>
+<span id="34">34</span>
+<span id="35">35</span>
+<span id="36">36</span>
+<span id="37">37</span>
+<span id="38">38</span>
+<span id="39">39</span>
+<span id="40">40</span>
+<span id="41">41</span>
+<span id="42">42</span>
+<span id="43">43</span>
+<span id="44">44</span>
+<span id="45">45</span>
+<span id="46">46</span>
+<span id="47">47</span>
+<span id="48">48</span>
+<span id="49">49</span>
+<span id="50">50</span>
+<span id="51">51</span>
+<span id="52">52</span>
+<span id="53">53</span>
+<span id="54">54</span>
+<span id="55">55</span>
+<span id="56">56</span>
+<span id="57">57</span>
+<span id="58">58</span>
+<span id="59">59</span>
+<span id="60">60</span>
+<span id="61">61</span>
+<span id="62">62</span>
+<span id="63">63</span>
+<span id="64">64</span>
+<span id="65">65</span>
+<span id="66">66</span>
+<span id="67">67</span>
+<span id="68">68</span>
+<span id="69">69</span>
+<span id="70">70</span>
+<span id="71">71</span>
+<span id="72">72</span>
+<span id="73">73</span>
+<span id="74">74</span>
+<span id="75">75</span>
+<span id="76">76</span>
+<span id="77">77</span>
+<span id="78">78</span>
+<span id="79">79</span>
+<span id="80">80</span>
+<span id="81">81</span>
+<span id="82">82</span>
+<span id="83">83</span>
+<span id="84">84</span>
+<span id="85">85</span>
+<span id="86">86</span>
+<span id="87">87</span>
+<span id="88">88</span>
+<span id="89">89</span>
+<span id="90">90</span>
+<span id="91">91</span>
+<span id="92">92</span>
+<span id="93">93</span>
+<span id="94">94</span>
+<span id="95">95</span>
+<span id="96">96</span>
+<span id="97">97</span>
+<span id="98">98</span>
+<span id="99">99</span>
+</pre><div class="example-wrap"><pre class="rust ">
+<span class="doccomment">//! The `ndarray-linalg` crate provides linear algebra functionalities for `ArrayBase`, the n-dimensional array data structure provided by [`ndarray`](https://github.com/rust-ndarray/ndarray).</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! `ndarray-linalg` leverages [LAPACK](http://www.netlib.org/lapack/)&#39;s routines using the bindings provided by [blas-lapack-rs/lapack](https://github.com/blas-lapack-rs/lapack).</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! Linear algebra methods</span>
+<span class="doccomment">//! -----------------------</span>
+<span class="doccomment">//! - Decomposition methods:</span>
+<span class="doccomment">//!     - [QR decomposition](qr/index.html)</span>
+<span class="doccomment">//!     - [Cholesky/LU decomposition](cholesky/index.html)</span>
+<span class="doccomment">//!     - [Eigenvalue decomposition](eig/index.html)</span>
+<span class="doccomment">//!     - [Eigenvalue decomposition for Hermite matrices](eigh/index.html)</span>
+<span class="doccomment">//!     - [**S**ingular **V**alue **D**ecomposition](svd/index.html)</span>
+<span class="doccomment">//! - Solution of linear systems:</span>
+<span class="doccomment">//!    - [General matrices](solve/index.html)</span>
+<span class="doccomment">//!    - [Triangular matrices](triangular/index.html)</span>
+<span class="doccomment">//!    - [Hermitian/real symmetric matrices](solveh/index.html)</span>
+<span class="doccomment">//!    - [Tridiagonal matrices](tridiagonal/index.html)</span>
+<span class="doccomment">//! - [Inverse matrix computation](solve/trait.Inverse.html)</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! Naming Convention</span>
+<span class="doccomment">//! -----------------------</span>
+<span class="doccomment">//! Each routine is usually exposed as a trait, implemented by the relevant types.</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! For each routine there might be multiple &quot;variants&quot;: different traits corresponding to the different ownership possibilities of the array you intend to work on.</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! For example, if you are interested in the QR decomposition of a square matrix, you can use:</span>
+<span class="doccomment">//! - [QRSquare](qr/trait.QRSquare.html), if you hold an immutable reference (i.e. `&amp;self`) to the matrix you want to decompose;</span>
+<span class="doccomment">//! - [QRSquareInplace](qr/trait.QRSquareInplace.html), if you hold a mutable reference (i.e. `&amp;mut self`) to the matrix you want to decompose;</span>
+<span class="doccomment">//! - [QRSquareInto](qr/trait.QRSquareInto.html), if you can pass the matrix you want to decompose by value (e.g. `self`).</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! Depending on the algorithm, each variant might require more or less copy operations of the underlying data.</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! Details are provided in the description of each routine.</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//!  Utilities</span>
+<span class="doccomment">//!  -----------</span>
+<span class="doccomment">//!  - [Assertions for array](index.html#macros)</span>
+<span class="doccomment">//!  - [Random matrix generators](generate/index.html)</span>
+<span class="doccomment">//!  - [Scalar trait](types/trait.Scalar.html)</span>
+
+<span class="attribute">#![<span class="ident">allow</span>(
+    <span class="ident">clippy</span>::<span class="ident">module_inception</span>,
+    <span class="ident">clippy</span>::<span class="ident">many_single_char_names</span>,
+    <span class="ident">clippy</span>::<span class="ident">type_complexity</span>,
+    <span class="ident">clippy</span>::<span class="ident">ptr_arg</span>
+)]</span>
+
+<span class="attribute">#[<span class="ident">macro_use</span>]</span>
+<span class="kw">extern</span> <span class="kw">crate</span> <span class="ident">ndarray</span>;
+
+<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">assert</span>;
+<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">cholesky</span>;
+<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">convert</span>;
+<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">diagonal</span>;
+<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">eig</span>;
+<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">eigh</span>;
+<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">error</span>;
+<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">generate</span>;
+<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">inner</span>;
+<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">krylov</span>;
+<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">layout</span>;
+<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">least_squares</span>;
+<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">lobpcg</span>;
+<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">norm</span>;
+<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">operator</span>;
+<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">opnorm</span>;
+<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">qr</span>;
+<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">solve</span>;
+<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">solveh</span>;
+<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">svd</span>;
+<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">svddc</span>;
+<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">trace</span>;
+<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">triangular</span>;
+<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">tridiagonal</span>;
+<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">types</span>;
+
+<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">assert</span>::<span class="kw-2">*</span>;
+<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">cholesky</span>::<span class="kw-2">*</span>;
+<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">convert</span>::<span class="kw-2">*</span>;
+<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">diagonal</span>::<span class="kw-2">*</span>;
+<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">eig</span>::<span class="kw-2">*</span>;
+<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">eigh</span>::<span class="kw-2">*</span>;
+<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">generate</span>::<span class="kw-2">*</span>;
+<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">inner</span>::<span class="kw-2">*</span>;
+<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">layout</span>::<span class="kw-2">*</span>;
+<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">least_squares</span>::<span class="kw-2">*</span>;
+<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">lobpcg</span>::{<span class="ident">TruncatedEig</span>, <span class="ident">TruncatedOrder</span>, <span class="ident">TruncatedSvd</span>};
+<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">norm</span>::<span class="kw-2">*</span>;
+<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">operator</span>::<span class="kw-2">*</span>;
+<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">opnorm</span>::<span class="kw-2">*</span>;
+<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">qr</span>::<span class="kw-2">*</span>;
+<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">solve</span>::<span class="kw-2">*</span>;
+<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">solveh</span>::<span class="kw-2">*</span>;
+<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">svd</span>::<span class="kw-2">*</span>;
+<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">svddc</span>::<span class="kw-2">*</span>;
+<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">trace</span>::<span class="kw-2">*</span>;
+<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">triangular</span>::<span class="kw-2">*</span>;
+<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">tridiagonal</span>::<span class="kw-2">*</span>;
+<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">types</span>::<span class="kw-2">*</span>;
+</pre></div>
+</section><section id="search" class="content hidden"></section><section class="footer"></section><script>window.rootPath = "../../";window.currentCrate = "ndarray_linalg";</script><script src="../../main.js"></script><script src="../../source-script.js"></script><script src="../../source-files.js"></script><script defer src="../../search-index.js"></script></body></html>

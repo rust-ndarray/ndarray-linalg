@@ -1,0 +1,1 @@
+initSidebarItems({"fn":[["mgs","Online QR decomposition using modified Gram-Schmit algorithm"]],"struct":[["MGS","Iterative orthogonalizer using modified Gram-Schmit procedure"]]});

@@ -1,0 +1,49 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="API documentation for the Rust `layout` mod in crate `lax`."><meta name="keywords" content="rust, rustlang, rust-lang, layout"><title>lax::layout - Rust</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css"><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script src="../../storage.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="shortcut icon" href="../../favicon.ico"><!-- This file includes the work that is distributed in MIT or Apache-2.0 license at https://github.com/paulkernfeld/rustdoc-katex-demo -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/katex.min.css" integrity="sha384-9eLZqc9ds8eNjO3TmqPeYcDj8n+Qfa4nuSiGYa6DjLNcv9BtN69ZIulL9+8CqC9Y" crossorigin="anonymous">
+<script src="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/katex.min.js"                  integrity="sha384-K3vbOmF2BtaVai+Qk37uypf7VrgBubhQreNQe9aGsz9lB63dIFiQVlJbr92dw2Lx" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/contrib/auto-render.min.js"    integrity="sha384-kmZOZB5ObwgQnS/DuDg6TScgOiWWBiVt0plIRkZCmE6rDZGrEOQeHM5PcHi+nyqe" crossorigin="anonymous"></script>
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        renderMathInElement(document.body, {
+            delimiters: [
+                {left: "$$", right: "$$", display: true},
+                {left: "\\(", right: "\\)", display: false},
+                {left: "$", right: "$", display: false},
+                {left: "\\[", right: "\\]", display: true}
+            ]
+        });
+    });
+</script>
+
+<style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc mod"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../lax/index.html'><div class='logo-container'><img src='../../rust-logo.png' alt='logo'></div></a><p class='location'>Module layout</p><div class="sidebar-elems"><div class="block items"><ul><li><a href="#enums">Enums</a></li><li><a href="#functions">Functions</a></li></ul></div><p class='location'><a href='../index.html'>lax</a></p><script>window.sidebarCurrent = {name: 'layout', ty: 'mod', relpath: '../'};</script><script defer src="../sidebar-items.js"></script></div></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><h1 class='fqn'><span class='out-of-band'><span id='render-detail'><a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">[<span class='inner'>&#x2212;</span>]</a></span><a class='srclink' href='../../src/lax/layout.rs.html#1-225' title='goto source code'>[src]</a></span><span class='in-band'>Module <a href='../index.html'>lax</a>::<wbr><a class="mod" href=''>layout</a></span></h1><div class='docblock'><p>Memory layout of matrices</p>
+<p>Different from ndarray format which consists of shape and strides,
+matrix format in LAPACK consists of row or column size and leading dimension.</p>
+<h2 id="ndarray-format-and-stride" class="section-header"><a href="#ndarray-format-and-stride">ndarray format and stride</a></h2>
+<p>Let us consider 3-dimensional array for explaining ndarray structure.
+The address of <code>(x,y,z)</code>-element in ndarray satisfies following relation:</p>
+<pre><code class="language-text">shape = [Nx, Ny, Nz]
+    where Nx &gt; 0, Ny &gt; 0, Nz &gt; 0
+stride = [Sx, Sy, Sz]
+
+&amp;data[(x, y, z)] = &amp;data[(0, 0, 0)] + Sx*x + Sy*y + Sz*z
+    for x &lt; Nx, y &lt; Ny, z &lt; Nz
+</code></pre>
+<p>The array is called</p>
+<ul>
+<li>C-continuous if <code>[Sx, Sy, Sz] = [Nz*Ny, Nz, 1]</code></li>
+<li>F(Fortran)-continuous if <code>[Sx, Sy, Sz] = [1, Nx, Nx*Ny]</code></li>
+</ul>
+<p>Strides of ndarray <code>[Sx, Sy, Sz]</code> take arbitrary value,
+e.g. it can be non-ordered <code>Sy &gt; Sx &gt; Sz</code>, or can be negative <code>Sx &lt; 0</code>.
+If the minimum of <code>[Sx, Sy, Sz]</code> equals to <code>1</code>,
+the value of elements fills <code>data</code> memory region and called &quot;continuous&quot;.
+Non-continuous ndarray is useful to get sub-array without copying data.</p>
+<h2 id="matrix-layout-for-lapack" class="section-header"><a href="#matrix-layout-for-lapack">Matrix layout for LAPACK</a></h2>
+<p>LAPACK interface focuses on the linear algebra operations for F-continuous 2-dimensional array.
+Under this restriction, stride becomes far simpler; we only have to consider the case <code>[1, S]</code>
+This <code>S</code> for a matrix <code>A</code> is called &quot;leading dimension of the array A&quot; in LAPACK document, and denoted by <code>lda</code>.</p>
+</div><h2 id='enums' class='section-header'><a href="#enums">Enums</a></h2>
+<table><tr class='module-item'><td><a class="enum" href="enum.MatrixLayout.html" title='lax::layout::MatrixLayout enum'>MatrixLayout</a></td><td class='docblock-short'></td></tr></table><h2 id='functions' class='section-header'><a href="#functions">Functions</a></h2>
+<table><tr class='module-item'><td><a class="fn" href="fn.square_transpose.html" title='lax::layout::square_transpose fn'>square_transpose</a></td><td class='docblock-short'><p>In-place transpose of a square matrix by keeping F/C layout</p>
+</td></tr><tr class='module-item'><td><a class="fn" href="fn.transpose.html" title='lax::layout::transpose fn'>transpose</a></td><td class='docblock-short'><p>Out-place transpose for general matrix</p>
+</td></tr></table></section><section id="search" class="content hidden"></section><section class="footer"></section><script>window.rootPath = "../../";window.currentCrate = "lax";</script><script src="../../main.js"></script><script defer src="../../search-index.js"></script></body></html>

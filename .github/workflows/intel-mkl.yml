@@ -8,11 +8,6 @@ on:
 
 jobs:
   windows:
-    strategy:
-      fail-fast: false
-      matrix:
-        feature:
-          - intel-mkl-static
     runs-on: windows-2019
     steps:
       - uses: actions/checkout@v1
@@ -22,14 +17,9 @@ jobs:
           args: >
             --manifest-path=ndarray-linalg/Cargo.toml
             --no-default-features
-            --features=${{ matrix.feature }}
+            --features=intel-mkl-static
 
   linux:
-    strategy:
-      fail-fast: false
-      matrix:
-        feature:
-          - intel-mkl-static
     runs-on: ubuntu-18.04
     steps:
       - uses: actions/checkout@v1
@@ -40,4 +30,18 @@ jobs:
           args: >
             --manifest-path=ndarray-linalg/Cargo.toml
             --no-default-features
-            --features=${{ matrix.feature }}
+            --features=intel-mkl-static
+
+  linux-container:
+    runs-on: ubuntu-18.04
+    container: rustmath/mkl-rust:1.43.0
+    steps:
+      - uses: actions/checkout@v1
+      - uses: actions-rs/cargo@v1
+        name: cargo test
+        with:
+          command: test
+          args: >
+            --manifest-path=ndarray-linalg/Cargo.toml
+            --no-default-features
+            --features=intel-mkl-system

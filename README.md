@@ -7,10 +7,10 @@ Linear algebra package for Rust with [ndarray](https://github.com/bluss/ndarray)
 
 Examples
 ---------
-See [examples](https://github.com/termoshtt/ndarray-linalg/tree/master/examples) directory.
+See [examples](https://github.com/termoshtt/ndarray-linalg/tree/master/ndarray-linalg/examples) directory.
 
 **Note**: To run examples, you must specify which backend will be used (as described below).
-For example, you can execute the [solve](examples/solve.rs) example with the OpenBLAS backend like this:
+For example, you can execute the [solve](ndarray-linalg/examples/solve.rs) example with the OpenBLAS backend like this:
 
 ```sh
 cargo run --example solve --features=openblas

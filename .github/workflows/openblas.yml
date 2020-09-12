@@ -8,24 +8,50 @@ on:
 
 jobs:
   linux:
+    runs-on: ubuntu-18.04
+    container:
+      image: rust
     strategy:
       fail-fast: false
       matrix:
         feature:
-          - system
           - static
-    runs-on: ubuntu-18.04
+          - system
     steps:
       - uses: actions/checkout@v1
       - name: apt install gfortran
         run: |
-          sudo apt update
-          sudo apt install -y gfortran
-      - name: apt install openblas
+          apt update
+          apt install -y gfortran
+      - name: Install OpenBLAS by apt
         run: |
-          sudo apt update
-          sudo apt install -y libopenblas-dev
-        if: ${{ matrix.feature == 'system' }}
+          apt update
+          apt install -y libopenblas-dev
+        if: ${{ contains(matrix.feature, 'system') }}
+      - uses: actions-rs/cargo@v1
+        with:
+          command: test
+          args: >
+            --manifest-path=ndarray-linalg/Cargo.toml
+            --no-default-features
+            --features=openblas-${{ matrix.feature }}
+
+  macos:
+    runs-on: macos-10.15
+    strategy:
+      fail-fast: false
+      matrix:
+        feature:
+          - static
+          - system
+    steps:
+      - uses: actions/checkout@v1
+        with:
+          submodules: 'recursive'
+      - name: Install OpenBLAS by homebrew
+        run: |
+          brew install openblas
+        if: ${{ contains(matrix.feature, 'system') }}
       - uses: actions-rs/cargo@v1
         with:
           command: test

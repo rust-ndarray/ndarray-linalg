@@ -48,6 +48,7 @@ use num_traits::Float;
 
 use crate::convert::*;
 use crate::error::*;
+use crate::lapack::cholesky_semi::cholesky_semi;
 use crate::layout::*;
 use crate::triangular::IntoTriangular;
 use crate::types::*;
@@ -467,4 +468,33 @@ where
     fn ln_detc_into(self) -> Self::Output {
         Ok(self.factorizec_into(UPLO::Upper)?.ln_detc_into())
     }
+}
+
+pub struct PsdCholeskyFactorization {
+    pub pivot: Vec<usize>,
+    pub positive_definite_factorization: CholeskyFactorized<OwnedRepr<f64>>,
+}
+
+pub fn factorize_cholesky_semi_definite(
+    input_mat: &mut ArrayBase<OwnedRepr<f64>, Ix2>,
+) -> Result<PsdCholeskyFactorization> {
+    let uplo = UPLO::Lower;
+    let mut rank: i32 = 0;
+    let pivot: Vec<usize> = cholesky_semi(
+        input_mat.square_layout()?,
+        uplo,
+        input_mat.as_allocated_mut()?,
+        &mut rank,
+    )?
+    .iter()
+    .map(|x| *x as usize)
+    .collect();
+    let cholesky_factors = input_mat.into_triangular(uplo).slice(s![0..rank, 0..rank]);
+    Ok(PsdCholeskyFactorization {
+        pivot: pivot,
+        positive_definite_factorization: CholeskyFactorized::<OwnedRepr<f64>> {
+            factor: replicate(&cholesky_factors),
+            uplo: uplo,
+        },
+    })
 }

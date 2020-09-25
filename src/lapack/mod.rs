@@ -1,6 +1,7 @@
 //! Define traits wrapping LAPACK routines
 
 pub mod cholesky;
+pub mod cholesky_semi;
 pub mod eig;
 pub mod eigh;
 pub mod least_squares;
@@ -14,6 +15,7 @@ pub mod triangular;
 pub mod tridiagonal;
 
 pub use self::cholesky::*;
+pub use self::cholesky_semi::*;
 pub use self::eig::*;
 pub use self::eigh::*;
 pub use self::least_squares::*;

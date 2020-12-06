@@ -36,7 +36,7 @@ rand = "0.5"
 thiserror = "1.0.20"
 
 [dependencies.ndarray]
-version = "0.13.0"
+version = "0.14"
 features = ["blas", "approx"]
 default-features = false
 
@@ -46,9 +46,10 @@ path = "../lax"
 default-features = false
 
 [dev-dependencies]
-paste = "0.1.9"
-criterion = "0.3.1"
-approx = { version = "0.3.2", features = ["num-complex"] }
+paste = "1.0"
+criterion = "0.3"
+# Keep the same version as ndarray's dependency!
+approx = { version = "0.4", features = ["num-complex"] }
 
 [[bench]]
 name = "truncated_eig"

@@ -3,7 +3,6 @@
 use lax::Tridiagonal;
 use ndarray::*;
 
-use crate::convert::*;
 use crate::error::*;
 use crate::layout::*;
 use crate::types::*;
@@ -71,10 +70,9 @@ where
             NormType::One => {
                 let zl: Array1<A> = Array::zeros(1);
                 let zu: Array1<A> = Array::zeros(1);
-                let dl = stack![Axis(0), self.dl.to_owned(), zl];
-                let du = stack![Axis(0), zu, self.du.to_owned()];
-                let arr = stack![Axis(0), into_row(du), into_row(arr1(&self.d)), into_row(dl)];
-                arr
+                let dl = concatenate![Axis(0), &self.dl, zl]; // n
+                let du = concatenate![Axis(0), zu, &self.du]; // n
+                stack![Axis(0), du, &self.d, dl] // 3 x n
             }
             // opnorm_inf() calculates muximum row sum.
             // Therefore, This part align the rows and make a (n x 3) matrix like,
@@ -86,26 +84,18 @@ where
             NormType::Infinity => {
                 let zl: Array1<A> = Array::zeros(1);
                 let zu: Array1<A> = Array::zeros(1);
-                let dl = stack![Axis(0), zl, self.dl.to_owned()];
-                let du = stack![Axis(0), self.du.to_owned(), zu];
-                let arr = stack![Axis(1), into_col(dl), into_col(arr1(&self.d)), into_col(du)];
-                arr
+                let dl = concatenate![Axis(0), zl, &self.dl]; // n
+                let du = concatenate![Axis(0), &self.du, zu]; // n
+                stack![Axis(1), dl, &self.d, du] // n x 3
             }
             // opnorm_fro() calculates square root of sum of squares.
             // Because it is independent of the shape of matrix,
             // this part make a (1 x (3n-2)) matrix like,
             // [l1, ..., l{n-1}, d0, ..., d{n-1}, u1, ..., u{n-1}]
             NormType::Frobenius => {
-                let arr = stack![
-                    Axis(1),
-                    into_row(arr1(&self.dl)),
-                    into_row(arr1(&self.d)),
-                    into_row(arr1(&self.du))
-                ];
-                arr
+                concatenate![Axis(0), &self.dl, &self.d, &self.du].insert_axis(Axis(0))
             }
         };
-
         let l = arr.layout()?;
         let a = arr.as_allocated()?;
         Ok(A::opnorm(t, l, a))

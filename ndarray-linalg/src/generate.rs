@@ -110,14 +110,8 @@ where
     A: Scalar,
     S: Data<Elem = A>,
 {
-    let views: Vec<_> = xs
-        .iter()
-        .map(|x| {
-            let n = x.len();
-            x.view().into_shape((n, 1)).unwrap()
-        })
-        .collect();
-    stack(Axis(1), &views).map_err(|e| e.into())
+    let views: Vec<_> = xs.iter().map(|x| x.view()).collect();
+    stack(Axis(1), &views).map_err(Into::into)
 }
 
 /// stack vectors into matrix vertically
@@ -126,12 +120,6 @@ where
     A: Scalar,
     S: Data<Elem = A>,
 {
-    let views: Vec<_> = xs
-        .iter()
-        .map(|x| {
-            let n = x.len();
-            x.view().into_shape((1, n)).unwrap()
-        })
-        .collect();
-    stack(Axis(0), &views).map_err(|e| e.into())
+    let views: Vec<_> = xs.iter().map(|x| x.view()).collect();
+    stack(Axis(0), &views).map_err(Into::into)
 }

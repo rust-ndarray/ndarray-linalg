@@ -354,17 +354,17 @@ pub fn lobpcg<
                 };
 
                 sorted_eig(
-                    stack![
+                    concatenate![
                         Axis(0),
-                        stack![Axis(1), xax, xar, xap],
-                        stack![Axis(1), xar.t(), rar, rap],
-                        stack![Axis(1), xap.t(), rap.t(), pap]
+                        concatenate![Axis(1), xax, xar, xap],
+                        concatenate![Axis(1), xar.t(), rar, rap],
+                        concatenate![Axis(1), xap.t(), rap.t(), pap]
                     ],
-                    Some(stack![
+                    Some(concatenate![
                         Axis(0),
-                        stack![Axis(1), xx, xr, xp],
-                        stack![Axis(1), xr.t(), rr, rp],
-                        stack![Axis(1), xp.t(), rp.t(), pp]
+                        concatenate![Axis(1), xx, xr, xp],
+                        concatenate![Axis(1), xr.t(), rr, rp],
+                        concatenate![Axis(1), xp.t(), rp.t(), pp]
                     ]),
                     size_x,
                     &order,
@@ -374,15 +374,15 @@ pub fn lobpcg<
                 p_ap = None;
 
                 sorted_eig(
-                    stack![
+                    concatenate![
                         Axis(0),
-                        stack![Axis(1), xax, xar],
-                        stack![Axis(1), xar.t(), rar]
+                        concatenate![Axis(1), xax, xar],
+                        concatenate![Axis(1), xar.t(), rar]
                     ],
-                    Some(stack![
+                    Some(concatenate![
                         Axis(0),
-                        stack![Axis(1), xx, xr],
-                        stack![Axis(1), xr.t(), rr]
+                        concatenate![Axis(1), xx, xr],
+                        concatenate![Axis(1), xr.t(), rr]
                     ]),
                     size_x,
                     &order,

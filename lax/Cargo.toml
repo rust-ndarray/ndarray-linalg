@@ -38,9 +38,7 @@ features = ["cblas"]
 default-features = false
 
 [dependencies.openblas-src]
-version = "0.10.1"
+version = "0.10.2"
 optional = true
 default-features = false
 features = ["cblas"]
-git = "https://github.com/blas-lapack-rs/openblas-src"
-rev = "be908954fbe54321d5194782cffef2a14474f01f"

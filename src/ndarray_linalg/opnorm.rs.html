@@ -121,23 +121,12 @@
 <span id="101">101</span>
 <span id="102">102</span>
 <span id="103">103</span>
-<span id="104">104</span>
-<span id="105">105</span>
-<span id="106">106</span>
-<span id="107">107</span>
-<span id="108">108</span>
-<span id="109">109</span>
-<span id="110">110</span>
-<span id="111">111</span>
-<span id="112">112</span>
-<span id="113">113</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! Operator norm</span>
 
 <span class="kw">use</span> <span class="ident">lax</span>::<span class="ident">Tridiagonal</span>;
 <span class="kw">use</span> <span class="ident">ndarray</span>::<span class="kw-2">*</span>;
 
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">convert</span>::<span class="kw-2">*</span>;
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">error</span>::<span class="kw-2">*</span>;
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">layout</span>::<span class="kw-2">*</span>;
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">types</span>::<span class="kw-2">*</span>;
@@ -205,10 +194,9 @@
             <span class="ident">NormType</span>::<span class="ident">One</span> <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="kw">let</span> <span class="ident">zl</span>: <span class="ident">Array1</span><span class="op">&lt;</span><span class="ident">A</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">Array</span>::<span class="ident">zeros</span>(<span class="number">1</span>);
                 <span class="kw">let</span> <span class="ident">zu</span>: <span class="ident">Array1</span><span class="op">&lt;</span><span class="ident">A</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">Array</span>::<span class="ident">zeros</span>(<span class="number">1</span>);
-                <span class="kw">let</span> <span class="ident">dl</span> <span class="op">=</span> <span class="macro">stack</span><span class="macro">!</span>[<span class="ident">Axis</span>(<span class="number">0</span>), <span class="self">self</span>.<span class="ident">dl</span>.<span class="ident">to_owned</span>(), <span class="ident">zl</span>];
-                <span class="kw">let</span> <span class="ident">du</span> <span class="op">=</span> <span class="macro">stack</span><span class="macro">!</span>[<span class="ident">Axis</span>(<span class="number">0</span>), <span class="ident">zu</span>, <span class="self">self</span>.<span class="ident">du</span>.<span class="ident">to_owned</span>()];
-                <span class="kw">let</span> <span class="ident">arr</span> <span class="op">=</span> <span class="macro">stack</span><span class="macro">!</span>[<span class="ident">Axis</span>(<span class="number">0</span>), <span class="ident">into_row</span>(<span class="ident">du</span>), <span class="ident">into_row</span>(<span class="ident">arr1</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">d</span>)), <span class="ident">into_row</span>(<span class="ident">dl</span>)];
-                <span class="ident">arr</span>
+                <span class="kw">let</span> <span class="ident">dl</span> <span class="op">=</span> <span class="macro">concatenate</span><span class="macro">!</span>[<span class="ident">Axis</span>(<span class="number">0</span>), <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">dl</span>, <span class="ident">zl</span>]; <span class="comment">// n</span>
+                <span class="kw">let</span> <span class="ident">du</span> <span class="op">=</span> <span class="macro">concatenate</span><span class="macro">!</span>[<span class="ident">Axis</span>(<span class="number">0</span>), <span class="ident">zu</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">du</span>]; <span class="comment">// n</span>
+                <span class="macro">stack</span><span class="macro">!</span>[<span class="ident">Axis</span>(<span class="number">0</span>), <span class="ident">du</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">d</span>, <span class="ident">dl</span>] <span class="comment">// 3 x n</span>
             }
             <span class="comment">// opnorm_inf() calculates muximum row sum.</span>
             <span class="comment">// Therefore, This part align the rows and make a (n x 3) matrix like,</span>
@@ -220,26 +208,18 @@
             <span class="ident">NormType</span>::<span class="ident">Infinity</span> <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="kw">let</span> <span class="ident">zl</span>: <span class="ident">Array1</span><span class="op">&lt;</span><span class="ident">A</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">Array</span>::<span class="ident">zeros</span>(<span class="number">1</span>);
                 <span class="kw">let</span> <span class="ident">zu</span>: <span class="ident">Array1</span><span class="op">&lt;</span><span class="ident">A</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">Array</span>::<span class="ident">zeros</span>(<span class="number">1</span>);
-                <span class="kw">let</span> <span class="ident">dl</span> <span class="op">=</span> <span class="macro">stack</span><span class="macro">!</span>[<span class="ident">Axis</span>(<span class="number">0</span>), <span class="ident">zl</span>, <span class="self">self</span>.<span class="ident">dl</span>.<span class="ident">to_owned</span>()];
-                <span class="kw">let</span> <span class="ident">du</span> <span class="op">=</span> <span class="macro">stack</span><span class="macro">!</span>[<span class="ident">Axis</span>(<span class="number">0</span>), <span class="self">self</span>.<span class="ident">du</span>.<span class="ident">to_owned</span>(), <span class="ident">zu</span>];
-                <span class="kw">let</span> <span class="ident">arr</span> <span class="op">=</span> <span class="macro">stack</span><span class="macro">!</span>[<span class="ident">Axis</span>(<span class="number">1</span>), <span class="ident">into_col</span>(<span class="ident">dl</span>), <span class="ident">into_col</span>(<span class="ident">arr1</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">d</span>)), <span class="ident">into_col</span>(<span class="ident">du</span>)];
-                <span class="ident">arr</span>
+                <span class="kw">let</span> <span class="ident">dl</span> <span class="op">=</span> <span class="macro">concatenate</span><span class="macro">!</span>[<span class="ident">Axis</span>(<span class="number">0</span>), <span class="ident">zl</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">dl</span>]; <span class="comment">// n</span>
+                <span class="kw">let</span> <span class="ident">du</span> <span class="op">=</span> <span class="macro">concatenate</span><span class="macro">!</span>[<span class="ident">Axis</span>(<span class="number">0</span>), <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">du</span>, <span class="ident">zu</span>]; <span class="comment">// n</span>
+                <span class="macro">stack</span><span class="macro">!</span>[<span class="ident">Axis</span>(<span class="number">1</span>), <span class="ident">dl</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">d</span>, <span class="ident">du</span>] <span class="comment">// n x 3</span>
             }
             <span class="comment">// opnorm_fro() calculates square root of sum of squares.</span>
             <span class="comment">// Because it is independent of the shape of matrix,</span>
             <span class="comment">// this part make a (1 x (3n-2)) matrix like,</span>
             <span class="comment">// [l1, ..., l{n-1}, d0, ..., d{n-1}, u1, ..., u{n-1}]</span>
             <span class="ident">NormType</span>::<span class="ident">Frobenius</span> <span class="op">=</span><span class="op">&gt;</span> {
-                <span class="kw">let</span> <span class="ident">arr</span> <span class="op">=</span> <span class="macro">stack</span><span class="macro">!</span>[
-                    <span class="ident">Axis</span>(<span class="number">1</span>),
-                    <span class="ident">into_row</span>(<span class="ident">arr1</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">dl</span>)),
-                    <span class="ident">into_row</span>(<span class="ident">arr1</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">d</span>)),
-                    <span class="ident">into_row</span>(<span class="ident">arr1</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">du</span>))
-                ];
-                <span class="ident">arr</span>
+                <span class="macro">concatenate</span><span class="macro">!</span>[<span class="ident">Axis</span>(<span class="number">0</span>), <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">dl</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">d</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">du</span>].<span class="ident">insert_axis</span>(<span class="ident">Axis</span>(<span class="number">0</span>))
             }
         };
-
         <span class="kw">let</span> <span class="ident">l</span> <span class="op">=</span> <span class="ident">arr</span>.<span class="ident">layout</span>()<span class="question-mark">?</span>;
         <span class="kw">let</span> <span class="ident">a</span> <span class="op">=</span> <span class="ident">arr</span>.<span class="ident">as_allocated</span>()<span class="question-mark">?</span>;
         <span class="prelude-val">Ok</span>(<span class="ident">A</span>::<span class="ident">opnorm</span>(<span class="ident">t</span>, <span class="ident">l</span>, <span class="ident">a</span>))

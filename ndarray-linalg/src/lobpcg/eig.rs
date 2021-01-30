@@ -138,12 +138,11 @@ impl<A: Float + Scalar + ScalarOperand + Lapack + PartialOrd + Default> Iterator
 
                 // add the new eigenvector to the internal constrain matrix
                 let new_constraints = if let Some(ref constraints) = self.eig.constraints {
-                    let eigvecs_arr = constraints
+                    let eigvecs_arr: Vec<_> = constraints
                         .gencolumns()
                         .into_iter()
                         .chain(vecs.gencolumns().into_iter())
-                        .map(|x| x.insert_axis(Axis(1)))
-                        .collect::<Vec<_>>();
+                        .collect();
 
                     stack(Axis(1), &eigvecs_arr).unwrap()
                 } else {

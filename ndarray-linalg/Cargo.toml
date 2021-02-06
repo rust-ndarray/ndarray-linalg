@@ -29,10 +29,10 @@ intel-mkl-static = ["lax/intel-mkl-static"]
 intel-mkl-system = ["lax/intel-mkl-system"]
 
 [dependencies]
-cauchy = "0.2.2"
-num-complex = "0.2.4"
+cauchy = "0.3.0"
+num-complex = "0.3.1"
 num-traits  = "0.2.11"
-rand = "0.5"
+rand = "0.7.3"
 thiserror = "1.0.20"
 
 [dependencies.ndarray]

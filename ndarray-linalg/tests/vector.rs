@@ -1,6 +1,5 @@
 use ndarray::*;
 use ndarray_linalg::*;
-use num_traits::Float;
 
 #[test]
 fn vector_norm() {

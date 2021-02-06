@@ -1,6 +1,5 @@
 use ndarray::*;
 use ndarray_linalg::*;
-use num_traits::Float;
 
 fn test(a: Array2<f64>, one: f64, inf: f64, fro: f64) {
     println!("ONE = {:?}", a.opnorm_one());

@@ -24,7 +24,7 @@ intel-mkl-system = ["intel-mkl-src/mkl-dynamic-lp64-seq"]
 thiserror = "1.0"
 cauchy = "0.3.0"
 num-traits = "0.2"
-lapack = "0.16.0"
+lapack = { version = "0.17.0", git = "http://github.com/blas-lapack-rs/lapack" }
 
 [dependencies.intel-mkl-src]
 version = "0.6.0"

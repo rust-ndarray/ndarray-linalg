@@ -362,7 +362,7 @@ pub trait Determinant<A: Scalar> {
     /// Computes the determinant of the matrix.
     fn det(&self) -> Result<A> {
         let (sign, ln_det) = self.sln_det()?;
-        Ok(sign * A::from_real(ln_det.exp()))
+        Ok(sign * A::from_real(Float::exp(ln_det)))
     }
 
     /// Computes the `(sign, natural_log)` of the determinant of the matrix.
@@ -387,7 +387,7 @@ pub trait DeterminantInto<A: Scalar>: Sized {
     /// Computes the determinant of the matrix.
     fn det_into(self) -> Result<A> {
         let (sign, ln_det) = self.sln_det_into()?;
-        Ok(sign * A::from_real(ln_det.exp()))
+        Ok(sign * A::from_real(Float::exp(ln_det)))
     }
 
     /// Computes the `(sign, natural_log)` of the determinant of the matrix.
@@ -430,7 +430,7 @@ where
             let abs_elem: A::Real = elem.abs();
             (
                 upper_sign * elem / A::from_real(abs_elem),
-                ln_det + abs_elem.ln(),
+                ln_det + Float::ln(abs_elem),
             )
         },
     );

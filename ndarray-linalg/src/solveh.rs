@@ -321,7 +321,7 @@ where
             let elem = unsafe { a.uget((k, k)) }.re();
             debug_assert_eq!(elem.im(), Zero::zero());
             sign *= elem.signum();
-            ln_det += elem.abs().ln();
+            ln_det += Float::ln(Float::abs(elem));
         } else {
             // 2x2 block at k..k+2.
 
@@ -348,7 +348,7 @@ where
             // Determinant of 2x2 block.
             let block_det = upper_diag * lower_diag - off_diag.square();
             sign *= block_det.signum();
-            ln_det += block_det.abs().ln();
+            ln_det += Float::ln(Float::abs(block_det));
 
             // Skip the k+1 ipiv value.
             ipiv_enum.next();
@@ -366,7 +366,7 @@ where
     /// symmetric) matrix.
     pub fn deth(&self) -> A::Real {
         let (sign, ln_det) = self.sln_deth();
-        sign * ln_det.exp()
+        sign * Float::exp(ln_det)
     }
 
     /// Computes the `(sign, natural_log)` of the determinant of the factorized
@@ -390,7 +390,7 @@ where
     /// symmetric) matrix.
     pub fn deth_into(self) -> A::Real {
         let (sign, ln_det) = self.sln_deth_into();
-        sign * ln_det.exp()
+        sign * Float::exp(ln_det)
     }
 
     /// Computes the `(sign, natural_log)` of the determinant of the factorized
@@ -420,7 +420,7 @@ where
 
     fn deth(&self) -> Result<A::Real> {
         let (sign, ln_det) = self.sln_deth()?;
-        Ok(sign * ln_det.exp())
+        Ok(sign * Float::exp(ln_det))
     }
 
     fn sln_deth(&self) -> Result<(A::Real, A::Real)> {
@@ -445,7 +445,7 @@ where
 
     fn deth_into(self) -> Result<A::Real> {
         let (sign, ln_det) = self.sln_deth_into()?;
-        Ok(sign * ln_det.exp())
+        Ok(sign * Float::exp(ln_det))
     }
 
     fn sln_deth_into(self) -> Result<(A::Real, A::Real)> {

@@ -102,14 +102,14 @@ where
     type Output = <A as Scalar>::Real;
 
     fn detc(&self) -> Self::Output {
-        self.ln_detc().exp()
+        Float::exp(self.ln_detc())
     }
 
     fn ln_detc(&self) -> Self::Output {
         self.factor
             .diag()
             .iter()
-            .map(|elem| elem.square().ln())
+            .map(|elem| Float::ln(elem.square()))
             .sum::<Self::Output>()
     }
 }
@@ -443,7 +443,7 @@ where
     type Output = Result<<A as Scalar>::Real>;
 
     fn detc(&self) -> Self::Output {
-        Ok(self.ln_detc()?.exp())
+        Ok(Float::exp(self.ln_detc()?))
     }
 
     fn ln_detc(&self) -> Self::Output {
@@ -459,7 +459,7 @@ where
     type Output = Result<<A as Scalar>::Real>;
 
     fn detc_into(self) -> Self::Output {
-        Ok(self.ln_detc_into()?.exp())
+        Ok(Float::exp(self.ln_detc_into()?))
     }
 
     fn ln_detc_into(self) -> Self::Output {

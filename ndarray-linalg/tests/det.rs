@@ -110,7 +110,7 @@ fn det() {
     {
         let det = det_naive(&a);
         let sign = det.div_real(det.abs());
-        let ln_det = det.abs().ln();
+        let ln_det = Float::ln(det.abs());
         assert_rclose!(a.factorize().unwrap().det().unwrap(), det, rtol);
         {
             let result = a.factorize().unwrap().sln_det().unwrap();

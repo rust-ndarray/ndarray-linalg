@@ -804,7 +804,7 @@
             <span class="kw">let</span> <span class="ident">elem</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">a</span>.<span class="ident">uget</span>((<span class="ident">k</span>, <span class="ident">k</span>)) }.<span class="ident">re</span>();
             <span class="macro">debug_assert_eq</span><span class="macro">!</span>(<span class="ident">elem</span>.<span class="ident">im</span>(), <span class="ident">Zero</span>::<span class="ident">zero</span>());
             <span class="ident">sign</span> <span class="kw-2">*</span><span class="op">=</span> <span class="ident">elem</span>.<span class="ident">signum</span>();
-            <span class="ident">ln_det</span> <span class="op">+</span><span class="op">=</span> <span class="ident">elem</span>.<span class="ident">abs</span>().<span class="ident">ln</span>();
+            <span class="ident">ln_det</span> <span class="op">+</span><span class="op">=</span> <span class="ident">Float</span>::<span class="ident">ln</span>(<span class="ident">Float</span>::<span class="ident">abs</span>(<span class="ident">elem</span>));
         } <span class="kw">else</span> {
             <span class="comment">// 2x2 block at k..k+2.</span>
 
@@ -831,7 +831,7 @@
             <span class="comment">// Determinant of 2x2 block.</span>
             <span class="kw">let</span> <span class="ident">block_det</span> <span class="op">=</span> <span class="ident">upper_diag</span> <span class="op">*</span> <span class="ident">lower_diag</span> <span class="op">-</span> <span class="ident">off_diag</span>.<span class="ident">square</span>();
             <span class="ident">sign</span> <span class="kw-2">*</span><span class="op">=</span> <span class="ident">block_det</span>.<span class="ident">signum</span>();
-            <span class="ident">ln_det</span> <span class="op">+</span><span class="op">=</span> <span class="ident">block_det</span>.<span class="ident">abs</span>().<span class="ident">ln</span>();
+            <span class="ident">ln_det</span> <span class="op">+</span><span class="op">=</span> <span class="ident">Float</span>::<span class="ident">ln</span>(<span class="ident">Float</span>::<span class="ident">abs</span>(<span class="ident">block_det</span>));
 
             <span class="comment">// Skip the k+1 ipiv value.</span>
             <span class="ident">ipiv_enum</span>.<span class="ident">next</span>();
@@ -849,7 +849,7 @@
     <span class="doccomment">/// symmetric) matrix.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">deth</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">A</span>::<span class="ident">Real</span> {
         <span class="kw">let</span> (<span class="ident">sign</span>, <span class="ident">ln_det</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">sln_deth</span>();
-        <span class="ident">sign</span> <span class="op">*</span> <span class="ident">ln_det</span>.<span class="ident">exp</span>()
+        <span class="ident">sign</span> <span class="op">*</span> <span class="ident">Float</span>::<span class="ident">exp</span>(<span class="ident">ln_det</span>)
     }
 
     <span class="doccomment">/// Computes the `(sign, natural_log)` of the determinant of the factorized</span>
@@ -873,7 +873,7 @@
     <span class="doccomment">/// symmetric) matrix.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">deth_into</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">A</span>::<span class="ident">Real</span> {
         <span class="kw">let</span> (<span class="ident">sign</span>, <span class="ident">ln_det</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">sln_deth_into</span>();
-        <span class="ident">sign</span> <span class="op">*</span> <span class="ident">ln_det</span>.<span class="ident">exp</span>()
+        <span class="ident">sign</span> <span class="op">*</span> <span class="ident">Float</span>::<span class="ident">exp</span>(<span class="ident">ln_det</span>)
     }
 
     <span class="doccomment">/// Computes the `(sign, natural_log)` of the determinant of the factorized</span>
@@ -903,7 +903,7 @@
 
     <span class="kw">fn</span> <span class="ident">deth</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">A</span>::<span class="ident">Real</span><span class="op">&gt;</span> {
         <span class="kw">let</span> (<span class="ident">sign</span>, <span class="ident">ln_det</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">sln_deth</span>()<span class="question-mark">?</span>;
-        <span class="prelude-val">Ok</span>(<span class="ident">sign</span> <span class="op">*</span> <span class="ident">ln_det</span>.<span class="ident">exp</span>())
+        <span class="prelude-val">Ok</span>(<span class="ident">sign</span> <span class="op">*</span> <span class="ident">Float</span>::<span class="ident">exp</span>(<span class="ident">ln_det</span>))
     }
 
     <span class="kw">fn</span> <span class="ident">sln_deth</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(<span class="ident">A</span>::<span class="ident">Real</span>, <span class="ident">A</span>::<span class="ident">Real</span>)<span class="op">&gt;</span> {
@@ -928,7 +928,7 @@
 
     <span class="kw">fn</span> <span class="ident">deth_into</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">A</span>::<span class="ident">Real</span><span class="op">&gt;</span> {
         <span class="kw">let</span> (<span class="ident">sign</span>, <span class="ident">ln_det</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">sln_deth_into</span>()<span class="question-mark">?</span>;
-        <span class="prelude-val">Ok</span>(<span class="ident">sign</span> <span class="op">*</span> <span class="ident">ln_det</span>.<span class="ident">exp</span>())
+        <span class="prelude-val">Ok</span>(<span class="ident">sign</span> <span class="op">*</span> <span class="ident">Float</span>::<span class="ident">exp</span>(<span class="ident">ln_det</span>))
     }
 
     <span class="kw">fn</span> <span class="ident">sln_deth_into</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(<span class="ident">A</span>::<span class="ident">Real</span>, <span class="ident">A</span>::<span class="ident">Real</span>)<span class="op">&gt;</span> {

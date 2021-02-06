@@ -953,7 +953,7 @@
     <span class="doccomment">/// Computes the determinant of the matrix.</span>
     <span class="kw">fn</span> <span class="ident">det</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">A</span><span class="op">&gt;</span> {
         <span class="kw">let</span> (<span class="ident">sign</span>, <span class="ident">ln_det</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">sln_det</span>()<span class="question-mark">?</span>;
-        <span class="prelude-val">Ok</span>(<span class="ident">sign</span> <span class="op">*</span> <span class="ident">A</span>::<span class="ident">from_real</span>(<span class="ident">ln_det</span>.<span class="ident">exp</span>()))
+        <span class="prelude-val">Ok</span>(<span class="ident">sign</span> <span class="op">*</span> <span class="ident">A</span>::<span class="ident">from_real</span>(<span class="ident">Float</span>::<span class="ident">exp</span>(<span class="ident">ln_det</span>)))
     }
 
     <span class="doccomment">/// Computes the `(sign, natural_log)` of the determinant of the matrix.</span>
@@ -978,7 +978,7 @@
     <span class="doccomment">/// Computes the determinant of the matrix.</span>
     <span class="kw">fn</span> <span class="ident">det_into</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">A</span><span class="op">&gt;</span> {
         <span class="kw">let</span> (<span class="ident">sign</span>, <span class="ident">ln_det</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">sln_det_into</span>()<span class="question-mark">?</span>;
-        <span class="prelude-val">Ok</span>(<span class="ident">sign</span> <span class="op">*</span> <span class="ident">A</span>::<span class="ident">from_real</span>(<span class="ident">ln_det</span>.<span class="ident">exp</span>()))
+        <span class="prelude-val">Ok</span>(<span class="ident">sign</span> <span class="op">*</span> <span class="ident">A</span>::<span class="ident">from_real</span>(<span class="ident">Float</span>::<span class="ident">exp</span>(<span class="ident">ln_det</span>)))
     }
 
     <span class="doccomment">/// Computes the `(sign, natural_log)` of the determinant of the matrix.</span>
@@ -1021,7 +1021,7 @@
             <span class="kw">let</span> <span class="ident">abs_elem</span>: <span class="ident">A</span>::<span class="ident">Real</span> <span class="op">=</span> <span class="ident">elem</span>.<span class="ident">abs</span>();
             (
                 <span class="ident">upper_sign</span> <span class="op">*</span> <span class="ident">elem</span> <span class="op">/</span> <span class="ident">A</span>::<span class="ident">from_real</span>(<span class="ident">abs_elem</span>),
-                <span class="ident">ln_det</span> <span class="op">+</span> <span class="ident">abs_elem</span>.<span class="ident">ln</span>(),
+                <span class="ident">ln_det</span> <span class="op">+</span> <span class="ident">Float</span>::<span class="ident">ln</span>(<span class="ident">abs_elem</span>),
             )
         },
     );

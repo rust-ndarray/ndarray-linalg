@@ -81,3 +81,6 @@ harness = false
 
 [package.metadata.docs.rs]
 rustdoc-args = ["--html-in-header", "katex-header.html"]
+
+[package.metadata.release]
+no-dev-version = true

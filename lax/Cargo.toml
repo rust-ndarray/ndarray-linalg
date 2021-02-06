@@ -42,3 +42,6 @@ version = "0.10.2"
 optional = true
 default-features = false
 features = ["cblas"]
+
+[package.metadata.release]
+no-dev-version = true

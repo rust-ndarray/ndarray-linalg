@@ -3,7 +3,7 @@ ndarray-linalg
 [![Crate](http://meritbadge.herokuapp.com/ndarray-linalg)](https://crates.io/crates/ndarray-linalg)
 [![docs.rs](https://docs.rs/ndarray-linalg/badge.svg)](https://docs.rs/ndarray-linalg)
 
-Linear algebra package for Rust with [ndarray](https://github.com/bluss/ndarray) based on external LAPACK implementations.
+Linear algebra package for Rust with [ndarray](https://github.com/rust-ndarray/ndarray) based on external LAPACK implementations.
 
 Examples
 ---------
@@ -22,34 +22,40 @@ and run all tests of ndarray-linalg with OpenBLAS
 cargo test --features=openblas
 ```
 
-BLAS/LAPACK Backend
--------------------
+Backend Features
+-----------------
 
-Three BLAS/LAPACK implementations are supported:
+There are three LAPACK source crates:
 
-- [OpenBLAS](https://github.com/cmr/openblas-src)
-  - needs `gfortran` (or other Fortran compiler)
-- [Netlib](https://github.com/cmr/netlib-src)
-  - needs `cmake` and `gfortran`
-- [Intel MKL](https://github.com/termoshtt/rust-intel-mkl) (non-free license, see the linked page)
+- [openblas-src](https://github.com/blas-lapack-rs/openblas-src)
+- [netlib-src](https://github.com/blas-lapack-rs/netlib-src)
+- [intel-mkl-src](https://github.com/rust-math/rust-intel-mkl)
 
-There are three features corresponding to the backend implementations (`openblas` / `netlib` / `intel-mkl`):
+`ndarray_linalg` must link **just one** of them for LAPACK FFI.
 
 ```toml
 [dependencies]
-ndarray = "0.13"
-ndarray-linalg = { version = "0.12", features = ["openblas"] }
+ndarray = "0.14"
+ndarray-linalg = { version = "0.13", features = ["openblas-static"] }
 ```
 
-### Tested Environments
+Supported features are following:
 
-|Backend  | Linux | Windows | macOS |
-|:--------|:-----:|:-------:|:-----:|
-|OpenBLAS |✔️      |-        |-      |
-|Netlib   |✔️      |-        |-      |
-|Intel MKL|✔️      |✔️        |✔️      |
+| Feature          | Link type      | Requirements        | Description                                                                                    |
+|:-----------------|:---------------|:--------------------|:-----------------------------------------------------------------------------------------------|
+| openblas-static  | static         | gcc, gfortran, make | Build OpenBLAS in your project, and link it statically                                         |
+| openblas-system  | dynamic/static | -                   | Seek OpenBLAS in system, and link it                                                           |
+| netlib-static    | static         | gfortran, make      | Same as openblas-static except for using reference LAPACK                                      |
+| netlib-system    | dynamic/static | -                   | Same as openblas-system except for using reference LAPACK                                      |
+| intel-mkl-static | static         | (pkg-config)        | Seek static library of Intel MKL from system, or download if not found, and link it statically |
+| intel-mkl-system | dynamic        | (pkg-config)        | Seek shared library of Intel MKL from system, and link it dynamically                          |
 
-### For librarian
+- You must use **just one** feature of them.
+- `dynamic/static` means it depends on what is found in the system. When the system has `/usr/lib/libopenblas.so`, it will be linked dynamically, and `/usr/lib/libopenblas.a` will be linked statically. Dynamic linking is prior to static linking.
+- `pkg-config` is used for searching Intel MKL packages in system, and it is optional. See [intel-mkl-src/README.md](https://github.com/rust-math/intel-mkl-src/blob/master/README.md#how-to-find-system-mkl-libraries) for detail.
+
+### For library developer
+
 If you creating a library depending on this crate, we encourage you not to link any backend:
 
 ```toml
@@ -58,25 +64,21 @@ ndarray = "0.13"
 ndarray-linalg = "0.12"
 ```
 
-### Link backend crate manually
-For the sake of linking flexibility, you can provide LAPACKE implementation (as an `extern crate`) yourself.
-You should link a LAPACKE implementation to a final crate (like binary executable or dylib) only, not to a Rust library.
+The cargo's feature is additive. If your library (saying `lib1`) set a feature `openblas-static`,
+the application using `lib1` builds ndarray_linalg with `openblas-static` feature though they want to use `intel-mkl-static` backend.
 
-```toml
-[dependencies]
-ndarray = "0.13"
-ndarray-linalg = "0.12"
-openblas-src = "0.7" # or another backend of your choice
+See [the cargo reference](https://doc.rust-lang.org/cargo/reference/features.html) for detail
 
-```
+Tested Environments
+--------------------
 
-You must add `extern crate` to your code in this case:
+Only x86_64 system is supported currently.
 
-```rust
-extern crate ndarray;
-extern crate ndarray_linalg;
-extern crate openblas_src; // or another backend of your choice
-```
+|Backend  | Linux | Windows | macOS |
+|:--------|:-----:|:-------:|:-----:|
+|OpenBLAS |✔️      |-        |-      |
+|Netlib   |✔️      |-        |-      |
+|Intel MKL|✔️      |✔️        |✔️      |
 
 Generate document with KaTeX
 ------------------------------

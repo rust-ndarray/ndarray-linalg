@@ -8,6 +8,18 @@ Added
 - Split out `ndarray_linalg::lapack` as "lax" crate https://github.com/rust-ndarray/ndarray-linalg/pull/207
   - cargo-workspace https://github.com/rust-ndarray/ndarray-linalg/pull/209
 
+Updated dependencies
+---------------------
+- ndarray 0.14 https://github.com/rust-ndarray/ndarray-linalg/pull/258
+- cauchy 0.3.0 https://github.com/rust-ndarray/ndarray-linalg/pull/260
+  - num-complex 0.3.1
+  - rand 0.7.3
+
+### optional dependencies
+
+- openblas-src 0.10.2 https://github.com/rust-ndarray/ndarray-linalg/pull/253
+- intel-mkl-src 0.6.0 https://github.com/rust-ndarray/ndarray-linalg/pull/204
+
 Changed
 --------
 - Revise tests for least-square problem https://github.com/rust-ndarray/ndarray-linalg/pull/227

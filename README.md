@@ -103,3 +103,13 @@ rustdocflags = ["--html-in-header", "katex-header.html"]
 ```
 
 But, be sure that this works only for `--no-deps`. `cargo doc` will fail with this `.cargo/config`.
+
+License
+--------
+
+**CAUTION** Be sure that if you use `intel-mkl-src` backend, you have to accept [Intel Simplified Software License](https://software.intel.com/content/www/us/en/develop/articles/end-user-license-agreement.html)
+in addition to the MIT-License or Apache-2.0 License.
+
+Dual-licensed to be compatible with the Rust project.
+Licensed under the Apache License, Version 2.0 http://www.apache.org/licenses/LICENSE-2.0 or the MIT license http://opensource.org/licenses/MIT, at your option.
+

@@ -8,8 +8,8 @@ description   = "Linear algebra package for rust-ndarray using LAPACK"
 documentation = "https://docs.rs/ndarray-linalg/"
 repository    = "https://github.com/rust-ndarray/ndarray-linalg"
 keywords      = ["ndarray", "lapack", "matrix"]
-license       = "MIT"
-readme        = "README.md"
+license       = "MIT OR Apache-2.0"
+readme        = "../README.md"
 categories    = ["algorithms", "science"]
 
 [features]

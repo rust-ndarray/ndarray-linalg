@@ -3,22 +3,20 @@ Unreleased (will be 0.13.0)
 
 https://github.com/rust-ndarray/ndarray-linalg/milestone/5
 
-Added
-------
-- Split out `ndarray_linalg::lapack` as "lax" crate https://github.com/rust-ndarray/ndarray-linalg/pull/207
-  - cargo-workspace https://github.com/rust-ndarray/ndarray-linalg/pull/209
-
 Updated dependencies
 ---------------------
 - ndarray 0.14 https://github.com/rust-ndarray/ndarray-linalg/pull/258
-- cauchy 0.3.0 https://github.com/rust-ndarray/ndarray-linalg/pull/260
-  - num-complex 0.3.1
-  - rand 0.7.3
+- cauchy 0.3.0 (num-complex 0.3.1, rand 0.7.3), lapack 0.17.0 https://github.com/rust-ndarray/ndarray-linalg/pull/260
 
 ### optional dependencies
 
 - openblas-src 0.10.2 https://github.com/rust-ndarray/ndarray-linalg/pull/253
 - intel-mkl-src 0.6.0 https://github.com/rust-ndarray/ndarray-linalg/pull/204
+
+Added
+------
+- Split out `ndarray_linalg::lapack` as "lax" crate https://github.com/rust-ndarray/ndarray-linalg/pull/207
+  - cargo-workspace https://github.com/rust-ndarray/ndarray-linalg/pull/209
 
 Changed
 --------

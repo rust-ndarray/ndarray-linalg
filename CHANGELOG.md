@@ -1,5 +1,8 @@
-Unreleased (will be 0.13.0)
-==========================
+Unreleased
+-----------
+
+0.13.0 - 20 Feb 2021
+=====================
 
 https://github.com/rust-ndarray/ndarray-linalg/milestone/5
 

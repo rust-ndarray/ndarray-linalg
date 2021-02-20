@@ -23,28 +23,31 @@ Added
 
 Changed
 --------
+- Dual license, MIT or Apache-2.0 License https://github.com/rust-ndarray/ndarray-linalg/pull/262
 - Revise tests for least-square problem https://github.com/rust-ndarray/ndarray-linalg/pull/227
-- New features for static linking https://github.com/rust-ndarray/ndarray-linalg/pull/204
-  - intel-mkl-src 0.6.0+mkl2020.1
-- Drop LAPACKE dependence https://github.com/rust-ndarray/ndarray-linalg/pull/206
-  - Cholesky https://github.com/rust-ndarray/ndarray-linalg/pull/225
-  - Eigenvalue for general matrix https://github.com/rust-ndarray/ndarray-linalg/pull/212
-  - Eigenvalue for symmetric/Hermitian matrix https://github.com/rust-ndarray/ndarray-linalg/pull/217
-  - least squares problem https://github.com/rust-ndarray/ndarray-linalg/pull/220
-  - QR decomposition https://github.com/rust-ndarray/ndarray-linalg/pull/224
-  - LU decomposition https://github.com/rust-ndarray/ndarray-linalg/pull/213
-  - LDL decomposition https://github.com/rust-ndarray/ndarray-linalg/pull/216
-  - SVD https://github.com/rust-ndarray/ndarray-linalg/pull/218
-  - SVD divid-and-conquer https://github.com/rust-ndarray/ndarray-linalg/pull/219
-  - Tridiagonal https://github.com/rust-ndarray/ndarray-linalg/pull/235
-- Named struct for `MatrixLayout` https://github.com/rust-ndarray/ndarray-linalg/pull/211
+- Support static link to LAPACK backend https://github.com/rust-ndarray/ndarray-linalg/pull/204
+- Drop LAPACKE dependence, and rewrite them in Rust (see below) https://github.com/rust-ndarray/ndarray-linalg/pull/206
+- Named record like `C { row: i32, lda: i32 }` instead of enum for `MatrixLayout` https://github.com/rust-ndarray/ndarray-linalg/pull/211
 - Split LAPACK error into computational failure and invalid values https://github.com/rust-ndarray/ndarray-linalg/pull/210
 - Use thiserror crate https://github.com/rust-ndarray/ndarray-linalg/pull/208
-- Fix for clippy, and add CI check https://github.com/rust-ndarray/ndarray-linalg/pull/205
+
+### LAPACKE rewrite
+
+- Cholesky https://github.com/rust-ndarray/ndarray-linalg/pull/225
+- Eigenvalue for general matrix https://github.com/rust-ndarray/ndarray-linalg/pull/212
+- Eigenvalue for symmetric/Hermitian matrix https://github.com/rust-ndarray/ndarray-linalg/pull/217
+- least squares problem https://github.com/rust-ndarray/ndarray-linalg/pull/220
+- QR decomposition https://github.com/rust-ndarray/ndarray-linalg/pull/224
+- LU decomposition https://github.com/rust-ndarray/ndarray-linalg/pull/213
+- LDL decomposition https://github.com/rust-ndarray/ndarray-linalg/pull/216
+- SVD https://github.com/rust-ndarray/ndarray-linalg/pull/218
+- SVD divid-and-conquer https://github.com/rust-ndarray/ndarray-linalg/pull/219
+- Tridiagonal https://github.com/rust-ndarray/ndarray-linalg/pull/235
 
 Maintenance
 -----------
 - Coverage report using codecov https://github.com/rust-ndarray/ndarray-linalg/pull/215
+- Fix for clippy, and add CI check https://github.com/rust-ndarray/ndarray-linalg/pull/205
 
 0.12.1 - 28 June 2020
 ======================

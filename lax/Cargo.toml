@@ -4,6 +4,14 @@ version = "0.1.0"
 authors = ["Toshiki Teramura <toshiki.teramura@gmail.com>"]
 edition = "2018"
 
+description   = "LAPACK wrapper without ndarray"
+documentation = "https://docs.rs/lax/"
+repository    = "https://github.com/rust-ndarray/ndarray-linalg"
+keywords      = ["lapack", "matrix"]
+license       = "MIT OR Apache-2.0"
+readme        = "README.md"
+categories    = ["algorithms", "science"]
+
 [features]
 default = []
 
@@ -21,10 +29,10 @@ intel-mkl-static = ["intel-mkl-src/mkl-static-lp64-seq", "intel-mkl-src/download
 intel-mkl-system = ["intel-mkl-src/mkl-dynamic-lp64-seq"]
 
 [dependencies]
-thiserror = "1.0"
+thiserror = "1.0.23"
 cauchy = "0.3.0"
-num-traits = "0.2"
-lapack = { version = "0.17.0", git = "http://github.com/blas-lapack-rs/lapack" }
+num-traits = "0.2.14"
+lapack = "0.17.0"
 
 [dependencies.intel-mkl-src]
 version = "0.6.0"

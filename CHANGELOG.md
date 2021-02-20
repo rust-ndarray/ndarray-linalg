@@ -1,6 +1,10 @@
 Unreleased
 -----------
 
+Changed
+--------
+- Not require continious layout for trace https://github.com/rust-ndarray/ndarray-linalg/pull/263
+
 0.13.0 - 20 Feb 2021
 =====================
 

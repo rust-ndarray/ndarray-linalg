@@ -1,9 +1,16 @@
 Unreleased
 -----------
 
+0.13.1 - 13 March 2021
+=====================
+
 Changed
 --------
 - Not require continious layout for trace https://github.com/rust-ndarray/ndarray-linalg/pull/263
+
+Maintenance
+-----------
+- Fix doc.rs for KaTeX integration https://github.com/rust-ndarray/ndarray-linalg/issues/268
 
 0.13.0 - 20 Feb 2021
 =====================

@@ -588,6 +588,8 @@
 <span id="568">568</span>
 <span id="569">569</span>
 <span id="570">570</span>
+<span id="571">571</span>
+<span id="572">572</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! Solve systems of linear equations and invert matrices</span>
 <span class="doccomment">//!</span>
@@ -1059,7 +1061,8 @@
         <span class="self">self</span>.<span class="ident">ensure_square</span>()<span class="question-mark">?</span>;
         <span class="kw">match</span> <span class="self">self</span>.<span class="ident">factorize</span>() {
             <span class="prelude-val">Ok</span>(<span class="ident">fac</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">fac</span>.<span class="ident">sln_det</span>(),
-            <span class="prelude-val">Err</span>(<span class="ident">LinalgError</span>::<span class="ident">Lapack</span>(<span class="ident">e</span>)) <span class="kw">if</span> <span class="macro">matches</span><span class="macro">!</span>(<span class="ident">e</span>, <span class="ident">lax</span>::<span class="ident">error</span>::<span class="ident">Error</span>::<span class="ident">LapackComputationalFailure</span> {..}) <span class="op">=</span><span class="op">&gt;</span>
+            <span class="prelude-val">Err</span>(<span class="ident">LinalgError</span>::<span class="ident">Lapack</span>(<span class="ident">e</span>))
+                <span class="kw">if</span> <span class="macro">matches</span><span class="macro">!</span>(<span class="ident">e</span>, <span class="ident">lax</span>::<span class="ident">error</span>::<span class="ident">Error</span>::<span class="ident">LapackComputationalFailure</span> { .. }) <span class="op">=</span><span class="op">&gt;</span>
             {
                 <span class="comment">// The determinant is zero.</span>
                 <span class="prelude-val">Ok</span>((<span class="ident">A</span>::<span class="ident">zero</span>(), <span class="ident">A</span>::<span class="ident">Real</span>::<span class="ident">neg_infinity</span>()))
@@ -1078,7 +1081,8 @@
         <span class="self">self</span>.<span class="ident">ensure_square</span>()<span class="question-mark">?</span>;
         <span class="kw">match</span> <span class="self">self</span>.<span class="ident">factorize_into</span>() {
             <span class="prelude-val">Ok</span>(<span class="ident">fac</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">fac</span>.<span class="ident">sln_det_into</span>(),
-            <span class="prelude-val">Err</span>(<span class="ident">LinalgError</span>::<span class="ident">Lapack</span>(<span class="ident">e</span>)) <span class="kw">if</span> <span class="macro">matches</span><span class="macro">!</span>(<span class="ident">e</span>, <span class="ident">lax</span>::<span class="ident">error</span>::<span class="ident">Error</span>::<span class="ident">LapackComputationalFailure</span> { .. }) <span class="op">=</span><span class="op">&gt;</span>
+            <span class="prelude-val">Err</span>(<span class="ident">LinalgError</span>::<span class="ident">Lapack</span>(<span class="ident">e</span>))
+                <span class="kw">if</span> <span class="macro">matches</span><span class="macro">!</span>(<span class="ident">e</span>, <span class="ident">lax</span>::<span class="ident">error</span>::<span class="ident">Error</span>::<span class="ident">LapackComputationalFailure</span> { .. }) <span class="op">=</span><span class="op">&gt;</span>
             {
                 <span class="comment">// The determinant is zero.</span>
                 <span class="prelude-val">Ok</span>((<span class="ident">A</span>::<span class="ident">zero</span>(), <span class="ident">A</span>::<span class="ident">Real</span>::<span class="ident">neg_infinity</span>()))

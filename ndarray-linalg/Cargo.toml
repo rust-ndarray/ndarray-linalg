@@ -36,8 +36,8 @@ rand = "0.7.3"
 thiserror = "1.0.20"
 
 [dependencies.ndarray]
-version = "0.14"
-features = ["blas", "approx"]
+version = ">=0.14,<0.16"
+features = ["blas", "approx", "std"]
 default-features = false
 
 [dependencies.lax]

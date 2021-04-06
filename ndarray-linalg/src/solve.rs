@@ -16,7 +16,7 @@
 //! let a: Array2<f64> = array![[3., 2., -1.], [2., -2., 4.], [-2., 1., -2.]];
 //! let b: Array1<f64> = array![1., -2., 0.];
 //! let x = a.solve_into(b).unwrap();
-//! assert!(x.all_close(&array![1., -2., -2.], 1e-9));
+//! assert!(x.abs_diff_eq(&array![1., -2., -2.], 1e-9));
 //!
 //! # }
 //! ```

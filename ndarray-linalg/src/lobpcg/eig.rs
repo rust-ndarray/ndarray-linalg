@@ -75,7 +75,7 @@ impl<A: Float + Scalar + ScalarOperand + Lapack + PartialOrd + Default> Truncate
 
     /// Set the maximal number of iterations
     ///
-    /// The LOBPCG is an iterative approach to eigenproblems and stops when this maximum 
+    /// The LOBPCG is an iterative approach to eigenproblems and stops when this maximum
     /// number of iterations are reached.
     pub fn maxiter(mut self, maxiter: usize) -> Self {
         self.maxiter = maxiter;
@@ -184,7 +184,7 @@ impl<A: Float + Scalar + ScalarOperand + Lapack + PartialOrd + Default> IntoIter
 /// let teig = TruncatedEig::new(a, TruncatedOrder::Largest)
 ///     .precision(1e-5)
 ///     .maxiter(500);
-/// 
+///
 /// // solve eigenproblem until eigenvalues get smaller than 0.5
 /// let res = teig.into_iter()
 ///     .take_while(|x| x.0[0] > 0.5)

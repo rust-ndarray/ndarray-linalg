@@ -4,4 +4,4 @@ mod svd;
 
 pub use eig::{TruncatedEig, TruncatedEigIterator};
 pub use lobpcg::{lobpcg, LobpcgResult, Order as TruncatedOrder};
-pub use svd::{TruncatedSvd, MagnitudeCorrection};
+pub use svd::{MagnitudeCorrection, TruncatedSvd};

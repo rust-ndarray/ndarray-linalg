@@ -173,6 +173,11 @@ impl<A: Float + Scalar + ScalarOperand + Lapack + PartialOrd + Default> Truncate
     }
 }
 
+/// Magnitude Correction
+///
+/// The magnitude correction changes the cut-off point at which an eigenvector belongs to the
+/// null-space and its eigenvalue is therefore zero. The correction is multiplied by the floating
+/// point epsilon and therefore dependent on the floating type.
 pub trait MagnitudeCorrection {
     fn correction() -> Self;
 }
@@ -196,6 +201,8 @@ mod tests {
     use crate::{close_l2, generate};
 
     use ndarray::{arr1, arr2, Array2};
+    use rand_xoshiro::Xoshiro256Plus;
+    use approx::assert_abs_diff_eq;
 
     #[test]
     fn test_truncated_svd() {
@@ -227,4 +234,56 @@ mod tests {
 
         close_l2(&a, &reconstructed, 1e-5);
     }
+
+    /// Eigenvalue structure in high dimensions
+    /// 
+    /// This test checks that the eigenvalues are following the Marchensko-Pastur law. The data is
+    /// standard uniformly distributed (i.e. E(x) = 0, E^2(x) = 1) and we have twice the amount of
+    /// data when compared to features. The probability density of the eigenvalues should then follow
+    /// a special densitiy function, described by the Marchenko-Pastur law.
+    /// 
+    /// See also https://en.wikipedia.org/wiki/Marchenko%E2%80%93Pastur_distribution
+    #[test]
+    fn test_marchenko_pastur() {
+        // create random number generator
+        let mut rng = SmallRng::seed_from_u64(3);
+
+        // generate normal distribution random data with N >> p
+        let data = Array2::random_using((1000, 500), StandardNormal, &mut rng);
+        let dataset = Dataset::from(data / 1000f64.sqrt());
+
+        let model = Pca::params(500).fit(&dataset);
+        let sv = model.singular_values().mapv(|x| x * x); 
+
+        // we have created a random spectrum and can apply the Marchenko-Pastur law
+        // with variance 1 and p/n = 0.5
+        let (a, b) = ( 
+            1. * (1. - 0.5f64.sqrt()).powf(2.0),
+            1. * (1. + 0.5f64.sqrt()).powf(2.0),
+        );  
+
+        // check that the spectrum has correct boundaries
+        assert_abs_diff_eq!(b, sv[0], epsilon = 0.1);
+        assert_abs_diff_eq!(a, sv[sv.len() - 1], epsilon = 0.1);
+
+        // estimate density empirical and compare with Marchenko-Pastur law
+        let mut i = 0;
+        'outer: for th in Array1::linspace(0.1, 2.8, 28).into_iter().rev() {
+            let mut count = 0;
+            while sv[i] >= *th {
+                count += 1;
+                i += 1;
+
+                if i == sv.len() {
+                    break 'outer;
+                }   
+            }   
+
+            let x = th + 0.05;
+            let mp_law = ((b - x) * (x - a)).sqrt() / std::f64::consts::PI / x;
+            let empirical = count as f64 / 500. / ((2.8 - 0.1) / 28.);
+
+            assert_abs_diff_eq!(mp_law, empirical, epsilon = 0.05);
+        }   
+    } 
 }

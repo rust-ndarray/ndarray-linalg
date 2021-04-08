@@ -2,6 +2,6 @@ mod eig;
 mod lobpcg;
 mod svd;
 
-pub use eig::TruncatedEig;
+pub use eig::{TruncatedEig, TruncatedEigIterator};
 pub use lobpcg::{lobpcg, LobpcgResult, Order as TruncatedOrder};
-pub use svd::TruncatedSvd;
+pub use svd::{TruncatedSvd, MagnitudeCorrection};

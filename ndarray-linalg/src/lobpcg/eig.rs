@@ -20,14 +20,17 @@ use num_traits::{Float, NumCast};
 /// # Example
 ///
 /// ```rust
+/// use ndarray::{arr1, Array2};
+/// use ndarray_linalg::{TruncatedEig, TruncatedOrder};
+///
 /// let diag = arr1(&[1., 2., 3., 4., 5.]);
 /// let a = Array2::from_diag(&diag);
 ///
-/// let eig = TruncatedEig::new(a, Order::Largest)
+/// let eig = TruncatedEig::new(a, TruncatedOrder::Largest)
 ///    .precision(1e-5)
 ///    .maxiter(500);
 ///
-/// let res = eig.decompose();
+/// let res = eig.decompose(3);
 /// ```
 
 pub struct TruncatedEig<A: Scalar> {
@@ -109,14 +112,17 @@ impl<A: Float + Scalar + ScalarOperand + Lapack + PartialOrd + Default> Truncate
     /// # Example
     ///
     /// ```rust
+    /// use ndarray::{arr1, Array2};
+    /// use ndarray_linalg::{TruncatedEig, TruncatedOrder};
+    ///
     /// let diag = arr1(&[1., 2., 3., 4., 5.]);
     /// let a = Array2::from_diag(&diag);
     ///
-    /// let eig = TruncatedEig::new(a, Order::Largest)
+    /// let eig = TruncatedEig::new(a, TruncatedOrder::Largest)
     ///    .precision(1e-5)
     ///    .maxiter(500);
     ///
-    /// let res = eig.decompose();
+    /// let res = eig.decompose(3);
     /// ```
     pub fn decompose(&self, num: usize) -> LobpcgResult<A> {
         let x: Array2<f64> = generate::random((self.problem.len_of(Axis(0)), num));
@@ -169,15 +175,21 @@ impl<A: Float + Scalar + ScalarOperand + Lapack + PartialOrd + Default> IntoIter
 /// # Example
 ///
 /// ```rust
-/// let teig = TruncatedEig::new(a, Order::Largest)
+/// use ndarray::{arr1, Array2};
+/// use ndarray_linalg::{TruncatedEig, TruncatedOrder};
+///
+/// let diag = arr1(&[1., 2., 3., 4., 5.]);
+/// let a = Array2::from_diag(&diag);
+///
+/// let teig = TruncatedEig::new(a, TruncatedOrder::Largest)
 ///     .precision(1e-5)
 ///     .maxiter(500);
 /// 
 /// // solve eigenproblem until eigenvalues get smaller than 0.5
 /// let res = teig.into_iter()
 ///     .take_while(|x| x.0[0] > 0.5)
-///     .flat_map(|x| x.0)
-///     .collect();
+///     .flat_map(|x| x.0.to_vec())
+///     .collect::<Vec<_>>();
 /// ```
 pub struct TruncatedEigIterator<A: Scalar> {
     step_size: usize,

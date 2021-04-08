@@ -200,8 +200,11 @@ mod tests {
     use super::TruncatedSvd;
     use crate::{close_l2, generate};
 
-    use ndarray::{arr1, arr2, Array2};
+    use rand::SeedableRng;
     use rand_xoshiro::Xoshiro256Plus;
+    use ndarray::{arr1, arr2, Array1, Array2};
+    use ndarray_rand::{rand_distr::StandardNormal, RandomExt};
+
     use approx::assert_abs_diff_eq;
 
     #[test]
@@ -246,14 +249,16 @@ mod tests {
     #[test]
     fn test_marchenko_pastur() {
         // create random number generator
-        let mut rng = SmallRng::seed_from_u64(3);
+        let mut rng = Xoshiro256Plus::seed_from_u64(3);
 
         // generate normal distribution random data with N >> p
-        let data = Array2::random_using((1000, 500), StandardNormal, &mut rng);
-        let dataset = Dataset::from(data / 1000f64.sqrt());
+        let data = Array2::random_using((1000, 500), StandardNormal, &mut rng) / 1000f64.sqrt();
 
-        let model = Pca::params(500).fit(&dataset);
-        let sv = model.singular_values().mapv(|x| x * x); 
+        let res = TruncatedSvd::new(data, Order::Largest)
+            .decompose(500)
+            .unwrap();
+
+        let sv = res.values().mapv(|x: f64| x*x);
 
         // we have created a random spectrum and can apply the Marchenko-Pastur law
         // with variance 1 and p/n = 0.5

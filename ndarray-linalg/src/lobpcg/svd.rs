@@ -64,7 +64,7 @@ impl<A: Float + PartialOrd + DivAssign<A> + 'static + MagnitudeCorrection> Trunc
             let mut ularge = self.problem.dot(&vlarge);
 
             ularge
-                .gencolumns_mut()
+                .columns_mut()
                 .into_iter()
                 .zip(values.iter())
                 .for_each(|(mut a, b)| a.mapv_inplace(|x| x / *b));
@@ -75,7 +75,7 @@ impl<A: Float + PartialOrd + DivAssign<A> + 'static + MagnitudeCorrection> Trunc
 
             let mut vlarge = self.problem.t().dot(&ularge);
             vlarge
-                .gencolumns_mut()
+                .columns_mut()
                 .into_iter()
                 .zip(values.iter())
                 .for_each(|(mut a, b)| a.mapv_inplace(|x| x / *b));

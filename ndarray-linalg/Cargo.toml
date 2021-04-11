@@ -29,15 +29,15 @@ intel-mkl-static = ["lax/intel-mkl-static"]
 intel-mkl-system = ["lax/intel-mkl-system"]
 
 [dependencies]
-cauchy = "0.3.0"
-num-complex = "0.3.1"
-num-traits  = "0.2.11"
-rand = "0.7.3"
-thiserror = "1.0.20"
+cauchy = "0.4.0"
+num-complex = "0.4.0"
+num-traits  = "0.2.14"
+rand = "0.8.3"
+thiserror = "1.0.24"
 
 [dependencies.ndarray]
-version = "0.14"
-features = ["blas", "approx"]
+version = "0.15.1"
+features = ["blas", "approx", "std"]
 default-features = false
 
 [dependencies.lax]
@@ -46,10 +46,10 @@ path = "../lax"
 default-features = false
 
 [dev-dependencies]
-paste = "1.0"
-criterion = "0.3"
+paste = "1.0.5"
+criterion = "0.3.4"
 # Keep the same version as ndarray's dependency!
-approx = { version = "0.4", features = ["num-complex"] }
+approx = { version = "0.4.0", features = ["num-complex"] }
 
 [[bench]]
 name = "truncated_eig"

@@ -515,7 +515,7 @@
 <span class="doccomment">//!</span>
 <span class="doccomment">//! // Obtain `L`</span>
 <span class="doccomment">//! let lower = a.cholesky(UPLO::Lower).unwrap();</span>
-<span class="doccomment">//! assert!(lower.all_close(&amp;array![</span>
+<span class="doccomment">//! assert!(lower.abs_diff_eq(&amp;array![</span>
 <span class="doccomment">//!     [ 2., 0., 0.],</span>
 <span class="doccomment">//!     [ 6., 1., 0.],</span>
 <span class="doccomment">//!     [-8., 5., 3.]</span>
@@ -528,7 +528,7 @@
 <span class="doccomment">//! // Solve `A * x = b`</span>
 <span class="doccomment">//! let b = array![4., 13., -11.];</span>
 <span class="doccomment">//! let x = a.solvec(&amp;b).unwrap();</span>
-<span class="doccomment">//! assert!(x.all_close(&amp;array![-2., 1., 0.], 1e-9));</span>
+<span class="doccomment">//! assert!(x.abs_diff_eq(&amp;array![-2., 1., 0.], 1e-9));</span>
 <span class="doccomment">//! # }</span>
 <span class="doccomment">//! ```</span>
 
@@ -956,4 +956,5 @@
     }
 }
 </pre></div>
-</section><section id="search" class="content hidden"></section><section class="footer"></section><script>window.rootPath = "../../";window.currentCrate = "ndarray_linalg";</script><script src="../../main.js"></script><script src="../../source-script.js"></script><script src="../../source-files.js"></script><script defer src="../../search-index.js"></script></body></html>
+</section><section id="search" class="content hidden"></section><section class="footer"></section><div id="rustdoc-vars" data-root-path="../../" data-current-crate="ndarray_linalg"></div>
+    <script src="../../main.js"></script><script src="../../source-script.js"></script><script src="../../source-files.js"></script><script defer src="../../search-index.js"></script></body></html>

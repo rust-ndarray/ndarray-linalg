@@ -609,7 +609,7 @@
 <span class="doccomment">//! let a: Array2&lt;f64&gt; = array![[3., 2., -1.], [2., -2., 4.], [-2., 1., -2.]];</span>
 <span class="doccomment">//! let b: Array1&lt;f64&gt; = array![1., -2., 0.];</span>
 <span class="doccomment">//! let x = a.solve_into(b).unwrap();</span>
-<span class="doccomment">//! assert!(x.all_close(&amp;array![1., -2., -2.], 1e-9));</span>
+<span class="doccomment">//! assert!(x.abs_diff_eq(&amp;array![1., -2., -2.], 1e-9));</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! # }</span>
 <span class="doccomment">//! ```</span>
@@ -1164,4 +1164,5 @@
     }
 }
 </pre></div>
-</section><section id="search" class="content hidden"></section><section class="footer"></section><script>window.rootPath = "../../";window.currentCrate = "ndarray_linalg";</script><script src="../../main.js"></script><script src="../../source-script.js"></script><script src="../../source-files.js"></script><script defer src="../../search-index.js"></script></body></html>
+</section><section id="search" class="content hidden"></section><section class="footer"></section><div id="rustdoc-vars" data-root-path="../../" data-current-crate="ndarray_linalg"></div>
+    <script src="../../main.js"></script><script src="../../source-script.js"></script><script src="../../source-files.js"></script><script defer src="../../search-index.js"></script></body></html>

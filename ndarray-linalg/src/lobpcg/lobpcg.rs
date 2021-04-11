@@ -81,7 +81,7 @@ fn apply_constraints<A: Scalar + Lapack>(
     let gram_yv = y.t().dot(&v);
 
     let u = gram_yv
-        .gencolumns()
+        .columns()
         .into_iter()
         .map(|x| {
             let res = cholesky_yy.solvec(&x).unwrap();
@@ -222,7 +222,7 @@ pub fn lobpcg<
 
         // calculate L2 norm of error for every eigenvalue
         let residual_norms = r
-            .gencolumns()
+            .columns()
             .into_iter()
             .map(|x| x.norm())
             .collect::<Vec<A::Real>>();

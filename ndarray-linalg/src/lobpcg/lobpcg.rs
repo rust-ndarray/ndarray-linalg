@@ -1,7 +1,7 @@
 ///! Locally Optimal Block Preconditioned Conjugated
 ///!
 ///! This module implements the Locally Optimal Block Preconditioned Conjugated (LOBPCG) algorithm,
-///which can be used as a solver for large symmetric positive definite eigenproblems.
+///which can be used as a solver for large symmetric eigenproblems.
 use crate::error::{LinalgError, Result};
 use crate::{cholesky::*, close_l2, eigh::*, norm::*, triangular::*};
 use cauchy::Scalar;

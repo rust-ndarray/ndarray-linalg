@@ -24,7 +24,7 @@ pub struct TruncatedSvdResult<A> {
 }
 
 impl<A: Float + PartialOrd + DivAssign<A> + 'static + MagnitudeCorrection> TruncatedSvdResult<A> {
-    /// Returns singular values ordered by magnitude with indices.
+    /// Returns singular values ordered by magnitude with indices
     fn singular_values_with_indices(&self) -> (Array1<A>, Vec<usize>) {
         // numerate eigenvalues
         let mut a = self.eigvals.iter().enumerate().collect::<Vec<_>>();
@@ -90,7 +90,7 @@ impl<A: Float + PartialOrd + DivAssign<A> + 'static + MagnitudeCorrection> Trunc
 /// Truncated singular value decomposition
 ///
 /// Wraps the LOBPCG algorithm and provides convenient builder-pattern access to
-/// parameter like maximal iteration, precision and constraint matrix.
+/// parameter like maximal iteration, precision and contrain matrix. 
 pub struct TruncatedSvd<A: Scalar> {
     order: Order,
     problem: Array2<A>,
@@ -99,6 +99,11 @@ pub struct TruncatedSvd<A: Scalar> {
 }
 
 impl<A: Float + Scalar + ScalarOperand + Lapack + PartialOrd + Default> TruncatedSvd<A> {
+    /// Create a new truncated SVD problem
+    ///
+    /// # Parameters
+    ///  * `problem`: rectangular matrix which is decomposed
+    ///  * `order`: whether to return large or small (close to zero) singular values
     pub fn new(problem: Array2<A>, order: Order) -> TruncatedSvd<A> {
         TruncatedSvd {
             precision: 1e-5,
@@ -108,19 +113,48 @@ impl<A: Float + Scalar + ScalarOperand + Lapack + PartialOrd + Default> Truncate
         }
     }
 
+    /// Set the required precision of the solution
+    ///
+    /// The precision is, in the context of SVD, the square-root precision of the underlying
+    /// eigenproblem solution. The eigenproblem-precision is used to check the L2 error of each
+    /// eigenvector and stops its optimization when the required precision is reached.
     pub fn precision(mut self, precision: f32) -> Self {
         self.precision = precision;
 
         self
     }
 
+    /// Set the maximal number of iterations
+    ///
+    /// The LOBPCG is an iterative approach to eigenproblems and stops when this maximum
+    /// number of iterations are reached.
     pub fn maxiter(mut self, maxiter: usize) -> Self {
         self.maxiter = maxiter;
 
         self
     }
 
-    // calculate the eigenvalue decomposition
+    /// Calculate the singular value decomposition
+    ///
+    /// # Parameters
+    ///
+    ///  * `num`: number of singular-value/vector pairs, ordered by magnitude
+    ///
+    /// # Example
+    ///
+    /// ```rust
+    /// use ndarray::{arr1, Array2};
+    /// use ndarray_linalg::{TruncatedSvd, TruncatedOrder};
+    ///
+    /// let diag = arr1(&[1., 2., 3., 4., 5.]);
+    /// let a = Array2::from_diag(&diag);
+    ///
+    /// let eig = TruncatedSvd::new(a, TruncatedOrder::Largest)
+    ///    .precision(1e-5)
+    ///    .maxiter(500);
+    ///
+    /// let res = eig.decompose(3);
+    /// ```
     pub fn decompose(self, num: usize) -> Result<TruncatedSvdResult<A>> {
         if num < 1 {
             panic!("The number of singular values to compute should be larger than zero!");

@@ -140,7 +140,7 @@ macro_rules! cholesky_det {
                     .eigvalsh(UPLO::Upper)
                     .unwrap()
                     .mapv(|elem| elem.ln())
-                    .scalar_sum();
+                    .sum();
                 let det = ln_det.exp();
                 assert_aclose!(a.factorizec(UPLO::Upper).unwrap().detc(), det, $atol);
                 assert_aclose!(a.factorizec(UPLO::Upper).unwrap().ln_detc(), ln_det, $atol);

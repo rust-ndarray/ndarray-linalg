@@ -29,10 +29,10 @@ intel-mkl-static = ["intel-mkl-src/mkl-static-lp64-seq", "intel-mkl-src/download
 intel-mkl-system = ["intel-mkl-src/mkl-dynamic-lp64-seq"]
 
 [dependencies]
-thiserror = "1.0.23"
-cauchy = "0.3.0"
+thiserror = "1.0.24"
+cauchy = "0.4.0"
 num-traits = "0.2.14"
-lapack = "0.17.0"
+lapack = "0.18.0"
 
 [dependencies.intel-mkl-src]
 version = "0.6.0"
@@ -46,7 +46,7 @@ features = ["cblas"]
 default-features = false
 
 [dependencies.openblas-src]
-version = "0.10.2"
+version = "0.10.4"
 optional = true
 default-features = false
 features = ["cblas"]

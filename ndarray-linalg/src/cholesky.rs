@@ -26,7 +26,7 @@
 //!
 //! // Obtain `L`
 //! let lower = a.cholesky(UPLO::Lower).unwrap();
-//! assert!(lower.all_close(&array![
+//! assert!(lower.abs_diff_eq(&array![
 //!     [ 2., 0., 0.],
 //!     [ 6., 1., 0.],
 //!     [-8., 5., 3.]
@@ -39,7 +39,7 @@
 //! // Solve `A * x = b`
 //! let b = array![4., 13., -11.];
 //! let x = a.solvec(&b).unwrap();
-//! assert!(x.all_close(&array![-2., 1., 0.], 1e-9));
+//! assert!(x.abs_diff_eq(&array![-2., 1., 0.], 1e-9));
 //! # }
 //! ```
 

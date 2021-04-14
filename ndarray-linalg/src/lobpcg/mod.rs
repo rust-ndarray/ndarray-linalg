@@ -2,7 +2,7 @@
 //!
 //! Locally Optimal Block Preconditioned Conjugate Gradient (LOBPCG) is a matrix-free method for
 //! finding the large (or smallest) eigenvalues and the corresponding eigenvectors of a symmetric
-//! eigenvalue problem 
+//! eigenvalue problem
 //! ```
 //! A x = lambda x
 //! ```

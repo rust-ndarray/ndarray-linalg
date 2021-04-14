@@ -90,7 +90,7 @@ impl<A: Float + PartialOrd + DivAssign<A> + 'static + MagnitudeCorrection> Trunc
 /// Truncated singular value decomposition
 ///
 /// Wraps the LOBPCG algorithm and provides convenient builder-pattern access to
-/// parameter like maximal iteration, precision and contrain matrix. 
+/// parameter like maximal iteration, precision and contrain matrix.
 pub struct TruncatedSvd<A: Scalar> {
     order: Order,
     problem: Array2<A>,

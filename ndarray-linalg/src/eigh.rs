@@ -8,7 +8,6 @@ use crate::layout::*;
 use crate::operator::LinearOperator;
 use crate::types::*;
 use crate::UPLO;
-use std::iter::FromIterator;
 
 /// Eigenvalue decomposition of Hermite matrix reference
 pub trait Eigh {

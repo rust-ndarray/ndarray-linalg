@@ -34,7 +34,7 @@ jobs:
 
   linux-container:
     runs-on: ubuntu-18.04
-    container: rustmath/mkl-rust:1.43.0
+    container: ghcr.io/rust-math/intel-mkl-src/mkl-rust:1.49.0
     steps:
       - uses: actions/checkout@v1
       - uses: actions-rs/cargo@v1

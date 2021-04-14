@@ -23,7 +23,7 @@
 //! ];
 //! let b: Array1<f64> = array![11., -12., 1.];
 //! let x = a.solveh_into(b).unwrap();
-//! assert!(x.all_close(&array![1., 3., -2.], 1e-9));
+//! assert!(x.abs_diff_eq(&array![1., 3., -2.], 1e-9));
 //!
 //! # }
 //! ```

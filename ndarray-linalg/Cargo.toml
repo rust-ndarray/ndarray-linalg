@@ -50,8 +50,8 @@ paste = "1.0.5"
 criterion = "0.3.4"
 # Keep the same version as ndarray's dependency!
 approx = { version = "0.4", features = ["num-complex"] }
-rand_xoshiro = "0.4"
-ndarray-rand = "0.12"
+rand_xoshiro = "0.6"
+ndarray-rand = "0.14"
 
 [[bench]]
 name = "truncated_eig"

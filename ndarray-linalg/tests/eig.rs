@@ -19,6 +19,31 @@ where
     }
 }
 
+fn test_eigg<T: Scalar>(
+    a: Array2<T>,
+    b: Array2<T>,
+    eigs: Array1<T::Complex>,
+    vecs: Array2<T::Complex>,
+) where
+    T::Complex: Lapack,
+{
+    println!("a\n{:+.4}", &a);
+    println!("a\n{:+.4}", &b);
+    println!("eigs\n{:+.4}", &eigs);
+    println!("vec\n{:+.4}", &vecs);
+    let a: Array2<T::Complex> = a.map(|v| v.as_c());
+    let b: Array2<T::Complex> = b.map(|v| v.as_c());
+    for (&e, v) in eigs.iter().zip(vecs.axis_iter(Axis(1))) {
+        let av = a.dot(&v);
+        let bv = b.dot(&v);
+        let bve = bv.mapv(|val| val * e);
+        // let bev = be.mapv(|val| val * v);
+        println!("av = {:+.4}", &av);
+        println!("ev = {:+.4}", &bve);
+        assert_close_l2!(&av, &bve, T::real(1e-3));
+    }
+}
+
 // Test case for real Eigenvalue problem
 //
 //  -1.01   0.86  -4.60   3.31  -4.81
@@ -230,6 +255,14 @@ macro_rules! impl_test_real {
                 test_eig(a, e, vecs);
             }
 
+            #[test]
+            fn [<$real _eigg_t>]() {
+                let a = test_matrix_real_t::<$real>();
+                let b = test_matrix_real_t::<$real>();
+                let (e, vecs) = a.eigg(&b).unwrap();
+                test_eigg(a, b, e, vecs);
+            }
+
         } // paste::item!
     };
 }
@@ -280,6 +313,14 @@ macro_rules! impl_test_complex {
                 let a = test_matrix_complex_t::<$complex>();
                 let (e, vecs) = a.eig().unwrap();
                 test_eig(a, e, vecs);
+            }
+
+            #[test]
+            fn [<$complex _eigg_t>]() {
+                let a = test_matrix_complex_t::<$complex>();
+                let b = test_matrix_complex_t::<$complex>();
+                let (e, vecs) = a.eigg(&b).unwrap();
+                test_eigg(a, b, e, vecs);
             }
         } // paste::item!
     };

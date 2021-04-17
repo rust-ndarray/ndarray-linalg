@@ -35,6 +35,26 @@ pub trait Eig {
     /// }
     /// ```
     fn eig(&self) -> Result<(Self::EigVal, Self::EigVec)>;
+    /// Calculate generalised eigenvalues with the right eigenvector
+    ///
+    /// $$ A u_i = \lambda_i B u_i $$
+    ///
+    /// ```
+    /// use ndarray::*;
+    /// use ndarray_linalg::*;
+    ///
+    /// let a: Array2<f64> = array![
+    ///     [ 1.0/2.0.sqrt(), 0.0],
+    ///     [ 0.0,            1.0],
+    /// ];
+    /// let b: Array2<f64> = array![
+    ///     [ 0.0,            1.0],
+    ///     [-1.0/2.0.sqrt(), 0.0],
+    /// ];
+    /// let (eigs, vecs) = a.eigg(&b).unwrap();
+    ///
+    /// ```
+    fn eigg(&self, b: &Self) -> Result<(Self::EigVal, Self::EigVec)>;
 }
 
 impl<A, S> Eig for ArrayBase<S, Ix2>
@@ -50,6 +70,19 @@ where
         let layout = a.square_layout()?;
         let (s, t) = A::eig(true, layout, a.as_allocated_mut()?)?;
         let n = layout.len() as usize;
+        Ok((
+            ArrayBase::from(s),
+            Array2::from_shape_vec((n, n).f(), t).unwrap(),
+        ))
+    }
+
+    fn eigg(&self, b: &Self) -> Result<(Self::EigVal, Self::EigVec)> {
+        let mut a = self.to_owned();
+        let layout_a = a.square_layout()?;
+        let mut b = b.to_owned();
+        let _ = b.square_layout()?;
+        let (s, t) = A::eigg(true, layout_a, a.as_allocated_mut()?, b.as_allocated_mut()?)?;
+        let n = layout_a.len() as usize;
         Ok((
             ArrayBase::from(s),
             Array2::from_shape_vec((n, n).f(), t).unwrap(),

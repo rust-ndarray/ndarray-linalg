@@ -6,6 +6,10 @@ Updated dependencies
 - ndarray 0.15 https://github.com/rust-ndarray/ndarray-linalg/pull/273
 - cauchy 0.4 (num-complex 0.4, rand 0.8), lapack 0.18 https://github.com/rust-ndarray/ndarray-linalg/pull/276
 
+Changed
+--------
+- Relax type bounds for LeastSquaresSvd family https://github.com/rust-ndarray/ndarray-linalg/pull/272
+
 0.13.1 - 13 March 2021
 =====================
 

@@ -1,4 +1,15 @@
-//! Eigenvalue decomposition for Hermite matrices
+//! Eigendecomposition for Hermitian matrices.
+//!
+//! For a Hermitian matrix `A`, this solves the eigenvalue problem `A V = V D`
+//! for `D` and `V`, where `D` is the diagonal matrix of eigenvalues in
+//! ascending order and `V` is the orthonormal matrix of corresponding
+//! eigenvectors.
+//!
+//! For a pair of Hermitian matrices `A` and `B` where `B` is also positive
+//! definite, this solves the generalized eigenvalue problem `A V = B V D`,
+//! where `D` is the diagonal matrix of generalized eigenvalues in ascending
+//! order and `V` is the matrix of corresponding generalized eigenvectors. The
+//! matrix `V` is normalized such that `V^H B V = I`.
 
 use ndarray::*;
 

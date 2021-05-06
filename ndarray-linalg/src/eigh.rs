@@ -10,6 +10,28 @@
 //! where `D` is the diagonal matrix of generalized eigenvalues in ascending
 //! order and `V` is the matrix of corresponding generalized eigenvectors. The
 //! matrix `V` is normalized such that `V^H B V = I`.
+//!
+//! # Example
+//!
+//! Find the eigendecomposition of a Hermitian (or real symmetric) matrix.
+//!
+//! ```
+//! use approx::assert_abs_diff_eq;
+//! use ndarray::{array, Array2};
+//! use ndarray_linalg::{Eigh, UPLO};
+//!
+//! let a: Array2<f64> = array![
+//!     [2., 1.],
+//!     [1., 2.],
+//! ];
+//! let (eigvals, eigvecs) = a.eigh(UPLO::Lower)?;
+//! assert_abs_diff_eq!(eigvals, array![1., 3.]);
+//! assert_abs_diff_eq!(
+//!     a.dot(&eigvecs),
+//!     eigvecs.dot(&Array2::from_diag(&eigvals)),
+//! );
+//! # Ok::<(), Box<dyn std::error::Error>>(())
+//! ```
 
 use ndarray::*;
 

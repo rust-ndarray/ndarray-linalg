@@ -72,7 +72,7 @@ where
 
     fn eigvals(&self) -> Result<Self::EigVal> {
         let mut a = self.to_owned();
-        let (s, _) = A::eig(true, a.square_layout()?, a.as_allocated_mut()?)?;
+        let (s, _) = A::eig(false, a.square_layout()?, a.as_allocated_mut()?)?;
         Ok(ArrayBase::from(s))
     }
 }

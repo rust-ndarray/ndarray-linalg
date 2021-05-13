@@ -46,21 +46,6 @@ where
     }
 }
 
-fn uninitialized<A, S>(l: MatrixLayout) -> ArrayBase<S, Ix2>
-where
-    A: Copy,
-    S: DataOwned<Elem = A>,
-{
-    match l {
-        MatrixLayout::C { row, lda } => unsafe {
-            ArrayBase::uninitialized((row as usize, lda as usize))
-        },
-        MatrixLayout::F { col, lda } => unsafe {
-            ArrayBase::uninitialized((lda as usize, col as usize).f())
-        },
-    }
-}
-
 pub fn replicate<A, Sv, So, D>(a: &ArrayBase<Sv, D>) -> ArrayBase<So, D>
 where
     A: Copy,
@@ -68,9 +53,12 @@ where
     So: DataOwned<Elem = A> + DataMut,
     D: Dimension,
 {
-    let mut b = unsafe { ArrayBase::uninitialized(a.dim()) };
-    b.assign(a);
-    b
+    unsafe {
+        let ret = ArrayBase::<So, D>::build_uninit(a.dim(), |view| {
+            a.assign_to(view);
+        });
+        ret.assume_init()
+    }
 }
 
 fn clone_with_layout<A, Si, So>(l: MatrixLayout, a: &ArrayBase<Si, Ix2>) -> ArrayBase<So, Ix2>
@@ -79,9 +67,16 @@ where
     Si: Data<Elem = A>,
     So: DataOwned<Elem = A> + DataMut,
 {
-    let mut b = uninitialized(l);
-    b.assign(a);
-    b
+    let shape_builder = match l {
+        MatrixLayout::C { row, lda } => (row as usize, lda as usize).set_f(false),
+        MatrixLayout::F { col, lda } => (lda as usize, col as usize).set_f(true),
+    };
+    unsafe {
+        let ret = ArrayBase::<So, _>::build_uninit(shape_builder, |view| {
+            a.assign_to(view);
+        });
+        ret.assume_init()
+    }
 }
 
 pub fn transpose_data<A, S>(a: &mut ArrayBase<S, Ix2>) -> Result<&mut ArrayBase<S, Ix2>>

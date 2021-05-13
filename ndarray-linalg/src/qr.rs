@@ -135,9 +135,7 @@ where
     S2: DataMut<Elem = A> + DataOwned,
 {
     let av = a.slice(s![..n as isize, ..m as isize]);
-    let mut a = unsafe { ArrayBase::uninitialized((n, m)) };
-    a.assign(&av);
-    a
+    replicate(&av)
 }
 
 fn take_slice_upper<A, S1, S2>(a: &ArrayBase<S1, Ix2>, n: usize, m: usize) -> ArrayBase<S2, Ix2>
@@ -146,10 +144,12 @@ where
     S1: Data<Elem = A>,
     S2: DataMut<Elem = A> + DataOwned,
 {
-    let av = a.slice(s![..n as isize, ..m as isize]);
-    let mut a = unsafe { ArrayBase::uninitialized((n, m)) };
-    for ((i, j), val) in a.indexed_iter_mut() {
-        *val = if i <= j { av[(i, j)] } else { A::zero() };
-    }
+    let av = a.slice(s![..n, ..m]);
+    let mut a = replicate(&av);
+    Zip::indexed(&mut a).for_each(|(i, j), elt| {
+        if i > j {
+            *elt = A::zero()
+        }
+    });
     a
 }

@@ -111,7 +111,17 @@ where
 {
     type EigVal = Array1<A::Real>;
 
+    /// Solves the generalized eigenvalue problem.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the shapes of the matrices are different.
     fn eigh_inplace(&mut self, uplo: UPLO) -> Result<(Self::EigVal, &mut Self)> {
+        assert_eq!(
+            self.0.shape(),
+            self.1.shape(),
+            "The shapes of the matrices must be identical.",
+        );
         let layout = self.0.square_layout()?;
         // XXX Force layout to be Fortran (see #146)
         match layout {

@@ -1,6 +1,14 @@
 use ndarray::*;
 use ndarray_linalg::*;
 
+#[should_panic]
+#[test]
+fn solve_shape_mismatch() {
+    let a: Array2<f64> = random((3, 3));
+    let b: Array1<f64> = random(2);
+    let _ = a.solve_into(b);
+}
+
 #[test]
 fn solve_random() {
     let a: Array2<f64> = random((3, 3));
@@ -8,6 +16,14 @@ fn solve_random() {
     let b = a.dot(&x);
     let y = a.solve_into(b).unwrap();
     assert_close_l2!(&x, &y, 1e-7);
+}
+
+#[should_panic]
+#[test]
+fn solve_t_shape_mismatch() {
+    let a: Array2<f64> = random((3, 3).f());
+    let b: Array1<f64> = random(4);
+    let _ = a.solve_into(b);
 }
 
 #[test]
@@ -19,6 +35,15 @@ fn solve_random_t() {
     assert_close_l2!(&x, &y, 1e-7);
 }
 
+#[should_panic]
+#[test]
+fn solve_factorized_shape_mismatch() {
+    let a: Array2<f64> = random((3, 3));
+    let b: Array1<f64> = random(4);
+    let f = a.factorize_into().unwrap();
+    let _ = f.solve_into(b);
+}
+
 #[test]
 fn solve_factorized() {
     let a: Array2<f64> = random((3, 3));
@@ -27,6 +52,15 @@ fn solve_factorized() {
     let f = a.factorize_into().unwrap();
     let x = f.solve_into(b).unwrap();
     assert_close_l2!(&x, &ans, 1e-7);
+}
+
+#[should_panic]
+#[test]
+fn solve_factorized_t_shape_mismatch() {
+    let a: Array2<f64> = random((3, 3).f());
+    let b: Array1<f64> = random(4);
+    let f = a.factorize_into().unwrap();
+    let _ = f.solve_into(b);
 }
 
 #[test]

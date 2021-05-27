@@ -1,0 +1,1 @@
+window.ALL_CRATES = ["lax","ndarray_linalg"];

@@ -14,7 +14,7 @@ pub trait Eigh_: Scalar {
         a: &mut [Self],
     ) -> Result<Vec<Self::Real>>;
 
-    /// Wraps `*syegv` for real and `*heegv` for complex
+    /// Wraps `*sygv` for real and `*hegv` for complex
     fn eigh_generalized(
         calc_eigenvec: bool,
         layout: MatrixLayout,

@@ -150,9 +150,9 @@ pub trait Solve<A: Scalar> {
 pub struct LUFactorized<S: Data + RawDataClone> {
     /// The factors `L` and `U`; the unit diagonal elements of `L` are not
     /// stored.
-    pub a: ArrayBase<S, Ix2>,
+    a: ArrayBase<S, Ix2>,
     /// The pivot indices that define the permutation matrix `P`.
-    pub ipiv: Pivot,
+    ipiv: Pivot,
 }
 
 impl<A, S> Solve<A> for LUFactorized<S>

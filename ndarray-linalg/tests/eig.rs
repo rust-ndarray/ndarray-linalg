@@ -87,7 +87,10 @@ fn test_matrix_real<T: Scalar>() -> Array2<T::Real> {
 }
 
 fn test_matrix_real_t<T: Scalar>() -> Array2<T::Real> {
-    test_matrix_real::<T>().t().permuted_axes([1, 0]).to_owned()
+    let orig = test_matrix_real::<T>();
+    let mut out = Array2::zeros(orig.raw_dim().f());
+    out.assign(&orig);
+    out
 }
 
 fn answer_eig_real<T: Scalar>() -> Array1<T::Complex> {
@@ -154,10 +157,10 @@ fn test_matrix_complex<T: Scalar>() -> Array2<T::Complex> {
 }
 
 fn test_matrix_complex_t<T: Scalar>() -> Array2<T::Complex> {
-    test_matrix_complex::<T>()
-        .t()
-        .permuted_axes([1, 0])
-        .to_owned()
+    let orig = test_matrix_complex::<T>();
+    let mut out = Array2::zeros(orig.raw_dim().f());
+    out.assign(&orig);
+    out
 }
 
 fn answer_eig_complex<T: Scalar>() -> Array1<T::Complex> {

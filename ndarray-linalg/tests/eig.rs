@@ -1,6 +1,19 @@
 use ndarray::*;
 use ndarray_linalg::*;
 
+fn sorted_eigvals<T: Scalar>(eigvals: ArrayView1<'_, T>) -> Array1<T> {
+    let mut indices: Vec<usize> = (0..eigvals.len()).collect();
+    indices.sort_by(|&ind1, &ind2| {
+        let e1 = eigvals[ind1];
+        let e2 = eigvals[ind2];
+        e1.re()
+            .partial_cmp(&e2.re())
+            .unwrap()
+            .then(e1.im().partial_cmp(&e2.im()).unwrap())
+    });
+    indices.iter().map(|&ind| eigvals[ind]).collect()
+}
+
 // Test Av_i = e_i v_i for i = 0..n
 fn test_eig<T: Scalar>(a: Array2<T>, eigs: Array1<T::Complex>, vecs: Array2<T::Complex>)
 where
@@ -216,7 +229,11 @@ macro_rules! impl_test_real {
             fn [<$real _eigvals_t>]() {
                 let a = test_matrix_real_t::<$real>();
                 let (e, _vecs) = a.eig().unwrap();
-                assert_close_l2!(&e, &answer_eig_real::<$real>(), 1.0e-3);
+                assert_close_l2!(
+                    &sorted_eigvals(e.view()),
+                    &sorted_eigvals(answer_eig_real::<$real>().view()),
+                    1.0e-3
+                );
             }
 
             #[test]

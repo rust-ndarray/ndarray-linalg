@@ -54,28 +54,44 @@ where
     let min_dim = usize::min(n, m);
     assert!(rank <= min_dim);
 
-    for _ in 0..10 {
-        // handle full-rank case
-        let out = if rank == min_dim {
-            random(shape.clone())
+    let mut rng = thread_rng();
 
-        // handle partial-rank case
-        } else {
-            // multiplying two full-rank arrays with dimensions `m × r` and `r × n` will
-            // produce `an m × n` array with rank `r`
-            //   https://en.wikipedia.org/wiki/Rank_(linear_algebra)#Properties
-            let mut out = Array2::zeros(shape.clone());
-            let left: Array2<A> = random([out.nrows(), rank]);
-            let right: Array2<A> = random([rank, out.ncols()]);
-            general_mat_mul(A::one(), &left, &right, A::zero(), &mut out);
-            out
-        };
-
-        // check rank
-        if let Ok(out_rank) = out.rank() {
-            if out_rank == rank {
-                return out;
+    // handle full-rank case
+    if rank == min_dim {
+        let mut out = random(shape);
+        for _ in 0..10 {
+            // check rank
+            if let Ok(out_rank) = out.rank() {
+                if out_rank == rank {
+                    return out;
+                }
             }
+
+            out.mapv_inplace(|_| A::rand(&mut rng));
+        }
+
+    // handle partial-rank case
+    //
+    // multiplying two full-rank arrays with dimensions `m × r` and `r × n` will
+    // produce `an m × n` array with rank `r`
+    //   https://en.wikipedia.org/wiki/Rank_(linear_algebra)#Properties
+    } else {
+        let mut out = Array2::zeros(shape);
+        let mut left: Array2<A> = random([out.nrows(), rank]);
+        let mut right: Array2<A> = random([rank, out.ncols()]);
+
+        for _ in 0..10 {
+            general_mat_mul(A::one(), &left, &right, A::zero(), &mut out);
+
+            // check rank
+            if let Ok(out_rank) = out.rank() {
+                if out_rank == rank {
+                    return out;
+                }
+            }
+
+            left.mapv_inplace(|_| A::rand(&mut rng));
+            right.mapv_inplace(|_| A::rand(&mut rng));
         }
     }
 

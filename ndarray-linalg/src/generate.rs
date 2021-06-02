@@ -1,12 +1,15 @@
 //! Generator functions for matrices
 
+use ndarray::linalg::general_mat_mul;
 use ndarray::*;
 use rand::prelude::*;
 
 use super::convert::*;
 use super::error::*;
 use super::qr::*;
+use super::rank::Rank;
 use super::types::*;
+use super::Scalar;
 
 /// Hermite conjugate matrix
 pub fn conjugate<A, Si, So>(a: &ArrayBase<Si, Ix2>) -> ArrayBase<So, Ix2>
@@ -32,6 +35,53 @@ where
 {
     let mut rng = thread_rng();
     ArrayBase::from_shape_fn(sh, |_| A::rand(&mut rng))
+}
+
+/// Generate random array with a given rank
+///
+/// The rank must be less then or equal to the smallest dimension of array
+pub fn random_with_rank<A, Sh>(shape: Sh, rank: usize) -> Array2<A>
+where
+    A: Scalar + Lapack,
+    Sh: ShapeBuilder<Dim = Ix2> + Clone,
+{
+    // handle zero-rank case
+    if rank == 0 {
+        return Array2::zeros(shape);
+    }
+
+    let (n, m) = shape.clone().into_shape().raw_dim().into_pattern();
+    let min_dim = usize::min(n, m);
+    assert!(rank <= min_dim);
+
+    for _ in 0..10 {
+        // handle full-rank case
+        let out = if rank == min_dim {
+            random(shape.clone())
+
+        // handle partial-rank case
+        } else {
+            // multiplying two full-rank arrays with dimensions `m × r` and `r × n` will
+            // produce `an m × n` array with rank `r`
+            //   https://en.wikipedia.org/wiki/Rank_(linear_algebra)#Properties
+            let mut out = Array2::zeros(shape.clone());
+            let left: Array2<A> = random([out.nrows(), rank]);
+            let right: Array2<A> = random([rank, out.ncols()]);
+            general_mat_mul(A::one(), &left, &right, A::zero(), &mut out);
+            out
+        };
+
+        // check rank
+        if let Ok(out_rank) = out.rank() {
+            if out_rank == rank {
+                return out;
+            }
+        }
+    }
+
+    unreachable!(
+        "Failed to generate random matrix of desired rank within 10 tries. This is very unlikely."
+    );
 }
 
 /// Generate random unitary matrix using QR decomposition

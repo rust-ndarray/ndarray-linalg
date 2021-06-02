@@ -1,90 +1,40 @@
 use ndarray::arr2;
 use ndarray::*;
-use ndarray_linalg::rank::Rank;
 use ndarray_linalg::*;
-use rand::{seq::SliceRandom, thread_rng};
+use rand::{thread_rng, Rng};
 
-/// creates a zero matrix which always has rank zero
-pub fn zero_rank<A, S, Sh, D>(sh: Sh) -> ArrayBase<S, D>
+/// create a zero rank array
+pub fn zero_rank<A, Sh>(sh: Sh) -> Array2<A>
 where
-    A: Scalar,
-    S: DataOwned<Elem = A>,
-    D: Dimension,
-    Sh: ShapeBuilder<Dim = D>,
+    A: Scalar + Lapack,
+    Sh: ShapeBuilder<Dim = Ix2> + Clone,
 {
-    ArrayBase::zeros(sh)
+    random_with_rank(sh, 0)
 }
 
-/// creates a random matrix and repeatedly creates a linear dependency between rows until the
-/// rank drops.
+/// create a random matrix with a random partial rank.
 pub fn partial_rank<A, Sh>(sh: Sh) -> Array2<A>
 where
     A: Scalar + Lapack,
-    Sh: ShapeBuilder<Dim = Ix2>,
+    Sh: ShapeBuilder<Dim = Ix2> + Clone,
 {
     let mut rng = thread_rng();
-    let mut result: Array2<A> = random(sh);
-    println!("before: {:?}", result);
-
-    let (n, m) = result.dim();
-    println!("(n, m) => ({:?},{:?})", n, m);
-
-    // create randomized row iterator
+    let (m, n) = sh.clone().into_shape().raw_dim().into_pattern();
     let min_dim = n.min(m);
-    let mut row_indexes = (0..min_dim).into_iter().collect::<Vec<usize>>();
-    row_indexes.as_mut_slice().shuffle(&mut rng);
-    let mut row_index_iter = row_indexes.iter().cycle();
-
-    for count in 1..=10 {
-        println!("count: {}", count);
-        let (&x, &y) = (
-            row_index_iter.next().unwrap(),
-            row_index_iter.next().unwrap(),
-        );
-        let (from_row_index, to_row_index) = if x < y { (x, y) } else { (y, x) };
-        println!("(r_f, r_t) => ({:?},{:?})", from_row_index, to_row_index);
-
-        let mut it = result.outer_iter_mut();
-        let from_row = it.nth(from_row_index).unwrap();
-        let mut to_row = it.nth(to_row_index - (from_row_index + 1)).unwrap();
-
-        // set the to_row with the value of the from_row multiplied by rand_multiple
-        let rand_multiple = A::rand(&mut rng);
-        println!("rand_multiple: {:?}", rand_multiple);
-        Zip::from(&mut to_row)
-            .and(&from_row)
-            .for_each(|r1, r2| *r1 = *r2 * rand_multiple);
-
-        if let Ok(rank) = result.rank() {
-            println!("result: {:?}", result);
-            println!("rank: {:?}", rank);
-            if rank > 0 && rank < min_dim {
-                return result;
-            }
-        }
-    }
-    unreachable!("unable to generate random partial rank matrix after making 10 mutations")
+    let rank = rng.gen_range(1..min_dim);
+    println!("desired rank = {}", rank);
+    random_with_rank(sh, rank)
 }
 
-/// creates a random matrix and insures it is full rank.
+/// create a random matrix and ensures it is full rank.
 pub fn full_rank<A, Sh>(sh: Sh) -> Array2<A>
 where
     A: Scalar + Lapack,
     Sh: ShapeBuilder<Dim = Ix2> + Clone,
 {
-    for _ in 0..10 {
-        let r: Array2<A> = random(sh.clone());
-        let (n, m) = r.dim();
-        let n = n.min(m);
-        if let Ok(rank) = r.rank() {
-            println!("result: {:?}", r);
-            println!("rank: {:?}", rank);
-            if rank == n {
-                return r;
-            }
-        }
-    }
-    unreachable!("unable to generate random full rank matrix in 10 tries")
+    let (m, n) = sh.clone().into_shape().raw_dim().into_pattern();
+    let min_dim = n.min(m);
+    random_with_rank(sh, min_dim)
 }
 
 fn test<T: Scalar + Lapack>(a: &Array2<T>, tolerance: T::Real) {

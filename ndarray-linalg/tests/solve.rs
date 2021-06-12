@@ -125,6 +125,14 @@ fn solve_random_complex() {
     }
 }
 
+#[should_panic]
+#[test]
+fn solve_shape_mismatch() {
+    let a: Array2<f64> = random((3, 3));
+    let b: Array1<f64> = random(2);
+    let _ = a.solve_into(b);
+}
+
 #[test]
 fn solve_t_random_float() {
     for n in 0..=8 {
@@ -138,6 +146,14 @@ fn solve_t_random_float() {
             );
         }
     }
+}
+
+#[should_panic]
+#[test]
+fn solve_t_shape_mismatch() {
+    let a: Array2<f64> = random((3, 3).f());
+    let b: Array1<f64> = random(4);
+    let _ = a.solve_into(b);
 }
 
 #[test]
@@ -155,6 +171,15 @@ fn solve_t_random_complex() {
     }
 }
 
+#[should_panic]
+#[test]
+fn solve_factorized_shape_mismatch() {
+    let a: Array2<f64> = random((3, 3));
+    let b: Array1<f64> = random(4);
+    let f = a.factorize_into().unwrap();
+    let _ = f.solve_into(b);
+}
+
 #[test]
 fn solve_h_random_float() {
     for n in 0..=8 {
@@ -168,6 +193,15 @@ fn solve_h_random_float() {
             );
         }
     }
+}
+
+#[should_panic]
+#[test]
+fn solve_factorized_t_shape_mismatch() {
+    let a: Array2<f64> = random((3, 3).f());
+    let b: Array1<f64> = random(4);
+    let f = a.factorize_into().unwrap();
+    let _ = f.solve_into(b);
 }
 
 #[test]

@@ -1,6 +1,14 @@
 use ndarray::*;
 use ndarray_linalg::*;
 
+#[should_panic]
+#[test]
+fn eigh_generalized_shape_mismatch() {
+    let a = Array2::<f64>::eye(3);
+    let b = Array2::<f64>::eye(2);
+    let _ = (a, b).eigh_inplace(UPLO::Upper);
+}
+
 #[test]
 fn fixed() {
     let a = arr2(&[[3.0, 1.0, 1.0], [1.0, 3.0, 1.0], [1.0, 1.0, 3.0]]);

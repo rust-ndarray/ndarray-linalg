@@ -69,14 +69,25 @@ pub trait SolveH<A: Scalar> {
     /// Solves a system of linear equations `A * x = b` with Hermitian (or real
     /// symmetric) matrix `A`, where `A` is `self`, `b` is the argument, and
     /// `x` is the successful result.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the length of `b` is not the equal to the number of columns
+    /// of `A`.
     fn solveh<S: Data<Elem = A>>(&self, b: &ArrayBase<S, Ix1>) -> Result<Array1<A>> {
         let mut b = replicate(b);
         self.solveh_inplace(&mut b)?;
         Ok(b)
     }
+
     /// Solves a system of linear equations `A * x = b` with Hermitian (or real
     /// symmetric) matrix `A`, where `A` is `self`, `b` is the argument, and
     /// `x` is the successful result.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the length of `b` is not the equal to the number of columns
+    /// of `A`.
     fn solveh_into<S: DataMut<Elem = A>>(
         &self,
         mut b: ArrayBase<S, Ix1>,
@@ -84,10 +95,16 @@ pub trait SolveH<A: Scalar> {
         self.solveh_inplace(&mut b)?;
         Ok(b)
     }
+
     /// Solves a system of linear equations `A * x = b` with Hermitian (or real
     /// symmetric) matrix `A`, where `A` is `self`, `b` is the argument, and
     /// `x` is the successful result. The value of `x` is also assigned to the
     /// argument.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the length of `b` is not the equal to the number of columns
+    /// of `A`.
     fn solveh_inplace<'a, S: DataMut<Elem = A>>(
         &self,
         b: &'a mut ArrayBase<S, Ix1>,
@@ -113,6 +130,11 @@ where
     where
         Sb: DataMut<Elem = A>,
     {
+        assert_eq!(
+            rhs.len(),
+            self.a.len_of(Axis(1)),
+            "The length of `rhs` must be compatible with the shape of the factored matrix.",
+        );
         A::solveh(
             self.a.square_layout()?,
             UPLO::Upper,

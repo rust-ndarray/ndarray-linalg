@@ -77,13 +77,24 @@ pub use lax::{Pivot, Transpose};
 pub trait Solve<A: Scalar> {
     /// Solves a system of linear equations `A * x = b` where `A` is `self`, `b`
     /// is the argument, and `x` is the successful result.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the length of `b` is not the equal to the number of columns
+    /// of `A`.
     fn solve<S: Data<Elem = A>>(&self, b: &ArrayBase<S, Ix1>) -> Result<Array1<A>> {
         let mut b = replicate(b);
         self.solve_inplace(&mut b)?;
         Ok(b)
     }
+
     /// Solves a system of linear equations `A * x = b` where `A` is `self`, `b`
     /// is the argument, and `x` is the successful result.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the length of `b` is not the equal to the number of columns
+    /// of `A`.
     fn solve_into<S: DataMut<Elem = A>>(
         &self,
         mut b: ArrayBase<S, Ix1>,
@@ -91,8 +102,14 @@ pub trait Solve<A: Scalar> {
         self.solve_inplace(&mut b)?;
         Ok(b)
     }
+
     /// Solves a system of linear equations `A * x = b` where `A` is `self`, `b`
     /// is the argument, and `x` is the successful result.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the length of `b` is not the equal to the number of columns
+    /// of `A`.
     fn solve_inplace<'a, S: DataMut<Elem = A>>(
         &self,
         b: &'a mut ArrayBase<S, Ix1>,
@@ -100,13 +117,24 @@ pub trait Solve<A: Scalar> {
 
     /// Solves a system of linear equations `A^T * x = b` where `A` is `self`, `b`
     /// is the argument, and `x` is the successful result.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the length of `b` is not the equal to the number of rows of
+    /// `A`.
     fn solve_t<S: Data<Elem = A>>(&self, b: &ArrayBase<S, Ix1>) -> Result<Array1<A>> {
         let mut b = replicate(b);
         self.solve_t_inplace(&mut b)?;
         Ok(b)
     }
+
     /// Solves a system of linear equations `A^T * x = b` where `A` is `self`, `b`
     /// is the argument, and `x` is the successful result.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the length of `b` is not the equal to the number of rows of
+    /// `A`.
     fn solve_t_into<S: DataMut<Elem = A>>(
         &self,
         mut b: ArrayBase<S, Ix1>,
@@ -114,8 +142,14 @@ pub trait Solve<A: Scalar> {
         self.solve_t_inplace(&mut b)?;
         Ok(b)
     }
+
     /// Solves a system of linear equations `A^T * x = b` where `A` is `self`, `b`
     /// is the argument, and `x` is the successful result.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the length of `b` is not the equal to the number of rows of
+    /// `A`.
     fn solve_t_inplace<'a, S: DataMut<Elem = A>>(
         &self,
         b: &'a mut ArrayBase<S, Ix1>,
@@ -123,6 +157,11 @@ pub trait Solve<A: Scalar> {
 
     /// Solves a system of linear equations `A^H * x = b` where `A` is `self`, `b`
     /// is the argument, and `x` is the successful result.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the length of `b` is not the equal to the number of rows of
+    /// `A`.
     fn solve_h<S: Data<Elem = A>>(&self, b: &ArrayBase<S, Ix1>) -> Result<Array1<A>> {
         let mut b = replicate(b);
         self.solve_h_inplace(&mut b)?;
@@ -130,6 +169,11 @@ pub trait Solve<A: Scalar> {
     }
     /// Solves a system of linear equations `A^H * x = b` where `A` is `self`, `b`
     /// is the argument, and `x` is the successful result.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the length of `b` is not the equal to the number of rows of
+    /// `A`.
     fn solve_h_into<S: DataMut<Elem = A>>(
         &self,
         mut b: ArrayBase<S, Ix1>,
@@ -139,6 +183,11 @@ pub trait Solve<A: Scalar> {
     }
     /// Solves a system of linear equations `A^H * x = b` where `A` is `self`, `b`
     /// is the argument, and `x` is the successful result.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the length of `b` is not the equal to the number of rows of
+    /// `A`.
     fn solve_h_inplace<'a, S: DataMut<Elem = A>>(
         &self,
         b: &'a mut ArrayBase<S, Ix1>,
@@ -167,6 +216,11 @@ where
     where
         Sb: DataMut<Elem = A>,
     {
+        assert_eq!(
+            rhs.len(),
+            self.a.len_of(Axis(1)),
+            "The length of `rhs` must be compatible with the shape of the factored matrix.",
+        );
         A::solve(
             self.a.square_layout()?,
             Transpose::No,
@@ -183,6 +237,11 @@ where
     where
         Sb: DataMut<Elem = A>,
     {
+        assert_eq!(
+            rhs.len(),
+            self.a.len_of(Axis(0)),
+            "The length of `rhs` must be compatible with the shape of the factored matrix.",
+        );
         A::solve(
             self.a.square_layout()?,
             Transpose::Transpose,
@@ -199,6 +258,11 @@ where
     where
         Sb: DataMut<Elem = A>,
     {
+        assert_eq!(
+            rhs.len(),
+            self.a.len_of(Axis(0)),
+            "The length of `rhs` must be compatible with the shape of the factored matrix.",
+        );
         A::solve(
             self.a.square_layout()?,
             Transpose::Hermite,

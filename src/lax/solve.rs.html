@@ -118,6 +118,37 @@
 <span id="98"> 98</span>
 <span id="99"> 99</span>
 <span id="100">100</span>
+<span id="101">101</span>
+<span id="102">102</span>
+<span id="103">103</span>
+<span id="104">104</span>
+<span id="105">105</span>
+<span id="106">106</span>
+<span id="107">107</span>
+<span id="108">108</span>
+<span id="109">109</span>
+<span id="110">110</span>
+<span id="111">111</span>
+<span id="112">112</span>
+<span id="113">113</span>
+<span id="114">114</span>
+<span id="115">115</span>
+<span id="116">116</span>
+<span id="117">117</span>
+<span id="118">118</span>
+<span id="119">119</span>
+<span id="120">120</span>
+<span id="121">121</span>
+<span id="122">122</span>
+<span id="123">123</span>
+<span id="124">124</span>
+<span id="125">125</span>
+<span id="126">126</span>
+<span id="127">127</span>
+<span id="128">128</span>
+<span id="129">129</span>
+<span id="130">130</span>
+<span id="131">131</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! Solve linear problem using LU decomposition</span>
 
@@ -196,18 +227,49 @@
                 <span class="ident">ipiv</span>: <span class="kw-2">&amp;</span><span class="ident">Pivot</span>,
                 <span class="ident">b</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="self">Self</span>],
             ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-                <span class="kw">let</span> <span class="ident">t</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">l</span> {
+                <span class="comment">// If the array has C layout, then it needs to be handled</span>
+                <span class="comment">// specially, since LAPACK expects a Fortran-layout array.</span>
+                <span class="comment">// Reinterpreting a C layout array as Fortran layout is</span>
+                <span class="comment">// equivalent to transposing it. So, we can handle the &quot;no</span>
+                <span class="comment">// transpose&quot; and &quot;transpose&quot; cases by swapping to &quot;transpose&quot;</span>
+                <span class="comment">// or &quot;no transpose&quot;, respectively. For the &quot;Hermite&quot; case, we</span>
+                <span class="comment">// can take advantage of the following:</span>
+                <span class="comment">//</span>
+                <span class="comment">// ```text</span>
+                <span class="comment">// A^H x = b</span>
+                <span class="comment">// ⟺ conj(A^T) x = b</span>
+                <span class="comment">// ⟺ conj(conj(A^T) x) = conj(b)</span>
+                <span class="comment">// ⟺ conj(conj(A^T)) conj(x) = conj(b)</span>
+                <span class="comment">// ⟺ A^T conj(x) = conj(b)</span>
+                <span class="comment">// ```</span>
+                <span class="comment">//</span>
+                <span class="comment">// So, we can handle this case by switching to &quot;no transpose&quot;</span>
+                <span class="comment">// (which is equivalent to transposing the array since it will</span>
+                <span class="comment">// be reinterpreted as Fortran layout) and applying the</span>
+                <span class="comment">// elementwise conjugate to `x` and `b`.</span>
+                <span class="kw">let</span> (<span class="ident">t</span>, <span class="ident">conj</span>) <span class="op">=</span> <span class="kw">match</span> <span class="ident">l</span> {
                     <span class="ident">MatrixLayout</span>::<span class="ident">C</span> { .. } <span class="op">=</span><span class="op">&gt;</span> <span class="kw">match</span> <span class="ident">t</span> {
-                        <span class="ident">Transpose</span>::<span class="ident">No</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Transpose</span>::<span class="ident">Transpose</span>,
-                        <span class="ident">Transpose</span>::<span class="ident">Transpose</span> <span class="op">|</span> <span class="ident">Transpose</span>::<span class="ident">Hermite</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Transpose</span>::<span class="ident">No</span>,
+                        <span class="ident">Transpose</span>::<span class="ident">No</span> <span class="op">=</span><span class="op">&gt;</span> (<span class="ident">Transpose</span>::<span class="ident">Transpose</span>, <span class="bool-val">false</span>),
+                        <span class="ident">Transpose</span>::<span class="ident">Transpose</span> <span class="op">=</span><span class="op">&gt;</span> (<span class="ident">Transpose</span>::<span class="ident">No</span>, <span class="bool-val">false</span>),
+                        <span class="ident">Transpose</span>::<span class="ident">Hermite</span> <span class="op">=</span><span class="op">&gt;</span> (<span class="ident">Transpose</span>::<span class="ident">No</span>, <span class="bool-val">true</span>),
                     },
-                    <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">t</span>,
+                    <span class="ident">MatrixLayout</span>::<span class="ident">F</span> { .. } <span class="op">=</span><span class="op">&gt;</span> (<span class="ident">t</span>, <span class="bool-val">false</span>),
                 };
                 <span class="kw">let</span> (<span class="ident">n</span>, <span class="kw">_</span>) <span class="op">=</span> <span class="ident">l</span>.<span class="ident">size</span>();
                 <span class="kw">let</span> <span class="ident">nrhs</span> <span class="op">=</span> <span class="number">1</span>;
                 <span class="kw">let</span> <span class="ident">ldb</span> <span class="op">=</span> <span class="ident">l</span>.<span class="ident">lda</span>();
                 <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">info</span> <span class="op">=</span> <span class="number">0</span>;
+                <span class="kw">if</span> <span class="ident">conj</span> {
+                    <span class="kw">for</span> <span class="ident">b_elem</span> <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="kw-2">*</span><span class="ident">b</span> {
+                        <span class="kw-2">*</span><span class="ident">b_elem</span> <span class="op">=</span> <span class="ident">b_elem</span>.<span class="ident">conj</span>();
+                    }
+                }
                 <span class="kw">unsafe</span> { <span class="macro-nonterminal">$</span><span class="macro-nonterminal">getrs</span>(<span class="ident">t</span> <span class="kw">as</span> <span class="ident">u8</span>, <span class="ident">n</span>, <span class="ident">nrhs</span>, <span class="ident">a</span>, <span class="ident">l</span>.<span class="ident">lda</span>(), <span class="ident">ipiv</span>, <span class="ident">b</span>, <span class="ident">ldb</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">info</span>) };
+                <span class="kw">if</span> <span class="ident">conj</span> {
+                    <span class="kw">for</span> <span class="ident">b_elem</span> <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="kw-2">*</span><span class="ident">b</span> {
+                        <span class="kw-2">*</span><span class="ident">b_elem</span> <span class="op">=</span> <span class="ident">b_elem</span>.<span class="ident">conj</span>();
+                    }
+                }
                 <span class="ident">info</span>.<span class="ident">as_lapack_result</span>()<span class="question-mark">?</span>;
                 <span class="prelude-val">Ok</span>(())
             }

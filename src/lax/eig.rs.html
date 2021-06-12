@@ -276,6 +276,22 @@
 <span id="256">256</span>
 <span id="257">257</span>
 <span id="258">258</span>
+<span id="259">259</span>
+<span id="260">260</span>
+<span id="261">261</span>
+<span id="262">262</span>
+<span id="263">263</span>
+<span id="264">264</span>
+<span id="265">265</span>
+<span id="266">266</span>
+<span id="267">267</span>
+<span id="268">268</span>
+<span id="269">269</span>
+<span id="270">270</span>
+<span id="271">271</span>
+<span id="272">272</span>
+<span id="273">273</span>
+<span id="274">274</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! Eigenvalue decomposition for general matrices</span>
 
@@ -302,8 +318,16 @@
                 <span class="kw-2">mut</span> <span class="ident">a</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="self">Self</span>],
             ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(<span class="ident">Vec</span><span class="op">&lt;</span><span class="self">Self</span>::<span class="ident">Complex</span><span class="op">&gt;</span>, <span class="ident">Vec</span><span class="op">&lt;</span><span class="self">Self</span>::<span class="ident">Complex</span><span class="op">&gt;</span>)<span class="op">&gt;</span> {
                 <span class="kw">let</span> (<span class="ident">n</span>, <span class="kw">_</span>) <span class="op">=</span> <span class="ident">l</span>.<span class="ident">size</span>();
-                <span class="comment">// Because LAPACK assumes F-continious array, C-continious array should be taken Hermitian conjugate.</span>
-                <span class="comment">// However, we utilize a fact that left eigenvector of A^H corresponds to the right eigenvector of A</span>
+                <span class="comment">// LAPACK assumes a column-major input. A row-major input can</span>
+                <span class="comment">// be interpreted as the transpose of a column-major input. So,</span>
+                <span class="comment">// for row-major inputs, we we want to solve the following,</span>
+                <span class="comment">// given the column-major input `A`:</span>
+                <span class="comment">//</span>
+                <span class="comment">//   A^T V = V Λ ⟺ V^T A = Λ V^T ⟺ conj(V)^H A = Λ conj(V)^H</span>
+                <span class="comment">//</span>
+                <span class="comment">// So, in this case, the right eigenvectors are the conjugates</span>
+                <span class="comment">// of the left eigenvectors computed with `A`, and the</span>
+                <span class="comment">// eigenvalues are the eigenvalues computed with `A`.</span>
                 <span class="kw">let</span> (<span class="ident">jobvl</span>, <span class="ident">jobvr</span>) <span class="op">=</span> <span class="kw">if</span> <span class="ident">calc_v</span> {
                     <span class="kw">match</span> <span class="ident">l</span> {
                         <span class="ident">MatrixLayout</span>::<span class="ident">C</span> { .. } <span class="op">=</span><span class="op">&gt;</span> (<span class="string">b&#39;V&#39;</span>, <span class="string">b&#39;N&#39;</span>),
@@ -397,8 +421,22 @@
                 <span class="kw-2">mut</span> <span class="ident">a</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="self">Self</span>],
             ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(<span class="ident">Vec</span><span class="op">&lt;</span><span class="self">Self</span>::<span class="ident">Complex</span><span class="op">&gt;</span>, <span class="ident">Vec</span><span class="op">&lt;</span><span class="self">Self</span>::<span class="ident">Complex</span><span class="op">&gt;</span>)<span class="op">&gt;</span> {
                 <span class="kw">let</span> (<span class="ident">n</span>, <span class="kw">_</span>) <span class="op">=</span> <span class="ident">l</span>.<span class="ident">size</span>();
-                <span class="comment">// Because LAPACK assumes F-continious array, C-continious array should be taken Hermitian conjugate.</span>
-                <span class="comment">// However, we utilize a fact that left eigenvector of A^H corresponds to the right eigenvector of A</span>
+                <span class="comment">// LAPACK assumes a column-major input. A row-major input can</span>
+                <span class="comment">// be interpreted as the transpose of a column-major input. So,</span>
+                <span class="comment">// for row-major inputs, we we want to solve the following,</span>
+                <span class="comment">// given the column-major input `A`:</span>
+                <span class="comment">//</span>
+                <span class="comment">//   A^T V = V Λ ⟺ V^T A = Λ V^T ⟺ conj(V)^H A = Λ conj(V)^H</span>
+                <span class="comment">//</span>
+                <span class="comment">// So, in this case, the right eigenvectors are the conjugates</span>
+                <span class="comment">// of the left eigenvectors computed with `A`, and the</span>
+                <span class="comment">// eigenvalues are the eigenvalues computed with `A`.</span>
+                <span class="comment">//</span>
+                <span class="comment">// We could conjugate the eigenvalues instead of the</span>
+                <span class="comment">// eigenvectors, but we have to reconstruct the eigenvectors</span>
+                <span class="comment">// into new matrices anyway, and by not modifying the</span>
+                <span class="comment">// eigenvalues, we preserve the nice ordering specified by</span>
+                <span class="comment">// `sgeev`/`dgeev`.</span>
                 <span class="kw">let</span> (<span class="ident">jobvl</span>, <span class="ident">jobvr</span>) <span class="op">=</span> <span class="kw">if</span> <span class="ident">calc_v</span> {
                     <span class="kw">match</span> <span class="ident">l</span> {
                         <span class="ident">MatrixLayout</span>::<span class="ident">C</span> { .. } <span class="op">=</span><span class="op">&gt;</span> (<span class="string">b&#39;V&#39;</span>, <span class="string">b&#39;N&#39;</span>),
@@ -490,40 +528,34 @@
                 <span class="comment">//   - v(j)   = VR(:,j) + i*VR(:,j+1)</span>
                 <span class="comment">//   - v(j+1) = VR(:,j) - i*VR(:,j+1).</span>
                 <span class="comment">//</span>
-                <span class="comment">// ```</span>
-                <span class="comment">//  j -&gt;         &lt;----pair----&gt;  &lt;----pair----&gt;</span>
-                <span class="comment">// [ ... (real), (imag), (imag), (imag), (imag), ... ] : eigs</span>
-                <span class="comment">//       ^       ^       ^       ^       ^</span>
-                <span class="comment">//       false   false   true    false   true          : is_conjugate_pair</span>
-                <span class="comment">// ```</span>
+                <span class="comment">// In the C-layout case, we need the conjugates of the left</span>
+                <span class="comment">// eigenvectors, so the signs should be reversed.</span>
+
                 <span class="kw">let</span> <span class="ident">n</span> <span class="op">=</span> <span class="ident">n</span> <span class="kw">as</span> <span class="ident">usize</span>;
                 <span class="kw">let</span> <span class="ident">v</span> <span class="op">=</span> <span class="ident">vr</span>.<span class="ident">or</span>(<span class="ident">vl</span>).<span class="ident">unwrap</span>();
                 <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">eigvecs</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">vec_uninit</span>(<span class="ident">n</span> <span class="op">*</span> <span class="ident">n</span>) };
-                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">is_conjugate_pair</span> <span class="op">=</span> <span class="bool-val">false</span>; <span class="comment">// flag for check `j` is complex conjugate</span>
-                <span class="kw">for</span> <span class="ident">j</span> <span class="kw">in</span> <span class="number">0</span>..<span class="ident">n</span> {
-                    <span class="kw">if</span> <span class="ident">eig_im</span>[<span class="ident">j</span>] <span class="op">=</span><span class="op">=</span> <span class="number">0.0</span> {
-                        <span class="comment">// j-th eigenvalue is real</span>
-                        <span class="kw">for</span> <span class="ident">i</span> <span class="kw">in</span> <span class="number">0</span>..<span class="ident">n</span> {
-                            <span class="ident">eigvecs</span>[<span class="ident">i</span> <span class="op">+</span> <span class="ident">j</span> <span class="op">*</span> <span class="ident">n</span>] <span class="op">=</span> <span class="self">Self</span>::<span class="ident">complex</span>(<span class="ident">v</span>[<span class="ident">i</span> <span class="op">+</span> <span class="ident">j</span> <span class="op">*</span> <span class="ident">n</span>], <span class="number">0.0</span>);
+                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">col</span> <span class="op">=</span> <span class="number">0</span>;
+                <span class="kw">while</span> <span class="ident">col</span> <span class="op">&lt;</span> <span class="ident">n</span> {
+                    <span class="kw">if</span> <span class="ident">eig_im</span>[<span class="ident">col</span>] <span class="op">=</span><span class="op">=</span> <span class="number">0.</span> {
+                        <span class="comment">// The corresponding eigenvalue is real.</span>
+                        <span class="kw">for</span> <span class="ident">row</span> <span class="kw">in</span> <span class="number">0</span>..<span class="ident">n</span> {
+                            <span class="kw">let</span> <span class="ident">re</span> <span class="op">=</span> <span class="ident">v</span>[<span class="ident">row</span> <span class="op">+</span> <span class="ident">col</span> <span class="op">*</span> <span class="ident">n</span>];
+                            <span class="ident">eigvecs</span>[<span class="ident">row</span> <span class="op">+</span> <span class="ident">col</span> <span class="op">*</span> <span class="ident">n</span>] <span class="op">=</span> <span class="self">Self</span>::<span class="ident">complex</span>(<span class="ident">re</span>, <span class="number">0.</span>);
                         }
+                        <span class="ident">col</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
                     } <span class="kw">else</span> {
-                        <span class="comment">// j-th eigenvalue is complex</span>
-                        <span class="comment">// complex conjugated pair can be `j-1` or `j+1`</span>
-                        <span class="kw">if</span> <span class="ident">is_conjugate_pair</span> {
-                            <span class="kw">let</span> <span class="ident">j_pair</span> <span class="op">=</span> <span class="ident">j</span> <span class="op">-</span> <span class="number">1</span>;
-                            <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">j_pair</span> <span class="op">&lt;</span> <span class="ident">n</span>);
-                            <span class="kw">for</span> <span class="ident">i</span> <span class="kw">in</span> <span class="number">0</span>..<span class="ident">n</span> {
-                                <span class="ident">eigvecs</span>[<span class="ident">i</span> <span class="op">+</span> <span class="ident">j</span> <span class="op">*</span> <span class="ident">n</span>] <span class="op">=</span> <span class="self">Self</span>::<span class="ident">complex</span>(<span class="ident">v</span>[<span class="ident">i</span> <span class="op">+</span> <span class="ident">j_pair</span> <span class="op">*</span> <span class="ident">n</span>], <span class="ident">v</span>[<span class="ident">i</span> <span class="op">+</span> <span class="ident">j</span> <span class="op">*</span> <span class="ident">n</span>]);
+                        <span class="comment">// This is a complex conjugate pair.</span>
+                        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">col</span> <span class="op">+</span> <span class="number">1</span> <span class="op">&lt;</span> <span class="ident">n</span>);
+                        <span class="kw">for</span> <span class="ident">row</span> <span class="kw">in</span> <span class="number">0</span>..<span class="ident">n</span> {
+                            <span class="kw">let</span> <span class="ident">re</span> <span class="op">=</span> <span class="ident">v</span>[<span class="ident">row</span> <span class="op">+</span> <span class="ident">col</span> <span class="op">*</span> <span class="ident">n</span>];
+                            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">im</span> <span class="op">=</span> <span class="ident">v</span>[<span class="ident">row</span> <span class="op">+</span> (<span class="ident">col</span> <span class="op">+</span> <span class="number">1</span>) <span class="op">*</span> <span class="ident">n</span>];
+                            <span class="kw">if</span> <span class="ident">jobvl</span> <span class="op">=</span><span class="op">=</span> <span class="string">b&#39;V&#39;</span> {
+                                <span class="ident">im</span> <span class="op">=</span> <span class="op">-</span><span class="ident">im</span>;
                             }
-                        } <span class="kw">else</span> {
-                            <span class="kw">let</span> <span class="ident">j_pair</span> <span class="op">=</span> <span class="ident">j</span> <span class="op">+</span> <span class="number">1</span>;
-                            <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">j_pair</span> <span class="op">&lt;</span> <span class="ident">n</span>);
-                            <span class="kw">for</span> <span class="ident">i</span> <span class="kw">in</span> <span class="number">0</span>..<span class="ident">n</span> {
-                                <span class="ident">eigvecs</span>[<span class="ident">i</span> <span class="op">+</span> <span class="ident">j</span> <span class="op">*</span> <span class="ident">n</span>] <span class="op">=</span>
-                                    <span class="self">Self</span>::<span class="ident">complex</span>(<span class="ident">v</span>[<span class="ident">i</span> <span class="op">+</span> <span class="ident">j</span> <span class="op">*</span> <span class="ident">n</span>], <span class="op">-</span><span class="ident">v</span>[<span class="ident">i</span> <span class="op">+</span> <span class="ident">j_pair</span> <span class="op">*</span> <span class="ident">n</span>]);
-                            }
+                            <span class="ident">eigvecs</span>[<span class="ident">row</span> <span class="op">+</span> <span class="ident">col</span> <span class="op">*</span> <span class="ident">n</span>] <span class="op">=</span> <span class="self">Self</span>::<span class="ident">complex</span>(<span class="ident">re</span>, <span class="ident">im</span>);
+                            <span class="ident">eigvecs</span>[<span class="ident">row</span> <span class="op">+</span> (<span class="ident">col</span> <span class="op">+</span> <span class="number">1</span>) <span class="op">*</span> <span class="ident">n</span>] <span class="op">=</span> <span class="self">Self</span>::<span class="ident">complex</span>(<span class="ident">re</span>, <span class="op">-</span><span class="ident">im</span>);
                         }
-                        <span class="ident">is_conjugate_pair</span> <span class="op">=</span> <span class="op">!</span><span class="ident">is_conjugate_pair</span>;
+                        <span class="ident">col</span> <span class="op">+</span><span class="op">=</span> <span class="number">2</span>;
                     }
                 }
 

@@ -8,6 +8,7 @@ Updated dependencies
 
 Changed
 --------
+- Fix Solve::solve_h_* for complex inputs with standard layout https://github.com/rust-ndarray/ndarray-linalg/pull/296
 - Avoid unnecessary calculation of eigenvectors in EigVals::eigvals and relax the DataMut bound https://github.com/rust-ndarray/ndarray-linalg/pull/286
 - Add basic documentation for eigh module https://github.com/rust-ndarray/ndarray-linalg/pull/283
 - Port usage of uninitialized to build_uninit https://github.com/rust-ndarray/ndarray-linalg/pull/287

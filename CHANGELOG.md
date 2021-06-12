@@ -8,6 +8,7 @@ Updated dependencies
 
 Fixed
 -----
+- Fix memory layout of the output of inverse of LUFactorized https://github.com/rust-ndarray/ndarray-linalg/pull/297
 - Fix Eig for column-major arrays with real elements https://github.com/rust-ndarray/ndarray-linalg/pull/298
 - Fix Solve::solve_h_* for complex inputs with standard layout https://github.com/rust-ndarray/ndarray-linalg/pull/296
 - Add checks for matching shapes in Solve, SolveH, and EighInplace https://github.com/rust-ndarray/ndarray-linalg/pull/290

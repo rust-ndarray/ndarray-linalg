@@ -10,6 +10,7 @@ Changed
 --------
 - Avoid unnecessary calculation of eigenvectors in EigVals::eigvals and relax the DataMut bound https://github.com/rust-ndarray/ndarray-linalg/pull/286
 - Add basic documentation for eigh module https://github.com/rust-ndarray/ndarray-linalg/pull/283
+- Port usage of uninitialized to build_uninit https://github.com/rust-ndarray/ndarray-linalg/pull/287
 - Relax type bounds for LeastSquaresSvd family https://github.com/rust-ndarray/ndarray-linalg/pull/272
 
 0.13.1 - 13 March 2021

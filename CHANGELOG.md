@@ -8,6 +8,7 @@ Updated dependencies
 
 Changed
 --------
+- Avoid unnecessary calculation of eigenvectors in EigVals::eigvals and relax the DataMut bound https://github.com/rust-ndarray/ndarray-linalg/pull/286
 - Relax type bounds for LeastSquaresSvd family https://github.com/rust-ndarray/ndarray-linalg/pull/272
 
 0.13.1 - 13 March 2021

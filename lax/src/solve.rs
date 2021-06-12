@@ -75,18 +75,49 @@ macro_rules! impl_solve {
                 ipiv: &Pivot,
                 b: &mut [Self],
             ) -> Result<()> {
-                let t = match l {
+                // If the array has C layout, then it needs to be handled
+                // specially, since LAPACK expects a Fortran-layout array.
+                // Reinterpreting a C layout array as Fortran layout is
+                // equivalent to transposing it. So, we can handle the "no
+                // transpose" and "transpose" cases by swapping to "transpose"
+                // or "no transpose", respectively. For the "Hermite" case, we
+                // can take advantage of the following:
+                //
+                // ```text
+                // A^H x = b
+                // ⟺ conj(A^T) x = b
+                // ⟺ conj(conj(A^T) x) = conj(b)
+                // ⟺ conj(conj(A^T)) conj(x) = conj(b)
+                // ⟺ A^T conj(x) = conj(b)
+                // ```
+                //
+                // So, we can handle this case by switching to "no transpose"
+                // (which is equivalent to transposing the array since it will
+                // be reinterpreted as Fortran layout) and applying the
+                // elementwise conjugate to `x` and `b`.
+                let (t, conj) = match l {
                     MatrixLayout::C { .. } => match t {
-                        Transpose::No => Transpose::Transpose,
-                        Transpose::Transpose | Transpose::Hermite => Transpose::No,
+                        Transpose::No => (Transpose::Transpose, false),
+                        Transpose::Transpose => (Transpose::No, false),
+                        Transpose::Hermite => (Transpose::No, true),
                     },
-                    _ => t,
+                    MatrixLayout::F { .. } => (t, false),
                 };
                 let (n, _) = l.size();
                 let nrhs = 1;
                 let ldb = l.lda();
                 let mut info = 0;
+                if conj {
+                    for b_elem in &mut *b {
+                        *b_elem = b_elem.conj();
+                    }
+                }
                 unsafe { $getrs(t as u8, n, nrhs, a, l.lda(), ipiv, b, ldb, &mut info) };
+                if conj {
+                    for b_elem in &mut *b {
+                        *b_elem = b_elem.conj();
+                    }
+                }
                 info.as_lapack_result()?;
                 Ok(())
             }

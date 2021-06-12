@@ -15,8 +15,11 @@ fn sorted_eigvals<T: Scalar>(eigvals: ArrayView1<'_, T>) -> Array1<T> {
 }
 
 // Test Av_i = e_i v_i for i = 0..n
-fn test_eig<T: Scalar>(a: Array2<T>, eigs: Array1<T::Complex>, vecs: Array2<T::Complex>)
-where
+fn test_eig<T: Scalar>(
+    a: ArrayView2<'_, T>,
+    eigs: ArrayView1<'_, T::Complex>,
+    vecs: ArrayView2<'_, T::Complex>,
+) where
     T::Complex: Lapack,
 {
     println!("a\n{:+.4}", &a);
@@ -221,16 +224,24 @@ macro_rules! impl_test_real {
             #[test]
             fn [<$real _eigvals >]() {
                 let a = test_matrix_real::<$real>();
-                let (e, _vecs) = a.eig().unwrap();
-                assert_close_l2!(&e, &answer_eig_real::<$real>(), 1.0e-3);
+                let (e1, _vecs) = a.eig().unwrap();
+                let e2 = a.eigvals().unwrap();
+                assert_close_l2!(&e1, &answer_eig_real::<$real>(), 1.0e-3);
+                assert_close_l2!(&e2, &answer_eig_real::<$real>(), 1.0e-3);
             }
 
             #[test]
             fn [<$real _eigvals_t>]() {
                 let a = test_matrix_real_t::<$real>();
-                let (e, _vecs) = a.eig().unwrap();
+                let (e1, _vecs) = a.eig().unwrap();
                 assert_close_l2!(
-                    &sorted_eigvals(e.view()),
+                    &sorted_eigvals(e1.view()),
+                    &sorted_eigvals(answer_eig_real::<$real>().view()),
+                    1.0e-3
+                );
+                let e2 = a.eigvals().unwrap();
+                assert_close_l2!(
+                    &sorted_eigvals(e2.view()),
                     &sorted_eigvals(answer_eig_real::<$real>().view()),
                     1.0e-3
                 );
@@ -239,15 +250,19 @@ macro_rules! impl_test_real {
             #[test]
             fn [<$real _eig>]() {
                 let a = test_matrix_real::<$real>();
-                let (e, vecs) = a.eig().unwrap();
-                test_eig(a, e, vecs);
+                let (e1, vecs) = a.eig().unwrap();
+                let e2 = a.eigvals().unwrap();
+                test_eig(a.view(), e1.view(), vecs.view());
+                test_eig(a.view(), e2.view(), vecs.view());
             }
 
             #[test]
             fn [<$real _eig_t>]() {
                 let a = test_matrix_real_t::<$real>();
-                let (e, vecs) = a.eig().unwrap();
-                test_eig(a, e, vecs);
+                let (e1, vecs) = a.eig().unwrap();
+                let e2 = a.eigvals().unwrap();
+                test_eig(a.view(), e1.view(), vecs.view());
+                test_eig(a.view(), e2.view(), vecs.view());
             }
 
         } // paste::item!
@@ -263,15 +278,19 @@ macro_rules! impl_test_complex {
             #[test]
             fn [<$complex _eigvals >]() {
                 let a = test_matrix_complex::<$complex>();
-                let (e, _vecs) = a.eig().unwrap();
-                assert_close_l2!(&e, &answer_eig_complex::<$complex>(), 1.0e-3);
+                let (e1, _vecs) = a.eig().unwrap();
+                let e2 = a.eigvals().unwrap();
+                assert_close_l2!(&e1, &answer_eig_complex::<$complex>(), 1.0e-3);
+                assert_close_l2!(&e2, &answer_eig_complex::<$complex>(), 1.0e-3);
             }
 
             #[test]
             fn [<$complex _eigvals_t>]() {
                 let a = test_matrix_complex_t::<$complex>();
-                let (e, _vecs) = a.eig().unwrap();
-                assert_close_l2!(&e, &answer_eig_complex::<$complex>(), 1.0e-3);
+                let (e1, _vecs) = a.eig().unwrap();
+                let e2 = a.eigvals().unwrap();
+                assert_close_l2!(&e1, &answer_eig_complex::<$complex>(), 1.0e-3);
+                assert_close_l2!(&e2, &answer_eig_complex::<$complex>(), 1.0e-3);
             }
 
             #[test]
@@ -291,15 +310,19 @@ macro_rules! impl_test_complex {
             #[test]
             fn [<$complex _eig>]() {
                 let a = test_matrix_complex::<$complex>();
-                let (e, vecs) = a.eig().unwrap();
-                test_eig(a, e, vecs);
+                let (e1, vecs) = a.eig().unwrap();
+                let e2 = a.eigvals().unwrap();
+                test_eig(a.view(), e1.view(), vecs.view());
+                test_eig(a.view(), e2.view(), vecs.view());
             }
 
             #[test]
             fn [<$complex _eig_t>]() {
                 let a = test_matrix_complex_t::<$complex>();
-                let (e, vecs) = a.eig().unwrap();
-                test_eig(a, e, vecs);
+                let (e1, vecs) = a.eig().unwrap();
+                let e2 = a.eigvals().unwrap();
+                test_eig(a.view(), e1.view(), vecs.view());
+                test_eig(a.view(), e2.view(), vecs.view());
             }
         } // paste::item!
     };

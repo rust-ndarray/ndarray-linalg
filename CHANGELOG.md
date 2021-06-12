@@ -6,10 +6,13 @@ Updated dependencies
 - ndarray 0.15 https://github.com/rust-ndarray/ndarray-linalg/pull/273
 - cauchy 0.4 (num-complex 0.4, rand 0.8), lapack 0.18 https://github.com/rust-ndarray/ndarray-linalg/pull/276
 
+Fixed
+-----
+- Fix Solve::solve_h_* for complex inputs with standard layout https://github.com/rust-ndarray/ndarray-linalg/pull/296
+- Add checks for matching shapes in Solve, SolveH, and EighInplace https://github.com/rust-ndarray/ndarray-linalg/pull/290
+
 Changed
 --------
-- Add checks for matching shapes in Solve, SolveH, and EighInplace https://github.com/rust-ndarray/ndarray-linalg/pull/290
-- Fix Solve::solve_h_* for complex inputs with standard layout https://github.com/rust-ndarray/ndarray-linalg/pull/296
 - Avoid unnecessary calculation of eigenvectors in EigVals::eigvals and relax the DataMut bound https://github.com/rust-ndarray/ndarray-linalg/pull/286
 - Add basic documentation for eigh module https://github.com/rust-ndarray/ndarray-linalg/pull/283
 - Port usage of uninitialized to build_uninit https://github.com/rust-ndarray/ndarray-linalg/pull/287

@@ -42,6 +42,10 @@ macro_rules! impl_solve {
 
             fn inv(l: MatrixLayout, a: &mut [Self], ipiv: &Pivot) -> Result<()> {
                 let (n, _) = l.size();
+                if n == 0 {
+                    // Do nothing for empty matrices.
+                    return Ok(());
+                }
 
                 // calc work size
                 let mut info = 0;

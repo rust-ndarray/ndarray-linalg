@@ -199,9 +199,9 @@ pub trait Solve<A: Scalar> {
 pub struct LUFactorized<S: Data + RawDataClone> {
     /// The factors `L` and `U`; the unit diagonal elements of `L` are not
     /// stored.
-    pub a: ArrayBase<S, Ix2>,
+    a: ArrayBase<S, Ix2>,
     /// The pivot indices that define the permutation matrix `P`.
-    pub ipiv: Pivot,
+    ipiv: Pivot,
 }
 
 impl<A, S> Solve<A> for LUFactorized<S>
@@ -387,8 +387,15 @@ where
     type Output = Array2<A>;
 
     fn inv(&self) -> Result<Array2<A>> {
+        // Preserve the existing layout. This is required to obtain the correct
+        // result, because the result of `A::inv` is layout-dependent.
+        let a = if self.a.is_standard_layout() {
+            replicate(&self.a)
+        } else {
+            replicate(&self.a.t()).reversed_axes()
+        };
         let f = LUFactorized {
-            a: replicate(&self.a),
+            a,
             ipiv: self.ipiv.clone(),
         };
         f.inv_into()

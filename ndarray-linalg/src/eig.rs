@@ -66,13 +66,13 @@ pub trait EigVals {
 impl<A, S> EigVals for ArrayBase<S, Ix2>
 where
     A: Scalar + Lapack,
-    S: DataMut<Elem = A>,
+    S: Data<Elem = A>,
 {
     type EigVal = Array1<A::Complex>;
 
     fn eigvals(&self) -> Result<Self::EigVal> {
         let mut a = self.to_owned();
-        let (s, _) = A::eig(true, a.square_layout()?, a.as_allocated_mut()?)?;
+        let (s, _) = A::eig(false, a.square_layout()?, a.as_allocated_mut()?)?;
         Ok(ArrayBase::from(s))
     }
 }

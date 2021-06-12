@@ -1,6 +1,19 @@
 use ndarray::*;
 use ndarray_linalg::*;
 
+fn sorted_eigvals<T: Scalar>(eigvals: ArrayView1<'_, T>) -> Array1<T> {
+    let mut indices: Vec<usize> = (0..eigvals.len()).collect();
+    indices.sort_by(|&ind1, &ind2| {
+        let e1 = eigvals[ind1];
+        let e2 = eigvals[ind2];
+        e1.re()
+            .partial_cmp(&e2.re())
+            .unwrap()
+            .then(e1.im().partial_cmp(&e2.im()).unwrap())
+    });
+    indices.iter().map(|&ind| eigvals[ind]).collect()
+}
+
 // Test Av_i = e_i v_i for i = 0..n
 fn test_eig<T: Scalar>(
     a: ArrayView2<'_, T>,
@@ -90,7 +103,10 @@ fn test_matrix_real<T: Scalar>() -> Array2<T::Real> {
 }
 
 fn test_matrix_real_t<T: Scalar>() -> Array2<T::Real> {
-    test_matrix_real::<T>().t().permuted_axes([1, 0]).to_owned()
+    let orig = test_matrix_real::<T>();
+    let mut out = Array2::zeros(orig.raw_dim().f());
+    out.assign(&orig);
+    out
 }
 
 fn answer_eig_real<T: Scalar>() -> Array1<T::Complex> {
@@ -157,10 +173,10 @@ fn test_matrix_complex<T: Scalar>() -> Array2<T::Complex> {
 }
 
 fn test_matrix_complex_t<T: Scalar>() -> Array2<T::Complex> {
-    test_matrix_complex::<T>()
-        .t()
-        .permuted_axes([1, 0])
-        .to_owned()
+    let orig = test_matrix_complex::<T>();
+    let mut out = Array2::zeros(orig.raw_dim().f());
+    out.assign(&orig);
+    out
 }
 
 fn answer_eig_complex<T: Scalar>() -> Array1<T::Complex> {
@@ -218,9 +234,17 @@ macro_rules! impl_test_real {
             fn [<$real _eigvals_t>]() {
                 let a = test_matrix_real_t::<$real>();
                 let (e1, _vecs) = a.eig().unwrap();
+                assert_close_l2!(
+                    &sorted_eigvals(e1.view()),
+                    &sorted_eigvals(answer_eig_real::<$real>().view()),
+                    1.0e-3
+                );
                 let e2 = a.eigvals().unwrap();
-                assert_close_l2!(&e1, &answer_eig_real::<$real>(), 1.0e-3);
-                assert_close_l2!(&e2, &answer_eig_real::<$real>(), 1.0e-3);
+                assert_close_l2!(
+                    &sorted_eigvals(e2.view()),
+                    &sorted_eigvals(answer_eig_real::<$real>().view()),
+                    1.0e-3
+                );
             }
 
             #[test]

@@ -41,7 +41,7 @@ features = ["blas", "approx", "std"]
 default-features = false
 
 [dependencies.lax]
-version = "0.1.0"
+version = "0.2.0"
 path = "../lax"
 default-features = false
 

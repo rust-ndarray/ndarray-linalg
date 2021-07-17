@@ -1,6 +1,9 @@
 Unreleased
 -----------
 
+0.14.0 - 17 July 2021
+=====================
+
 Updated dependencies
 ---------------------
 - ndarray 0.15 https://github.com/rust-ndarray/ndarray-linalg/pull/273

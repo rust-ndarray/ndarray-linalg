@@ -17,7 +17,7 @@
     });
 </script>
 
-<style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../lax/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu"><img src="../../brush.svg" width="18" height="18" alt="Pick another theme!"></button><div id="theme-choices" role="menu"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" class="help-button">?</button>
+<style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../lax/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu"><img src="../../brush.svg" width="18" height="18" alt="Pick another theme!"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" class="help-button">?</button>
                 <a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" height="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
 <span id="2">  2</span>
 <span id="3">  3</span>
@@ -156,7 +156,7 @@
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! Solve linear problem using LU decomposition</span>
 
-<span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">error</span>::<span class="kw-2">*</span>, <span class="ident">layout</span>::<span class="ident">MatrixLayout</span>, <span class="kw-2">*</span>};
+<span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">error</span>::<span class="kw-2">*</span>, <span class="ident">layout::MatrixLayout</span>, <span class="kw-2">*</span>};
 <span class="kw">use</span> <span class="ident">cauchy</span>::<span class="kw-2">*</span>;
 <span class="kw">use</span> <span class="ident">num_traits</span>::{<span class="ident">ToPrimitive</span>, <span class="ident">Zero</span>};
 
@@ -178,17 +178,17 @@
     <span class="kw">fn</span> <span class="ident">solve</span>(<span class="ident">l</span>: <span class="ident">MatrixLayout</span>, <span class="ident">t</span>: <span class="ident">Transpose</span>, <span class="ident">a</span>: <span class="kw-2">&amp;</span>[<span class="self">Self</span>], <span class="ident">p</span>: <span class="kw-2">&amp;</span><span class="ident">Pivot</span>, <span class="ident">b</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="self">Self</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span>;
 }
 
-<span class="macro">macro_rules</span><span class="macro">!</span> <span class="ident">impl_solve</span> {
+<span class="macro">macro_rules!</span> <span class="ident">impl_solve</span> {
     (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">scalar</span>:<span class="ident">ty</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">getrf</span>:<span class="ident">path</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">getri</span>:<span class="ident">path</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">getrs</span>:<span class="ident">path</span>) <span class="op">=</span><span class="op">&gt;</span> {
         <span class="kw">impl</span> <span class="ident">Solve_</span> <span class="kw">for</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">scalar</span> {
             <span class="kw">fn</span> <span class="ident">lu</span>(<span class="ident">l</span>: <span class="ident">MatrixLayout</span>, <span class="ident">a</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="self">Self</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Pivot</span><span class="op">&gt;</span> {
                 <span class="kw">let</span> (<span class="ident">row</span>, <span class="ident">col</span>) <span class="op">=</span> <span class="ident">l</span>.<span class="ident">size</span>();
-                <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">a</span>.<span class="ident">len</span>() <span class="kw">as</span> <span class="ident">i32</span>, <span class="ident">row</span> <span class="op">*</span> <span class="ident">col</span>);
+                <span class="macro">assert_eq!</span>(<span class="ident">a</span>.<span class="ident">len</span>() <span class="kw">as</span> <span class="ident">i32</span>, <span class="ident">row</span> <span class="op">*</span> <span class="ident">col</span>);
                 <span class="kw">if</span> <span class="ident">row</span> <span class="op">=</span><span class="op">=</span> <span class="number">0</span> <span class="op">|</span><span class="op">|</span> <span class="ident">col</span> <span class="op">=</span><span class="op">=</span> <span class="number">0</span> {
                     <span class="comment">// Do nothing for empty matrix</span>
-                    <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">Vec</span>::<span class="ident">new</span>());
+                    <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">Vec::new</span>());
                 }
-                <span class="kw">let</span> <span class="ident">k</span> <span class="op">=</span> ::<span class="ident">std</span>::<span class="ident">cmp</span>::<span class="ident">min</span>(<span class="ident">row</span>, <span class="ident">col</span>);
+                <span class="kw">let</span> <span class="ident">k</span> <span class="op">=</span> <span class="ident">::std::cmp::min</span>(<span class="ident">row</span>, <span class="ident">col</span>);
                 <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">ipiv</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">vec_uninit</span>(<span class="ident">k</span> <span class="kw">as</span> <span class="ident">usize</span>) };
                 <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">info</span> <span class="op">=</span> <span class="number">0</span>;
                 <span class="kw">unsafe</span> { <span class="macro-nonterminal">$</span><span class="macro-nonterminal">getrf</span>(<span class="ident">l</span>.<span class="ident">lda</span>(), <span class="ident">l</span>.<span class="ident">len</span>(), <span class="ident">a</span>, <span class="ident">l</span>.<span class="ident">lda</span>(), <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">ipiv</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">info</span>) };
@@ -205,7 +205,7 @@
 
                 <span class="comment">// calc work size</span>
                 <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">info</span> <span class="op">=</span> <span class="number">0</span>;
-                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">work_size</span> <span class="op">=</span> [<span class="self">Self</span>::<span class="ident">zero</span>()];
+                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">work_size</span> <span class="op">=</span> [<span class="self">Self</span><span class="ident">::zero</span>()];
                 <span class="kw">unsafe</span> { <span class="macro-nonterminal">$</span><span class="macro-nonterminal">getri</span>(<span class="ident">n</span>, <span class="ident">a</span>, <span class="ident">l</span>.<span class="ident">lda</span>(), <span class="ident">ipiv</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">work_size</span>, <span class="op">-</span><span class="number">1</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">info</span>) };
                 <span class="ident">info</span>.<span class="ident">as_lapack_result</span>()<span class="question-mark">?</span>;
 
@@ -256,12 +256,12 @@
                 <span class="comment">// be reinterpreted as Fortran layout) and applying the</span>
                 <span class="comment">// elementwise conjugate to `x` and `b`.</span>
                 <span class="kw">let</span> (<span class="ident">t</span>, <span class="ident">conj</span>) <span class="op">=</span> <span class="kw">match</span> <span class="ident">l</span> {
-                    <span class="ident">MatrixLayout</span>::<span class="ident">C</span> { .. } <span class="op">=</span><span class="op">&gt;</span> <span class="kw">match</span> <span class="ident">t</span> {
-                        <span class="ident">Transpose</span>::<span class="ident">No</span> <span class="op">=</span><span class="op">&gt;</span> (<span class="ident">Transpose</span>::<span class="ident">Transpose</span>, <span class="bool-val">false</span>),
-                        <span class="ident">Transpose</span>::<span class="ident">Transpose</span> <span class="op">=</span><span class="op">&gt;</span> (<span class="ident">Transpose</span>::<span class="ident">No</span>, <span class="bool-val">false</span>),
-                        <span class="ident">Transpose</span>::<span class="ident">Hermite</span> <span class="op">=</span><span class="op">&gt;</span> (<span class="ident">Transpose</span>::<span class="ident">No</span>, <span class="bool-val">true</span>),
+                    <span class="ident">MatrixLayout::C</span> { .. } <span class="op">=</span><span class="op">&gt;</span> <span class="kw">match</span> <span class="ident">t</span> {
+                        <span class="ident">Transpose::No</span> <span class="op">=</span><span class="op">&gt;</span> (<span class="ident">Transpose::Transpose</span>, <span class="bool-val">false</span>),
+                        <span class="ident">Transpose::Transpose</span> <span class="op">=</span><span class="op">&gt;</span> (<span class="ident">Transpose::No</span>, <span class="bool-val">false</span>),
+                        <span class="ident">Transpose::Hermite</span> <span class="op">=</span><span class="op">&gt;</span> (<span class="ident">Transpose::No</span>, <span class="bool-val">true</span>),
                     },
-                    <span class="ident">MatrixLayout</span>::<span class="ident">F</span> { .. } <span class="op">=</span><span class="op">&gt;</span> (<span class="ident">t</span>, <span class="bool-val">false</span>),
+                    <span class="ident">MatrixLayout::F</span> { .. } <span class="op">=</span><span class="op">&gt;</span> (<span class="ident">t</span>, <span class="bool-val">false</span>),
                 };
                 <span class="kw">let</span> (<span class="ident">n</span>, <span class="kw">_</span>) <span class="op">=</span> <span class="ident">l</span>.<span class="ident">size</span>();
                 <span class="kw">let</span> <span class="ident">nrhs</span> <span class="op">=</span> <span class="number">1</span>;
@@ -285,10 +285,10 @@
     };
 } <span class="comment">// impl_solve!</span>
 
-<span class="macro">impl_solve</span><span class="macro">!</span>(<span class="ident">f64</span>, <span class="ident">lapack</span>::<span class="ident">dgetrf</span>, <span class="ident">lapack</span>::<span class="ident">dgetri</span>, <span class="ident">lapack</span>::<span class="ident">dgetrs</span>);
-<span class="macro">impl_solve</span><span class="macro">!</span>(<span class="ident">f32</span>, <span class="ident">lapack</span>::<span class="ident">sgetrf</span>, <span class="ident">lapack</span>::<span class="ident">sgetri</span>, <span class="ident">lapack</span>::<span class="ident">sgetrs</span>);
-<span class="macro">impl_solve</span><span class="macro">!</span>(<span class="ident">c64</span>, <span class="ident">lapack</span>::<span class="ident">zgetrf</span>, <span class="ident">lapack</span>::<span class="ident">zgetri</span>, <span class="ident">lapack</span>::<span class="ident">zgetrs</span>);
-<span class="macro">impl_solve</span><span class="macro">!</span>(<span class="ident">c32</span>, <span class="ident">lapack</span>::<span class="ident">cgetrf</span>, <span class="ident">lapack</span>::<span class="ident">cgetri</span>, <span class="ident">lapack</span>::<span class="ident">cgetrs</span>);
+<span class="macro">impl_solve!</span>(<span class="ident">f64</span>, <span class="ident">lapack::dgetrf</span>, <span class="ident">lapack::dgetri</span>, <span class="ident">lapack::dgetrs</span>);
+<span class="macro">impl_solve!</span>(<span class="ident">f32</span>, <span class="ident">lapack::sgetrf</span>, <span class="ident">lapack::sgetri</span>, <span class="ident">lapack::sgetrs</span>);
+<span class="macro">impl_solve!</span>(<span class="ident">c64</span>, <span class="ident">lapack::zgetrf</span>, <span class="ident">lapack::zgetri</span>, <span class="ident">lapack::zgetrs</span>);
+<span class="macro">impl_solve!</span>(<span class="ident">c32</span>, <span class="ident">lapack::cgetrf</span>, <span class="ident">lapack::cgetri</span>, <span class="ident">lapack::cgetrs</span>);
 </pre></div>
-</section><section id="search" class="content hidden"></section><section class="footer"></section><div id="rustdoc-vars" data-root-path="../../" data-current-crate="lax" data-search-js="../../search-index.js"></div>
+</section><section id="search" class="content hidden"></section><div id="rustdoc-vars" data-root-path="../../" data-current-crate="lax" data-search-index-js="../../search-index.js" data-search-js="../../search.js"></div>
     <script src="../../main.js"></script><script src="../../source-script.js"></script><script src="../../source-files.js"></script></body></html>

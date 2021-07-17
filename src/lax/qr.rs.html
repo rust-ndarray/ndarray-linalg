@@ -17,7 +17,7 @@
     });
 </script>
 
-<style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../lax/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu"><img src="../../brush.svg" width="18" height="18" alt="Pick another theme!"></button><div id="theme-choices" role="menu"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" class="help-button">?</button>
+<style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../lax/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu"><img src="../../brush.svg" width="18" height="18" alt="Pick another theme!"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" class="help-button">?</button>
                 <a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" height="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
 <span id="2">  2</span>
 <span id="3">  3</span>
@@ -176,7 +176,7 @@
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! QR decomposition</span>
 
-<span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">error</span>::<span class="kw-2">*</span>, <span class="ident">layout</span>::<span class="ident">MatrixLayout</span>, <span class="kw-2">*</span>};
+<span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">error</span>::<span class="kw-2">*</span>, <span class="ident">layout::MatrixLayout</span>, <span class="kw-2">*</span>};
 <span class="kw">use</span> <span class="ident">cauchy</span>::<span class="kw-2">*</span>;
 <span class="kw">use</span> <span class="ident">num_traits</span>::{<span class="ident">ToPrimitive</span>, <span class="ident">Zero</span>};
 
@@ -194,7 +194,7 @@
     <span class="kw">fn</span> <span class="ident">qr</span>(<span class="ident">l</span>: <span class="ident">MatrixLayout</span>, <span class="ident">a</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="self">Self</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span><span class="op">&gt;</span>;
 }
 
-<span class="macro">macro_rules</span><span class="macro">!</span> <span class="ident">impl_qr</span> {
+<span class="macro">macro_rules!</span> <span class="ident">impl_qr</span> {
     (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">scalar</span>:<span class="ident">ty</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">qrf</span>:<span class="ident">path</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">lqf</span>:<span class="ident">path</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">gqr</span>:<span class="ident">path</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">glq</span>:<span class="ident">path</span>) <span class="op">=</span><span class="op">&gt;</span> {
         <span class="kw">impl</span> <span class="ident">QR_</span> <span class="kw">for</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">scalar</span> {
             <span class="kw">fn</span> <span class="ident">householder</span>(<span class="ident">l</span>: <span class="ident">MatrixLayout</span>, <span class="kw-2">mut</span> <span class="ident">a</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="self">Self</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span><span class="op">&gt;</span> {
@@ -205,13 +205,13 @@
 
                 <span class="comment">// eval work size</span>
                 <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">info</span> <span class="op">=</span> <span class="number">0</span>;
-                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">work_size</span> <span class="op">=</span> [<span class="self">Self</span>::<span class="ident">zero</span>()];
+                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">work_size</span> <span class="op">=</span> [<span class="self">Self</span><span class="ident">::zero</span>()];
                 <span class="kw">unsafe</span> {
                     <span class="kw">match</span> <span class="ident">l</span> {
-                        <span class="ident">MatrixLayout</span>::<span class="ident">F</span> { .. } <span class="op">=</span><span class="op">&gt;</span> {
+                        <span class="ident">MatrixLayout::F</span> { .. } <span class="op">=</span><span class="op">&gt;</span> {
                             <span class="macro-nonterminal">$</span><span class="macro-nonterminal">qrf</span>(<span class="ident">m</span>, <span class="ident">n</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">a</span>, <span class="ident">m</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">tau</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">work_size</span>, <span class="op">-</span><span class="number">1</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">info</span>);
                         }
-                        <span class="ident">MatrixLayout</span>::<span class="ident">C</span> { .. } <span class="op">=</span><span class="op">&gt;</span> {
+                        <span class="ident">MatrixLayout::C</span> { .. } <span class="op">=</span><span class="op">&gt;</span> {
                             <span class="macro-nonterminal">$</span><span class="macro-nonterminal">lqf</span>(<span class="ident">m</span>, <span class="ident">n</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">a</span>, <span class="ident">m</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">tau</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">work_size</span>, <span class="op">-</span><span class="number">1</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">info</span>);
                         }
                     }
@@ -223,7 +223,7 @@
                 <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">work</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">vec_uninit</span>(<span class="ident">lwork</span>) };
                 <span class="kw">unsafe</span> {
                     <span class="kw">match</span> <span class="ident">l</span> {
-                        <span class="ident">MatrixLayout</span>::<span class="ident">F</span> { .. } <span class="op">=</span><span class="op">&gt;</span> {
+                        <span class="ident">MatrixLayout::F</span> { .. } <span class="op">=</span><span class="op">&gt;</span> {
                             <span class="macro-nonterminal">$</span><span class="macro-nonterminal">qrf</span>(
                                 <span class="ident">m</span>,
                                 <span class="ident">n</span>,
@@ -235,7 +235,7 @@
                                 <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">info</span>,
                             );
                         }
-                        <span class="ident">MatrixLayout</span>::<span class="ident">C</span> { .. } <span class="op">=</span><span class="op">&gt;</span> {
+                        <span class="ident">MatrixLayout::C</span> { .. } <span class="op">=</span><span class="op">&gt;</span> {
                             <span class="macro-nonterminal">$</span><span class="macro-nonterminal">lqf</span>(
                                 <span class="ident">m</span>,
                                 <span class="ident">n</span>,
@@ -258,17 +258,17 @@
                 <span class="kw">let</span> <span class="ident">m</span> <span class="op">=</span> <span class="ident">l</span>.<span class="ident">lda</span>();
                 <span class="kw">let</span> <span class="ident">n</span> <span class="op">=</span> <span class="ident">l</span>.<span class="ident">len</span>();
                 <span class="kw">let</span> <span class="ident">k</span> <span class="op">=</span> <span class="ident">m</span>.<span class="ident">min</span>(<span class="ident">n</span>);
-                <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">tau</span>.<span class="ident">len</span>(), <span class="ident">k</span> <span class="kw">as</span> <span class="ident">usize</span>);
+                <span class="macro">assert_eq!</span>(<span class="ident">tau</span>.<span class="ident">len</span>(), <span class="ident">k</span> <span class="kw">as</span> <span class="ident">usize</span>);
 
                 <span class="comment">// eval work size</span>
                 <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">info</span> <span class="op">=</span> <span class="number">0</span>;
-                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">work_size</span> <span class="op">=</span> [<span class="self">Self</span>::<span class="ident">zero</span>()];
+                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">work_size</span> <span class="op">=</span> [<span class="self">Self</span><span class="ident">::zero</span>()];
                 <span class="kw">unsafe</span> {
                     <span class="kw">match</span> <span class="ident">l</span> {
-                        <span class="ident">MatrixLayout</span>::<span class="ident">F</span> { .. } <span class="op">=</span><span class="op">&gt;</span> {
+                        <span class="ident">MatrixLayout::F</span> { .. } <span class="op">=</span><span class="op">&gt;</span> {
                             <span class="macro-nonterminal">$</span><span class="macro-nonterminal">gqr</span>(<span class="ident">m</span>, <span class="ident">k</span>, <span class="ident">k</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">a</span>, <span class="ident">m</span>, <span class="kw-2">&amp;</span><span class="ident">tau</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">work_size</span>, <span class="op">-</span><span class="number">1</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">info</span>)
                         }
-                        <span class="ident">MatrixLayout</span>::<span class="ident">C</span> { .. } <span class="op">=</span><span class="op">&gt;</span> {
+                        <span class="ident">MatrixLayout::C</span> { .. } <span class="op">=</span><span class="op">&gt;</span> {
                             <span class="macro-nonterminal">$</span><span class="macro-nonterminal">glq</span>(<span class="ident">k</span>, <span class="ident">n</span>, <span class="ident">k</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">a</span>, <span class="ident">m</span>, <span class="kw-2">&amp;</span><span class="ident">tau</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">work_size</span>, <span class="op">-</span><span class="number">1</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">info</span>)
                         }
                     }
@@ -279,10 +279,10 @@
                 <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">work</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">vec_uninit</span>(<span class="ident">lwork</span>) };
                 <span class="kw">unsafe</span> {
                     <span class="kw">match</span> <span class="ident">l</span> {
-                        <span class="ident">MatrixLayout</span>::<span class="ident">F</span> { .. } <span class="op">=</span><span class="op">&gt;</span> {
+                        <span class="ident">MatrixLayout::F</span> { .. } <span class="op">=</span><span class="op">&gt;</span> {
                             <span class="macro-nonterminal">$</span><span class="macro-nonterminal">gqr</span>(<span class="ident">m</span>, <span class="ident">k</span>, <span class="ident">k</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">a</span>, <span class="ident">m</span>, <span class="kw-2">&amp;</span><span class="ident">tau</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">work</span>, <span class="ident">lwork</span> <span class="kw">as</span> <span class="ident">i32</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">info</span>)
                         }
-                        <span class="ident">MatrixLayout</span>::<span class="ident">C</span> { .. } <span class="op">=</span><span class="op">&gt;</span> {
+                        <span class="ident">MatrixLayout::C</span> { .. } <span class="op">=</span><span class="op">&gt;</span> {
                             <span class="macro-nonterminal">$</span><span class="macro-nonterminal">glq</span>(<span class="ident">k</span>, <span class="ident">n</span>, <span class="ident">k</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">a</span>, <span class="ident">m</span>, <span class="kw-2">&amp;</span><span class="ident">tau</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">work</span>, <span class="ident">lwork</span> <span class="kw">as</span> <span class="ident">i32</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">info</span>)
                         }
                     }
@@ -292,43 +292,43 @@
             }
 
             <span class="kw">fn</span> <span class="ident">qr</span>(<span class="ident">l</span>: <span class="ident">MatrixLayout</span>, <span class="ident">a</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="self">Self</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-                <span class="kw">let</span> <span class="ident">tau</span> <span class="op">=</span> <span class="self">Self</span>::<span class="ident">householder</span>(<span class="ident">l</span>, <span class="ident">a</span>)<span class="question-mark">?</span>;
-                <span class="kw">let</span> <span class="ident">r</span> <span class="op">=</span> <span class="ident">Vec</span>::<span class="ident">from</span>(<span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="ident">a</span>);
-                <span class="self">Self</span>::<span class="ident">q</span>(<span class="ident">l</span>, <span class="ident">a</span>, <span class="kw-2">&amp;</span><span class="ident">tau</span>)<span class="question-mark">?</span>;
+                <span class="kw">let</span> <span class="ident">tau</span> <span class="op">=</span> <span class="self">Self</span><span class="ident">::householder</span>(<span class="ident">l</span>, <span class="ident">a</span>)<span class="question-mark">?</span>;
+                <span class="kw">let</span> <span class="ident">r</span> <span class="op">=</span> <span class="ident">Vec::from</span>(<span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="ident">a</span>);
+                <span class="self">Self</span><span class="ident">::q</span>(<span class="ident">l</span>, <span class="ident">a</span>, <span class="kw-2">&amp;</span><span class="ident">tau</span>)<span class="question-mark">?</span>;
                 <span class="prelude-val">Ok</span>(<span class="ident">r</span>)
             }
         }
     };
 } <span class="comment">// endmacro</span>
 
-<span class="macro">impl_qr</span><span class="macro">!</span>(
+<span class="macro">impl_qr!</span>(
     <span class="ident">f64</span>,
-    <span class="ident">lapack</span>::<span class="ident">dgeqrf</span>,
-    <span class="ident">lapack</span>::<span class="ident">dgelqf</span>,
-    <span class="ident">lapack</span>::<span class="ident">dorgqr</span>,
-    <span class="ident">lapack</span>::<span class="ident">dorglq</span>
+    <span class="ident">lapack::dgeqrf</span>,
+    <span class="ident">lapack::dgelqf</span>,
+    <span class="ident">lapack::dorgqr</span>,
+    <span class="ident">lapack::dorglq</span>
 );
-<span class="macro">impl_qr</span><span class="macro">!</span>(
+<span class="macro">impl_qr!</span>(
     <span class="ident">f32</span>,
-    <span class="ident">lapack</span>::<span class="ident">sgeqrf</span>,
-    <span class="ident">lapack</span>::<span class="ident">sgelqf</span>,
-    <span class="ident">lapack</span>::<span class="ident">sorgqr</span>,
-    <span class="ident">lapack</span>::<span class="ident">sorglq</span>
+    <span class="ident">lapack::sgeqrf</span>,
+    <span class="ident">lapack::sgelqf</span>,
+    <span class="ident">lapack::sorgqr</span>,
+    <span class="ident">lapack::sorglq</span>
 );
-<span class="macro">impl_qr</span><span class="macro">!</span>(
+<span class="macro">impl_qr!</span>(
     <span class="ident">c64</span>,
-    <span class="ident">lapack</span>::<span class="ident">zgeqrf</span>,
-    <span class="ident">lapack</span>::<span class="ident">zgelqf</span>,
-    <span class="ident">lapack</span>::<span class="ident">zungqr</span>,
-    <span class="ident">lapack</span>::<span class="ident">zunglq</span>
+    <span class="ident">lapack::zgeqrf</span>,
+    <span class="ident">lapack::zgelqf</span>,
+    <span class="ident">lapack::zungqr</span>,
+    <span class="ident">lapack::zunglq</span>
 );
-<span class="macro">impl_qr</span><span class="macro">!</span>(
+<span class="macro">impl_qr!</span>(
     <span class="ident">c32</span>,
-    <span class="ident">lapack</span>::<span class="ident">cgeqrf</span>,
-    <span class="ident">lapack</span>::<span class="ident">cgelqf</span>,
-    <span class="ident">lapack</span>::<span class="ident">cungqr</span>,
-    <span class="ident">lapack</span>::<span class="ident">cunglq</span>
+    <span class="ident">lapack::cgeqrf</span>,
+    <span class="ident">lapack::cgelqf</span>,
+    <span class="ident">lapack::cungqr</span>,
+    <span class="ident">lapack::cunglq</span>
 );
 </pre></div>
-</section><section id="search" class="content hidden"></section><section class="footer"></section><div id="rustdoc-vars" data-root-path="../../" data-current-crate="lax" data-search-js="../../search-index.js"></div>
+</section><section id="search" class="content hidden"></section><div id="rustdoc-vars" data-root-path="../../" data-current-crate="lax" data-search-index-js="../../search-index.js" data-search-js="../../search.js"></div>
     <script src="../../main.js"></script><script src="../../source-script.js"></script><script src="../../source-files.js"></script></body></html>

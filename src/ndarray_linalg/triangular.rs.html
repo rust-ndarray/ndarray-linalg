@@ -17,7 +17,7 @@
     });
 </script>
 
-<style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../ndarray_linalg/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu"><img src="../../brush.svg" width="18" height="18" alt="Pick another theme!"></button><div id="theme-choices" role="menu"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" class="help-button">?</button>
+<style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../ndarray_linalg/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu"><img src="../../brush.svg" width="18" height="18" alt="Pick another theme!"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" class="help-button">?</button>
                 <a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" height="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
 <span id="2">  2</span>
 <span id="3">  3</span>
@@ -207,14 +207,14 @@
 
 <span class="kw">use</span> <span class="ident">lax</span>::<span class="kw-2">*</span>;
 <span class="kw">use</span> <span class="ident">ndarray</span>::<span class="kw-2">*</span>;
-<span class="kw">use</span> <span class="ident">num_traits</span>::<span class="ident">Zero</span>;
+<span class="kw">use</span> <span class="ident">num_traits::Zero</span>;
 
-<span class="kw">use</span> <span class="kw">super</span>::<span class="ident">convert</span>::<span class="kw-2">*</span>;
-<span class="kw">use</span> <span class="kw">super</span>::<span class="ident">error</span>::<span class="kw-2">*</span>;
-<span class="kw">use</span> <span class="kw">super</span>::<span class="ident">layout</span>::<span class="kw-2">*</span>;
-<span class="kw">use</span> <span class="kw">super</span>::<span class="ident">types</span>::<span class="kw-2">*</span>;
+<span class="kw">use</span> <span class="kw">super</span><span class="ident">::convert</span>::<span class="kw-2">*</span>;
+<span class="kw">use</span> <span class="kw">super</span><span class="ident">::error</span>::<span class="kw-2">*</span>;
+<span class="kw">use</span> <span class="kw">super</span><span class="ident">::layout</span>::<span class="kw-2">*</span>;
+<span class="kw">use</span> <span class="kw">super</span><span class="ident">::types</span>::<span class="kw-2">*</span>;
 
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">lax</span>::<span class="ident">Diag</span>;
+<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">lax::Diag</span>;
 
 <span class="doccomment">/// solve a triangular system with upper triangular matrix</span>
 <span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">SolveTriangular</span><span class="op">&lt;</span><span class="ident">A</span>, <span class="ident">S</span>, <span class="ident">D</span><span class="op">&gt;</span>
@@ -290,7 +290,7 @@
             <span class="ident">transpose_data</span>(<span class="ident">b</span>)<span class="question-mark">?</span>;
         }
         <span class="kw">let</span> <span class="ident">lb</span> <span class="op">=</span> <span class="ident">b</span>.<span class="ident">layout</span>()<span class="question-mark">?</span>;
-        <span class="ident">A</span>::<span class="ident">solve_triangular</span>(<span class="ident">la</span>, <span class="ident">lb</span>, <span class="ident">uplo</span>, <span class="ident">diag</span>, <span class="ident">a_</span>, <span class="ident">b</span>.<span class="ident">as_allocated_mut</span>()<span class="question-mark">?</span>)<span class="question-mark">?</span>;
+        <span class="ident">A::solve_triangular</span>(<span class="ident">la</span>, <span class="ident">lb</span>, <span class="ident">uplo</span>, <span class="ident">diag</span>, <span class="ident">a_</span>, <span class="ident">b</span>.<span class="ident">as_allocated_mut</span>()<span class="question-mark">?</span>)<span class="question-mark">?</span>;
         <span class="prelude-val">Ok</span>(<span class="ident">b</span>)
     }
 }
@@ -358,17 +358,17 @@
 {
     <span class="kw">fn</span> <span class="ident">into_triangular</span>(<span class="self">self</span>, <span class="ident">uplo</span>: <span class="ident">UPLO</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> <span class="ident">ArrayBase</span><span class="op">&lt;</span><span class="ident">S</span>, <span class="ident">Ix2</span><span class="op">&gt;</span> {
         <span class="kw">match</span> <span class="ident">uplo</span> {
-            <span class="ident">UPLO</span>::<span class="ident">Upper</span> <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">UPLO::Upper</span> <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="kw">for</span> ((<span class="ident">i</span>, <span class="ident">j</span>), <span class="ident">val</span>) <span class="kw">in</span> <span class="self">self</span>.<span class="ident">indexed_iter_mut</span>() {
                     <span class="kw">if</span> <span class="ident">i</span> <span class="op">&gt;</span> <span class="ident">j</span> {
-                        <span class="kw-2">*</span><span class="ident">val</span> <span class="op">=</span> <span class="ident">A</span>::<span class="ident">zero</span>();
+                        <span class="kw-2">*</span><span class="ident">val</span> <span class="op">=</span> <span class="ident">A::zero</span>();
                     }
                 }
             }
-            <span class="ident">UPLO</span>::<span class="ident">Lower</span> <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">UPLO::Lower</span> <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="kw">for</span> ((<span class="ident">i</span>, <span class="ident">j</span>), <span class="ident">val</span>) <span class="kw">in</span> <span class="self">self</span>.<span class="ident">indexed_iter_mut</span>() {
                     <span class="kw">if</span> <span class="ident">i</span> <span class="op">&lt;</span> <span class="ident">j</span> {
-                        <span class="kw-2">*</span><span class="ident">val</span> <span class="op">=</span> <span class="ident">A</span>::<span class="ident">zero</span>();
+                        <span class="kw-2">*</span><span class="ident">val</span> <span class="op">=</span> <span class="ident">A::zero</span>();
                     }
                 }
             }
@@ -388,5 +388,5 @@
     }
 }
 </pre></div>
-</section><section id="search" class="content hidden"></section><section class="footer"></section><div id="rustdoc-vars" data-root-path="../../" data-current-crate="ndarray_linalg" data-search-js="../../search-index.js"></div>
+</section><section id="search" class="content hidden"></section><div id="rustdoc-vars" data-root-path="../../" data-current-crate="ndarray_linalg" data-search-index-js="../../search-index.js" data-search-js="../../search.js"></div>
     <script src="../../main.js"></script><script src="../../source-script.js"></script><script src="../../source-files.js"></script></body></html>

@@ -17,7 +17,7 @@
     });
 </script>
 
-<style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../lax/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu"><img src="../../brush.svg" width="18" height="18" alt="Pick another theme!"></button><div id="theme-choices" role="menu"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" class="help-button">?</button>
+<style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../lax/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu"><img src="../../brush.svg" width="18" height="18" alt="Pick another theme!"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" class="help-button">?</button>
                 <a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" height="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
 <span id="2">  2</span>
 <span id="3">  3</span>
@@ -195,7 +195,7 @@
 <span class="doccomment">/// Result of LeastSquares</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">LeastSquaresOutput</span><span class="op">&lt;</span><span class="ident">A</span>: <span class="ident">Scalar</span><span class="op">&gt;</span> {
     <span class="doccomment">/// singular values</span>
-    <span class="kw">pub</span> <span class="ident">singular_values</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">A</span>::<span class="ident">Real</span><span class="op">&gt;</span>,
+    <span class="kw">pub</span> <span class="ident">singular_values</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">A::Real</span><span class="op">&gt;</span>,
     <span class="doccomment">/// The rank of the input matrix A</span>
     <span class="kw">pub</span> <span class="ident">rank</span>: <span class="ident">i32</span>,
 }
@@ -216,12 +216,12 @@
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">LeastSquaresOutput</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span><span class="op">&gt;</span>;
 }
 
-<span class="macro">macro_rules</span><span class="macro">!</span> <span class="ident">impl_least_squares</span> {
+<span class="macro">macro_rules!</span> <span class="ident">impl_least_squares</span> {
     (@<span class="ident">real</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">scalar</span>:<span class="ident">ty</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">gelsd</span>:<span class="ident">path</span>) <span class="op">=</span><span class="op">&gt;</span> {
-        <span class="macro">impl_least_squares</span><span class="macro">!</span>(@<span class="ident">body</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">scalar</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">gelsd</span>, );
+        <span class="macro">impl_least_squares!</span>(@<span class="ident">body</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">scalar</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">gelsd</span>, );
     };
     (@<span class="ident">complex</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">scalar</span>:<span class="ident">ty</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">gelsd</span>:<span class="ident">path</span>) <span class="op">=</span><span class="op">&gt;</span> {
-        <span class="macro">impl_least_squares</span><span class="macro">!</span>(@<span class="ident">body</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">scalar</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">gelsd</span>, <span class="ident">rwork</span>);
+        <span class="macro">impl_least_squares!</span>(@<span class="ident">body</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">scalar</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">gelsd</span>, <span class="ident">rwork</span>);
     };
 
     (@<span class="ident">body</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">scalar</span>:<span class="ident">ty</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">gelsd</span>:<span class="ident">path</span>, $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">rwork</span>:<span class="ident">ident</span>),<span class="kw-2">*</span>) <span class="op">=</span><span class="op">&gt;</span> {
@@ -232,7 +232,7 @@
                 <span class="ident">b</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="self">Self</span>],
             ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">LeastSquaresOutput</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span><span class="op">&gt;</span> {
                 <span class="kw">let</span> <span class="ident">b_layout</span> <span class="op">=</span> <span class="ident">l</span>.<span class="ident">resized</span>(<span class="ident">b</span>.<span class="ident">len</span>() <span class="kw">as</span> <span class="ident">i32</span>, <span class="number">1</span>);
-                <span class="self">Self</span>::<span class="ident">least_squares_nrhs</span>(<span class="ident">l</span>, <span class="ident">a</span>, <span class="ident">b_layout</span>, <span class="ident">b</span>)
+                <span class="self">Self</span><span class="ident">::least_squares_nrhs</span>(<span class="ident">l</span>, <span class="ident">a</span>, <span class="ident">b_layout</span>, <span class="ident">b</span>)
             }
 
             <span class="kw">fn</span> <span class="ident">least_squares_nrhs</span>(
@@ -250,38 +250,38 @@
                 <span class="kw">let</span> (<span class="ident">m</span>, <span class="ident">n</span>) <span class="op">=</span> <span class="ident">a_layout</span>.<span class="ident">size</span>();
                 <span class="kw">let</span> (<span class="ident">m_</span>, <span class="ident">nrhs</span>) <span class="op">=</span> <span class="ident">b_layout</span>.<span class="ident">size</span>();
                 <span class="kw">let</span> <span class="ident">k</span> <span class="op">=</span> <span class="ident">m</span>.<span class="ident">min</span>(<span class="ident">n</span>);
-                <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">m_</span> <span class="op">&gt;</span><span class="op">=</span> <span class="ident">m</span>);
+                <span class="macro">assert!</span>(<span class="ident">m_</span> <span class="op">&gt;</span><span class="op">=</span> <span class="ident">m</span>);
 
                 <span class="comment">// Transpose if a is C-continuous</span>
                 <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">a_t</span> <span class="op">=</span> <span class="prelude-val">None</span>;
                 <span class="kw">let</span> <span class="ident">a_layout</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">a_layout</span> {
-                    <span class="ident">MatrixLayout</span>::<span class="ident">C</span> { .. } <span class="op">=</span><span class="op">&gt;</span> {
+                    <span class="ident">MatrixLayout::C</span> { .. } <span class="op">=</span><span class="op">&gt;</span> {
                         <span class="ident">a_t</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="kw">unsafe</span> { <span class="ident">vec_uninit</span>( <span class="ident">a</span>.<span class="ident">len</span>()) });
                         <span class="ident">transpose</span>(<span class="ident">a_layout</span>, <span class="ident">a</span>, <span class="ident">a_t</span>.<span class="ident">as_mut</span>().<span class="ident">unwrap</span>())
                     }
-                    <span class="ident">MatrixLayout</span>::<span class="ident">F</span> { .. } <span class="op">=</span><span class="op">&gt;</span> <span class="ident">a_layout</span>,
+                    <span class="ident">MatrixLayout::F</span> { .. } <span class="op">=</span><span class="op">&gt;</span> <span class="ident">a_layout</span>,
                 };
 
                 <span class="comment">// Transpose if b is C-continuous</span>
                 <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">b_t</span> <span class="op">=</span> <span class="prelude-val">None</span>;
                 <span class="kw">let</span> <span class="ident">b_layout</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">b_layout</span> {
-                    <span class="ident">MatrixLayout</span>::<span class="ident">C</span> { .. } <span class="op">=</span><span class="op">&gt;</span> {
+                    <span class="ident">MatrixLayout::C</span> { .. } <span class="op">=</span><span class="op">&gt;</span> {
                         <span class="ident">b_t</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="kw">unsafe</span> { <span class="ident">vec_uninit</span>( <span class="ident">b</span>.<span class="ident">len</span>()) });
                         <span class="ident">transpose</span>(<span class="ident">b_layout</span>, <span class="ident">b</span>, <span class="ident">b_t</span>.<span class="ident">as_mut</span>().<span class="ident">unwrap</span>())
                     }
-                    <span class="ident">MatrixLayout</span>::<span class="ident">F</span> { .. } <span class="op">=</span><span class="op">&gt;</span> <span class="ident">b_layout</span>,
+                    <span class="ident">MatrixLayout::F</span> { .. } <span class="op">=</span><span class="op">&gt;</span> <span class="ident">b_layout</span>,
                 };
 
-                <span class="kw">let</span> <span class="ident">rcond</span>: <span class="self">Self</span>::<span class="ident">Real</span> <span class="op">=</span> <span class="op">-</span><span class="number">1.</span>;
-                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">singular_values</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="self">Self</span>::<span class="ident">Real</span><span class="op">&gt;</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">vec_uninit</span>( <span class="ident">k</span> <span class="kw">as</span> <span class="ident">usize</span>) };
+                <span class="kw">let</span> <span class="ident">rcond</span>: <span class="self">Self</span><span class="ident">::Real</span> <span class="op">=</span> <span class="op">-</span><span class="number">1.</span>;
+                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">singular_values</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="self">Self</span><span class="ident">::Real</span><span class="op">&gt;</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">vec_uninit</span>( <span class="ident">k</span> <span class="kw">as</span> <span class="ident">usize</span>) };
                 <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">rank</span>: <span class="ident">i32</span> <span class="op">=</span> <span class="number">0</span>;
 
                 <span class="comment">// eval work size</span>
                 <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">info</span> <span class="op">=</span> <span class="number">0</span>;
-                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">work_size</span> <span class="op">=</span> [<span class="self">Self</span>::<span class="ident">zero</span>()];
+                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">work_size</span> <span class="op">=</span> [<span class="self">Self</span><span class="ident">::zero</span>()];
                 <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">iwork_size</span> <span class="op">=</span> [<span class="number">0</span>];
                 $(
-                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">rwork</span> <span class="op">=</span> [<span class="self">Self</span>::<span class="ident">Real</span>::<span class="ident">zero</span>()];
+                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">rwork</span> <span class="op">=</span> [<span class="self">Self</span><span class="ident">::Real::zero</span>()];
                 )<span class="op">*</span>
                 <span class="kw">unsafe</span> {
                     <span class="macro-nonterminal">$</span><span class="macro-nonterminal">gelsd</span>(
@@ -349,10 +349,10 @@
     };
 }
 
-<span class="macro">impl_least_squares</span><span class="macro">!</span>(@<span class="ident">real</span>, <span class="ident">f64</span>, <span class="ident">lapack</span>::<span class="ident">dgelsd</span>);
-<span class="macro">impl_least_squares</span><span class="macro">!</span>(@<span class="ident">real</span>, <span class="ident">f32</span>, <span class="ident">lapack</span>::<span class="ident">sgelsd</span>);
-<span class="macro">impl_least_squares</span><span class="macro">!</span>(@<span class="ident">complex</span>, <span class="ident">c64</span>, <span class="ident">lapack</span>::<span class="ident">zgelsd</span>);
-<span class="macro">impl_least_squares</span><span class="macro">!</span>(@<span class="ident">complex</span>, <span class="ident">c32</span>, <span class="ident">lapack</span>::<span class="ident">cgelsd</span>);
+<span class="macro">impl_least_squares!</span>(@<span class="ident">real</span>, <span class="ident">f64</span>, <span class="ident">lapack::dgelsd</span>);
+<span class="macro">impl_least_squares!</span>(@<span class="ident">real</span>, <span class="ident">f32</span>, <span class="ident">lapack::sgelsd</span>);
+<span class="macro">impl_least_squares!</span>(@<span class="ident">complex</span>, <span class="ident">c64</span>, <span class="ident">lapack::zgelsd</span>);
+<span class="macro">impl_least_squares!</span>(@<span class="ident">complex</span>, <span class="ident">c32</span>, <span class="ident">lapack::cgelsd</span>);
 </pre></div>
-</section><section id="search" class="content hidden"></section><section class="footer"></section><div id="rustdoc-vars" data-root-path="../../" data-current-crate="lax" data-search-js="../../search-index.js"></div>
+</section><section id="search" class="content hidden"></section><div id="rustdoc-vars" data-root-path="../../" data-current-crate="lax" data-search-index-js="../../search-index.js" data-search-js="../../search.js"></div>
     <script src="../../main.js"></script><script src="../../source-script.js"></script><script src="../../source-files.js"></script></body></html>

@@ -17,7 +17,7 @@
     });
 </script>
 
-<style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../ndarray_linalg/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu"><img src="../../brush.svg" width="18" height="18" alt="Pick another theme!"></button><div id="theme-choices" role="menu"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" class="help-button">?</button>
+<style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../ndarray_linalg/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu"><img src="../../brush.svg" width="18" height="18" alt="Pick another theme!"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" class="help-button">?</button>
                 <a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" height="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
 <span id="2">  2</span>
 <span id="3">  3</span>
@@ -683,9 +683,9 @@
 <span class="kw">use</span> <span class="ident">lax</span>::<span class="kw-2">*</span>;
 <span class="kw">use</span> <span class="ident">ndarray</span>::<span class="kw-2">*</span>;
 
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">error</span>::<span class="kw-2">*</span>;
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">layout</span>::<span class="kw-2">*</span>;
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">types</span>::<span class="kw-2">*</span>;
+<span class="kw">use</span> <span class="kw">crate</span><span class="ident">::error</span>::<span class="kw-2">*</span>;
+<span class="kw">use</span> <span class="kw">crate</span><span class="ident">::layout</span>::<span class="kw-2">*</span>;
+<span class="kw">use</span> <span class="kw">crate</span><span class="ident">::types</span>::<span class="kw-2">*</span>;
 
 <span class="doccomment">/// Result of a LeastSquares computation</span>
 <span class="doccomment">///</span>
@@ -699,7 +699,7 @@
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">LeastSquaresResult</span><span class="op">&lt;</span><span class="ident">E</span>: <span class="ident">Scalar</span>, <span class="ident">I</span>: <span class="ident">Dimension</span><span class="op">&gt;</span> {
     <span class="doccomment">/// The singular values of the matrix A in `Ax = b`</span>
-    <span class="kw">pub</span> <span class="ident">singular_values</span>: <span class="ident">Array1</span><span class="op">&lt;</span><span class="ident">E</span>::<span class="ident">Real</span><span class="op">&gt;</span>,
+    <span class="kw">pub</span> <span class="ident">singular_values</span>: <span class="ident">Array1</span><span class="op">&lt;</span><span class="ident">E::Real</span><span class="op">&gt;</span>,
     <span class="doccomment">/// The solution vector or matrix `x` which is the best</span>
     <span class="doccomment">/// solution to `Ax = b`, i.e. minimizing the 2-norm `||b - Ax||`</span>
     <span class="kw">pub</span> <span class="ident">solution</span>: <span class="ident">Array</span><span class="op">&lt;</span><span class="ident">E</span>, <span class="ident">I</span><span class="op">&gt;</span>,
@@ -708,7 +708,7 @@
     <span class="doccomment">/// If n &lt; m and rank(A) == n, the sum of squares</span>
     <span class="doccomment">/// If b is a (m x 1) vector, this is a 0-dimensional array (single value)</span>
     <span class="doccomment">/// If b is a (m x k) matrix, this is a (k x 1) column vector</span>
-    <span class="kw">pub</span> <span class="ident">residual_sum_of_squares</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Array</span><span class="op">&lt;</span><span class="ident">E</span>::<span class="ident">Real</span>, <span class="ident">I</span>::<span class="ident">Smaller</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+    <span class="kw">pub</span> <span class="ident">residual_sum_of_squares</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Array</span><span class="op">&lt;</span><span class="ident">E::Real</span>, <span class="ident">I::Smaller</span><span class="op">&gt;</span><span class="op">&gt;</span>,
 }
 <span class="doccomment">/// Solve least squares for immutable references</span>
 <span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">LeastSquaresSvd</span><span class="op">&lt;</span><span class="ident">D</span>, <span class="ident">E</span>, <span class="ident">I</span><span class="op">&gt;</span>
@@ -893,14 +893,14 @@
         <span class="ident">rhs</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">ArrayBase</span><span class="op">&lt;</span><span class="ident">D2</span>, <span class="ident">Ix1</span><span class="op">&gt;</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">LeastSquaresResult</span><span class="op">&lt;</span><span class="ident">E</span>, <span class="ident">Ix1</span><span class="op">&gt;</span><span class="op">&gt;</span> {
         <span class="kw">if</span> <span class="self">self</span>.<span class="ident">shape</span>()[<span class="number">0</span>] <span class="op">!</span><span class="op">=</span> <span class="ident">rhs</span>.<span class="ident">shape</span>()[<span class="number">0</span>] {
-            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">ShapeError</span>::<span class="ident">from_kind</span>(<span class="ident">ErrorKind</span>::<span class="ident">IncompatibleShape</span>).<span class="ident">into</span>());
+            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">ShapeError::from_kind</span>(<span class="ident">ErrorKind::IncompatibleShape</span>).<span class="ident">into</span>());
         }
         <span class="kw">let</span> (<span class="ident">m</span>, <span class="ident">n</span>) <span class="op">=</span> (<span class="self">self</span>.<span class="ident">shape</span>()[<span class="number">0</span>], <span class="self">self</span>.<span class="ident">shape</span>()[<span class="number">1</span>]);
         <span class="kw">if</span> <span class="ident">n</span> <span class="op">&gt;</span> <span class="ident">m</span> {
             <span class="comment">// we need a new rhs b/c it will be overwritten with the solution</span>
             <span class="comment">// for which we need `n` entries</span>
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">new_rhs</span> <span class="op">=</span> <span class="ident">Array1</span>::<span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span>::<span class="ident">zeros</span>((<span class="ident">n</span>,));
-            <span class="ident">new_rhs</span>.<span class="ident">slice_mut</span>(<span class="macro">s</span><span class="macro">!</span>[<span class="number">0</span>..<span class="ident">m</span>]).<span class="ident">assign</span>(<span class="ident">rhs</span>);
+            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">new_rhs</span> <span class="op">=</span> <span class="ident">Array1</span>::<span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span><span class="ident">::zeros</span>((<span class="ident">n</span>,));
+            <span class="ident">new_rhs</span>.<span class="ident">slice_mut</span>(<span class="macro">s!</span>[<span class="number">0</span>..<span class="ident">m</span>]).<span class="ident">assign</span>(<span class="ident">rhs</span>);
             <span class="ident">compute_least_squares_srhs</span>(<span class="self">self</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">new_rhs</span>)
         } <span class="kw">else</span> {
             <span class="ident">compute_least_squares_srhs</span>(<span class="self">self</span>, <span class="ident">rhs</span>)
@@ -920,19 +920,19 @@
     <span class="kw">let</span> <span class="ident">LeastSquaresOutput</span>::<span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span> {
         <span class="ident">singular_values</span>,
         <span class="ident">rank</span>,
-    } <span class="op">=</span> <span class="ident">E</span>::<span class="ident">least_squares</span>(
+    } <span class="op">=</span> <span class="ident">E::least_squares</span>(
         <span class="ident">a</span>.<span class="ident">layout</span>()<span class="question-mark">?</span>,
         <span class="ident">a</span>.<span class="ident">as_allocated_mut</span>()<span class="question-mark">?</span>,
         <span class="ident">rhs</span>.<span class="ident">as_slice_memory_order_mut</span>()
-            .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">LinalgError</span>::<span class="ident">MemoryNotCont</span>)<span class="question-mark">?</span>,
+            .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">LinalgError::MemoryNotCont</span>)<span class="question-mark">?</span>,
     )<span class="question-mark">?</span>;
 
     <span class="kw">let</span> (<span class="ident">m</span>, <span class="ident">n</span>) <span class="op">=</span> (<span class="ident">a</span>.<span class="ident">shape</span>()[<span class="number">0</span>], <span class="ident">a</span>.<span class="ident">shape</span>()[<span class="number">1</span>]);
-    <span class="kw">let</span> <span class="ident">solution</span> <span class="op">=</span> <span class="ident">rhs</span>.<span class="ident">slice</span>(<span class="macro">s</span><span class="macro">!</span>[<span class="number">0</span>..<span class="ident">n</span>]).<span class="ident">to_owned</span>();
+    <span class="kw">let</span> <span class="ident">solution</span> <span class="op">=</span> <span class="ident">rhs</span>.<span class="ident">slice</span>(<span class="macro">s!</span>[<span class="number">0</span>..<span class="ident">n</span>]).<span class="ident">to_owned</span>();
     <span class="kw">let</span> <span class="ident">residual_sum_of_squares</span> <span class="op">=</span> <span class="ident">compute_residual_scalar</span>(<span class="ident">m</span>, <span class="ident">n</span>, <span class="ident">rank</span>, <span class="kw-2">&amp;</span><span class="ident">rhs</span>);
     <span class="prelude-val">Ok</span>(<span class="ident">LeastSquaresResult</span> {
         <span class="ident">solution</span>,
-        <span class="ident">singular_values</span>: <span class="ident">Array</span>::<span class="ident">from_shape_vec</span>((<span class="ident">singular_values</span>.<span class="ident">len</span>(),), <span class="ident">singular_values</span>)<span class="question-mark">?</span>,
+        <span class="ident">singular_values</span>: <span class="ident">Array::from_shape_vec</span>((<span class="ident">singular_values</span>.<span class="ident">len</span>(),), <span class="ident">singular_values</span>)<span class="question-mark">?</span>,
         <span class="ident">rank</span>,
         <span class="ident">residual_sum_of_squares</span>,
     })
@@ -943,12 +943,12 @@
     <span class="ident">n</span>: <span class="ident">usize</span>,
     <span class="ident">rank</span>: <span class="ident">i32</span>,
     <span class="ident">b</span>: <span class="kw-2">&amp;</span><span class="ident">ArrayBase</span><span class="op">&lt;</span><span class="ident">D</span>, <span class="ident">Ix1</span><span class="op">&gt;</span>,
-) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Array</span><span class="op">&lt;</span><span class="ident">E</span>::<span class="ident">Real</span>, <span class="ident">Ix0</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Array</span><span class="op">&lt;</span><span class="ident">E::Real</span>, <span class="ident">Ix0</span><span class="op">&gt;</span><span class="op">&gt;</span> {
     <span class="kw">if</span> <span class="ident">m</span> <span class="op">&lt;</span> <span class="ident">n</span> <span class="op">|</span><span class="op">|</span> <span class="ident">n</span> <span class="op">!</span><span class="op">=</span> <span class="ident">rank</span> <span class="kw">as</span> <span class="ident">usize</span> {
         <span class="kw">return</span> <span class="prelude-val">None</span>;
     }
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">arr</span>: <span class="ident">Array</span><span class="op">&lt;</span><span class="ident">E</span>::<span class="ident">Real</span>, <span class="ident">Ix0</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">Array</span>::<span class="ident">zeros</span>(());
-    <span class="ident">arr</span>[()] <span class="op">=</span> <span class="ident">b</span>.<span class="ident">slice</span>(<span class="macro">s</span><span class="macro">!</span>[<span class="ident">n</span>..]).<span class="ident">mapv</span>(<span class="op">|</span><span class="ident">x</span><span class="op">|</span> <span class="ident">x</span>.<span class="ident">powi</span>(<span class="number">2</span>).<span class="ident">abs</span>()).<span class="ident">sum</span>();
+    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">arr</span>: <span class="ident">Array</span><span class="op">&lt;</span><span class="ident">E::Real</span>, <span class="ident">Ix0</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">Array::zeros</span>(());
+    <span class="ident">arr</span>[()] <span class="op">=</span> <span class="ident">b</span>.<span class="ident">slice</span>(<span class="macro">s!</span>[<span class="ident">n</span>..]).<span class="ident">mapv</span>(<span class="op">|</span><span class="ident">x</span><span class="op">|</span> <span class="ident">x</span>.<span class="ident">powi</span>(<span class="number">2</span>).<span class="ident">abs</span>()).<span class="ident">sum</span>();
     <span class="prelude-val">Some</span>(<span class="ident">arr</span>)
 }
 
@@ -976,7 +976,7 @@
         <span class="ident">rhs</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">ArrayBase</span><span class="op">&lt;</span><span class="ident">D2</span>, <span class="ident">Ix2</span><span class="op">&gt;</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">LeastSquaresResult</span><span class="op">&lt;</span><span class="ident">E</span>, <span class="ident">Ix2</span><span class="op">&gt;</span><span class="op">&gt;</span> {
         <span class="kw">if</span> <span class="self">self</span>.<span class="ident">shape</span>()[<span class="number">0</span>] <span class="op">!</span><span class="op">=</span> <span class="ident">rhs</span>.<span class="ident">shape</span>()[<span class="number">0</span>] {
-            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">ShapeError</span>::<span class="ident">from_kind</span>(<span class="ident">ErrorKind</span>::<span class="ident">IncompatibleShape</span>).<span class="ident">into</span>());
+            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">ShapeError::from_kind</span>(<span class="ident">ErrorKind::IncompatibleShape</span>).<span class="ident">into</span>());
         }
         <span class="kw">let</span> (<span class="ident">m</span>, <span class="ident">n</span>) <span class="op">=</span> (<span class="self">self</span>.<span class="ident">shape</span>()[<span class="number">0</span>], <span class="self">self</span>.<span class="ident">shape</span>()[<span class="number">1</span>]);
         <span class="kw">if</span> <span class="ident">n</span> <span class="op">&gt;</span> <span class="ident">m</span> {
@@ -984,10 +984,10 @@
             <span class="comment">// for which we need `n` entries</span>
             <span class="kw">let</span> <span class="ident">k</span> <span class="op">=</span> <span class="ident">rhs</span>.<span class="ident">shape</span>()[<span class="number">1</span>];
             <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">new_rhs</span> <span class="op">=</span> <span class="kw">match</span> <span class="self">self</span>.<span class="ident">layout</span>()<span class="question-mark">?</span> {
-                <span class="ident">MatrixLayout</span>::<span class="ident">C</span> { .. } <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Array2</span>::<span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span>::<span class="ident">zeros</span>((<span class="ident">n</span>, <span class="ident">k</span>)),
-                <span class="ident">MatrixLayout</span>::<span class="ident">F</span> { .. } <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Array2</span>::<span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span>::<span class="ident">zeros</span>((<span class="ident">n</span>, <span class="ident">k</span>).<span class="ident">f</span>()),
+                <span class="ident">MatrixLayout::C</span> { .. } <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Array2</span>::<span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span><span class="ident">::zeros</span>((<span class="ident">n</span>, <span class="ident">k</span>)),
+                <span class="ident">MatrixLayout::F</span> { .. } <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Array2</span>::<span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span><span class="ident">::zeros</span>((<span class="ident">n</span>, <span class="ident">k</span>).<span class="ident">f</span>()),
             };
-            <span class="ident">new_rhs</span>.<span class="ident">slice_mut</span>(<span class="macro">s</span><span class="macro">!</span>[<span class="number">0</span>..<span class="ident">m</span>, ..]).<span class="ident">assign</span>(<span class="ident">rhs</span>);
+            <span class="ident">new_rhs</span>.<span class="ident">slice_mut</span>(<span class="macro">s!</span>[<span class="number">0</span>..<span class="ident">m</span>, ..]).<span class="ident">assign</span>(<span class="ident">rhs</span>);
             <span class="ident">compute_least_squares_nrhs</span>(<span class="self">self</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">new_rhs</span>)
         } <span class="kw">else</span> {
             <span class="ident">compute_least_squares_nrhs</span>(<span class="self">self</span>, <span class="ident">rhs</span>)
@@ -1009,15 +1009,15 @@
     <span class="kw">let</span> <span class="ident">LeastSquaresOutput</span>::<span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span> {
         <span class="ident">singular_values</span>,
         <span class="ident">rank</span>,
-    } <span class="op">=</span> <span class="ident">E</span>::<span class="ident">least_squares_nrhs</span>(
+    } <span class="op">=</span> <span class="ident">E::least_squares_nrhs</span>(
         <span class="ident">a_layout</span>,
         <span class="ident">a</span>.<span class="ident">as_allocated_mut</span>()<span class="question-mark">?</span>,
         <span class="ident">rhs_layout</span>,
         <span class="ident">rhs</span>.<span class="ident">as_allocated_mut</span>()<span class="question-mark">?</span>,
     )<span class="question-mark">?</span>;
 
-    <span class="kw">let</span> <span class="ident">solution</span>: <span class="ident">Array2</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">rhs</span>.<span class="ident">slice</span>(<span class="macro">s</span><span class="macro">!</span>[..<span class="ident">a</span>.<span class="ident">shape</span>()[<span class="number">1</span>], ..]).<span class="ident">to_owned</span>();
-    <span class="kw">let</span> <span class="ident">singular_values</span> <span class="op">=</span> <span class="ident">Array</span>::<span class="ident">from_shape_vec</span>((<span class="ident">singular_values</span>.<span class="ident">len</span>(),), <span class="ident">singular_values</span>)<span class="question-mark">?</span>;
+    <span class="kw">let</span> <span class="ident">solution</span>: <span class="ident">Array2</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">rhs</span>.<span class="ident">slice</span>(<span class="macro">s!</span>[..<span class="ident">a</span>.<span class="ident">shape</span>()[<span class="number">1</span>], ..]).<span class="ident">to_owned</span>();
+    <span class="kw">let</span> <span class="ident">singular_values</span> <span class="op">=</span> <span class="ident">Array::from_shape_vec</span>((<span class="ident">singular_values</span>.<span class="ident">len</span>(),), <span class="ident">singular_values</span>)<span class="question-mark">?</span>;
     <span class="kw">let</span> (<span class="ident">m</span>, <span class="ident">n</span>) <span class="op">=</span> (<span class="ident">a</span>.<span class="ident">shape</span>()[<span class="number">0</span>], <span class="ident">a</span>.<span class="ident">shape</span>()[<span class="number">1</span>]);
     <span class="kw">let</span> <span class="ident">residual_sum_of_squares</span> <span class="op">=</span> <span class="ident">compute_residual_array1</span>(<span class="ident">m</span>, <span class="ident">n</span>, <span class="ident">rank</span>, <span class="kw-2">&amp;</span><span class="ident">rhs</span>);
     <span class="prelude-val">Ok</span>(<span class="ident">LeastSquaresResult</span> {
@@ -1033,12 +1033,12 @@
     <span class="ident">n</span>: <span class="ident">usize</span>,
     <span class="ident">rank</span>: <span class="ident">i32</span>,
     <span class="ident">b</span>: <span class="kw-2">&amp;</span><span class="ident">ArrayBase</span><span class="op">&lt;</span><span class="ident">D</span>, <span class="ident">Ix2</span><span class="op">&gt;</span>,
-) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Array1</span><span class="op">&lt;</span><span class="ident">E</span>::<span class="ident">Real</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Array1</span><span class="op">&lt;</span><span class="ident">E::Real</span><span class="op">&gt;</span><span class="op">&gt;</span> {
     <span class="kw">if</span> <span class="ident">m</span> <span class="op">&lt;</span> <span class="ident">n</span> <span class="op">|</span><span class="op">|</span> <span class="ident">n</span> <span class="op">!</span><span class="op">=</span> <span class="ident">rank</span> <span class="kw">as</span> <span class="ident">usize</span> {
         <span class="kw">return</span> <span class="prelude-val">None</span>;
     }
     <span class="prelude-val">Some</span>(
-        <span class="ident">b</span>.<span class="ident">slice</span>(<span class="macro">s</span><span class="macro">!</span>[<span class="ident">n</span>.., ..])
+        <span class="ident">b</span>.<span class="ident">slice</span>(<span class="macro">s!</span>[<span class="ident">n</span>.., ..])
             .<span class="ident">mapv</span>(<span class="op">|</span><span class="ident">x</span><span class="op">|</span> <span class="ident">x</span>.<span class="ident">powi</span>(<span class="number">2</span>).<span class="ident">abs</span>())
             .<span class="ident">sum_axis</span>(<span class="ident">Axis</span>(<span class="number">0</span>)),
     )
@@ -1046,8 +1046,8 @@
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
 <span class="kw">mod</span> <span class="ident">tests</span> {
-    <span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">error</span>::<span class="ident">LinalgError</span>, <span class="kw-2">*</span>};
-    <span class="kw">use</span> <span class="ident">approx</span>::<span class="ident">AbsDiffEq</span>;
+    <span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">error::LinalgError</span>, <span class="kw-2">*</span>};
+    <span class="kw">use</span> <span class="ident">approx::AbsDiffEq</span>;
     <span class="kw">use</span> <span class="ident">ndarray</span>::<span class="kw-2">*</span>;
 
     <span class="comment">//</span>
@@ -1068,35 +1068,35 @@
         <span class="ident">b</span>: <span class="kw-2">&amp;</span><span class="ident">ArrayBase</span><span class="op">&lt;</span><span class="ident">D2</span>, <span class="ident">Ix1</span><span class="op">&gt;</span>,
         <span class="ident">res</span>: <span class="kw-2">&amp;</span><span class="ident">LeastSquaresResult</span><span class="op">&lt;</span><span class="ident">f64</span>, <span class="ident">Ix1</span><span class="op">&gt;</span>,
     ) {
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">res</span>.<span class="ident">rank</span>, <span class="number">2</span>);
+        <span class="macro">assert_eq!</span>(<span class="ident">res</span>.<span class="ident">rank</span>, <span class="number">2</span>);
         <span class="kw">let</span> <span class="ident">b_hat</span> <span class="op">=</span> <span class="ident">a</span>.<span class="ident">dot</span>(<span class="kw-2">&amp;</span><span class="ident">res</span>.<span class="ident">solution</span>);
         <span class="kw">let</span> <span class="ident">rssq</span> <span class="op">=</span> (<span class="ident">b</span> <span class="op">-</span> <span class="kw-2">&amp;</span><span class="ident">b_hat</span>).<span class="ident">mapv</span>(<span class="op">|</span><span class="ident">x</span><span class="op">|</span> <span class="ident">x</span>.<span class="ident">powi</span>(<span class="number">2</span>)).<span class="ident">sum</span>();
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">res</span>.<span class="ident">residual_sum_of_squares</span>.<span class="ident">as_ref</span>().<span class="ident">unwrap</span>()[()].<span class="ident">abs_diff_eq</span>(<span class="kw-2">&amp;</span><span class="ident">rssq</span>, <span class="number">1e-12</span>));
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">res</span>
+        <span class="macro">assert!</span>(<span class="ident">res</span>.<span class="ident">residual_sum_of_squares</span>.<span class="ident">as_ref</span>().<span class="ident">unwrap</span>()[()].<span class="ident">abs_diff_eq</span>(<span class="kw-2">&amp;</span><span class="ident">rssq</span>, <span class="number">1e-12</span>));
+        <span class="macro">assert!</span>(<span class="ident">res</span>
             .<span class="ident">solution</span>
-            .<span class="ident">abs_diff_eq</span>(<span class="kw-2">&amp;</span><span class="macro">array</span><span class="macro">!</span>[<span class="op">-</span><span class="number">0.428571428571429</span>, <span class="number">0.85714285714285</span>], <span class="number">1e-12</span>));
+            .<span class="ident">abs_diff_eq</span>(<span class="kw-2">&amp;</span><span class="macro">array!</span>[<span class="op">-</span><span class="number">0.428571428571429</span>, <span class="number">0.85714285714285</span>], <span class="number">1e-12</span>));
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">on_arc</span>() {
-        <span class="kw">let</span> <span class="ident">a</span>: <span class="ident">ArcArray2</span><span class="op">&lt;</span><span class="ident">f64</span><span class="op">&gt;</span> <span class="op">=</span> <span class="macro">array</span><span class="macro">!</span>[[<span class="number">1.</span>, <span class="number">2.</span>], [<span class="number">4.</span>, <span class="number">5.</span>], [<span class="number">3.</span>, <span class="number">4.</span>]].<span class="ident">into_shared</span>();
-        <span class="kw">let</span> <span class="ident">b</span>: <span class="ident">ArcArray1</span><span class="op">&lt;</span><span class="ident">f64</span><span class="op">&gt;</span> <span class="op">=</span> <span class="macro">array</span><span class="macro">!</span>[<span class="number">1.</span>, <span class="number">2.</span>, <span class="number">3.</span>].<span class="ident">into_shared</span>();
+        <span class="kw">let</span> <span class="ident">a</span>: <span class="ident">ArcArray2</span><span class="op">&lt;</span><span class="ident">f64</span><span class="op">&gt;</span> <span class="op">=</span> <span class="macro">array!</span>[[<span class="number">1.</span>, <span class="number">2.</span>], [<span class="number">4.</span>, <span class="number">5.</span>], [<span class="number">3.</span>, <span class="number">4.</span>]].<span class="ident">into_shared</span>();
+        <span class="kw">let</span> <span class="ident">b</span>: <span class="ident">ArcArray1</span><span class="op">&lt;</span><span class="ident">f64</span><span class="op">&gt;</span> <span class="op">=</span> <span class="macro">array!</span>[<span class="number">1.</span>, <span class="number">2.</span>, <span class="number">3.</span>].<span class="ident">into_shared</span>();
         <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <span class="ident">a</span>.<span class="ident">least_squares</span>(<span class="kw-2">&amp;</span><span class="ident">b</span>).<span class="ident">unwrap</span>();
         <span class="ident">assert_result</span>(<span class="kw-2">&amp;</span><span class="ident">a</span>, <span class="kw-2">&amp;</span><span class="ident">b</span>, <span class="kw-2">&amp;</span><span class="ident">res</span>);
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">on_cow</span>() {
-        <span class="kw">let</span> <span class="ident">a</span> <span class="op">=</span> <span class="ident">CowArray</span>::<span class="ident">from</span>(<span class="macro">array</span><span class="macro">!</span>[[<span class="number">1.</span>, <span class="number">2.</span>], [<span class="number">4.</span>, <span class="number">5.</span>], [<span class="number">3.</span>, <span class="number">4.</span>]]);
-        <span class="kw">let</span> <span class="ident">b</span> <span class="op">=</span> <span class="ident">CowArray</span>::<span class="ident">from</span>(<span class="macro">array</span><span class="macro">!</span>[<span class="number">1.</span>, <span class="number">2.</span>, <span class="number">3.</span>]);
+        <span class="kw">let</span> <span class="ident">a</span> <span class="op">=</span> <span class="ident">CowArray::from</span>(<span class="macro">array!</span>[[<span class="number">1.</span>, <span class="number">2.</span>], [<span class="number">4.</span>, <span class="number">5.</span>], [<span class="number">3.</span>, <span class="number">4.</span>]]);
+        <span class="kw">let</span> <span class="ident">b</span> <span class="op">=</span> <span class="ident">CowArray::from</span>(<span class="macro">array!</span>[<span class="number">1.</span>, <span class="number">2.</span>, <span class="number">3.</span>]);
         <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <span class="ident">a</span>.<span class="ident">least_squares</span>(<span class="kw-2">&amp;</span><span class="ident">b</span>).<span class="ident">unwrap</span>();
         <span class="ident">assert_result</span>(<span class="kw-2">&amp;</span><span class="ident">a</span>, <span class="kw-2">&amp;</span><span class="ident">b</span>, <span class="kw-2">&amp;</span><span class="ident">res</span>);
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">on_view</span>() {
-        <span class="kw">let</span> <span class="ident">a</span>: <span class="ident">Array2</span><span class="op">&lt;</span><span class="ident">f64</span><span class="op">&gt;</span> <span class="op">=</span> <span class="macro">array</span><span class="macro">!</span>[[<span class="number">1.</span>, <span class="number">2.</span>], [<span class="number">4.</span>, <span class="number">5.</span>], [<span class="number">3.</span>, <span class="number">4.</span>]];
-        <span class="kw">let</span> <span class="ident">b</span>: <span class="ident">Array1</span><span class="op">&lt;</span><span class="ident">f64</span><span class="op">&gt;</span> <span class="op">=</span> <span class="macro">array</span><span class="macro">!</span>[<span class="number">1.</span>, <span class="number">2.</span>, <span class="number">3.</span>];
+        <span class="kw">let</span> <span class="ident">a</span>: <span class="ident">Array2</span><span class="op">&lt;</span><span class="ident">f64</span><span class="op">&gt;</span> <span class="op">=</span> <span class="macro">array!</span>[[<span class="number">1.</span>, <span class="number">2.</span>], [<span class="number">4.</span>, <span class="number">5.</span>], [<span class="number">3.</span>, <span class="number">4.</span>]];
+        <span class="kw">let</span> <span class="ident">b</span>: <span class="ident">Array1</span><span class="op">&lt;</span><span class="ident">f64</span><span class="op">&gt;</span> <span class="op">=</span> <span class="macro">array!</span>[<span class="number">1.</span>, <span class="number">2.</span>, <span class="number">3.</span>];
         <span class="kw">let</span> <span class="ident">av</span> <span class="op">=</span> <span class="ident">a</span>.<span class="ident">view</span>();
         <span class="kw">let</span> <span class="ident">bv</span> <span class="op">=</span> <span class="ident">b</span>.<span class="ident">view</span>();
         <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <span class="ident">av</span>.<span class="ident">least_squares</span>(<span class="kw-2">&amp;</span><span class="ident">bv</span>).<span class="ident">unwrap</span>();
@@ -1105,8 +1105,8 @@
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">on_view_mut</span>() {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">a</span>: <span class="ident">Array2</span><span class="op">&lt;</span><span class="ident">f64</span><span class="op">&gt;</span> <span class="op">=</span> <span class="macro">array</span><span class="macro">!</span>[[<span class="number">1.</span>, <span class="number">2.</span>], [<span class="number">4.</span>, <span class="number">5.</span>], [<span class="number">3.</span>, <span class="number">4.</span>]];
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">b</span>: <span class="ident">Array1</span><span class="op">&lt;</span><span class="ident">f64</span><span class="op">&gt;</span> <span class="op">=</span> <span class="macro">array</span><span class="macro">!</span>[<span class="number">1.</span>, <span class="number">2.</span>, <span class="number">3.</span>];
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">a</span>: <span class="ident">Array2</span><span class="op">&lt;</span><span class="ident">f64</span><span class="op">&gt;</span> <span class="op">=</span> <span class="macro">array!</span>[[<span class="number">1.</span>, <span class="number">2.</span>], [<span class="number">4.</span>, <span class="number">5.</span>], [<span class="number">3.</span>, <span class="number">4.</span>]];
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">b</span>: <span class="ident">Array1</span><span class="op">&lt;</span><span class="ident">f64</span><span class="op">&gt;</span> <span class="op">=</span> <span class="macro">array!</span>[<span class="number">1.</span>, <span class="number">2.</span>, <span class="number">3.</span>];
         <span class="kw">let</span> <span class="ident">av</span> <span class="op">=</span> <span class="ident">a</span>.<span class="ident">view_mut</span>();
         <span class="kw">let</span> <span class="ident">bv</span> <span class="op">=</span> <span class="ident">b</span>.<span class="ident">view_mut</span>();
         <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <span class="ident">av</span>.<span class="ident">least_squares</span>(<span class="kw-2">&amp;</span><span class="ident">bv</span>).<span class="ident">unwrap</span>();
@@ -1115,8 +1115,8 @@
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">on_cow_view</span>() {
-        <span class="kw">let</span> <span class="ident">a</span> <span class="op">=</span> <span class="ident">CowArray</span>::<span class="ident">from</span>(<span class="macro">array</span><span class="macro">!</span>[[<span class="number">1.</span>, <span class="number">2.</span>], [<span class="number">4.</span>, <span class="number">5.</span>], [<span class="number">3.</span>, <span class="number">4.</span>]]);
-        <span class="kw">let</span> <span class="ident">b</span>: <span class="ident">Array1</span><span class="op">&lt;</span><span class="ident">f64</span><span class="op">&gt;</span> <span class="op">=</span> <span class="macro">array</span><span class="macro">!</span>[<span class="number">1.</span>, <span class="number">2.</span>, <span class="number">3.</span>];
+        <span class="kw">let</span> <span class="ident">a</span> <span class="op">=</span> <span class="ident">CowArray::from</span>(<span class="macro">array!</span>[[<span class="number">1.</span>, <span class="number">2.</span>], [<span class="number">4.</span>, <span class="number">5.</span>], [<span class="number">3.</span>, <span class="number">4.</span>]]);
+        <span class="kw">let</span> <span class="ident">b</span>: <span class="ident">Array1</span><span class="op">&lt;</span><span class="ident">f64</span><span class="op">&gt;</span> <span class="op">=</span> <span class="macro">array!</span>[<span class="number">1.</span>, <span class="number">2.</span>, <span class="number">3.</span>];
         <span class="kw">let</span> <span class="ident">bv</span> <span class="op">=</span> <span class="ident">b</span>.<span class="ident">view</span>();
         <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <span class="ident">a</span>.<span class="ident">least_squares</span>(<span class="kw-2">&amp;</span><span class="ident">bv</span>).<span class="ident">unwrap</span>();
         <span class="ident">assert_result</span>(<span class="kw-2">&amp;</span><span class="ident">a</span>, <span class="kw-2">&amp;</span><span class="ident">bv</span>, <span class="kw-2">&amp;</span><span class="ident">res</span>);
@@ -1124,8 +1124,8 @@
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">into_on_owned</span>() {
-        <span class="kw">let</span> <span class="ident">a</span>: <span class="ident">Array2</span><span class="op">&lt;</span><span class="ident">f64</span><span class="op">&gt;</span> <span class="op">=</span> <span class="macro">array</span><span class="macro">!</span>[[<span class="number">1.</span>, <span class="number">2.</span>], [<span class="number">4.</span>, <span class="number">5.</span>], [<span class="number">3.</span>, <span class="number">4.</span>]];
-        <span class="kw">let</span> <span class="ident">b</span>: <span class="ident">Array1</span><span class="op">&lt;</span><span class="ident">f64</span><span class="op">&gt;</span> <span class="op">=</span> <span class="macro">array</span><span class="macro">!</span>[<span class="number">1.</span>, <span class="number">2.</span>, <span class="number">3.</span>];
+        <span class="kw">let</span> <span class="ident">a</span>: <span class="ident">Array2</span><span class="op">&lt;</span><span class="ident">f64</span><span class="op">&gt;</span> <span class="op">=</span> <span class="macro">array!</span>[[<span class="number">1.</span>, <span class="number">2.</span>], [<span class="number">4.</span>, <span class="number">5.</span>], [<span class="number">3.</span>, <span class="number">4.</span>]];
+        <span class="kw">let</span> <span class="ident">b</span>: <span class="ident">Array1</span><span class="op">&lt;</span><span class="ident">f64</span><span class="op">&gt;</span> <span class="op">=</span> <span class="macro">array!</span>[<span class="number">1.</span>, <span class="number">2.</span>, <span class="number">3.</span>];
         <span class="kw">let</span> <span class="ident">ac</span> <span class="op">=</span> <span class="ident">a</span>.<span class="ident">clone</span>();
         <span class="kw">let</span> <span class="ident">bc</span> <span class="op">=</span> <span class="ident">b</span>.<span class="ident">clone</span>();
         <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <span class="ident">ac</span>.<span class="ident">least_squares_into</span>(<span class="ident">bc</span>).<span class="ident">unwrap</span>();
@@ -1134,8 +1134,8 @@
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">into_on_arc</span>() {
-        <span class="kw">let</span> <span class="ident">a</span>: <span class="ident">ArcArray2</span><span class="op">&lt;</span><span class="ident">f64</span><span class="op">&gt;</span> <span class="op">=</span> <span class="macro">array</span><span class="macro">!</span>[[<span class="number">1.</span>, <span class="number">2.</span>], [<span class="number">4.</span>, <span class="number">5.</span>], [<span class="number">3.</span>, <span class="number">4.</span>]].<span class="ident">into_shared</span>();
-        <span class="kw">let</span> <span class="ident">b</span>: <span class="ident">ArcArray1</span><span class="op">&lt;</span><span class="ident">f64</span><span class="op">&gt;</span> <span class="op">=</span> <span class="macro">array</span><span class="macro">!</span>[<span class="number">1.</span>, <span class="number">2.</span>, <span class="number">3.</span>].<span class="ident">into_shared</span>();
+        <span class="kw">let</span> <span class="ident">a</span>: <span class="ident">ArcArray2</span><span class="op">&lt;</span><span class="ident">f64</span><span class="op">&gt;</span> <span class="op">=</span> <span class="macro">array!</span>[[<span class="number">1.</span>, <span class="number">2.</span>], [<span class="number">4.</span>, <span class="number">5.</span>], [<span class="number">3.</span>, <span class="number">4.</span>]].<span class="ident">into_shared</span>();
+        <span class="kw">let</span> <span class="ident">b</span>: <span class="ident">ArcArray1</span><span class="op">&lt;</span><span class="ident">f64</span><span class="op">&gt;</span> <span class="op">=</span> <span class="macro">array!</span>[<span class="number">1.</span>, <span class="number">2.</span>, <span class="number">3.</span>].<span class="ident">into_shared</span>();
         <span class="kw">let</span> <span class="ident">a2</span> <span class="op">=</span> <span class="ident">a</span>.<span class="ident">clone</span>();
         <span class="kw">let</span> <span class="ident">b2</span> <span class="op">=</span> <span class="ident">b</span>.<span class="ident">clone</span>();
         <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <span class="ident">a2</span>.<span class="ident">least_squares_into</span>(<span class="ident">b2</span>).<span class="ident">unwrap</span>();
@@ -1144,8 +1144,8 @@
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">into_on_cow</span>() {
-        <span class="kw">let</span> <span class="ident">a</span> <span class="op">=</span> <span class="ident">CowArray</span>::<span class="ident">from</span>(<span class="macro">array</span><span class="macro">!</span>[[<span class="number">1.</span>, <span class="number">2.</span>], [<span class="number">4.</span>, <span class="number">5.</span>], [<span class="number">3.</span>, <span class="number">4.</span>]]);
-        <span class="kw">let</span> <span class="ident">b</span> <span class="op">=</span> <span class="ident">CowArray</span>::<span class="ident">from</span>(<span class="macro">array</span><span class="macro">!</span>[<span class="number">1.</span>, <span class="number">2.</span>, <span class="number">3.</span>]);
+        <span class="kw">let</span> <span class="ident">a</span> <span class="op">=</span> <span class="ident">CowArray::from</span>(<span class="macro">array!</span>[[<span class="number">1.</span>, <span class="number">2.</span>], [<span class="number">4.</span>, <span class="number">5.</span>], [<span class="number">3.</span>, <span class="number">4.</span>]]);
+        <span class="kw">let</span> <span class="ident">b</span> <span class="op">=</span> <span class="ident">CowArray::from</span>(<span class="macro">array!</span>[<span class="number">1.</span>, <span class="number">2.</span>, <span class="number">3.</span>]);
         <span class="kw">let</span> <span class="ident">a2</span> <span class="op">=</span> <span class="ident">a</span>.<span class="ident">clone</span>();
         <span class="kw">let</span> <span class="ident">b2</span> <span class="op">=</span> <span class="ident">b</span>.<span class="ident">clone</span>();
         <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <span class="ident">a2</span>.<span class="ident">least_squares_into</span>(<span class="ident">b2</span>).<span class="ident">unwrap</span>();
@@ -1154,8 +1154,8 @@
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">into_on_owned_cow</span>() {
-        <span class="kw">let</span> <span class="ident">a</span>: <span class="ident">Array2</span><span class="op">&lt;</span><span class="ident">f64</span><span class="op">&gt;</span> <span class="op">=</span> <span class="macro">array</span><span class="macro">!</span>[[<span class="number">1.</span>, <span class="number">2.</span>], [<span class="number">4.</span>, <span class="number">5.</span>], [<span class="number">3.</span>, <span class="number">4.</span>]];
-        <span class="kw">let</span> <span class="ident">b</span> <span class="op">=</span> <span class="ident">CowArray</span>::<span class="ident">from</span>(<span class="macro">array</span><span class="macro">!</span>[<span class="number">1.</span>, <span class="number">2.</span>, <span class="number">3.</span>]);
+        <span class="kw">let</span> <span class="ident">a</span>: <span class="ident">Array2</span><span class="op">&lt;</span><span class="ident">f64</span><span class="op">&gt;</span> <span class="op">=</span> <span class="macro">array!</span>[[<span class="number">1.</span>, <span class="number">2.</span>], [<span class="number">4.</span>, <span class="number">5.</span>], [<span class="number">3.</span>, <span class="number">4.</span>]];
+        <span class="kw">let</span> <span class="ident">b</span> <span class="op">=</span> <span class="ident">CowArray::from</span>(<span class="macro">array!</span>[<span class="number">1.</span>, <span class="number">2.</span>, <span class="number">3.</span>]);
         <span class="kw">let</span> <span class="ident">ac</span> <span class="op">=</span> <span class="ident">a</span>.<span class="ident">clone</span>();
         <span class="kw">let</span> <span class="ident">b2</span> <span class="op">=</span> <span class="ident">b</span>.<span class="ident">clone</span>();
         <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <span class="ident">ac</span>.<span class="ident">least_squares_into</span>(<span class="ident">b2</span>).<span class="ident">unwrap</span>();
@@ -1164,8 +1164,8 @@
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">in_place_on_owned</span>() {
-        <span class="kw">let</span> <span class="ident">a</span> <span class="op">=</span> <span class="macro">array</span><span class="macro">!</span>[[<span class="number">1.</span>, <span class="number">2.</span>], [<span class="number">4.</span>, <span class="number">5.</span>], [<span class="number">3.</span>, <span class="number">4.</span>]];
-        <span class="kw">let</span> <span class="ident">b</span> <span class="op">=</span> <span class="macro">array</span><span class="macro">!</span>[<span class="number">1.</span>, <span class="number">2.</span>, <span class="number">3.</span>];
+        <span class="kw">let</span> <span class="ident">a</span> <span class="op">=</span> <span class="macro">array!</span>[[<span class="number">1.</span>, <span class="number">2.</span>], [<span class="number">4.</span>, <span class="number">5.</span>], [<span class="number">3.</span>, <span class="number">4.</span>]];
+        <span class="kw">let</span> <span class="ident">b</span> <span class="op">=</span> <span class="macro">array!</span>[<span class="number">1.</span>, <span class="number">2.</span>, <span class="number">3.</span>];
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">a2</span> <span class="op">=</span> <span class="ident">a</span>.<span class="ident">clone</span>();
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">b2</span> <span class="op">=</span> <span class="ident">b</span>.<span class="ident">clone</span>();
         <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <span class="ident">a2</span>.<span class="ident">least_squares_in_place</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">b2</span>).<span class="ident">unwrap</span>();
@@ -1174,8 +1174,8 @@
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">in_place_on_cow</span>() {
-        <span class="kw">let</span> <span class="ident">a</span> <span class="op">=</span> <span class="ident">CowArray</span>::<span class="ident">from</span>(<span class="macro">array</span><span class="macro">!</span>[[<span class="number">1.</span>, <span class="number">2.</span>], [<span class="number">4.</span>, <span class="number">5.</span>], [<span class="number">3.</span>, <span class="number">4.</span>]]);
-        <span class="kw">let</span> <span class="ident">b</span> <span class="op">=</span> <span class="ident">CowArray</span>::<span class="ident">from</span>(<span class="macro">array</span><span class="macro">!</span>[<span class="number">1.</span>, <span class="number">2.</span>, <span class="number">3.</span>]);
+        <span class="kw">let</span> <span class="ident">a</span> <span class="op">=</span> <span class="ident">CowArray::from</span>(<span class="macro">array!</span>[[<span class="number">1.</span>, <span class="number">2.</span>], [<span class="number">4.</span>, <span class="number">5.</span>], [<span class="number">3.</span>, <span class="number">4.</span>]]);
+        <span class="kw">let</span> <span class="ident">b</span> <span class="op">=</span> <span class="ident">CowArray::from</span>(<span class="macro">array!</span>[<span class="number">1.</span>, <span class="number">2.</span>, <span class="number">3.</span>]);
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">a2</span> <span class="op">=</span> <span class="ident">a</span>.<span class="ident">clone</span>();
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">b2</span> <span class="op">=</span> <span class="ident">b</span>.<span class="ident">clone</span>();
         <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <span class="ident">a2</span>.<span class="ident">least_squares_in_place</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">b2</span>).<span class="ident">unwrap</span>();
@@ -1184,8 +1184,8 @@
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">in_place_on_mut_view</span>() {
-        <span class="kw">let</span> <span class="ident">a</span> <span class="op">=</span> <span class="macro">array</span><span class="macro">!</span>[[<span class="number">1.</span>, <span class="number">2.</span>], [<span class="number">4.</span>, <span class="number">5.</span>], [<span class="number">3.</span>, <span class="number">4.</span>]];
-        <span class="kw">let</span> <span class="ident">b</span> <span class="op">=</span> <span class="macro">array</span><span class="macro">!</span>[<span class="number">1.</span>, <span class="number">2.</span>, <span class="number">3.</span>];
+        <span class="kw">let</span> <span class="ident">a</span> <span class="op">=</span> <span class="macro">array!</span>[[<span class="number">1.</span>, <span class="number">2.</span>], [<span class="number">4.</span>, <span class="number">5.</span>], [<span class="number">3.</span>, <span class="number">4.</span>]];
+        <span class="kw">let</span> <span class="ident">b</span> <span class="op">=</span> <span class="macro">array!</span>[<span class="number">1.</span>, <span class="number">2.</span>, <span class="number">3.</span>];
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">a2</span> <span class="op">=</span> <span class="ident">a</span>.<span class="ident">clone</span>();
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">b2</span> <span class="op">=</span> <span class="ident">b</span>.<span class="ident">clone</span>();
         <span class="kw">let</span> <span class="ident">av</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">a2</span>.<span class="ident">view_mut</span>();
@@ -1196,8 +1196,8 @@
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">in_place_on_owned_cow</span>() {
-        <span class="kw">let</span> <span class="ident">a</span> <span class="op">=</span> <span class="macro">array</span><span class="macro">!</span>[[<span class="number">1.</span>, <span class="number">2.</span>], [<span class="number">4.</span>, <span class="number">5.</span>], [<span class="number">3.</span>, <span class="number">4.</span>]];
-        <span class="kw">let</span> <span class="ident">b</span> <span class="op">=</span> <span class="ident">CowArray</span>::<span class="ident">from</span>(<span class="macro">array</span><span class="macro">!</span>[<span class="number">1.</span>, <span class="number">2.</span>, <span class="number">3.</span>]);
+        <span class="kw">let</span> <span class="ident">a</span> <span class="op">=</span> <span class="macro">array!</span>[[<span class="number">1.</span>, <span class="number">2.</span>], [<span class="number">4.</span>, <span class="number">5.</span>], [<span class="number">3.</span>, <span class="number">4.</span>]];
+        <span class="kw">let</span> <span class="ident">b</span> <span class="op">=</span> <span class="ident">CowArray::from</span>(<span class="macro">array!</span>[<span class="number">1.</span>, <span class="number">2.</span>, <span class="number">3.</span>]);
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">a2</span> <span class="op">=</span> <span class="ident">a</span>.<span class="ident">clone</span>();
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">b2</span> <span class="op">=</span> <span class="ident">b</span>.<span class="ident">clone</span>();
         <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <span class="ident">a2</span>.<span class="ident">least_squares_in_place</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">b2</span>).<span class="ident">unwrap</span>();
@@ -1209,14 +1209,14 @@
     <span class="comment">//</span>
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">incompatible_shape_error_on_mismatching_num_rows</span>() {
-        <span class="kw">let</span> <span class="ident">a</span>: <span class="ident">Array2</span><span class="op">&lt;</span><span class="ident">f64</span><span class="op">&gt;</span> <span class="op">=</span> <span class="macro">array</span><span class="macro">!</span>[[<span class="number">1.</span>, <span class="number">2.</span>], [<span class="number">4.</span>, <span class="number">5.</span>], [<span class="number">3.</span>, <span class="number">4.</span>]];
-        <span class="kw">let</span> <span class="ident">b</span>: <span class="ident">Array1</span><span class="op">&lt;</span><span class="ident">f64</span><span class="op">&gt;</span> <span class="op">=</span> <span class="macro">array</span><span class="macro">!</span>[<span class="number">1.</span>, <span class="number">2.</span>];
+        <span class="kw">let</span> <span class="ident">a</span>: <span class="ident">Array2</span><span class="op">&lt;</span><span class="ident">f64</span><span class="op">&gt;</span> <span class="op">=</span> <span class="macro">array!</span>[[<span class="number">1.</span>, <span class="number">2.</span>], [<span class="number">4.</span>, <span class="number">5.</span>], [<span class="number">3.</span>, <span class="number">4.</span>]];
+        <span class="kw">let</span> <span class="ident">b</span>: <span class="ident">Array1</span><span class="op">&lt;</span><span class="ident">f64</span><span class="op">&gt;</span> <span class="op">=</span> <span class="macro">array!</span>[<span class="number">1.</span>, <span class="number">2.</span>];
         <span class="kw">match</span> <span class="ident">a</span>.<span class="ident">least_squares</span>(<span class="kw-2">&amp;</span><span class="ident">b</span>) {
-            <span class="prelude-val">Err</span>(<span class="ident">LinalgError</span>::<span class="ident">Shape</span>(<span class="ident">e</span>)) <span class="kw">if</span> <span class="ident">e</span>.<span class="ident">kind</span>() <span class="op">=</span><span class="op">=</span> <span class="ident">ErrorKind</span>::<span class="ident">IncompatibleShape</span> <span class="op">=</span><span class="op">&gt;</span> {}
-            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">panic</span><span class="macro">!</span>(<span class="string">&quot;Should be raise IncompatibleShape&quot;</span>),
+            <span class="prelude-val">Err</span>(<span class="ident">LinalgError::Shape</span>(<span class="ident">e</span>)) <span class="kw">if</span> <span class="ident">e</span>.<span class="ident">kind</span>() <span class="op">=</span><span class="op">=</span> <span class="ident">ErrorKind::IncompatibleShape</span> <span class="op">=</span><span class="op">&gt;</span> {}
+            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">panic!</span>(<span class="string">&quot;Should be raise IncompatibleShape&quot;</span>),
         }
     }
 }
 </pre></div>
-</section><section id="search" class="content hidden"></section><section class="footer"></section><div id="rustdoc-vars" data-root-path="../../" data-current-crate="ndarray_linalg" data-search-js="../../search-index.js"></div>
+</section><section id="search" class="content hidden"></section><div id="rustdoc-vars" data-root-path="../../" data-current-crate="ndarray_linalg" data-search-index-js="../../search-index.js" data-search-js="../../search.js"></div>
     <script src="../../main.js"></script><script src="../../source-script.js"></script><script src="../../source-files.js"></script></body></html>

@@ -38,7 +38,7 @@ pub trait SVDDCInplace {
 impl<A, S> SVDDC for ArrayBase<S, Ix2>
 where
     A: Scalar + Lapack,
-    S: DataMut<Elem = A>,
+    S: Data<Elem = A>,
 {
     type U = Array2<A>;
     type VT = Array2<A>;

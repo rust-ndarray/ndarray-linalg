@@ -1,6 +1,13 @@
 Unreleased
 -----------
 
+0.14.1 - 14 August 2021
+========================
+
+Fixed
+------
+-  Add crate:: prefix to top-level wildcard imports https://github.com/rust-ndarray/ndarray-linalg/pull/302
+
 0.14.0 - 17 July 2021
 =====================
 

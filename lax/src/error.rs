@@ -11,7 +11,7 @@ pub enum Error {
     LapackInvalidValue { return_code: i32 },
 
     #[error(
-        "Comutational failure in LAPACK subroutine: return_code = {}",
+        "Computational failure in LAPACK subroutine: return_code = {}",
         return_code
     )]
     LapackComputationalFailure { return_code: i32 },

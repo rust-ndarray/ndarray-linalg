@@ -4,10 +4,12 @@ use crate::types::*;
 use ndarray::*;
 
 pub mod arnoldi;
+pub mod gmres;
 pub mod householder;
 pub mod mgs;
 
 pub use arnoldi::{arnoldi_householder, arnoldi_mgs, Arnoldi};
+pub use gmres::{gmres_mgs, Gmres};
 pub use householder::{householder, Householder};
 pub use mgs::{mgs, MGS};
 

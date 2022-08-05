@@ -35,7 +35,7 @@ num-traits = "0.2.14"
 lapack = "0.18.0"
 
 [dependencies.intel-mkl-src]
-version = "0.6.0"
+version = "0.7.0"
 default-features = false
 optional = true
 

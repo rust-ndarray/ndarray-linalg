@@ -73,6 +73,7 @@ pub mod trace;
 pub mod triangular;
 pub mod tridiagonal;
 pub mod types;
+pub mod expm;
 
 pub use crate::assert::*;
 pub use crate::cholesky::*;
@@ -97,3 +98,4 @@ pub use crate::trace::*;
 pub use crate::triangular::*;
 pub use crate::tridiagonal::*;
 pub use crate::types::*;
+pub use crate::expm::*;

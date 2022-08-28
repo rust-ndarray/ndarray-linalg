@@ -1,1 +1,1 @@
-initSidebarItems({"enum":[["NormType",""]],"trait":[["OperationNorm","Operator norm using `*lange` LAPACK routines"]]});
+window.SIDEBAR_ITEMS = {"enum":[["NormType",""]],"trait":[["OperationNorm","Operator norm using `*lange` LAPACK routines"]]};

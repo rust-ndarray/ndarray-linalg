@@ -1,1 +1,1 @@
-initSidebarItems({"struct":[["Diagonal","Vector as a Diagonal matrix"]],"trait":[["AsDiagonal",""],["IntoDiagonal",""]]});
+window.SIDEBAR_ITEMS = {"struct":[["Diagonal","Vector as a Diagonal matrix"]],"trait":[["AsDiagonal",""],["IntoDiagonal",""]]};

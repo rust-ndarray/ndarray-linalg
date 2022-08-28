@@ -1,1 +1,1 @@
-initSidebarItems({"trait":[["InnerProduct","Inner Product"]]});
+window.SIDEBAR_ITEMS = {"trait":[["InnerProduct","Inner Product"]]};

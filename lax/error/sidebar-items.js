@@ -1,1 +1,1 @@
-initSidebarItems({"enum":[["Error",""]],"trait":[["AsLapackResult",""]],"type":[["Result",""]]});
+window.SIDEBAR_ITEMS = {"enum":[["Error",""]],"trait":[["AsLapackResult",""]],"type":[["Result",""]]};

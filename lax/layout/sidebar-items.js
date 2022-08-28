@@ -1,1 +1,1 @@
-initSidebarItems({"enum":[["MatrixLayout",""]],"fn":[["square_transpose","In-place transpose of a square matrix by keeping F/C layout"],["transpose","Out-place transpose for general matrix"]]});
+window.SIDEBAR_ITEMS = {"enum":[["MatrixLayout",""]],"fn":[["square_transpose","In-place transpose of a square matrix by keeping F/C layout"],["transpose","Out-place transpose for general matrix"]]};

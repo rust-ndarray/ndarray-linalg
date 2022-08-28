@@ -1,1 +1,1 @@
-initSidebarItems({"enum":[["NormalizeAxis",""]],"fn":[["normalize","normalize in L2 norm"]],"trait":[["Norm","Define norm as a metric linear space (not as a matrix)"]]});
+window.SIDEBAR_ITEMS = {"enum":[["NormalizeAxis",""]],"fn":[["normalize","normalize in L2 norm"]],"trait":[["Norm","Define norm as a metric linear space (not as a matrix)"]]};

@@ -1,1 +1,1 @@
-initSidebarItems({"trait":[["SVD","singular-value decomposition of matrix reference"],["SVDInplace","singular-value decomposition for mutable reference of matrix"],["SVDInto","singular-value decomposition"]]});
+window.SIDEBAR_ITEMS = {"trait":[["SVD","singular-value decomposition of matrix reference"],["SVDInplace","singular-value decomposition for mutable reference of matrix"],["SVDInto","singular-value decomposition"]]};

@@ -1,1 +1,1 @@
-initSidebarItems({"enum":[["MatrixLayout",""]],"trait":[["AllocatedArray",""],["AllocatedArrayMut",""]]});
+window.SIDEBAR_ITEMS = {"enum":[["MatrixLayout",""]],"trait":[["AllocatedArray",""],["AllocatedArrayMut",""]]};

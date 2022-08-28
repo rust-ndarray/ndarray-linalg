@@ -20,7 +20,7 @@ jobs:
             --features=intel-mkl-static
 
   linux:
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v1
       - uses: actions-rs/cargo@v1
@@ -33,7 +33,7 @@ jobs:
             --features=intel-mkl-static
 
   linux-container:
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-22.04
     container:
       image: ghcr.io/rust-math/rust-mkl:1.63.0-2020.1
     steps:

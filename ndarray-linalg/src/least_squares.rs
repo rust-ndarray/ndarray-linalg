@@ -304,12 +304,12 @@ where
         a.layout()?,
         a.as_allocated_mut()?,
         rhs.as_slice_memory_order_mut()
-            .ok_or_else(|| LinalgError::MemoryNotCont)?,
+            .ok_or(LinalgError::MemoryNotCont)?,
     )?;
 
     let (m, n) = (a.shape()[0], a.shape()[1]);
     let solution = rhs.slice(s![0..n]).to_owned();
-    let residual_sum_of_squares = compute_residual_scalar(m, n, rank, &rhs);
+    let residual_sum_of_squares = compute_residual_scalar(m, n, rank, rhs);
     Ok(LeastSquaresResult {
         solution,
         singular_values: Array::from_shape_vec((singular_values.len(),), singular_values)?,
@@ -399,7 +399,7 @@ where
     let solution: Array2<E> = rhs.slice(s![..a.shape()[1], ..]).to_owned();
     let singular_values = Array::from_shape_vec((singular_values.len(),), singular_values)?;
     let (m, n) = (a.shape()[0], a.shape()[1]);
-    let residual_sum_of_squares = compute_residual_array1(m, n, rank, &rhs);
+    let residual_sum_of_squares = compute_residual_array1(m, n, rank, rhs);
     Ok(LeastSquaresResult {
         solution,
         singular_values,

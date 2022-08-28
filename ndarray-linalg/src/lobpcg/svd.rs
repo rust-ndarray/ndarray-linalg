@@ -30,7 +30,7 @@ impl<A: Float + PartialOrd + DivAssign<A> + 'static + MagnitudeCorrection> Trunc
         let mut a = self.eigvals.iter().enumerate().collect::<Vec<_>>();
 
         // sort by magnitude
-        a.sort_by(|(_, x), (_, y)| x.partial_cmp(&y).unwrap().reverse());
+        a.sort_by(|(_, x), (_, y)| x.partial_cmp(y).unwrap().reverse());
 
         // calculate cut-off magnitude (borrowed from scipy)
         let cutoff = A::epsilon() * // float precision

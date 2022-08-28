@@ -34,7 +34,7 @@ where
 {
     assert_eq!(w.len(), a.len());
     let n = a.len();
-    let c = A::from(2.0).unwrap() * w.inner(&a);
+    let c = A::from(2.0).unwrap() * w.inner(a);
     for l in 0..n {
         a[l] -= c * w[l];
     }

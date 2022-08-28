@@ -50,7 +50,7 @@ impl<A: Scalar + Lapack> Orthogonalizer for MGS<A> {
         let mut coef = Array1::zeros(self.len() + 1);
         for i in 0..self.len() {
             let q = &self.q[i];
-            let c = q.inner(&a);
+            let c = q.inner(a);
             azip!((a in &mut *a, &q in q) *a -= c * q);
             coef[i] = c;
         }
@@ -77,12 +77,12 @@ impl<A: Scalar + Lapack> Orthogonalizer for MGS<A> {
         self.div_append(&mut a)
     }
 
-    fn div_append<S>(&mut self, mut a: &mut ArrayBase<S, Ix1>) -> AppendResult<A>
+    fn div_append<S>(&mut self, a: &mut ArrayBase<S, Ix1>) -> AppendResult<A>
     where
         A: Lapack,
         S: DataMut<Elem = A>,
     {
-        let coef = self.decompose(&mut a);
+        let coef = self.decompose(a);
         let nrm = coef[coef.len() - 1].re();
         if nrm < self.tol {
             // Linearly dependent

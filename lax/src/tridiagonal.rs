@@ -15,7 +15,7 @@ use std::ops::{Index, IndexMut};
 ///  ...           ...,  u{n-1},
 ///   0,  ...,  l{n-1},  d{n-1},]
 /// ```
-#[derive(Clone, PartialEq)]
+#[derive(Clone, PartialEq, Eq)]
 pub struct Tridiagonal<A: Scalar> {
     /// layout of raw matrix
     pub l: MatrixLayout,

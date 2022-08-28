@@ -83,12 +83,11 @@ fn apply_constraints<A: Scalar + Lapack>(
     let u = gram_yv
         .columns()
         .into_iter()
-        .map(|x| {
+        .flat_map(|x| {
             let res = cholesky_yy.solvec(&x).unwrap();
 
             res.to_vec()
         })
-        .flatten()
         .collect::<Vec<A>>();
 
     let rows = gram_yv.len_of(Axis(0));

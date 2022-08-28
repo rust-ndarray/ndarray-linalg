@@ -284,7 +284,7 @@
 <span class="doccomment">///  ...           ...,  u{n-1},</span>
 <span class="doccomment">///   0,  ...,  l{n-1},  d{n-1},]</span>
 <span class="doccomment">/// ```</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">PartialEq</span>)]</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Tridiagonal</span><span class="op">&lt;</span><span class="ident">A</span>: <span class="ident">Scalar</span><span class="op">&gt;</span> {
     <span class="doccomment">/// layout of raw matrix</span>
     <span class="kw">pub</span> <span class="ident">l</span>: <span class="ident">MatrixLayout</span>,

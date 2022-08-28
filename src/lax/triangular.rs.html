@@ -1,6 +1,5 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `lax/src/triangular.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>triangular.rs - source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script id="default-settings"></script><script src="../../storage.js"></script><script src="../../crates.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../../favicon.svg">
-<link rel="alternate icon" type="image/png" href="../../favicon-16x16.png">
-<link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><!-- This file includes the work that is distributed in MIT or Apache-2.0 license at https://github.com/paulkernfeld/rustdoc-katex-demo -->
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `lax/src/triangular.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>triangular.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><script defer src="../../main.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script>
+    <noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"><!-- This file includes the work that is distributed in MIT or Apache-2.0 license at https://github.com/paulkernfeld/rustdoc-katex-demo -->
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/katex.min.css" integrity="sha384-9eLZqc9ds8eNjO3TmqPeYcDj8n+Qfa4nuSiGYa6DjLNcv9BtN69ZIulL9+8CqC9Y" crossorigin="anonymous">
 <script src="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/katex.min.js"                  integrity="sha384-K3vbOmF2BtaVai+Qk37uypf7VrgBubhQreNQe9aGsz9lB63dIFiQVlJbr92dw2Lx" crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/contrib/auto-render.min.js"    integrity="sha384-kmZOZB5ObwgQnS/DuDg6TScgOiWWBiVt0plIRkZCmE6rDZGrEOQeHM5PcHi+nyqe" crossorigin="anonymous"></script>
@@ -17,15 +16,19 @@
     });
 </script>
 
-<style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../lax/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img src="../../brush.svg" width="18" height="18" alt="Pick another theme!"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../settings.html" title="settings"><img src="../../wheel.svg" width="18" height="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1"> 1</span>
-<span id="2"> 2</span>
-<span id="3"> 3</span>
-<span id="4"> 4</span>
-<span id="5"> 5</span>
-<span id="6"> 6</span>
-<span id="7"> 7</span>
-<span id="8"> 8</span>
-<span id="9"> 9</span>
+</head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../lax/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
+        </a><h2 class="location"></h2>
+    </nav>
+    <nav class="sidebar"><a class="sidebar-logo" href="../../lax/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
+        </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../lax/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><div class="theme-picker hidden"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="22" height="22" alt="Pick another theme!" src="../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<span id="2">2</span>
+<span id="3">3</span>
+<span id="4">4</span>
+<span id="5">5</span>
+<span id="6">6</span>
+<span id="7">7</span>
+<span id="8">8</span>
+<span id="9">9</span>
 <span id="10">10</span>
 <span id="11">11</span>
 <span id="12">12</span>
@@ -107,8 +110,7 @@
 <span id="88">88</span>
 <span id="89">89</span>
 <span id="90">90</span>
-</pre><pre class="rust">
-<span class="doccomment">//! Implement linear solver and inverse matrix</span>
+</pre><pre class="rust"><code><span class="doccomment">//! Implement linear solver and inverse matrix</span>
 
 <span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">error</span>::<span class="kw-2">*</span>, <span class="ident">layout</span>::<span class="kw-2">*</span>, <span class="kw-2">*</span>};
 <span class="kw">use</span> <span class="ident">cauchy</span>::<span class="kw-2">*</span>;
@@ -128,12 +130,12 @@
         <span class="ident">uplo</span>: <span class="ident">UPLO</span>,
         <span class="ident">d</span>: <span class="ident">Diag</span>,
         <span class="ident">a</span>: <span class="kw-2">&amp;</span>[<span class="self">Self</span>],
-        <span class="ident">b</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="self">Self</span>],
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span>;
+        <span class="ident">b</span>: <span class="kw-2">&amp;mut</span> [<span class="self">Self</span>],
+    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span>;
 }
 
 <span class="macro">macro_rules!</span> <span class="ident">impl_triangular</span> {
-    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">scalar</span>:<span class="ident">ty</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">trtri</span>:<span class="ident">path</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">trtrs</span>:<span class="ident">path</span>) <span class="op">=</span><span class="op">&gt;</span> {
+    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">scalar</span>:<span class="ident">ty</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">trtri</span>:<span class="ident">path</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">trtrs</span>:<span class="ident">path</span>) =&gt; {
         <span class="kw">impl</span> <span class="ident">Triangular_</span> <span class="kw">for</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">scalar</span> {
             <span class="kw">fn</span> <span class="ident">solve_triangular</span>(
                 <span class="ident">a_layout</span>: <span class="ident">MatrixLayout</span>,
@@ -141,26 +143,26 @@
                 <span class="ident">uplo</span>: <span class="ident">UPLO</span>,
                 <span class="ident">diag</span>: <span class="ident">Diag</span>,
                 <span class="ident">a</span>: <span class="kw-2">&amp;</span>[<span class="self">Self</span>],
-                <span class="ident">b</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="self">Self</span>],
-            ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+                <span class="ident">b</span>: <span class="kw-2">&amp;mut</span> [<span class="self">Self</span>],
+            ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
                 <span class="comment">// Transpose if a is C-continuous</span>
                 <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">a_t</span> <span class="op">=</span> <span class="prelude-val">None</span>;
                 <span class="kw">let</span> <span class="ident">a_layout</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">a_layout</span> {
-                    <span class="ident">MatrixLayout::C</span> { .. } <span class="op">=</span><span class="op">&gt;</span> {
+                    <span class="ident">MatrixLayout::C</span> { .. } =&gt; {
                         <span class="ident">a_t</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="kw">unsafe</span> { <span class="ident">vec_uninit</span>(<span class="ident">a</span>.<span class="ident">len</span>()) });
                         <span class="ident">transpose</span>(<span class="ident">a_layout</span>, <span class="ident">a</span>, <span class="ident">a_t</span>.<span class="ident">as_mut</span>().<span class="ident">unwrap</span>())
                     }
-                    <span class="ident">MatrixLayout::F</span> { .. } <span class="op">=</span><span class="op">&gt;</span> <span class="ident">a_layout</span>,
+                    <span class="ident">MatrixLayout::F</span> { .. } =&gt; <span class="ident">a_layout</span>,
                 };
 
                 <span class="comment">// Transpose if b is C-continuous</span>
                 <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">b_t</span> <span class="op">=</span> <span class="prelude-val">None</span>;
                 <span class="kw">let</span> <span class="ident">b_layout</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">b_layout</span> {
-                    <span class="ident">MatrixLayout::C</span> { .. } <span class="op">=</span><span class="op">&gt;</span> {
+                    <span class="ident">MatrixLayout::C</span> { .. } =&gt; {
                         <span class="ident">b_t</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="kw">unsafe</span> { <span class="ident">vec_uninit</span>(<span class="ident">b</span>.<span class="ident">len</span>()) });
                         <span class="ident">transpose</span>(<span class="ident">b_layout</span>, <span class="ident">b</span>, <span class="ident">b_t</span>.<span class="ident">as_mut</span>().<span class="ident">unwrap</span>())
                     }
-                    <span class="ident">MatrixLayout::F</span> { .. } <span class="op">=</span><span class="op">&gt;</span> <span class="ident">b_layout</span>,
+                    <span class="ident">MatrixLayout::F</span> { .. } =&gt; <span class="ident">b_layout</span>,
                 };
 
                 <span class="kw">let</span> (<span class="ident">m</span>, <span class="ident">n</span>) <span class="op">=</span> <span class="ident">a_layout</span>.<span class="ident">size</span>();
@@ -179,7 +181,7 @@
                         <span class="ident">a_layout</span>.<span class="ident">lda</span>(),
                         <span class="ident">b_t</span>.<span class="ident">as_mut</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">v</span><span class="op">|</span> <span class="ident">v</span>.<span class="ident">as_mut_slice</span>()).<span class="ident">unwrap_or</span>(<span class="ident">b</span>),
                         <span class="ident">b_layout</span>.<span class="ident">lda</span>(),
-                        <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">info</span>,
+                        <span class="kw-2">&amp;mut</span> <span class="ident">info</span>,
                     );
                 }
                 <span class="ident">info</span>.<span class="ident">as_lapack_result</span>()<span class="question-mark">?</span>;
@@ -198,5 +200,6 @@
 <span class="macro">impl_triangular!</span>(<span class="ident">f32</span>, <span class="ident">lapack::strtri</span>, <span class="ident">lapack::strtrs</span>);
 <span class="macro">impl_triangular!</span>(<span class="ident">c64</span>, <span class="ident">lapack::ztrtri</span>, <span class="ident">lapack::ztrtrs</span>);
 <span class="macro">impl_triangular!</span>(<span class="ident">c32</span>, <span class="ident">lapack::ctrtri</span>, <span class="ident">lapack::ctrtrs</span>);
-</pre></div>
-</section><section id="search" class="content hidden"></section><div id="rustdoc-vars" data-root-path="../../" data-current-crate="lax" data-search-index-js="../../search-index.js" data-search-js="../../search.js"></div><script src="../../main.js"></script><script src="../../source-script.js"></script><script src="../../source-files.js"></script></body></html>
+</code></pre></div>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="lax" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.62.1 (e092d0b6b 2022-07-16)" ></div>
+</body></html>

@@ -27,7 +27,7 @@ jobs:
   coverage:
     runs-on: ubuntu-18.04
     container:
-      image: ghcr.io/rust-math/intel-mkl-src/mkl-rust:1.49.0
+      image: ghcr.io/rust-math/rust-mkl:1.63.0-2020.1
       options: --security-opt seccomp=unconfined
     steps:
       - uses: actions/checkout@v2

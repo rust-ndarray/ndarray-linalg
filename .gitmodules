@@ -1,0 +1,3 @@
+[submodule "lax-bindgen/lapack-sys"]
+	path = lax-bindgen/lapack-sys
+	url = git@github.com:blas-lapack-rs/lapack-sys.git

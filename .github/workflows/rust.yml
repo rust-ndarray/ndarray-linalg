@@ -33,6 +33,6 @@ jobs:
       - uses: actions/checkout@v2
       - name: Generate code coverage
         run: |
-          cargo tarpaulin --verbose --features=intel-mkl --out Xml --manifest-path=ndarray-linalg/Cargo.toml
+          cargo tarpaulin --features=intel-mkl-system --out Xml
       - name: Upload to codecov.io
         uses: codecov/codecov-action@v1

@@ -1,0 +1,20 @@
+changelog:
+  categories:
+    - title: "Bug fixes"
+      labels:
+        - bug
+    - title: "Breaking changes"
+      labels:
+        - "breaking change"
+    - title: "New features"
+      labels:
+        - "new feature"
+    - title: Deprecated
+      labels:
+        - deprecate
+    - title: Removed
+      labels:
+        - remove
+    - title: Others
+      labels:
+        - "*"

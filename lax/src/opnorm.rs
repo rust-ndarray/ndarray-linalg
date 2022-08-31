@@ -1,6 +1,6 @@
 //! Operator norms of matrices
 
-use super::NormType;
+use super::{AsPtr, NormType};
 use crate::{layout::MatrixLayout, *};
 use cauchy::*;
 
@@ -18,18 +18,27 @@ macro_rules! impl_opnorm {
                     MatrixLayout::F { .. } => t,
                     MatrixLayout::C { .. } => t.transpose(),
                 };
-                let mut work = if matches!(t, NormType::Infinity) {
+                let mut work: Vec<Self::Real> = if matches!(t, NormType::Infinity) {
                     unsafe { vec_uninit(m as usize) }
                 } else {
                     Vec::new()
                 };
-                unsafe { $lange(t as u8, m, n, a, m, &mut work) }
+                unsafe {
+                    $lange(
+                        t.as_ptr(),
+                        &m,
+                        &n,
+                        AsPtr::as_ptr(a),
+                        &m,
+                        AsPtr::as_mut_ptr(&mut work),
+                    )
+                }
             }
         }
     };
 } // impl_opnorm!
 
-impl_opnorm!(f64, lapack::dlange);
-impl_opnorm!(f32, lapack::slange);
-impl_opnorm!(c64, lapack::zlange);
-impl_opnorm!(c32, lapack::clange);
+impl_opnorm!(f64, lapack_sys::dlange_);
+impl_opnorm!(f32, lapack_sys::slange_);
+impl_opnorm!(c64, lapack_sys::zlange_);
+impl_opnorm!(c32, lapack_sys::clange_);

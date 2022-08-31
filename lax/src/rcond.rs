@@ -17,22 +17,22 @@ macro_rules! impl_rcond_real {
                 let mut rcond = Self::Real::zero();
                 let mut info = 0;
 
-                let mut work = unsafe { vec_uninit(4 * n as usize) };
+                let mut work: Vec<Self> = unsafe { vec_uninit(4 * n as usize) };
                 let mut iwork = unsafe { vec_uninit(n as usize) };
                 let norm_type = match l {
                     MatrixLayout::C { .. } => NormType::Infinity,
                     MatrixLayout::F { .. } => NormType::One,
-                } as u8;
+                };
                 unsafe {
                     $gecon(
-                        norm_type,
-                        n,
-                        a,
-                        l.lda(),
-                        anorm,
+                        norm_type.as_ptr(),
+                        &n,
+                        AsPtr::as_ptr(a),
+                        &l.lda(),
+                        &anorm,
                         &mut rcond,
-                        &mut work,
-                        &mut iwork,
+                        AsPtr::as_mut_ptr(&mut work),
+                        iwork.as_mut_ptr(),
                         &mut info,
                     )
                 };
@@ -44,8 +44,8 @@ macro_rules! impl_rcond_real {
     };
 }
 
-impl_rcond_real!(f32, lapack::sgecon);
-impl_rcond_real!(f64, lapack::dgecon);
+impl_rcond_real!(f32, lapack_sys::sgecon_);
+impl_rcond_real!(f64, lapack_sys::dgecon_);
 
 macro_rules! impl_rcond_complex {
     ($scalar:ty, $gecon:path) => {

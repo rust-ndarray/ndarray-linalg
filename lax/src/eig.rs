@@ -35,21 +35,21 @@ macro_rules! impl_eig_complex {
                 // eigenvalues are the eigenvalues computed with `A`.
                 let (jobvl, jobvr) = if calc_v {
                     match l {
-                        MatrixLayout::C { .. } => (b'V', b'N'),
-                        MatrixLayout::F { .. } => (b'N', b'V'),
+                        MatrixLayout::C { .. } => (EigenVectorFlag::Calc, EigenVectorFlag::Not),
+                        MatrixLayout::F { .. } => (EigenVectorFlag::Not, EigenVectorFlag::Calc),
                     }
                 } else {
-                    (b'N', b'N')
+                    (EigenVectorFlag::Not, EigenVectorFlag::Not)
                 };
                 let mut eigs = unsafe { vec_uninit(n as usize) };
                 let mut rwork = unsafe { vec_uninit(2 * n as usize) };
 
-                let mut vl = if jobvl == b'V' {
+                let mut vl = if jobvl == EigenVectorFlag::Calc {
                     Some(unsafe { vec_uninit((n * n) as usize) })
                 } else {
                     None
                 };
-                let mut vr = if jobvr == b'V' {
+                let mut vr = if jobvr == EigenVectorFlag::Calc {
                     Some(unsafe { vec_uninit((n * n) as usize) })
                 } else {
                     None
@@ -60,8 +60,8 @@ macro_rules! impl_eig_complex {
                 let mut work_size = [Self::zero()];
                 unsafe {
                     $ev(
-                        jobvl,
-                        jobvr,
+                        jobvl as u8,
+                        jobvr as u8,
                         n,
                         &mut a,
                         n,
@@ -83,8 +83,8 @@ macro_rules! impl_eig_complex {
                 let mut work = unsafe { vec_uninit(lwork) };
                 unsafe {
                     $ev(
-                        jobvl,
-                        jobvr,
+                        jobvl as u8,
+                        jobvr as u8,
                         n,
                         &mut a,
                         n,
@@ -102,7 +102,7 @@ macro_rules! impl_eig_complex {
                 info.as_lapack_result()?;
 
                 // Hermite conjugate
-                if jobvl == b'V' {
+                if jobvl == EigenVectorFlag::Calc {
                     for c in vl.as_mut().unwrap().iter_mut() {
                         c.im = -c.im
                     }
@@ -144,21 +144,21 @@ macro_rules! impl_eig_real {
                 // `sgeev`/`dgeev`.
                 let (jobvl, jobvr) = if calc_v {
                     match l {
-                        MatrixLayout::C { .. } => (b'V', b'N'),
-                        MatrixLayout::F { .. } => (b'N', b'V'),
+                        MatrixLayout::C { .. } => (EigenVectorFlag::Calc, EigenVectorFlag::Not),
+                        MatrixLayout::F { .. } => (EigenVectorFlag::Not, EigenVectorFlag::Calc),
                     }
                 } else {
-                    (b'N', b'N')
+                    (EigenVectorFlag::Not, EigenVectorFlag::Not)
                 };
                 let mut eig_re = unsafe { vec_uninit(n as usize) };
                 let mut eig_im = unsafe { vec_uninit(n as usize) };
 
-                let mut vl = if jobvl == b'V' {
+                let mut vl = if jobvl == EigenVectorFlag::Calc {
                     Some(unsafe { vec_uninit((n * n) as usize) })
                 } else {
                     None
                 };
-                let mut vr = if jobvr == b'V' {
+                let mut vr = if jobvr == EigenVectorFlag::Calc {
                     Some(unsafe { vec_uninit((n * n) as usize) })
                 } else {
                     None
@@ -169,8 +169,8 @@ macro_rules! impl_eig_real {
                 let mut work_size = [0.0];
                 unsafe {
                     $ev(
-                        jobvl,
-                        jobvr,
+                        jobvl as u8,
+                        jobvr as u8,
                         n,
                         &mut a,
                         n,
@@ -192,8 +192,8 @@ macro_rules! impl_eig_real {
                 let mut work = unsafe { vec_uninit(lwork) };
                 unsafe {
                     $ev(
-                        jobvl,
-                        jobvr,
+                        jobvl as u8,
+                        jobvr as u8,
                         n,
                         &mut a,
                         n,
@@ -254,7 +254,7 @@ macro_rules! impl_eig_real {
                         for row in 0..n {
                             let re = v[row + col * n];
                             let mut im = v[row + (col + 1) * n];
-                            if jobvl == b'V' {
+                            if jobvl == EigenVectorFlag::Calc {
                                 im = -im;
                             }
                             eigvecs[row + col * n] = Self::complex(re, im);

@@ -211,6 +211,21 @@ impl NormType {
     }
 }
 
+/// Flag for calculating eigenvectors or not
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[repr(u8)]
+pub enum EigenVectorFlag {
+    Calc = b'V',
+    Not = b'N',
+}
+
+impl EigenVectorFlag {
+    /// To use Fortran LAPACK API in lapack-sys crate
+    pub fn as_ptr(&self) -> *const i8 {
+        self as *const EigenVectorFlag as *const i8
+    }
+}
+
 /// Create a vector without initialization
 ///
 /// Safety

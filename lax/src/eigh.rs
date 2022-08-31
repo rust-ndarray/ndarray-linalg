@@ -41,7 +41,7 @@ macro_rules! impl_eigh {
             ) -> Result<Vec<Self::Real>> {
                 assert_eq!(layout.len(), layout.lda());
                 let n = layout.len();
-                let jobz = if calc_v { b'V' } else { b'N' };
+                let jobz = if calc_v { EigenVectorFlag::Calc } else { EigenVectorFlag::Not };
                 let mut eigs = unsafe { vec_uninit(n as usize) };
 
                 $(
@@ -53,7 +53,7 @@ macro_rules! impl_eigh {
                 let mut work_size = [Self::zero()];
                 unsafe {
                     $ev(
-                        jobz,
+                        jobz as u8,
                         uplo as u8,
                         n,
                         &mut a,
@@ -72,7 +72,7 @@ macro_rules! impl_eigh {
                 let mut work = unsafe { vec_uninit(lwork) };
                 unsafe {
                     $ev(
-                        jobz,
+                        jobz as u8,
                         uplo as u8,
                         n,
                         &mut a,
@@ -97,7 +97,7 @@ macro_rules! impl_eigh {
             ) -> Result<Vec<Self::Real>> {
                 assert_eq!(layout.len(), layout.lda());
                 let n = layout.len();
-                let jobz = if calc_v { b'V' } else { b'N' };
+                let jobz = if calc_v { EigenVectorFlag::Calc } else { EigenVectorFlag::Not };
                 let mut eigs = unsafe { vec_uninit(n as usize) };
 
                 $(
@@ -110,7 +110,7 @@ macro_rules! impl_eigh {
                 unsafe {
                     $evg(
                         &[1],
-                        jobz,
+                        jobz as u8,
                         uplo as u8,
                         n,
                         &mut a,
@@ -132,7 +132,7 @@ macro_rules! impl_eigh {
                 unsafe {
                     $evg(
                         &[1],
-                        jobz,
+                        jobz as u8,
                         uplo as u8,
                         n,
                         &mut a,

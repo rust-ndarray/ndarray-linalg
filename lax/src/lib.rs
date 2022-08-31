@@ -100,6 +100,7 @@ pub use self::triangular::*;
 pub use self::tridiagonal::*;
 
 use cauchy::*;
+use std::mem::MaybeUninit;
 
 pub type Pivot = Vec<i32>;
 
@@ -150,6 +151,10 @@ impl_as_ptr!(f32, f32);
 impl_as_ptr!(f64, f64);
 impl_as_ptr!(c32, lapack_sys::__BindgenComplex<f32>);
 impl_as_ptr!(c64, lapack_sys::__BindgenComplex<f64>);
+impl_as_ptr!(MaybeUninit<f32>, f32);
+impl_as_ptr!(MaybeUninit<f64>, f64);
+impl_as_ptr!(MaybeUninit<c32>, lapack_sys::__BindgenComplex<f32>);
+impl_as_ptr!(MaybeUninit<c64>, lapack_sys::__BindgenComplex<f64>);
 
 /// Upper/Lower specification for seveal usages
 #[derive(Debug, Clone, Copy)]

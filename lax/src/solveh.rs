@@ -30,13 +30,13 @@ macro_rules! impl_solveh {
                 let mut work_size = [Self::zero()];
                 unsafe {
                     $trf(
-                        uplo as u8,
-                        n,
-                        a,
-                        l.lda(),
-                        &mut ipiv,
-                        &mut work_size,
-                        -1,
+                        uplo.as_ptr(),
+                        &n,
+                        AsPtr::as_mut_ptr(a),
+                        &l.lda(),
+                        ipiv.as_mut_ptr(),
+                        AsPtr::as_mut_ptr(&mut work_size),
+                        &(-1),
                         &mut info,
                     )
                 };
@@ -44,16 +44,16 @@ macro_rules! impl_solveh {
 
                 // actual
                 let lwork = work_size[0].to_usize().unwrap();
-                let mut work = unsafe { vec_uninit(lwork) };
+                let mut work: Vec<Self> = unsafe { vec_uninit(lwork) };
                 unsafe {
                     $trf(
-                        uplo as u8,
-                        n,
-                        a,
-                        l.lda(),
-                        &mut ipiv,
-                        &mut work,
-                        lwork as i32,
+                        uplo.as_ptr(),
+                        &n,
+                        AsPtr::as_mut_ptr(a),
+                        &l.lda(),
+                        ipiv.as_mut_ptr(),
+                        AsPtr::as_mut_ptr(&mut work),
+                        &(lwork as i32),
                         &mut info,
                     )
                 };
@@ -64,8 +64,18 @@ macro_rules! impl_solveh {
             fn invh(l: MatrixLayout, uplo: UPLO, a: &mut [Self], ipiv: &Pivot) -> Result<()> {
                 let (n, _) = l.size();
                 let mut info = 0;
-                let mut work = unsafe { vec_uninit(n as usize) };
-                unsafe { $tri(uplo as u8, n, a, l.lda(), ipiv, &mut work, &mut info) };
+                let mut work: Vec<Self> = unsafe { vec_uninit(n as usize) };
+                unsafe {
+                    $tri(
+                        uplo.as_ptr(),
+                        &n,
+                        AsPtr::as_mut_ptr(a),
+                        &l.lda(),
+                        ipiv.as_ptr(),
+                        AsPtr::as_mut_ptr(&mut work),
+                        &mut info,
+                    )
+                };
                 info.as_lapack_result()?;
                 Ok(())
             }
@@ -79,7 +89,19 @@ macro_rules! impl_solveh {
             ) -> Result<()> {
                 let (n, _) = l.size();
                 let mut info = 0;
-                unsafe { $trs(uplo as u8, n, 1, a, l.lda(), ipiv, b, n, &mut info) };
+                unsafe {
+                    $trs(
+                        uplo.as_ptr(),
+                        &n,
+                        &1,
+                        AsPtr::as_ptr(a),
+                        &l.lda(),
+                        ipiv.as_ptr(),
+                        AsPtr::as_mut_ptr(b),
+                        &n,
+                        &mut info,
+                    )
+                };
                 info.as_lapack_result()?;
                 Ok(())
             }
@@ -87,7 +109,27 @@ macro_rules! impl_solveh {
     };
 } // impl_solveh!
 
-impl_solveh!(f64, lapack::dsytrf, lapack::dsytri, lapack::dsytrs);
-impl_solveh!(f32, lapack::ssytrf, lapack::ssytri, lapack::ssytrs);
-impl_solveh!(c64, lapack::zhetrf, lapack::zhetri, lapack::zhetrs);
-impl_solveh!(c32, lapack::chetrf, lapack::chetri, lapack::chetrs);
+impl_solveh!(
+    f64,
+    lapack_sys::dsytrf_,
+    lapack_sys::dsytri_,
+    lapack_sys::dsytrs_
+);
+impl_solveh!(
+    f32,
+    lapack_sys::ssytrf_,
+    lapack_sys::ssytri_,
+    lapack_sys::ssytrs_
+);
+impl_solveh!(
+    c64,
+    lapack_sys::zhetrf_,
+    lapack_sys::zhetri_,
+    lapack_sys::zhetrs_
+);
+impl_solveh!(
+    c32,
+    lapack_sys::chetrf_,
+    lapack_sys::chetri_,
+    lapack_sys::chetrs_
+);

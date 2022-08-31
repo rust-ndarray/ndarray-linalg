@@ -220,6 +220,21 @@ pub enum EigenVectorFlag {
 }
 
 impl EigenVectorFlag {
+    pub fn is_calc(&self) -> bool {
+        match self {
+            EigenVectorFlag::Calc => true,
+            EigenVectorFlag::Not => false,
+        }
+    }
+
+    pub fn then<T, F: FnOnce() -> T>(&self, f: F) -> Option<T> {
+        if self.is_calc() {
+            Some(f())
+        } else {
+            None
+        }
+    }
+
     /// To use Fortran LAPACK API in lapack-sys crate
     pub fn as_ptr(&self) -> *const i8 {
         self as *const EigenVectorFlag as *const i8

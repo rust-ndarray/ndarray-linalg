@@ -44,16 +44,8 @@ macro_rules! impl_eig_complex {
                 let mut eigs = unsafe { vec_uninit(n as usize) };
                 let mut rwork = unsafe { vec_uninit(2 * n as usize) };
 
-                let mut vl = if jobvl == EigenVectorFlag::Calc {
-                    Some(unsafe { vec_uninit((n * n) as usize) })
-                } else {
-                    None
-                };
-                let mut vr = if jobvr == EigenVectorFlag::Calc {
-                    Some(unsafe { vec_uninit((n * n) as usize) })
-                } else {
-                    None
-                };
+                let mut vl = jobvl.then(|| unsafe { vec_uninit((n * n) as usize) });
+                let mut vr = jobvr.then(|| unsafe { vec_uninit((n * n) as usize) });
 
                 // calc work size
                 let mut info = 0;
@@ -102,7 +94,7 @@ macro_rules! impl_eig_complex {
                 info.as_lapack_result()?;
 
                 // Hermite conjugate
-                if jobvl == EigenVectorFlag::Calc {
+                if jobvl.is_calc() {
                     for c in vl.as_mut().unwrap().iter_mut() {
                         c.im = -c.im
                     }
@@ -153,16 +145,10 @@ macro_rules! impl_eig_real {
                 let mut eig_re: Vec<Self> = unsafe { vec_uninit(n as usize) };
                 let mut eig_im: Vec<Self> = unsafe { vec_uninit(n as usize) };
 
-                let mut vl: Option<Vec<Self>> = if jobvl == EigenVectorFlag::Calc {
-                    Some(unsafe { vec_uninit((n * n) as usize) })
-                } else {
-                    None
-                };
-                let mut vr: Option<Vec<Self>> = if jobvr == EigenVectorFlag::Calc {
-                    Some(unsafe { vec_uninit((n * n) as usize) })
-                } else {
-                    None
-                };
+                let mut vl: Option<Vec<Self>> =
+                    jobvl.then(|| unsafe { vec_uninit((n * n) as usize) });
+                let mut vr: Option<Vec<Self>> =
+                    jobvr.then(|| unsafe { vec_uninit((n * n) as usize) });
 
                 // calc work size
                 let mut info = 0;
@@ -255,7 +241,7 @@ macro_rules! impl_eig_real {
                         for row in 0..n {
                             let re = v[row + col * n];
                             let mut im = v[row + (col + 1) * n];
-                            if jobvl == EigenVectorFlag::Calc {
+                            if jobvl.is_calc() {
                                 im = -im;
                             }
                             eigvecs[row + col * n] = Self::complex(re, im);

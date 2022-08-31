@@ -41,13 +41,14 @@ macro_rules! impl_eig_complex {
                 } else {
                     (EigenVectorFlag::Not, EigenVectorFlag::Not)
                 };
-                let mut eigs = unsafe { vec_uninit(n as usize) };
-                let mut rwork: Vec<Self::Real> = unsafe { vec_uninit(2 * n as usize) };
+                let mut eigs: Vec<MaybeUninit<Self>> = unsafe { vec_uninit2(n as usize) };
+                let mut rwork: Vec<MaybeUninit<Self::Real>> =
+                    unsafe { vec_uninit2(2 * n as usize) };
 
-                let mut vl: Option<Vec<Self>> =
-                    jobvl.then(|| unsafe { vec_uninit((n * n) as usize) });
-                let mut vr: Option<Vec<Self>> =
-                    jobvr.then(|| unsafe { vec_uninit((n * n) as usize) });
+                let mut vl: Option<Vec<MaybeUninit<Self>>> =
+                    jobvl.then(|| unsafe { vec_uninit2((n * n) as usize) });
+                let mut vr: Option<Vec<MaybeUninit<Self>>> =
+                    jobvr.then(|| unsafe { vec_uninit2((n * n) as usize) });
 
                 // calc work size
                 let mut info = 0;
@@ -74,7 +75,7 @@ macro_rules! impl_eig_complex {
 
                 // actal ev
                 let lwork = work_size[0].to_usize().unwrap();
-                let mut work: Vec<Self> = unsafe { vec_uninit(lwork) };
+                let mut work: Vec<MaybeUninit<Self>> = unsafe { vec_uninit2(lwork) };
                 let lwork = lwork as i32;
                 unsafe {
                     $ev(
@@ -96,10 +97,14 @@ macro_rules! impl_eig_complex {
                 };
                 info.as_lapack_result()?;
 
+                let eigs = unsafe { eigs.assume_init() };
+                let vr = unsafe { vr.map(|v| v.assume_init()) };
+                let mut vl = unsafe { vl.map(|v| v.assume_init()) };
+
                 // Hermite conjugate
                 if jobvl.is_calc() {
                     for c in vl.as_mut().unwrap().iter_mut() {
-                        c.im = -c.im
+                        c.im = -c.im;
                     }
                 }
 
@@ -145,13 +150,13 @@ macro_rules! impl_eig_real {
                 } else {
                     (EigenVectorFlag::Not, EigenVectorFlag::Not)
                 };
-                let mut eig_re: Vec<Self> = unsafe { vec_uninit(n as usize) };
-                let mut eig_im: Vec<Self> = unsafe { vec_uninit(n as usize) };
+                let mut eig_re: Vec<MaybeUninit<Self>> = unsafe { vec_uninit2(n as usize) };
+                let mut eig_im: Vec<MaybeUninit<Self>> = unsafe { vec_uninit2(n as usize) };
 
-                let mut vl: Option<Vec<Self>> =
-                    jobvl.then(|| unsafe { vec_uninit((n * n) as usize) });
-                let mut vr: Option<Vec<Self>> =
-                    jobvr.then(|| unsafe { vec_uninit((n * n) as usize) });
+                let mut vl: Option<Vec<MaybeUninit<Self>>> =
+                    jobvl.then(|| unsafe { vec_uninit2((n * n) as usize) });
+                let mut vr: Option<Vec<MaybeUninit<Self>>> =
+                    jobvr.then(|| unsafe { vec_uninit2((n * n) as usize) });
 
                 // calc work size
                 let mut info = 0;
@@ -178,7 +183,7 @@ macro_rules! impl_eig_real {
 
                 // actual ev
                 let lwork = work_size[0].to_usize().unwrap();
-                let mut work: Vec<Self> = unsafe { vec_uninit(lwork) };
+                let mut work: Vec<MaybeUninit<Self>> = unsafe { vec_uninit2(lwork) };
                 let lwork = lwork as i32;
                 unsafe {
                     $ev(
@@ -199,6 +204,11 @@ macro_rules! impl_eig_real {
                     )
                 };
                 info.as_lapack_result()?;
+
+                let eig_re = unsafe { eig_re.assume_init() };
+                let eig_im = unsafe { eig_im.assume_init() };
+                let vl = unsafe { vl.map(|v| v.assume_init()) };
+                let vr = unsafe { vr.map(|v| v.assume_init()) };
 
                 // reconstruct eigenvalues
                 let eigs: Vec<Self::Complex> = eig_re
@@ -228,14 +238,14 @@ macro_rules! impl_eig_real {
 
                 let n = n as usize;
                 let v = vr.or(vl).unwrap();
-                let mut eigvecs = unsafe { vec_uninit(n * n) };
+                let mut eigvecs: Vec<MaybeUninit<Self::Complex>> = unsafe { vec_uninit2(n * n) };
                 let mut col = 0;
                 while col < n {
                     if eig_im[col] == 0. {
                         // The corresponding eigenvalue is real.
                         for row in 0..n {
                             let re = v[row + col * n];
-                            eigvecs[row + col * n] = Self::complex(re, 0.);
+                            eigvecs[row + col * n].write(Self::complex(re, 0.));
                         }
                         col += 1;
                     } else {
@@ -247,12 +257,13 @@ macro_rules! impl_eig_real {
                             if jobvl.is_calc() {
                                 im = -im;
                             }
-                            eigvecs[row + col * n] = Self::complex(re, im);
-                            eigvecs[row + (col + 1) * n] = Self::complex(re, -im);
+                            eigvecs[row + col * n].write(Self::complex(re, im));
+                            eigvecs[row + (col + 1) * n].write(Self::complex(re, -im));
                         }
                         col += 2;
                     }
                 }
+                let eigvecs = unsafe { eigvecs.assume_init() };
 
                 Ok((eigs, eigvecs))
             }

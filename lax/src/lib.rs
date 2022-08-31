@@ -281,3 +281,15 @@ unsafe fn vec_uninit<T: Sized>(n: usize) -> Vec<T> {
     v.set_len(n);
     v
 }
+
+/// Create a vector without initialization
+///
+/// Safety
+/// ------
+/// - Memory is not initialized. Do not read the memory before write.
+///
+unsafe fn vec_uninit2<T: Sized>(n: usize) -> Vec<MaybeUninit<T>> {
+    let mut v = Vec::with_capacity(n);
+    v.set_len(n);
+    v
+}

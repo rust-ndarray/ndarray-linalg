@@ -287,20 +287,20 @@
                 )<span class="op">*</span>
                 <span class="kw">unsafe</span> {
                     <span class="macro-nonterminal">$</span><span class="macro-nonterminal">gelsd</span>(
-                        <span class="ident">m</span>,
-                        <span class="ident">n</span>,
-                        <span class="ident">nrhs</span>,
-                        <span class="ident">a_t</span>.<span class="ident">as_mut</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">v</span><span class="op">|</span> <span class="ident">v</span>.<span class="ident">as_mut_slice</span>()).<span class="ident">unwrap_or</span>(<span class="ident">a</span>),
-                        <span class="ident">a_layout</span>.<span class="ident">lda</span>(),
-                        <span class="ident">b_t</span>.<span class="ident">as_mut</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">v</span><span class="op">|</span> <span class="ident">v</span>.<span class="ident">as_mut_slice</span>()).<span class="ident">unwrap_or</span>(<span class="ident">b</span>),
-                        <span class="ident">b_layout</span>.<span class="ident">lda</span>(),
-                        <span class="kw-2">&amp;mut</span> <span class="ident">singular_values</span>,
-                        <span class="ident">rcond</span>,
+                        <span class="kw-2">&amp;</span><span class="ident">m</span>,
+                        <span class="kw-2">&amp;</span><span class="ident">n</span>,
+                        <span class="kw-2">&amp;</span><span class="ident">nrhs</span>,
+                        <span class="ident">AsPtr::as_mut_ptr</span>(<span class="ident">a_t</span>.<span class="ident">as_mut</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">v</span><span class="op">|</span> <span class="ident">v</span>.<span class="ident">as_mut_slice</span>()).<span class="ident">unwrap_or</span>(<span class="ident">a</span>)),
+                        <span class="kw-2">&amp;</span><span class="ident">a_layout</span>.<span class="ident">lda</span>(),
+                        <span class="ident">AsPtr::as_mut_ptr</span>(<span class="ident">b_t</span>.<span class="ident">as_mut</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">v</span><span class="op">|</span> <span class="ident">v</span>.<span class="ident">as_mut_slice</span>()).<span class="ident">unwrap_or</span>(<span class="ident">b</span>)),
+                        <span class="kw-2">&amp;</span><span class="ident">b_layout</span>.<span class="ident">lda</span>(),
+                        <span class="ident">AsPtr::as_mut_ptr</span>(<span class="kw-2">&amp;mut</span> <span class="ident">singular_values</span>),
+                        <span class="kw-2">&amp;</span><span class="ident">rcond</span>,
                         <span class="kw-2">&amp;mut</span> <span class="ident">rank</span>,
-                        <span class="kw-2">&amp;mut</span> <span class="ident">work_size</span>,
-                        <span class="op">-</span><span class="number">1</span>,
-                        $(<span class="kw-2">&amp;mut</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">rwork</span>,)<span class="op">*</span>
-                        <span class="kw-2">&amp;mut</span> <span class="ident">iwork_size</span>,
+                        <span class="ident">AsPtr::as_mut_ptr</span>(<span class="kw-2">&amp;mut</span> <span class="ident">work_size</span>),
+                        <span class="kw-2">&amp;</span>(<span class="op">-</span><span class="number">1</span>),
+                        $(<span class="ident">AsPtr::as_mut_ptr</span>(<span class="kw-2">&amp;mut</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">rwork</span>),)<span class="op">*</span>
+                        <span class="ident">iwork_size</span>.<span class="ident">as_mut_ptr</span>(),
                         <span class="kw-2">&amp;mut</span> <span class="ident">info</span>,
                     )
                 };
@@ -308,29 +308,29 @@
 
                 <span class="comment">// calc</span>
                 <span class="kw">let</span> <span class="ident">lwork</span> <span class="op">=</span> <span class="ident">work_size</span>[<span class="number">0</span>].<span class="ident">to_usize</span>().<span class="ident">unwrap</span>();
-                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">work</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">vec_uninit</span>( <span class="ident">lwork</span>) };
+                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">work</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">vec_uninit</span>(<span class="ident">lwork</span>) };
                 <span class="kw">let</span> <span class="ident">liwork</span> <span class="op">=</span> <span class="ident">iwork_size</span>[<span class="number">0</span>].<span class="ident">to_usize</span>().<span class="ident">unwrap</span>();
-                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">iwork</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">vec_uninit</span>( <span class="ident">liwork</span>) };
+                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">iwork</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">vec_uninit</span>(<span class="ident">liwork</span>) };
                 $(
                 <span class="kw">let</span> <span class="ident">lrwork</span> <span class="op">=</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">rwork</span>[<span class="number">0</span>].<span class="ident">to_usize</span>().<span class="ident">unwrap</span>();
-                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">rwork</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">vec_uninit</span>( <span class="ident">lrwork</span>) };
+                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">rwork</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Real</span><span class="op">&gt;</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">vec_uninit</span>(<span class="ident">lrwork</span>) };
                 )<span class="op">*</span>
                 <span class="kw">unsafe</span> {
                     <span class="macro-nonterminal">$</span><span class="macro-nonterminal">gelsd</span>(
-                        <span class="ident">m</span>,
-                        <span class="ident">n</span>,
-                        <span class="ident">nrhs</span>,
-                        <span class="ident">a_t</span>.<span class="ident">as_mut</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">v</span><span class="op">|</span> <span class="ident">v</span>.<span class="ident">as_mut_slice</span>()).<span class="ident">unwrap_or</span>(<span class="ident">a</span>),
-                        <span class="ident">a_layout</span>.<span class="ident">lda</span>(),
-                        <span class="ident">b_t</span>.<span class="ident">as_mut</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">v</span><span class="op">|</span> <span class="ident">v</span>.<span class="ident">as_mut_slice</span>()).<span class="ident">unwrap_or</span>(<span class="ident">b</span>),
-                        <span class="ident">b_layout</span>.<span class="ident">lda</span>(),
-                        <span class="kw-2">&amp;mut</span> <span class="ident">singular_values</span>,
-                        <span class="ident">rcond</span>,
+                        <span class="kw-2">&amp;</span><span class="ident">m</span>,
+                        <span class="kw-2">&amp;</span><span class="ident">n</span>,
+                        <span class="kw-2">&amp;</span><span class="ident">nrhs</span>,
+                        <span class="ident">AsPtr::as_mut_ptr</span>(<span class="ident">a_t</span>.<span class="ident">as_mut</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">v</span><span class="op">|</span> <span class="ident">v</span>.<span class="ident">as_mut_slice</span>()).<span class="ident">unwrap_or</span>(<span class="ident">a</span>)),
+                        <span class="kw-2">&amp;</span><span class="ident">a_layout</span>.<span class="ident">lda</span>(),
+                        <span class="ident">AsPtr::as_mut_ptr</span>(<span class="ident">b_t</span>.<span class="ident">as_mut</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">v</span><span class="op">|</span> <span class="ident">v</span>.<span class="ident">as_mut_slice</span>()).<span class="ident">unwrap_or</span>(<span class="ident">b</span>)),
+                        <span class="kw-2">&amp;</span><span class="ident">b_layout</span>.<span class="ident">lda</span>(),
+                        <span class="ident">AsPtr::as_mut_ptr</span>(<span class="kw-2">&amp;mut</span> <span class="ident">singular_values</span>),
+                        <span class="kw-2">&amp;</span><span class="ident">rcond</span>,
                         <span class="kw-2">&amp;mut</span> <span class="ident">rank</span>,
-                        <span class="kw-2">&amp;mut</span> <span class="ident">work</span>,
-                        <span class="ident">lwork</span> <span class="kw">as</span> <span class="ident">i32</span>,
-                        $(<span class="kw-2">&amp;mut</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">rwork</span>,)<span class="op">*</span>
-                        <span class="kw-2">&amp;mut</span> <span class="ident">iwork</span>,
+                        <span class="ident">AsPtr::as_mut_ptr</span>(<span class="kw-2">&amp;mut</span> <span class="ident">work</span>),
+                        <span class="kw-2">&amp;</span>(<span class="ident">lwork</span> <span class="kw">as</span> <span class="ident">i32</span>),
+                        $(<span class="ident">AsPtr::as_mut_ptr</span>(<span class="kw-2">&amp;mut</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">rwork</span>),)<span class="op">*</span>
+                        <span class="ident">iwork</span>.<span class="ident">as_mut_ptr</span>(),
                         <span class="kw-2">&amp;mut</span> <span class="ident">info</span>,
                     );
                 }
@@ -351,10 +351,10 @@
     };
 }
 
-<span class="macro">impl_least_squares!</span>(@<span class="ident">real</span>, <span class="ident">f64</span>, <span class="ident">lapack::dgelsd</span>);
-<span class="macro">impl_least_squares!</span>(@<span class="ident">real</span>, <span class="ident">f32</span>, <span class="ident">lapack::sgelsd</span>);
-<span class="macro">impl_least_squares!</span>(@<span class="ident">complex</span>, <span class="ident">c64</span>, <span class="ident">lapack::zgelsd</span>);
-<span class="macro">impl_least_squares!</span>(@<span class="ident">complex</span>, <span class="ident">c32</span>, <span class="ident">lapack::cgelsd</span>);
+<span class="macro">impl_least_squares!</span>(@<span class="ident">real</span>, <span class="ident">f64</span>, <span class="ident">lapack_sys::dgelsd_</span>);
+<span class="macro">impl_least_squares!</span>(@<span class="ident">real</span>, <span class="ident">f32</span>, <span class="ident">lapack_sys::sgelsd_</span>);
+<span class="macro">impl_least_squares!</span>(@<span class="ident">complex</span>, <span class="ident">c64</span>, <span class="ident">lapack_sys::zgelsd_</span>);
+<span class="macro">impl_least_squares!</span>(@<span class="ident">complex</span>, <span class="ident">c32</span>, <span class="ident">lapack_sys::cgelsd_</span>);
 </code></pre></div>
 </section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="lax" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.63.0 (4b91a6ea7 2022-08-08)" ></div>
 </body></html>

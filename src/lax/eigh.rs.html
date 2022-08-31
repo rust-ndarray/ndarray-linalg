@@ -180,6 +180,8 @@
 <span id="157">157</span>
 <span id="158">158</span>
 <span id="159">159</span>
+<span id="160">160</span>
+<span id="161">161</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Eigenvalue decomposition for Symmetric/Hermite matrices</span>
 
 <span class="kw">use</span> <span class="kw">super</span>::<span class="kw-2">*</span>;
@@ -219,15 +221,15 @@
                 <span class="ident">calc_v</span>: <span class="ident">bool</span>,
                 <span class="ident">layout</span>: <span class="ident">MatrixLayout</span>,
                 <span class="ident">uplo</span>: <span class="ident">UPLO</span>,
-                <span class="kw-2">mut</span> <span class="ident">a</span>: <span class="kw-2">&amp;mut</span> [<span class="self">Self</span>],
+                <span class="ident">a</span>: <span class="kw-2">&amp;mut</span> [<span class="self">Self</span>],
             ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Real</span><span class="op">&gt;</span><span class="op">&gt;</span> {
                 <span class="macro">assert_eq!</span>(<span class="ident">layout</span>.<span class="ident">len</span>(), <span class="ident">layout</span>.<span class="ident">lda</span>());
                 <span class="kw">let</span> <span class="ident">n</span> <span class="op">=</span> <span class="ident">layout</span>.<span class="ident">len</span>();
-                <span class="kw">let</span> <span class="ident">jobz</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">calc_v</span> { <span class="string">b&#39;V&#39;</span> } <span class="kw">else</span> { <span class="string">b&#39;N&#39;</span> };
+                <span class="kw">let</span> <span class="ident">jobz</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">calc_v</span> { <span class="ident">EigenVectorFlag::Calc</span> } <span class="kw">else</span> { <span class="ident">EigenVectorFlag::Not</span> };
                 <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">eigs</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">vec_uninit</span>(<span class="ident">n</span> <span class="kw">as</span> <span class="ident">usize</span>) };
 
                 $(
-                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">rwork_ident</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">vec_uninit</span>(<span class="number">3</span> <span class="op">*</span> <span class="ident">n</span> <span class="kw">as</span> <span class="ident">usize</span> <span class="op">-</span> <span class="number">2</span> <span class="kw">as</span> <span class="ident">usize</span>) };
+                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">rwork_ident</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Real</span><span class="op">&gt;</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">vec_uninit</span>(<span class="number">3</span> <span class="op">*</span> <span class="ident">n</span> <span class="kw">as</span> <span class="ident">usize</span> <span class="op">-</span> <span class="number">2</span> <span class="kw">as</span> <span class="ident">usize</span>) };
                 )<span class="op">*</span>
 
                 <span class="comment">// calc work size</span>
@@ -235,15 +237,15 @@
                 <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">work_size</span> <span class="op">=</span> [<span class="ident"><span class="self">Self</span>::zero</span>()];
                 <span class="kw">unsafe</span> {
                     <span class="macro-nonterminal">$</span><span class="macro-nonterminal">ev</span>(
-                        <span class="ident">jobz</span>,
-                        <span class="ident">uplo</span> <span class="kw">as</span> <span class="ident">u8</span>,
-                        <span class="ident">n</span>,
-                        <span class="kw-2">&amp;mut</span> <span class="ident">a</span>,
-                        <span class="ident">n</span>,
-                        <span class="kw-2">&amp;mut</span> <span class="ident">eigs</span>,
-                        <span class="kw-2">&amp;mut</span> <span class="ident">work_size</span>,
-                        <span class="op">-</span><span class="number">1</span>,
-                        $(<span class="kw-2">&amp;mut</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">rwork_ident</span>,)<span class="op">*</span>
+                        <span class="ident">jobz</span>.<span class="ident">as_ptr</span>() ,
+                        <span class="ident">uplo</span>.<span class="ident">as_ptr</span>(),
+                        <span class="kw-2">&amp;</span><span class="ident">n</span>,
+                        <span class="ident">AsPtr::as_mut_ptr</span>(<span class="ident">a</span>),
+                        <span class="kw-2">&amp;</span><span class="ident">n</span>,
+                        <span class="ident">AsPtr::as_mut_ptr</span>(<span class="kw-2">&amp;mut</span> <span class="ident">eigs</span>),
+                        <span class="ident">AsPtr::as_mut_ptr</span>(<span class="kw-2">&amp;mut</span> <span class="ident">work_size</span>),
+                        <span class="kw-2">&amp;</span>(<span class="op">-</span><span class="number">1</span>),
+                        $(<span class="ident">AsPtr::as_mut_ptr</span>(<span class="kw-2">&amp;mut</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">rwork_ident</span>),)<span class="op">*</span>
                         <span class="kw-2">&amp;mut</span> <span class="ident">info</span>,
                     );
                 }
@@ -251,18 +253,19 @@
 
                 <span class="comment">// actual ev</span>
                 <span class="kw">let</span> <span class="ident">lwork</span> <span class="op">=</span> <span class="ident">work_size</span>[<span class="number">0</span>].<span class="ident">to_usize</span>().<span class="ident">unwrap</span>();
-                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">work</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">vec_uninit</span>(<span class="ident">lwork</span>) };
+                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">work</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">vec_uninit</span>(<span class="ident">lwork</span>) };
+                <span class="kw">let</span> <span class="ident">lwork</span> <span class="op">=</span> <span class="ident">lwork</span> <span class="kw">as</span> <span class="ident">i32</span>;
                 <span class="kw">unsafe</span> {
                     <span class="macro-nonterminal">$</span><span class="macro-nonterminal">ev</span>(
-                        <span class="ident">jobz</span>,
-                        <span class="ident">uplo</span> <span class="kw">as</span> <span class="ident">u8</span>,
-                        <span class="ident">n</span>,
-                        <span class="kw-2">&amp;mut</span> <span class="ident">a</span>,
-                        <span class="ident">n</span>,
-                        <span class="kw-2">&amp;mut</span> <span class="ident">eigs</span>,
-                        <span class="kw-2">&amp;mut</span> <span class="ident">work</span>,
-                        <span class="ident">lwork</span> <span class="kw">as</span> <span class="ident">i32</span>,
-                        $(<span class="kw-2">&amp;mut</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">rwork_ident</span>,)<span class="op">*</span>
+                        <span class="ident">jobz</span>.<span class="ident">as_ptr</span>(),
+                        <span class="ident">uplo</span>.<span class="ident">as_ptr</span>(),
+                        <span class="kw-2">&amp;</span><span class="ident">n</span>,
+                        <span class="ident">AsPtr::as_mut_ptr</span>(<span class="ident">a</span>),
+                        <span class="kw-2">&amp;</span><span class="ident">n</span>,
+                        <span class="ident">AsPtr::as_mut_ptr</span>(<span class="kw-2">&amp;mut</span> <span class="ident">eigs</span>),
+                        <span class="ident">AsPtr::as_mut_ptr</span>(<span class="kw-2">&amp;mut</span> <span class="ident">work</span>),
+                        <span class="kw-2">&amp;</span><span class="ident">lwork</span>,
+                        $(<span class="ident">AsPtr::as_mut_ptr</span>(<span class="kw-2">&amp;mut</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">rwork_ident</span>),)<span class="op">*</span>
                         <span class="kw-2">&amp;mut</span> <span class="ident">info</span>,
                     );
                 }
@@ -274,16 +277,16 @@
                 <span class="ident">calc_v</span>: <span class="ident">bool</span>,
                 <span class="ident">layout</span>: <span class="ident">MatrixLayout</span>,
                 <span class="ident">uplo</span>: <span class="ident">UPLO</span>,
-                <span class="kw-2">mut</span> <span class="ident">a</span>: <span class="kw-2">&amp;mut</span> [<span class="self">Self</span>],
-                <span class="kw-2">mut</span> <span class="ident">b</span>: <span class="kw-2">&amp;mut</span> [<span class="self">Self</span>],
+                <span class="ident">a</span>: <span class="kw-2">&amp;mut</span> [<span class="self">Self</span>],
+                <span class="ident">b</span>: <span class="kw-2">&amp;mut</span> [<span class="self">Self</span>],
             ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Real</span><span class="op">&gt;</span><span class="op">&gt;</span> {
                 <span class="macro">assert_eq!</span>(<span class="ident">layout</span>.<span class="ident">len</span>(), <span class="ident">layout</span>.<span class="ident">lda</span>());
                 <span class="kw">let</span> <span class="ident">n</span> <span class="op">=</span> <span class="ident">layout</span>.<span class="ident">len</span>();
-                <span class="kw">let</span> <span class="ident">jobz</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">calc_v</span> { <span class="string">b&#39;V&#39;</span> } <span class="kw">else</span> { <span class="string">b&#39;N&#39;</span> };
+                <span class="kw">let</span> <span class="ident">jobz</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">calc_v</span> { <span class="ident">EigenVectorFlag::Calc</span> } <span class="kw">else</span> { <span class="ident">EigenVectorFlag::Not</span> };
                 <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">eigs</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">vec_uninit</span>(<span class="ident">n</span> <span class="kw">as</span> <span class="ident">usize</span>) };
 
                 $(
-                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">rwork_ident</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">vec_uninit</span>(<span class="number">3</span> <span class="op">*</span> <span class="ident">n</span> <span class="kw">as</span> <span class="ident">usize</span> <span class="op">-</span> <span class="number">2</span>) };
+                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">rwork_ident</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Real</span><span class="op">&gt;</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">vec_uninit</span>(<span class="number">3</span> <span class="op">*</span> <span class="ident">n</span> <span class="kw">as</span> <span class="ident">usize</span> <span class="op">-</span> <span class="number">2</span>) };
                 )<span class="op">*</span>
 
                 <span class="comment">// calc work size</span>
@@ -291,18 +294,18 @@
                 <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">work_size</span> <span class="op">=</span> [<span class="ident"><span class="self">Self</span>::zero</span>()];
                 <span class="kw">unsafe</span> {
                     <span class="macro-nonterminal">$</span><span class="macro-nonterminal">evg</span>(
-                        <span class="kw-2">&amp;</span>[<span class="number">1</span>],
-                        <span class="ident">jobz</span>,
-                        <span class="ident">uplo</span> <span class="kw">as</span> <span class="ident">u8</span>,
-                        <span class="ident">n</span>,
-                        <span class="kw-2">&amp;mut</span> <span class="ident">a</span>,
-                        <span class="ident">n</span>,
-                        <span class="kw-2">&amp;mut</span> <span class="ident">b</span>,
-                        <span class="ident">n</span>,
-                        <span class="kw-2">&amp;mut</span> <span class="ident">eigs</span>,
-                        <span class="kw-2">&amp;mut</span> <span class="ident">work_size</span>,
-                        <span class="op">-</span><span class="number">1</span>,
-                        $(<span class="kw-2">&amp;mut</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">rwork_ident</span>,)<span class="op">*</span>
+                        <span class="kw-2">&amp;</span><span class="number">1</span>, <span class="comment">// ITYPE A*x = (lambda)*B*x</span>
+                        <span class="ident">jobz</span>.<span class="ident">as_ptr</span>(),
+                        <span class="ident">uplo</span>.<span class="ident">as_ptr</span>(),
+                        <span class="kw-2">&amp;</span><span class="ident">n</span>,
+                        <span class="ident">AsPtr::as_mut_ptr</span>(<span class="ident">a</span>),
+                        <span class="kw-2">&amp;</span><span class="ident">n</span>,
+                        <span class="ident">AsPtr::as_mut_ptr</span>(<span class="ident">b</span>),
+                        <span class="kw-2">&amp;</span><span class="ident">n</span>,
+                        <span class="ident">AsPtr::as_mut_ptr</span>(<span class="kw-2">&amp;mut</span> <span class="ident">eigs</span>),
+                        <span class="ident">AsPtr::as_mut_ptr</span>(<span class="kw-2">&amp;mut</span> <span class="ident">work_size</span>),
+                        <span class="kw-2">&amp;</span>(<span class="op">-</span><span class="number">1</span>),
+                        $(<span class="ident">AsPtr::as_mut_ptr</span>(<span class="kw-2">&amp;mut</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">rwork_ident</span>),)<span class="op">*</span>
                         <span class="kw-2">&amp;mut</span> <span class="ident">info</span>,
                     );
                 }
@@ -310,21 +313,22 @@
 
                 <span class="comment">// actual evg</span>
                 <span class="kw">let</span> <span class="ident">lwork</span> <span class="op">=</span> <span class="ident">work_size</span>[<span class="number">0</span>].<span class="ident">to_usize</span>().<span class="ident">unwrap</span>();
-                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">work</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">vec_uninit</span>(<span class="ident">lwork</span>) };
+                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">work</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">vec_uninit</span>(<span class="ident">lwork</span>) };
+                <span class="kw">let</span> <span class="ident">lwork</span> <span class="op">=</span> <span class="ident">lwork</span> <span class="kw">as</span> <span class="ident">i32</span>;
                 <span class="kw">unsafe</span> {
                     <span class="macro-nonterminal">$</span><span class="macro-nonterminal">evg</span>(
-                        <span class="kw-2">&amp;</span>[<span class="number">1</span>],
-                        <span class="ident">jobz</span>,
-                        <span class="ident">uplo</span> <span class="kw">as</span> <span class="ident">u8</span>,
-                        <span class="ident">n</span>,
-                        <span class="kw-2">&amp;mut</span> <span class="ident">a</span>,
-                        <span class="ident">n</span>,
-                        <span class="kw-2">&amp;mut</span> <span class="ident">b</span>,
-                        <span class="ident">n</span>,
-                        <span class="kw-2">&amp;mut</span> <span class="ident">eigs</span>,
-                        <span class="kw-2">&amp;mut</span> <span class="ident">work</span>,
-                        <span class="ident">lwork</span> <span class="kw">as</span> <span class="ident">i32</span>,
-                        $(<span class="kw-2">&amp;mut</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">rwork_ident</span>,)<span class="op">*</span>
+                        <span class="kw-2">&amp;</span><span class="number">1</span>, <span class="comment">// ITYPE A*x = (lambda)*B*x</span>
+                        <span class="ident">jobz</span>.<span class="ident">as_ptr</span>(),
+                        <span class="ident">uplo</span>.<span class="ident">as_ptr</span>(),
+                        <span class="kw-2">&amp;</span><span class="ident">n</span>,
+                        <span class="ident">AsPtr::as_mut_ptr</span>(<span class="ident">a</span>),
+                        <span class="kw-2">&amp;</span><span class="ident">n</span>,
+                        <span class="ident">AsPtr::as_mut_ptr</span>(<span class="ident">b</span>),
+                        <span class="kw-2">&amp;</span><span class="ident">n</span>,
+                        <span class="ident">AsPtr::as_mut_ptr</span>(<span class="kw-2">&amp;mut</span> <span class="ident">eigs</span>),
+                        <span class="ident">AsPtr::as_mut_ptr</span>(<span class="kw-2">&amp;mut</span> <span class="ident">work</span>),
+                        <span class="kw-2">&amp;</span><span class="ident">lwork</span>,
+                        $(<span class="ident">AsPtr::as_mut_ptr</span>(<span class="kw-2">&amp;mut</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">rwork_ident</span>),)<span class="op">*</span>
                         <span class="kw-2">&amp;mut</span> <span class="ident">info</span>,
                     );
                 }
@@ -335,10 +339,10 @@
     };
 } <span class="comment">// impl_eigh!</span>
 
-<span class="macro">impl_eigh!</span>(@<span class="ident">real</span>, <span class="ident">f64</span>, <span class="ident">lapack::dsyev</span>, <span class="ident">lapack::dsygv</span>);
-<span class="macro">impl_eigh!</span>(@<span class="ident">real</span>, <span class="ident">f32</span>, <span class="ident">lapack::ssyev</span>, <span class="ident">lapack::ssygv</span>);
-<span class="macro">impl_eigh!</span>(@<span class="ident">complex</span>, <span class="ident">c64</span>, <span class="ident">lapack::zheev</span>, <span class="ident">lapack::zhegv</span>);
-<span class="macro">impl_eigh!</span>(@<span class="ident">complex</span>, <span class="ident">c32</span>, <span class="ident">lapack::cheev</span>, <span class="ident">lapack::chegv</span>);
+<span class="macro">impl_eigh!</span>(@<span class="ident">real</span>, <span class="ident">f64</span>, <span class="ident">lapack_sys::dsyev_</span>, <span class="ident">lapack_sys::dsygv_</span>);
+<span class="macro">impl_eigh!</span>(@<span class="ident">real</span>, <span class="ident">f32</span>, <span class="ident">lapack_sys::ssyev_</span>, <span class="ident">lapack_sys::ssygv_</span>);
+<span class="macro">impl_eigh!</span>(@<span class="ident">complex</span>, <span class="ident">c64</span>, <span class="ident">lapack_sys::zheev_</span>, <span class="ident">lapack_sys::zhegv_</span>);
+<span class="macro">impl_eigh!</span>(@<span class="ident">complex</span>, <span class="ident">c32</span>, <span class="ident">lapack_sys::cheev_</span>, <span class="ident">lapack_sys::chegv_</span>);
 </code></pre></div>
 </section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="lax" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.63.0 (4b91a6ea7 2022-08-08)" ></div>
 </body></html>

@@ -125,22 +125,22 @@
                 <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">rcond</span> <span class="op">=</span> <span class="ident"><span class="self">Self</span>::Real::zero</span>();
                 <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">info</span> <span class="op">=</span> <span class="number">0</span>;
 
-                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">work</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">vec_uninit</span>(<span class="number">4</span> <span class="op">*</span> <span class="ident">n</span> <span class="kw">as</span> <span class="ident">usize</span>) };
+                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">work</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">vec_uninit</span>(<span class="number">4</span> <span class="op">*</span> <span class="ident">n</span> <span class="kw">as</span> <span class="ident">usize</span>) };
                 <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">iwork</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">vec_uninit</span>(<span class="ident">n</span> <span class="kw">as</span> <span class="ident">usize</span>) };
                 <span class="kw">let</span> <span class="ident">norm_type</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">l</span> {
                     <span class="ident">MatrixLayout::C</span> { .. } =&gt; <span class="ident">NormType::Infinity</span>,
                     <span class="ident">MatrixLayout::F</span> { .. } =&gt; <span class="ident">NormType::One</span>,
-                } <span class="kw">as</span> <span class="ident">u8</span>;
+                };
                 <span class="kw">unsafe</span> {
                     <span class="macro-nonterminal">$</span><span class="macro-nonterminal">gecon</span>(
-                        <span class="ident">norm_type</span>,
-                        <span class="ident">n</span>,
-                        <span class="ident">a</span>,
-                        <span class="ident">l</span>.<span class="ident">lda</span>(),
-                        <span class="ident">anorm</span>,
+                        <span class="ident">norm_type</span>.<span class="ident">as_ptr</span>(),
+                        <span class="kw-2">&amp;</span><span class="ident">n</span>,
+                        <span class="ident">AsPtr::as_ptr</span>(<span class="ident">a</span>),
+                        <span class="kw-2">&amp;</span><span class="ident">l</span>.<span class="ident">lda</span>(),
+                        <span class="kw-2">&amp;</span><span class="ident">anorm</span>,
                         <span class="kw-2">&amp;mut</span> <span class="ident">rcond</span>,
-                        <span class="kw-2">&amp;mut</span> <span class="ident">work</span>,
-                        <span class="kw-2">&amp;mut</span> <span class="ident">iwork</span>,
+                        <span class="ident">AsPtr::as_mut_ptr</span>(<span class="kw-2">&amp;mut</span> <span class="ident">work</span>),
+                        <span class="ident">iwork</span>.<span class="ident">as_mut_ptr</span>(),
                         <span class="kw-2">&amp;mut</span> <span class="ident">info</span>,
                     )
                 };
@@ -152,8 +152,8 @@
     };
 }
 
-<span class="macro">impl_rcond_real!</span>(<span class="ident">f32</span>, <span class="ident">lapack::sgecon</span>);
-<span class="macro">impl_rcond_real!</span>(<span class="ident">f64</span>, <span class="ident">lapack::dgecon</span>);
+<span class="macro">impl_rcond_real!</span>(<span class="ident">f32</span>, <span class="ident">lapack_sys::sgecon_</span>);
+<span class="macro">impl_rcond_real!</span>(<span class="ident">f64</span>, <span class="ident">lapack_sys::dgecon_</span>);
 
 <span class="macro">macro_rules!</span> <span class="ident">impl_rcond_complex</span> {
     (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">scalar</span>:<span class="ident">ty</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">gecon</span>:<span class="ident">path</span>) =&gt; {
@@ -162,22 +162,22 @@
                 <span class="kw">let</span> (<span class="ident">n</span>, <span class="kw">_</span>) <span class="op">=</span> <span class="ident">l</span>.<span class="ident">size</span>();
                 <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">rcond</span> <span class="op">=</span> <span class="ident"><span class="self">Self</span>::Real::zero</span>();
                 <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">info</span> <span class="op">=</span> <span class="number">0</span>;
-                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">work</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">vec_uninit</span>(<span class="number">2</span> <span class="op">*</span> <span class="ident">n</span> <span class="kw">as</span> <span class="ident">usize</span>) };
-                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">rwork</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">vec_uninit</span>(<span class="number">2</span> <span class="op">*</span> <span class="ident">n</span> <span class="kw">as</span> <span class="ident">usize</span>) };
+                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">work</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">vec_uninit</span>(<span class="number">2</span> <span class="op">*</span> <span class="ident">n</span> <span class="kw">as</span> <span class="ident">usize</span>) };
+                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">rwork</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Real</span><span class="op">&gt;</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">vec_uninit</span>(<span class="number">2</span> <span class="op">*</span> <span class="ident">n</span> <span class="kw">as</span> <span class="ident">usize</span>) };
                 <span class="kw">let</span> <span class="ident">norm_type</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">l</span> {
                     <span class="ident">MatrixLayout::C</span> { .. } =&gt; <span class="ident">NormType::Infinity</span>,
                     <span class="ident">MatrixLayout::F</span> { .. } =&gt; <span class="ident">NormType::One</span>,
-                } <span class="kw">as</span> <span class="ident">u8</span>;
+                };
                 <span class="kw">unsafe</span> {
                     <span class="macro-nonterminal">$</span><span class="macro-nonterminal">gecon</span>(
-                        <span class="ident">norm_type</span>,
-                        <span class="ident">n</span>,
-                        <span class="ident">a</span>,
-                        <span class="ident">l</span>.<span class="ident">lda</span>(),
-                        <span class="ident">anorm</span>,
+                        <span class="ident">norm_type</span>.<span class="ident">as_ptr</span>(),
+                        <span class="kw-2">&amp;</span><span class="ident">n</span>,
+                        <span class="ident">AsPtr::as_ptr</span>(<span class="ident">a</span>),
+                        <span class="kw-2">&amp;</span><span class="ident">l</span>.<span class="ident">lda</span>(),
+                        <span class="kw-2">&amp;</span><span class="ident">anorm</span>,
                         <span class="kw-2">&amp;mut</span> <span class="ident">rcond</span>,
-                        <span class="kw-2">&amp;mut</span> <span class="ident">work</span>,
-                        <span class="kw-2">&amp;mut</span> <span class="ident">rwork</span>,
+                        <span class="ident">AsPtr::as_mut_ptr</span>(<span class="kw-2">&amp;mut</span> <span class="ident">work</span>),
+                        <span class="ident">AsPtr::as_mut_ptr</span>(<span class="kw-2">&amp;mut</span> <span class="ident">rwork</span>),
                         <span class="kw-2">&amp;mut</span> <span class="ident">info</span>,
                     )
                 };
@@ -189,8 +189,8 @@
     };
 }
 
-<span class="macro">impl_rcond_complex!</span>(<span class="ident">c32</span>, <span class="ident">lapack::cgecon</span>);
-<span class="macro">impl_rcond_complex!</span>(<span class="ident">c64</span>, <span class="ident">lapack::zgecon</span>);
+<span class="macro">impl_rcond_complex!</span>(<span class="ident">c32</span>, <span class="ident">lapack_sys::cgecon_</span>);
+<span class="macro">impl_rcond_complex!</span>(<span class="ident">c64</span>, <span class="ident">lapack_sys::zgecon_</span>);
 </code></pre></div>
 </section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="lax" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.63.0 (4b91a6ea7 2022-08-08)" ></div>
 </body></html>

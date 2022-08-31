@@ -126,6 +126,31 @@ impl Lapack for f64 {}
 impl Lapack for c32 {}
 impl Lapack for c64 {}
 
+/// Helper for getting pointer of slice
+pub(crate) trait AsPtr: Sized {
+    type Elem;
+    fn as_ptr(vec: &[Self]) -> *const Self::Elem;
+    fn as_mut_ptr(vec: &mut [Self]) -> *mut Self::Elem;
+}
+
+macro_rules! impl_as_ptr {
+    ($target:ty, $elem:ty) => {
+        impl AsPtr for $target {
+            type Elem = $elem;
+            fn as_ptr(vec: &[Self]) -> *const Self::Elem {
+                vec.as_ptr() as *const _
+            }
+            fn as_mut_ptr(vec: &mut [Self]) -> *mut Self::Elem {
+                vec.as_mut_ptr() as *mut _
+            }
+        }
+    };
+}
+impl_as_ptr!(f32, f32);
+impl_as_ptr!(f64, f64);
+impl_as_ptr!(c32, lapack_sys::__BindgenComplex<f32>);
+impl_as_ptr!(c64, lapack_sys::__BindgenComplex<f64>);
+
 /// Upper/Lower specification for seveal usages
 #[derive(Debug, Clone, Copy)]
 #[repr(u8)]
@@ -141,6 +166,11 @@ impl UPLO {
             UPLO::Lower => UPLO::Upper,
         }
     }
+
+    /// To use Fortran LAPACK API in lapack-sys crate
+    pub fn as_ptr(&self) -> *const i8 {
+        self as *const UPLO as *const i8
+    }
 }
 
 #[derive(Debug, Clone, Copy)]
@@ -149,6 +179,13 @@ pub enum Transpose {
     No = b'N',
     Transpose = b'T',
     Hermite = b'C',
+}
+
+impl Transpose {
+    /// To use Fortran LAPACK API in lapack-sys crate
+    pub fn as_ptr(&self) -> *const i8 {
+        self as *const Transpose as *const i8
+    }
 }
 
 #[derive(Debug, Clone, Copy)]
@@ -166,6 +203,41 @@ impl NormType {
             NormType::Infinity => NormType::One,
             NormType::Frobenius => NormType::Frobenius,
         }
+    }
+
+    /// To use Fortran LAPACK API in lapack-sys crate
+    pub fn as_ptr(&self) -> *const i8 {
+        self as *const NormType as *const i8
+    }
+}
+
+/// Flag for calculating eigenvectors or not
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[repr(u8)]
+pub enum EigenVectorFlag {
+    Calc = b'V',
+    Not = b'N',
+}
+
+impl EigenVectorFlag {
+    pub fn is_calc(&self) -> bool {
+        match self {
+            EigenVectorFlag::Calc => true,
+            EigenVectorFlag::Not => false,
+        }
+    }
+
+    pub fn then<T, F: FnOnce() -> T>(&self, f: F) -> Option<T> {
+        if self.is_calc() {
+            Some(f())
+        } else {
+            None
+        }
+    }
+
+    /// To use Fortran LAPACK API in lapack-sys crate
+    pub fn as_ptr(&self) -> *const i8 {
+        self as *const EigenVectorFlag as *const i8
     }
 }
 

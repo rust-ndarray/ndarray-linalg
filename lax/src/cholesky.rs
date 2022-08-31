@@ -29,7 +29,7 @@ macro_rules! impl_cholesky {
                 }
                 let mut info = 0;
                 unsafe {
-                    $trf(uplo as u8, n, a, n, &mut info);
+                    $trf(uplo.as_ptr(), &n, AsPtr::as_mut_ptr(a), &n, &mut info);
                 }
                 info.as_lapack_result()?;
                 if matches!(l, MatrixLayout::C { .. }) {
@@ -45,7 +45,7 @@ macro_rules! impl_cholesky {
                 }
                 let mut info = 0;
                 unsafe {
-                    $tri(uplo as u8, n, a, l.lda(), &mut info);
+                    $tri(uplo.as_ptr(), &n, AsPtr::as_mut_ptr(a), &l.lda(), &mut info);
                 }
                 info.as_lapack_result()?;
                 if matches!(l, MatrixLayout::C { .. }) {
@@ -70,7 +70,16 @@ macro_rules! impl_cholesky {
                     }
                 }
                 unsafe {
-                    $trs(uplo as u8, n, nrhs, a, l.lda(), b, n, &mut info);
+                    $trs(
+                        uplo.as_ptr(),
+                        &n,
+                        &nrhs,
+                        AsPtr::as_ptr(a),
+                        &l.lda(),
+                        AsPtr::as_mut_ptr(b),
+                        &n,
+                        &mut info,
+                    );
                 }
                 info.as_lapack_result()?;
                 if matches!(l, MatrixLayout::C { .. }) {
@@ -84,7 +93,27 @@ macro_rules! impl_cholesky {
     };
 } // end macro_rules
 
-impl_cholesky!(f64, lapack::dpotrf, lapack::dpotri, lapack::dpotrs);
-impl_cholesky!(f32, lapack::spotrf, lapack::spotri, lapack::spotrs);
-impl_cholesky!(c64, lapack::zpotrf, lapack::zpotri, lapack::zpotrs);
-impl_cholesky!(c32, lapack::cpotrf, lapack::cpotri, lapack::cpotrs);
+impl_cholesky!(
+    f64,
+    lapack_sys::dpotrf_,
+    lapack_sys::dpotri_,
+    lapack_sys::dpotrs_
+);
+impl_cholesky!(
+    f32,
+    lapack_sys::spotrf_,
+    lapack_sys::spotri_,
+    lapack_sys::spotrs_
+);
+impl_cholesky!(
+    c64,
+    lapack_sys::zpotrf_,
+    lapack_sys::zpotri_,
+    lapack_sys::zpotrs_
+);
+impl_cholesky!(
+    c32,
+    lapack_sys::cpotrf_,
+    lapack_sys::cpotri_,
+    lapack_sys::cpotrs_
+);

@@ -10,6 +10,12 @@ pub enum Diag {
     NonUnit = b'N',
 }
 
+impl Diag {
+    fn as_ptr(&self) -> *const i8 {
+        self as *const Diag as *const i8
+    }
+}
+
 /// Wraps `*trtri` and `*trtrs`
 pub trait Triangular_: Scalar {
     fn solve_triangular(
@@ -60,15 +66,15 @@ macro_rules! impl_triangular {
                 let mut info = 0;
                 unsafe {
                     $trtrs(
-                        uplo as u8,
-                        Transpose::No as u8,
-                        diag as u8,
-                        m,
-                        nrhs,
-                        a_t.as_ref().map(|v| v.as_slice()).unwrap_or(a),
-                        a_layout.lda(),
-                        b_t.as_mut().map(|v| v.as_mut_slice()).unwrap_or(b),
-                        b_layout.lda(),
+                        uplo.as_ptr(),
+                        Transpose::No.as_ptr(),
+                        diag.as_ptr(),
+                        &m,
+                        &nrhs,
+                        AsPtr::as_ptr(a_t.as_ref().map(|v| v.as_slice()).unwrap_or(a)),
+                        &a_layout.lda(),
+                        AsPtr::as_mut_ptr(b_t.as_mut().map(|v| v.as_mut_slice()).unwrap_or(b)),
+                        &b_layout.lda(),
                         &mut info,
                     );
                 }
@@ -84,7 +90,7 @@ macro_rules! impl_triangular {
     };
 } // impl_triangular!
 
-impl_triangular!(f64, lapack::dtrtri, lapack::dtrtrs);
-impl_triangular!(f32, lapack::strtri, lapack::strtrs);
-impl_triangular!(c64, lapack::ztrtri, lapack::ztrtrs);
-impl_triangular!(c32, lapack::ctrtri, lapack::ctrtrs);
+impl_triangular!(f64, lapack_sys::dtrtri_, lapack_sys::dtrtrs_);
+impl_triangular!(f32, lapack_sys::strtri_, lapack_sys::strtrs_);
+impl_triangular!(c64, lapack_sys::ztrtri_, lapack_sys::ztrtrs_);
+impl_triangular!(c32, lapack_sys::ctrtri_, lapack_sys::ctrtrs_);

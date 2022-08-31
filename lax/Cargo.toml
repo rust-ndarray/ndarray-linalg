@@ -32,7 +32,7 @@ intel-mkl-system = ["intel-mkl-src/mkl-dynamic-lp64-seq"]
 thiserror = "1.0.24"
 cauchy = "0.4.0"
 num-traits = "0.2.14"
-lapack = "0.18.0"
+lapack-sys = "0.14.0"
 
 [dependencies.intel-mkl-src]
 version = "0.7.0"

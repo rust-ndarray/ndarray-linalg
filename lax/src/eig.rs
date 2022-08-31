@@ -20,7 +20,7 @@ macro_rules! impl_eig_complex {
             fn eig(
                 calc_v: bool,
                 l: MatrixLayout,
-                mut a: &mut [Self],
+                a: &mut [Self],
             ) -> Result<(Vec<Self::Complex>, Vec<Self::Complex>)> {
                 let (n, _) = l.size();
                 // LAPACK assumes a column-major input. A row-major input can
@@ -35,44 +35,38 @@ macro_rules! impl_eig_complex {
                 // eigenvalues are the eigenvalues computed with `A`.
                 let (jobvl, jobvr) = if calc_v {
                     match l {
-                        MatrixLayout::C { .. } => (b'V', b'N'),
-                        MatrixLayout::F { .. } => (b'N', b'V'),
+                        MatrixLayout::C { .. } => (EigenVectorFlag::Calc, EigenVectorFlag::Not),
+                        MatrixLayout::F { .. } => (EigenVectorFlag::Not, EigenVectorFlag::Calc),
                     }
                 } else {
-                    (b'N', b'N')
+                    (EigenVectorFlag::Not, EigenVectorFlag::Not)
                 };
                 let mut eigs = unsafe { vec_uninit(n as usize) };
-                let mut rwork = unsafe { vec_uninit(2 * n as usize) };
+                let mut rwork: Vec<Self::Real> = unsafe { vec_uninit(2 * n as usize) };
 
-                let mut vl = if jobvl == b'V' {
-                    Some(unsafe { vec_uninit((n * n) as usize) })
-                } else {
-                    None
-                };
-                let mut vr = if jobvr == b'V' {
-                    Some(unsafe { vec_uninit((n * n) as usize) })
-                } else {
-                    None
-                };
+                let mut vl: Option<Vec<Self>> =
+                    jobvl.then(|| unsafe { vec_uninit((n * n) as usize) });
+                let mut vr: Option<Vec<Self>> =
+                    jobvr.then(|| unsafe { vec_uninit((n * n) as usize) });
 
                 // calc work size
                 let mut info = 0;
                 let mut work_size = [Self::zero()];
                 unsafe {
                     $ev(
-                        jobvl,
-                        jobvr,
-                        n,
-                        &mut a,
-                        n,
-                        &mut eigs,
-                        &mut vl.as_mut().map(|v| v.as_mut_slice()).unwrap_or(&mut []),
-                        n,
-                        &mut vr.as_mut().map(|v| v.as_mut_slice()).unwrap_or(&mut []),
-                        n,
-                        &mut work_size,
-                        -1,
-                        &mut rwork,
+                        jobvl.as_ptr(),
+                        jobvr.as_ptr(),
+                        &n,
+                        AsPtr::as_mut_ptr(a),
+                        &n,
+                        AsPtr::as_mut_ptr(&mut eigs),
+                        AsPtr::as_mut_ptr(vl.as_mut().map(|v| v.as_mut_slice()).unwrap_or(&mut [])),
+                        &n,
+                        AsPtr::as_mut_ptr(vr.as_mut().map(|v| v.as_mut_slice()).unwrap_or(&mut [])),
+                        &n,
+                        AsPtr::as_mut_ptr(&mut work_size),
+                        &(-1),
+                        AsPtr::as_mut_ptr(&mut rwork),
                         &mut info,
                     )
                 };
@@ -80,29 +74,30 @@ macro_rules! impl_eig_complex {
 
                 // actal ev
                 let lwork = work_size[0].to_usize().unwrap();
-                let mut work = unsafe { vec_uninit(lwork) };
+                let mut work: Vec<Self> = unsafe { vec_uninit(lwork) };
+                let lwork = lwork as i32;
                 unsafe {
                     $ev(
-                        jobvl,
-                        jobvr,
-                        n,
-                        &mut a,
-                        n,
-                        &mut eigs,
-                        &mut vl.as_mut().map(|v| v.as_mut_slice()).unwrap_or(&mut []),
-                        n,
-                        &mut vr.as_mut().map(|v| v.as_mut_slice()).unwrap_or(&mut []),
-                        n,
-                        &mut work,
-                        lwork as i32,
-                        &mut rwork,
+                        jobvl.as_ptr(),
+                        jobvr.as_ptr(),
+                        &n,
+                        AsPtr::as_mut_ptr(a),
+                        &n,
+                        AsPtr::as_mut_ptr(&mut eigs),
+                        AsPtr::as_mut_ptr(vl.as_mut().map(|v| v.as_mut_slice()).unwrap_or(&mut [])),
+                        &n,
+                        AsPtr::as_mut_ptr(vr.as_mut().map(|v| v.as_mut_slice()).unwrap_or(&mut [])),
+                        &n,
+                        AsPtr::as_mut_ptr(&mut work),
+                        &lwork,
+                        AsPtr::as_mut_ptr(&mut rwork),
                         &mut info,
                     )
                 };
                 info.as_lapack_result()?;
 
                 // Hermite conjugate
-                if jobvl == b'V' {
+                if jobvl.is_calc() {
                     for c in vl.as_mut().unwrap().iter_mut() {
                         c.im = -c.im
                     }
@@ -114,8 +109,8 @@ macro_rules! impl_eig_complex {
     };
 }
 
-impl_eig_complex!(c64, lapack::zgeev);
-impl_eig_complex!(c32, lapack::cgeev);
+impl_eig_complex!(c64, lapack_sys::zgeev_);
+impl_eig_complex!(c32, lapack_sys::cgeev_);
 
 macro_rules! impl_eig_real {
     ($scalar:ty, $ev:path) => {
@@ -123,7 +118,7 @@ macro_rules! impl_eig_real {
             fn eig(
                 calc_v: bool,
                 l: MatrixLayout,
-                mut a: &mut [Self],
+                a: &mut [Self],
             ) -> Result<(Vec<Self::Complex>, Vec<Self::Complex>)> {
                 let (n, _) = l.size();
                 // LAPACK assumes a column-major input. A row-major input can
@@ -144,44 +139,38 @@ macro_rules! impl_eig_real {
                 // `sgeev`/`dgeev`.
                 let (jobvl, jobvr) = if calc_v {
                     match l {
-                        MatrixLayout::C { .. } => (b'V', b'N'),
-                        MatrixLayout::F { .. } => (b'N', b'V'),
+                        MatrixLayout::C { .. } => (EigenVectorFlag::Calc, EigenVectorFlag::Not),
+                        MatrixLayout::F { .. } => (EigenVectorFlag::Not, EigenVectorFlag::Calc),
                     }
                 } else {
-                    (b'N', b'N')
+                    (EigenVectorFlag::Not, EigenVectorFlag::Not)
                 };
-                let mut eig_re = unsafe { vec_uninit(n as usize) };
-                let mut eig_im = unsafe { vec_uninit(n as usize) };
+                let mut eig_re: Vec<Self> = unsafe { vec_uninit(n as usize) };
+                let mut eig_im: Vec<Self> = unsafe { vec_uninit(n as usize) };
 
-                let mut vl = if jobvl == b'V' {
-                    Some(unsafe { vec_uninit((n * n) as usize) })
-                } else {
-                    None
-                };
-                let mut vr = if jobvr == b'V' {
-                    Some(unsafe { vec_uninit((n * n) as usize) })
-                } else {
-                    None
-                };
+                let mut vl: Option<Vec<Self>> =
+                    jobvl.then(|| unsafe { vec_uninit((n * n) as usize) });
+                let mut vr: Option<Vec<Self>> =
+                    jobvr.then(|| unsafe { vec_uninit((n * n) as usize) });
 
                 // calc work size
                 let mut info = 0;
-                let mut work_size = [0.0];
+                let mut work_size: [Self; 1] = [0.0];
                 unsafe {
                     $ev(
-                        jobvl,
-                        jobvr,
-                        n,
-                        &mut a,
-                        n,
-                        &mut eig_re,
-                        &mut eig_im,
-                        vl.as_mut().map(|v| v.as_mut_slice()).unwrap_or(&mut []),
-                        n,
-                        vr.as_mut().map(|v| v.as_mut_slice()).unwrap_or(&mut []),
-                        n,
-                        &mut work_size,
-                        -1,
+                        jobvl.as_ptr(),
+                        jobvr.as_ptr(),
+                        &n,
+                        AsPtr::as_mut_ptr(a),
+                        &n,
+                        AsPtr::as_mut_ptr(&mut eig_re),
+                        AsPtr::as_mut_ptr(&mut eig_im),
+                        AsPtr::as_mut_ptr(vl.as_mut().map(|v| v.as_mut_slice()).unwrap_or(&mut [])),
+                        &n,
+                        AsPtr::as_mut_ptr(vr.as_mut().map(|v| v.as_mut_slice()).unwrap_or(&mut [])),
+                        &n,
+                        AsPtr::as_mut_ptr(&mut work_size),
+                        &(-1),
                         &mut info,
                     )
                 };
@@ -189,22 +178,23 @@ macro_rules! impl_eig_real {
 
                 // actual ev
                 let lwork = work_size[0].to_usize().unwrap();
-                let mut work = unsafe { vec_uninit(lwork) };
+                let mut work: Vec<Self> = unsafe { vec_uninit(lwork) };
+                let lwork = lwork as i32;
                 unsafe {
                     $ev(
-                        jobvl,
-                        jobvr,
-                        n,
-                        &mut a,
-                        n,
-                        &mut eig_re,
-                        &mut eig_im,
-                        vl.as_mut().map(|v| v.as_mut_slice()).unwrap_or(&mut []),
-                        n,
-                        vr.as_mut().map(|v| v.as_mut_slice()).unwrap_or(&mut []),
-                        n,
-                        &mut work,
-                        lwork as i32,
+                        jobvl.as_ptr(),
+                        jobvr.as_ptr(),
+                        &n,
+                        AsPtr::as_mut_ptr(a),
+                        &n,
+                        AsPtr::as_mut_ptr(&mut eig_re),
+                        AsPtr::as_mut_ptr(&mut eig_im),
+                        AsPtr::as_mut_ptr(vl.as_mut().map(|v| v.as_mut_slice()).unwrap_or(&mut [])),
+                        &n,
+                        AsPtr::as_mut_ptr(vr.as_mut().map(|v| v.as_mut_slice()).unwrap_or(&mut [])),
+                        &n,
+                        AsPtr::as_mut_ptr(&mut work),
+                        &lwork,
                         &mut info,
                     )
                 };
@@ -254,7 +244,7 @@ macro_rules! impl_eig_real {
                         for row in 0..n {
                             let re = v[row + col * n];
                             let mut im = v[row + (col + 1) * n];
-                            if jobvl == b'V' {
+                            if jobvl.is_calc() {
                                 im = -im;
                             }
                             eigvecs[row + col * n] = Self::complex(re, im);
@@ -270,5 +260,5 @@ macro_rules! impl_eig_real {
     };
 }
 
-impl_eig_real!(f64, lapack::dgeev);
-impl_eig_real!(f32, lapack::sgeev);
+impl_eig_real!(f64, lapack_sys::dgeev_);
+impl_eig_real!(f32, lapack_sys::sgeev_);

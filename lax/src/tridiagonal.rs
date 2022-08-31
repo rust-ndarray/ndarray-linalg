@@ -157,7 +157,17 @@ macro_rules! impl_tridiagonal {
                 // We have to calc one-norm before LU factorization
                 let a_opnorm_one = a.opnorm_one();
                 let mut info = 0;
-                unsafe { $gttrf(n, &mut a.dl, &mut a.d, &mut a.du, &mut du2, &mut ipiv, &mut info,) };
+                unsafe {
+                    $gttrf(
+                        &n,
+                        AsPtr::as_mut_ptr(&mut a.dl),
+                        AsPtr::as_mut_ptr(&mut a.d),
+                        AsPtr::as_mut_ptr(&mut a.du),
+                        AsPtr::as_mut_ptr(&mut du2),
+                        ipiv.as_mut_ptr(),
+                        &mut info,
+                    )
+                };
                 info.as_lapack_result()?;
                 Ok(LUFactorizedTridiagonal {
                     a,
@@ -170,7 +180,7 @@ macro_rules! impl_tridiagonal {
             fn rcond_tridiagonal(lu: &LUFactorizedTridiagonal<Self>) -> Result<Self::Real> {
                 let (n, _) = lu.a.l.size();
                 let ipiv = &lu.ipiv;
-                let mut work = unsafe { vec_uninit( 2 * n as usize) };
+                let mut work: Vec<Self> = unsafe { vec_uninit( 2 * n as usize) };
                 $(
                 let mut $iwork = unsafe { vec_uninit( n as usize) };
                 )*
@@ -178,17 +188,17 @@ macro_rules! impl_tridiagonal {
                 let mut info = 0;
                 unsafe {
                     $gtcon(
-                        NormType::One as u8,
-                        n,
-                        &lu.a.dl,
-                        &lu.a.d,
-                        &lu.a.du,
-                        &lu.du2,
-                        ipiv,
-                        lu.a_opnorm_one,
+                        NormType::One.as_ptr(),
+                        &n,
+                        AsPtr::as_ptr(&lu.a.dl),
+                        AsPtr::as_ptr(&lu.a.d),
+                        AsPtr::as_ptr(&lu.a.du),
+                        AsPtr::as_ptr(&lu.du2),
+                        ipiv.as_ptr(),
+                        &lu.a_opnorm_one,
                         &mut rcond,
-                        &mut work,
-                        $(&mut $iwork,)*
+                        AsPtr::as_mut_ptr(&mut work),
+                        $($iwork.as_mut_ptr(),)*
                         &mut info,
                     );
                 }
@@ -217,16 +227,16 @@ macro_rules! impl_tridiagonal {
                 let mut info = 0;
                 unsafe {
                     $gttrs(
-                        t as u8,
-                        n,
-                        nrhs,
-                        &lu.a.dl,
-                        &lu.a.d,
-                        &lu.a.du,
-                        &lu.du2,
-                        ipiv,
-                        b_t.as_mut().map(|v| v.as_mut_slice()).unwrap_or(b),
-                        ldb,
+                        t.as_ptr(),
+                        &n,
+                        &nrhs,
+                        AsPtr::as_ptr(&lu.a.dl),
+                        AsPtr::as_ptr(&lu.a.d),
+                        AsPtr::as_ptr(&lu.a.du),
+                        AsPtr::as_ptr(&lu.du2),
+                        ipiv.as_ptr(),
+                        AsPtr::as_mut_ptr(b_t.as_mut().map(|v| v.as_mut_slice()).unwrap_or(b)),
+                        &ldb,
                         &mut info,
                     );
                 }
@@ -240,7 +250,7 @@ macro_rules! impl_tridiagonal {
     };
 } // impl_tridiagonal!
 
-impl_tridiagonal!(@real, f64, lapack::dgttrf, lapack::dgtcon, lapack::dgttrs);
-impl_tridiagonal!(@real, f32, lapack::sgttrf, lapack::sgtcon, lapack::sgttrs);
-impl_tridiagonal!(@complex, c64, lapack::zgttrf, lapack::zgtcon, lapack::zgttrs);
-impl_tridiagonal!(@complex, c32, lapack::cgttrf, lapack::cgtcon, lapack::cgttrs);
+impl_tridiagonal!(@real, f64, lapack_sys::dgttrf_, lapack_sys::dgtcon_, lapack_sys::dgttrs_);
+impl_tridiagonal!(@real, f32, lapack_sys::sgttrf_, lapack_sys::sgtcon_, lapack_sys::sgttrs_);
+impl_tridiagonal!(@complex, c64, lapack_sys::zgttrf_, lapack_sys::zgtcon_, lapack_sys::zgttrs_);
+impl_tridiagonal!(@complex, c32, lapack_sys::cgttrf_, lapack_sys::cgtcon_, lapack_sys::cgttrs_);

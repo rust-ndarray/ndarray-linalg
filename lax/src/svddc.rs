@@ -16,6 +16,12 @@ pub enum UVTFlag {
     None = b'N',
 }
 
+impl UVTFlag {
+    fn as_ptr(&self) -> *const i8 {
+        self as *const UVTFlag as *const i8
+    }
+}
+
 pub trait SVDDC_: Scalar {
     fn svddc(l: MatrixLayout, jobz: UVTFlag, a: &mut [Self]) -> Result<SVDOutput<Self>>;
 }
@@ -29,7 +35,7 @@ macro_rules! impl_svddc {
     };
     (@body, $scalar:ty, $gesdd:path, $($rwork_ident:ident),*) => {
         impl SVDDC_ for $scalar {
-            fn svddc(l: MatrixLayout, jobz: UVTFlag, mut a: &mut [Self],) -> Result<SVDOutput<Self>> {
+            fn svddc(l: MatrixLayout, jobz: UVTFlag, a: &mut [Self],) -> Result<SVDOutput<Self>> {
                 let m = l.lda();
                 let n = l.len();
                 let k = m.min(n);
@@ -58,7 +64,7 @@ macro_rules! impl_svddc {
                     UVTFlag::None => 7 * mn,
                     _ => std::cmp::max(5*mn*mn + 5*mn, 2*mx*mn + 2*mn*mn + mn),
                 };
-                let mut $rwork_ident = unsafe { vec_uninit( lrwork) };
+                let mut $rwork_ident: Vec<Self::Real> = unsafe { vec_uninit( lrwork) };
                 )*
 
                 // eval work size
@@ -67,20 +73,20 @@ macro_rules! impl_svddc {
                 let mut work_size = [Self::zero()];
                 unsafe {
                     $gesdd(
-                        jobz as u8,
-                        m,
-                        n,
-                        &mut a,
-                        m,
-                        &mut s,
-                        u.as_mut().map(|x| x.as_mut_slice()).unwrap_or(&mut []),
-                        m,
-                        vt.as_mut().map(|x| x.as_mut_slice()).unwrap_or(&mut []),
-                        vt_row,
-                        &mut work_size,
-                        -1,
-                        $(&mut $rwork_ident,)*
-                        &mut iwork,
+                        jobz.as_ptr(),
+                        &m,
+                        &n,
+                        AsPtr::as_mut_ptr(a),
+                        &m,
+                        AsPtr::as_mut_ptr(&mut s),
+                        AsPtr::as_mut_ptr(u.as_mut().map(|x| x.as_mut_slice()).unwrap_or(&mut [])),
+                        &m,
+                        AsPtr::as_mut_ptr(vt.as_mut().map(|x| x.as_mut_slice()).unwrap_or(&mut [])),
+                        &vt_row,
+                        AsPtr::as_mut_ptr(&mut work_size),
+                        &(-1),
+                        $(AsPtr::as_mut_ptr(&mut $rwork_ident),)*
+                        iwork.as_mut_ptr(),
                         &mut info,
                     );
                 }
@@ -88,23 +94,23 @@ macro_rules! impl_svddc {
 
                 // do svd
                 let lwork = work_size[0].to_usize().unwrap();
-                let mut work = unsafe { vec_uninit( lwork) };
+                let mut work: Vec<Self> = unsafe { vec_uninit( lwork) };
                 unsafe {
                     $gesdd(
-                        jobz as u8,
-                        m,
-                        n,
-                        &mut a,
-                        m,
-                        &mut s,
-                        u.as_mut().map(|x| x.as_mut_slice()).unwrap_or(&mut []),
-                        m,
-                        vt.as_mut().map(|x| x.as_mut_slice()).unwrap_or(&mut []),
-                        vt_row,
-                        &mut work,
-                        lwork as i32,
-                        $(&mut $rwork_ident,)*
-                        &mut iwork,
+                        jobz.as_ptr(),
+                        &m,
+                        &n,
+                        AsPtr::as_mut_ptr(a),
+                        &m,
+                        AsPtr::as_mut_ptr(&mut s),
+                        AsPtr::as_mut_ptr(u.as_mut().map(|x| x.as_mut_slice()).unwrap_or(&mut [])),
+                        &m,
+                        AsPtr::as_mut_ptr(vt.as_mut().map(|x| x.as_mut_slice()).unwrap_or(&mut [])),
+                        &vt_row,
+                        AsPtr::as_mut_ptr(&mut work),
+                        &(lwork as i32),
+                        $(AsPtr::as_mut_ptr(&mut $rwork_ident),)*
+                        iwork.as_mut_ptr(),
                         &mut info,
                     );
                 }
@@ -119,7 +125,7 @@ macro_rules! impl_svddc {
     };
 }
 
-impl_svddc!(@real, f32, lapack::sgesdd);
-impl_svddc!(@real, f64, lapack::dgesdd);
-impl_svddc!(@complex, c32, lapack::cgesdd);
-impl_svddc!(@complex, c64, lapack::zgesdd);
+impl_svddc!(@real, f32, lapack_sys::sgesdd_);
+impl_svddc!(@real, f64, lapack_sys::dgesdd_);
+impl_svddc!(@complex, c32, lapack_sys::cgesdd_);
+impl_svddc!(@complex, c64, lapack_sys::zgesdd_);

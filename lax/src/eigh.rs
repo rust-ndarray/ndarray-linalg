@@ -37,15 +37,15 @@ macro_rules! impl_eigh {
                 calc_v: bool,
                 layout: MatrixLayout,
                 uplo: UPLO,
-                mut a: &mut [Self],
+                a: &mut [Self],
             ) -> Result<Vec<Self::Real>> {
                 assert_eq!(layout.len(), layout.lda());
                 let n = layout.len();
-                let jobz = if calc_v { b'V' } else { b'N' };
+                let jobz = if calc_v { EigenVectorFlag::Calc } else { EigenVectorFlag::Not };
                 let mut eigs = unsafe { vec_uninit(n as usize) };
 
                 $(
-                let mut $rwork_ident = unsafe { vec_uninit(3 * n as usize - 2 as usize) };
+                let mut $rwork_ident: Vec<Self::Real> = unsafe { vec_uninit(3 * n as usize - 2 as usize) };
                 )*
 
                 // calc work size
@@ -53,15 +53,15 @@ macro_rules! impl_eigh {
                 let mut work_size = [Self::zero()];
                 unsafe {
                     $ev(
-                        jobz,
-                        uplo as u8,
-                        n,
-                        &mut a,
-                        n,
-                        &mut eigs,
-                        &mut work_size,
-                        -1,
-                        $(&mut $rwork_ident,)*
+                        jobz.as_ptr() ,
+                        uplo.as_ptr(),
+                        &n,
+                        AsPtr::as_mut_ptr(a),
+                        &n,
+                        AsPtr::as_mut_ptr(&mut eigs),
+                        AsPtr::as_mut_ptr(&mut work_size),
+                        &(-1),
+                        $(AsPtr::as_mut_ptr(&mut $rwork_ident),)*
                         &mut info,
                     );
                 }
@@ -69,18 +69,19 @@ macro_rules! impl_eigh {
 
                 // actual ev
                 let lwork = work_size[0].to_usize().unwrap();
-                let mut work = unsafe { vec_uninit(lwork) };
+                let mut work: Vec<Self> = unsafe { vec_uninit(lwork) };
+                let lwork = lwork as i32;
                 unsafe {
                     $ev(
-                        jobz,
-                        uplo as u8,
-                        n,
-                        &mut a,
-                        n,
-                        &mut eigs,
-                        &mut work,
-                        lwork as i32,
-                        $(&mut $rwork_ident,)*
+                        jobz.as_ptr(),
+                        uplo.as_ptr(),
+                        &n,
+                        AsPtr::as_mut_ptr(a),
+                        &n,
+                        AsPtr::as_mut_ptr(&mut eigs),
+                        AsPtr::as_mut_ptr(&mut work),
+                        &lwork,
+                        $(AsPtr::as_mut_ptr(&mut $rwork_ident),)*
                         &mut info,
                     );
                 }
@@ -92,16 +93,16 @@ macro_rules! impl_eigh {
                 calc_v: bool,
                 layout: MatrixLayout,
                 uplo: UPLO,
-                mut a: &mut [Self],
-                mut b: &mut [Self],
+                a: &mut [Self],
+                b: &mut [Self],
             ) -> Result<Vec<Self::Real>> {
                 assert_eq!(layout.len(), layout.lda());
                 let n = layout.len();
-                let jobz = if calc_v { b'V' } else { b'N' };
+                let jobz = if calc_v { EigenVectorFlag::Calc } else { EigenVectorFlag::Not };
                 let mut eigs = unsafe { vec_uninit(n as usize) };
 
                 $(
-                let mut $rwork_ident = unsafe { vec_uninit(3 * n as usize - 2) };
+                let mut $rwork_ident: Vec<Self::Real> = unsafe { vec_uninit(3 * n as usize - 2) };
                 )*
 
                 // calc work size
@@ -109,18 +110,18 @@ macro_rules! impl_eigh {
                 let mut work_size = [Self::zero()];
                 unsafe {
                     $evg(
-                        &[1],
-                        jobz,
-                        uplo as u8,
-                        n,
-                        &mut a,
-                        n,
-                        &mut b,
-                        n,
-                        &mut eigs,
-                        &mut work_size,
-                        -1,
-                        $(&mut $rwork_ident,)*
+                        &1, // ITYPE A*x = (lambda)*B*x
+                        jobz.as_ptr(),
+                        uplo.as_ptr(),
+                        &n,
+                        AsPtr::as_mut_ptr(a),
+                        &n,
+                        AsPtr::as_mut_ptr(b),
+                        &n,
+                        AsPtr::as_mut_ptr(&mut eigs),
+                        AsPtr::as_mut_ptr(&mut work_size),
+                        &(-1),
+                        $(AsPtr::as_mut_ptr(&mut $rwork_ident),)*
                         &mut info,
                     );
                 }
@@ -128,21 +129,22 @@ macro_rules! impl_eigh {
 
                 // actual evg
                 let lwork = work_size[0].to_usize().unwrap();
-                let mut work = unsafe { vec_uninit(lwork) };
+                let mut work: Vec<Self> = unsafe { vec_uninit(lwork) };
+                let lwork = lwork as i32;
                 unsafe {
                     $evg(
-                        &[1],
-                        jobz,
-                        uplo as u8,
-                        n,
-                        &mut a,
-                        n,
-                        &mut b,
-                        n,
-                        &mut eigs,
-                        &mut work,
-                        lwork as i32,
-                        $(&mut $rwork_ident,)*
+                        &1, // ITYPE A*x = (lambda)*B*x
+                        jobz.as_ptr(),
+                        uplo.as_ptr(),
+                        &n,
+                        AsPtr::as_mut_ptr(a),
+                        &n,
+                        AsPtr::as_mut_ptr(b),
+                        &n,
+                        AsPtr::as_mut_ptr(&mut eigs),
+                        AsPtr::as_mut_ptr(&mut work),
+                        &lwork,
+                        $(AsPtr::as_mut_ptr(&mut $rwork_ident),)*
                         &mut info,
                     );
                 }
@@ -153,7 +155,7 @@ macro_rules! impl_eigh {
     };
 } // impl_eigh!
 
-impl_eigh!(@real, f64, lapack::dsyev, lapack::dsygv);
-impl_eigh!(@real, f32, lapack::ssyev, lapack::ssygv);
-impl_eigh!(@complex, c64, lapack::zheev, lapack::zhegv);
-impl_eigh!(@complex, c32, lapack::cheev, lapack::chegv);
+impl_eigh!(@real, f64, lapack_sys::dsyev_, lapack_sys::dsygv_);
+impl_eigh!(@real, f32, lapack_sys::ssyev_, lapack_sys::ssygv_);
+impl_eigh!(@complex, c64, lapack_sys::zheev_, lapack_sys::zhegv_);
+impl_eigh!(@complex, c32, lapack_sys::cheev_, lapack_sys::chegv_);

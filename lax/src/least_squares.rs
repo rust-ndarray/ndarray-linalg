@@ -97,20 +97,20 @@ macro_rules! impl_least_squares {
                 )*
                 unsafe {
                     $gelsd(
-                        m,
-                        n,
-                        nrhs,
-                        a_t.as_mut().map(|v| v.as_mut_slice()).unwrap_or(a),
-                        a_layout.lda(),
-                        b_t.as_mut().map(|v| v.as_mut_slice()).unwrap_or(b),
-                        b_layout.lda(),
-                        &mut singular_values,
-                        rcond,
+                        &m,
+                        &n,
+                        &nrhs,
+                        AsPtr::as_mut_ptr(a_t.as_mut().map(|v| v.as_mut_slice()).unwrap_or(a)),
+                        &a_layout.lda(),
+                        AsPtr::as_mut_ptr(b_t.as_mut().map(|v| v.as_mut_slice()).unwrap_or(b)),
+                        &b_layout.lda(),
+                        AsPtr::as_mut_ptr(&mut singular_values),
+                        &rcond,
                         &mut rank,
-                        &mut work_size,
-                        -1,
-                        $(&mut $rwork,)*
-                        &mut iwork_size,
+                        AsPtr::as_mut_ptr(&mut work_size),
+                        &(-1),
+                        $(AsPtr::as_mut_ptr(&mut $rwork),)*
+                        iwork_size.as_mut_ptr(),
                         &mut info,
                     )
                 };
@@ -118,29 +118,29 @@ macro_rules! impl_least_squares {
 
                 // calc
                 let lwork = work_size[0].to_usize().unwrap();
-                let mut work = unsafe { vec_uninit( lwork) };
+                let mut work: Vec<Self> = unsafe { vec_uninit(lwork) };
                 let liwork = iwork_size[0].to_usize().unwrap();
-                let mut iwork = unsafe { vec_uninit( liwork) };
+                let mut iwork = unsafe { vec_uninit(liwork) };
                 $(
                 let lrwork = $rwork[0].to_usize().unwrap();
-                let mut $rwork = unsafe { vec_uninit( lrwork) };
+                let mut $rwork: Vec<Self::Real> = unsafe { vec_uninit(lrwork) };
                 )*
                 unsafe {
                     $gelsd(
-                        m,
-                        n,
-                        nrhs,
-                        a_t.as_mut().map(|v| v.as_mut_slice()).unwrap_or(a),
-                        a_layout.lda(),
-                        b_t.as_mut().map(|v| v.as_mut_slice()).unwrap_or(b),
-                        b_layout.lda(),
-                        &mut singular_values,
-                        rcond,
+                        &m,
+                        &n,
+                        &nrhs,
+                        AsPtr::as_mut_ptr(a_t.as_mut().map(|v| v.as_mut_slice()).unwrap_or(a)),
+                        &a_layout.lda(),
+                        AsPtr::as_mut_ptr(b_t.as_mut().map(|v| v.as_mut_slice()).unwrap_or(b)),
+                        &b_layout.lda(),
+                        AsPtr::as_mut_ptr(&mut singular_values),
+                        &rcond,
                         &mut rank,
-                        &mut work,
-                        lwork as i32,
-                        $(&mut $rwork,)*
-                        &mut iwork,
+                        AsPtr::as_mut_ptr(&mut work),
+                        &(lwork as i32),
+                        $(AsPtr::as_mut_ptr(&mut $rwork),)*
+                        iwork.as_mut_ptr(),
                         &mut info,
                     );
                 }
@@ -161,7 +161,7 @@ macro_rules! impl_least_squares {
     };
 }
 
-impl_least_squares!(@real, f64, lapack::dgelsd);
-impl_least_squares!(@real, f32, lapack::sgelsd);
-impl_least_squares!(@complex, c64, lapack::zgelsd);
-impl_least_squares!(@complex, c32, lapack::cgelsd);
+impl_least_squares!(@real, f64, lapack_sys::dgelsd_);
+impl_least_squares!(@real, f32, lapack_sys::sgelsd_);
+impl_least_squares!(@complex, c64, lapack_sys::zgelsd_);
+impl_least_squares!(@complex, c32, lapack_sys::cgelsd_);

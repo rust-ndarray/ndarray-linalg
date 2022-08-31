@@ -21,7 +21,7 @@ pub trait QR_: Sized {
 macro_rules! impl_qr {
     ($scalar:ty, $qrf:path, $lqf:path, $gqr:path, $glq:path) => {
         impl QR_ for $scalar {
-            fn householder(l: MatrixLayout, mut a: &mut [Self]) -> Result<Vec<Self>> {
+            fn householder(l: MatrixLayout, a: &mut [Self]) -> Result<Vec<Self>> {
                 let m = l.lda();
                 let n = l.len();
                 let k = m.min(n);
@@ -33,10 +33,28 @@ macro_rules! impl_qr {
                 unsafe {
                     match l {
                         MatrixLayout::F { .. } => {
-                            $qrf(m, n, &mut a, m, &mut tau, &mut work_size, -1, &mut info);
+                            $qrf(
+                                &m,
+                                &n,
+                                AsPtr::as_mut_ptr(a),
+                                &m,
+                                AsPtr::as_mut_ptr(&mut tau),
+                                AsPtr::as_mut_ptr(&mut work_size),
+                                &(-1),
+                                &mut info,
+                            );
                         }
                         MatrixLayout::C { .. } => {
-                            $lqf(m, n, &mut a, m, &mut tau, &mut work_size, -1, &mut info);
+                            $lqf(
+                                &m,
+                                &n,
+                                AsPtr::as_mut_ptr(a),
+                                &m,
+                                AsPtr::as_mut_ptr(&mut tau),
+                                AsPtr::as_mut_ptr(&mut work_size),
+                                &(-1),
+                                &mut info,
+                            );
                         }
                     }
                 }
@@ -44,30 +62,30 @@ macro_rules! impl_qr {
 
                 // calc
                 let lwork = work_size[0].to_usize().unwrap();
-                let mut work = unsafe { vec_uninit(lwork) };
+                let mut work: Vec<Self> = unsafe { vec_uninit(lwork) };
                 unsafe {
                     match l {
                         MatrixLayout::F { .. } => {
                             $qrf(
-                                m,
-                                n,
-                                &mut a,
-                                m,
-                                &mut tau,
-                                &mut work,
-                                lwork as i32,
+                                &m,
+                                &n,
+                                AsPtr::as_mut_ptr(a),
+                                &m,
+                                AsPtr::as_mut_ptr(&mut tau),
+                                AsPtr::as_mut_ptr(&mut work),
+                                &(lwork as i32),
                                 &mut info,
                             );
                         }
                         MatrixLayout::C { .. } => {
                             $lqf(
-                                m,
-                                n,
-                                &mut a,
-                                m,
-                                &mut tau,
-                                &mut work,
-                                lwork as i32,
+                                &m,
+                                &n,
+                                AsPtr::as_mut_ptr(a),
+                                &m,
+                                AsPtr::as_mut_ptr(&mut tau),
+                                AsPtr::as_mut_ptr(&mut work),
+                                &(lwork as i32),
                                 &mut info,
                             );
                         }
@@ -78,7 +96,7 @@ macro_rules! impl_qr {
                 Ok(tau)
             }
 
-            fn q(l: MatrixLayout, mut a: &mut [Self], tau: &[Self]) -> Result<()> {
+            fn q(l: MatrixLayout, a: &mut [Self], tau: &[Self]) -> Result<()> {
                 let m = l.lda();
                 let n = l.len();
                 let k = m.min(n);
@@ -89,26 +107,58 @@ macro_rules! impl_qr {
                 let mut work_size = [Self::zero()];
                 unsafe {
                     match l {
-                        MatrixLayout::F { .. } => {
-                            $gqr(m, k, k, &mut a, m, &tau, &mut work_size, -1, &mut info)
-                        }
-                        MatrixLayout::C { .. } => {
-                            $glq(k, n, k, &mut a, m, &tau, &mut work_size, -1, &mut info)
-                        }
+                        MatrixLayout::F { .. } => $gqr(
+                            &m,
+                            &k,
+                            &k,
+                            AsPtr::as_mut_ptr(a),
+                            &m,
+                            AsPtr::as_ptr(&tau),
+                            AsPtr::as_mut_ptr(&mut work_size),
+                            &(-1),
+                            &mut info,
+                        ),
+                        MatrixLayout::C { .. } => $glq(
+                            &k,
+                            &n,
+                            &k,
+                            AsPtr::as_mut_ptr(a),
+                            &m,
+                            AsPtr::as_ptr(&tau),
+                            AsPtr::as_mut_ptr(&mut work_size),
+                            &(-1),
+                            &mut info,
+                        ),
                     }
                 };
 
                 // calc
                 let lwork = work_size[0].to_usize().unwrap();
-                let mut work = unsafe { vec_uninit(lwork) };
+                let mut work: Vec<Self> = unsafe { vec_uninit(lwork) };
                 unsafe {
                     match l {
-                        MatrixLayout::F { .. } => {
-                            $gqr(m, k, k, &mut a, m, &tau, &mut work, lwork as i32, &mut info)
-                        }
-                        MatrixLayout::C { .. } => {
-                            $glq(k, n, k, &mut a, m, &tau, &mut work, lwork as i32, &mut info)
-                        }
+                        MatrixLayout::F { .. } => $gqr(
+                            &m,
+                            &k,
+                            &k,
+                            AsPtr::as_mut_ptr(a),
+                            &m,
+                            AsPtr::as_ptr(&tau),
+                            AsPtr::as_mut_ptr(&mut work),
+                            &(lwork as i32),
+                            &mut info,
+                        ),
+                        MatrixLayout::C { .. } => $glq(
+                            &k,
+                            &n,
+                            &k,
+                            AsPtr::as_mut_ptr(a),
+                            &m,
+                            AsPtr::as_ptr(&tau),
+                            AsPtr::as_mut_ptr(&mut work),
+                            &(lwork as i32),
+                            &mut info,
+                        ),
                     }
                 }
                 info.as_lapack_result()?;
@@ -127,29 +177,29 @@ macro_rules! impl_qr {
 
 impl_qr!(
     f64,
-    lapack::dgeqrf,
-    lapack::dgelqf,
-    lapack::dorgqr,
-    lapack::dorglq
+    lapack_sys::dgeqrf_,
+    lapack_sys::dgelqf_,
+    lapack_sys::dorgqr_,
+    lapack_sys::dorglq_
 );
 impl_qr!(
     f32,
-    lapack::sgeqrf,
-    lapack::sgelqf,
-    lapack::sorgqr,
-    lapack::sorglq
+    lapack_sys::sgeqrf_,
+    lapack_sys::sgelqf_,
+    lapack_sys::sorgqr_,
+    lapack_sys::sorglq_
 );
 impl_qr!(
     c64,
-    lapack::zgeqrf,
-    lapack::zgelqf,
-    lapack::zungqr,
-    lapack::zunglq
+    lapack_sys::zgeqrf_,
+    lapack_sys::zgelqf_,
+    lapack_sys::zungqr_,
+    lapack_sys::zunglq_
 );
 impl_qr!(
     c32,
-    lapack::cgeqrf,
-    lapack::cgelqf,
-    lapack::cungqr,
-    lapack::cunglq
+    lapack_sys::cgeqrf_,
+    lapack_sys::cgelqf_,
+    lapack_sys::cungqr_,
+    lapack_sys::cunglq_
 );

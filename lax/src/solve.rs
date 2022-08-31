@@ -35,7 +35,16 @@ macro_rules! impl_solve {
                 let k = ::std::cmp::min(row, col);
                 let mut ipiv = unsafe { vec_uninit(k as usize) };
                 let mut info = 0;
-                unsafe { $getrf(l.lda(), l.len(), a, l.lda(), &mut ipiv, &mut info) };
+                unsafe {
+                    $getrf(
+                        &l.lda(),
+                        &l.len(),
+                        AsPtr::as_mut_ptr(a),
+                        &l.lda(),
+                        ipiv.as_mut_ptr(),
+                        &mut info,
+                    )
+                };
                 info.as_lapack_result()?;
                 Ok(ipiv)
             }
@@ -50,20 +59,30 @@ macro_rules! impl_solve {
                 // calc work size
                 let mut info = 0;
                 let mut work_size = [Self::zero()];
-                unsafe { $getri(n, a, l.lda(), ipiv, &mut work_size, -1, &mut info) };
+                unsafe {
+                    $getri(
+                        &n,
+                        AsPtr::as_mut_ptr(a),
+                        &l.lda(),
+                        ipiv.as_ptr(),
+                        AsPtr::as_mut_ptr(&mut work_size),
+                        &(-1),
+                        &mut info,
+                    )
+                };
                 info.as_lapack_result()?;
 
                 // actual
                 let lwork = work_size[0].to_usize().unwrap();
-                let mut work = unsafe { vec_uninit(lwork) };
+                let mut work: Vec<Self> = unsafe { vec_uninit(lwork) };
                 unsafe {
                     $getri(
-                        l.len(),
-                        a,
-                        l.lda(),
-                        ipiv,
-                        &mut work,
-                        lwork as i32,
+                        &l.len(),
+                        AsPtr::as_mut_ptr(a),
+                        &l.lda(),
+                        ipiv.as_ptr(),
+                        AsPtr::as_mut_ptr(&mut work),
+                        &(lwork as i32),
                         &mut info,
                     )
                 };
@@ -116,7 +135,19 @@ macro_rules! impl_solve {
                         *b_elem = b_elem.conj();
                     }
                 }
-                unsafe { $getrs(t as u8, n, nrhs, a, l.lda(), ipiv, b, ldb, &mut info) };
+                unsafe {
+                    $getrs(
+                        t.as_ptr(),
+                        &n,
+                        &nrhs,
+                        AsPtr::as_ptr(a),
+                        &l.lda(),
+                        ipiv.as_ptr(),
+                        AsPtr::as_mut_ptr(b),
+                        &ldb,
+                        &mut info,
+                    )
+                };
                 if conj {
                     for b_elem in &mut *b {
                         *b_elem = b_elem.conj();
@@ -129,7 +160,27 @@ macro_rules! impl_solve {
     };
 } // impl_solve!
 
-impl_solve!(f64, lapack::dgetrf, lapack::dgetri, lapack::dgetrs);
-impl_solve!(f32, lapack::sgetrf, lapack::sgetri, lapack::sgetrs);
-impl_solve!(c64, lapack::zgetrf, lapack::zgetri, lapack::zgetrs);
-impl_solve!(c32, lapack::cgetrf, lapack::cgetri, lapack::cgetrs);
+impl_solve!(
+    f64,
+    lapack_sys::dgetrf_,
+    lapack_sys::dgetri_,
+    lapack_sys::dgetrs_
+);
+impl_solve!(
+    f32,
+    lapack_sys::sgetrf_,
+    lapack_sys::sgetri_,
+    lapack_sys::sgetrs_
+);
+impl_solve!(
+    c64,
+    lapack_sys::zgetrf_,
+    lapack_sys::zgetri_,
+    lapack_sys::zgetrs_
+);
+impl_solve!(
+    c32,
+    lapack_sys::cgetrf_,
+    lapack_sys::cgetri_,
+    lapack_sys::cgetrs_
+);

@@ -141,6 +141,11 @@ impl UPLO {
             UPLO::Lower => UPLO::Upper,
         }
     }
+
+    /// To use Fortran LAPACK API in lapack-sys crate
+    pub fn as_ptr(&self) -> *const i8 {
+        self as *const UPLO as *const i8
+    }
 }
 
 #[derive(Debug, Clone, Copy)]
@@ -149,6 +154,13 @@ pub enum Transpose {
     No = b'N',
     Transpose = b'T',
     Hermite = b'C',
+}
+
+impl Transpose {
+    /// To use Fortran LAPACK API in lapack-sys crate
+    pub fn as_ptr(&self) -> *const i8 {
+        self as *const Transpose as *const i8
+    }
 }
 
 #[derive(Debug, Clone, Copy)]
@@ -166,6 +178,11 @@ impl NormType {
             NormType::Infinity => NormType::One,
             NormType::Frobenius => NormType::Frobenius,
         }
+    }
+
+    /// To use Fortran LAPACK API in lapack-sys crate
+    pub fn as_ptr(&self) -> *const i8 {
+        self as *const NormType as *const i8
     }
 }
 

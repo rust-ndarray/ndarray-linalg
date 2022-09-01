@@ -40,6 +40,8 @@ jobs:
         with:
           command: doc
           args: --no-deps
+        env:
+          RUSTDOCFLAGS: "--html-in-header ndarray-linalg/katex-header.html"
 
       - name: Setup Pages
         uses: actions/configure-pages@v2

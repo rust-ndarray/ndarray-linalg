@@ -20,7 +20,7 @@ macro_rules! impl_solveh {
         impl Solveh_ for $scalar {
             fn bk(l: MatrixLayout, uplo: UPLO, a: &mut [Self]) -> Result<Pivot> {
                 let (n, _) = l.size();
-                let mut ipiv = unsafe { vec_uninit(n as usize) };
+                let mut ipiv = unsafe { vec_uninit2(n as usize) };
                 if n == 0 {
                     return Ok(Vec::new());
                 }
@@ -34,7 +34,7 @@ macro_rules! impl_solveh {
                         &n,
                         AsPtr::as_mut_ptr(a),
                         &l.lda(),
-                        ipiv.as_mut_ptr(),
+                        AsPtr::as_mut_ptr(&mut ipiv),
                         AsPtr::as_mut_ptr(&mut work_size),
                         &(-1),
                         &mut info,
@@ -44,27 +44,28 @@ macro_rules! impl_solveh {
 
                 // actual
                 let lwork = work_size[0].to_usize().unwrap();
-                let mut work: Vec<Self> = unsafe { vec_uninit(lwork) };
+                let mut work: Vec<MaybeUninit<Self>> = unsafe { vec_uninit2(lwork) };
                 unsafe {
                     $trf(
                         uplo.as_ptr(),
                         &n,
                         AsPtr::as_mut_ptr(a),
                         &l.lda(),
-                        ipiv.as_mut_ptr(),
+                        AsPtr::as_mut_ptr(&mut ipiv),
                         AsPtr::as_mut_ptr(&mut work),
                         &(lwork as i32),
                         &mut info,
                     )
                 };
                 info.as_lapack_result()?;
+                let ipiv = unsafe { ipiv.assume_init() };
                 Ok(ipiv)
             }
 
             fn invh(l: MatrixLayout, uplo: UPLO, a: &mut [Self], ipiv: &Pivot) -> Result<()> {
                 let (n, _) = l.size();
                 let mut info = 0;
-                let mut work: Vec<Self> = unsafe { vec_uninit(n as usize) };
+                let mut work: Vec<MaybeUninit<Self>> = unsafe { vec_uninit2(n as usize) };
                 unsafe {
                     $tri(
                         uplo.as_ptr(),

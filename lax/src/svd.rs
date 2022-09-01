@@ -65,21 +65,21 @@ macro_rules! impl_svd {
 
                 let m = l.lda();
                 let mut u = match ju {
-                    FlagSVD::All => Some(unsafe { vec_uninit( (m * m) as usize) }),
+                    FlagSVD::All => Some(unsafe { vec_uninit2( (m * m) as usize) }),
                     FlagSVD::No => None,
                 };
 
                 let n = l.len();
                 let mut vt = match jvt {
-                    FlagSVD::All => Some(unsafe { vec_uninit( (n * n) as usize) }),
+                    FlagSVD::All => Some(unsafe { vec_uninit2( (n * n) as usize) }),
                     FlagSVD::No => None,
                 };
 
                 let k = std::cmp::min(m, n);
-                let mut s = unsafe { vec_uninit( k as usize) };
+                let mut s = unsafe { vec_uninit2( k as usize) };
 
                 $(
-                let mut $rwork_ident: Vec<Self::Real> = unsafe { vec_uninit( 5 * k as usize) };
+                let mut $rwork_ident: Vec<MaybeUninit<Self::Real>> = unsafe { vec_uninit2( 5 * k as usize) };
                 )*
 
                 // eval work size
@@ -108,7 +108,7 @@ macro_rules! impl_svd {
 
                 // calc
                 let lwork = work_size[0].to_usize().unwrap();
-                let mut work: Vec<Self> = unsafe { vec_uninit( lwork) };
+                let mut work: Vec<MaybeUninit<Self>> = unsafe { vec_uninit2( lwork) };
                 unsafe {
                     $gesvd(
                         ju.as_ptr(),
@@ -129,6 +129,11 @@ macro_rules! impl_svd {
                     );
                 }
                 info.as_lapack_result()?;
+
+                let s = unsafe { s.assume_init() };
+                let u = u.map(|v| unsafe { v.assume_init() });
+                let vt = vt.map(|v| unsafe { v.assume_init() });
+
                 match l {
                     MatrixLayout::F { .. } => Ok(SVDOutput { s, u, vt }),
                     MatrixLayout::C { .. } => Ok(SVDOutput { s, u: vt, vt: u }),

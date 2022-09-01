@@ -147,10 +147,12 @@ macro_rules! impl_as_ptr {
         }
     };
 }
+impl_as_ptr!(i32, i32);
 impl_as_ptr!(f32, f32);
 impl_as_ptr!(f64, f64);
 impl_as_ptr!(c32, lapack_sys::__BindgenComplex<f32>);
 impl_as_ptr!(c64, lapack_sys::__BindgenComplex<f64>);
+impl_as_ptr!(MaybeUninit<i32>, i32);
 impl_as_ptr!(MaybeUninit<f32>, f32);
 impl_as_ptr!(MaybeUninit<f64>, f64);
 impl_as_ptr!(MaybeUninit<c32>, lapack_sys::__BindgenComplex<f32>);

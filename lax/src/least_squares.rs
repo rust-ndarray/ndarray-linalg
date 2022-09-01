@@ -87,7 +87,7 @@ macro_rules! impl_least_squares {
                 };
 
                 let rcond: Self::Real = -1.;
-                let mut singular_values: Vec<Self::Real> = unsafe { vec_uninit( k as usize) };
+                let mut singular_values: Vec<MaybeUninit<Self::Real>> = unsafe { vec_uninit2( k as usize) };
                 let mut rank: i32 = 0;
 
                 // eval work size
@@ -120,12 +120,12 @@ macro_rules! impl_least_squares {
 
                 // calc
                 let lwork = work_size[0].to_usize().unwrap();
-                let mut work: Vec<Self> = unsafe { vec_uninit(lwork) };
+                let mut work: Vec<MaybeUninit<Self>> = unsafe { vec_uninit2(lwork) };
                 let liwork = iwork_size[0].to_usize().unwrap();
-                let mut iwork = unsafe { vec_uninit(liwork) };
+                let mut iwork: Vec<MaybeUninit<i32>> = unsafe { vec_uninit2(liwork) };
                 $(
                 let lrwork = $rwork[0].to_usize().unwrap();
-                let mut $rwork: Vec<Self::Real> = unsafe { vec_uninit(lrwork) };
+                let mut $rwork: Vec<MaybeUninit<Self::Real>> = unsafe { vec_uninit2(lrwork) };
                 )*
                 unsafe {
                     $gelsd(
@@ -142,11 +142,13 @@ macro_rules! impl_least_squares {
                         AsPtr::as_mut_ptr(&mut work),
                         &(lwork as i32),
                         $(AsPtr::as_mut_ptr(&mut $rwork),)*
-                        iwork.as_mut_ptr(),
+                        AsPtr::as_mut_ptr(&mut iwork),
                         &mut info,
                     );
                 }
                 info.as_lapack_result()?;
+
+                let singular_values = unsafe { singular_values.assume_init() };
 
                 // Skip a_t -> a transpose because A has been destroyed
                 // Re-transpose b

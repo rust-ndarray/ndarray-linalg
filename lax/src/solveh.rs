@@ -20,7 +20,7 @@ macro_rules! impl_solveh {
         impl Solveh_ for $scalar {
             fn bk(l: MatrixLayout, uplo: UPLO, a: &mut [Self]) -> Result<Pivot> {
                 let (n, _) = l.size();
-                let mut ipiv = unsafe { vec_uninit2(n as usize) };
+                let mut ipiv = unsafe { vec_uninit(n as usize) };
                 if n == 0 {
                     return Ok(Vec::new());
                 }
@@ -44,7 +44,7 @@ macro_rules! impl_solveh {
 
                 // actual
                 let lwork = work_size[0].to_usize().unwrap();
-                let mut work: Vec<MaybeUninit<Self>> = unsafe { vec_uninit2(lwork) };
+                let mut work: Vec<MaybeUninit<Self>> = unsafe { vec_uninit(lwork) };
                 unsafe {
                     $trf(
                         uplo.as_ptr(),
@@ -65,7 +65,7 @@ macro_rules! impl_solveh {
             fn invh(l: MatrixLayout, uplo: UPLO, a: &mut [Self], ipiv: &Pivot) -> Result<()> {
                 let (n, _) = l.size();
                 let mut info = 0;
-                let mut work: Vec<MaybeUninit<Self>> = unsafe { vec_uninit2(n as usize) };
+                let mut work: Vec<MaybeUninit<Self>> = unsafe { vec_uninit(n as usize) };
                 unsafe {
                     $tri(
                         uplo.as_ptr(),

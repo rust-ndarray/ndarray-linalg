@@ -202,7 +202,7 @@ pub fn transpose<T: Copy>(layout: MatrixLayout, input: &[T]) -> (MatrixLayout, V
     let n = n as usize;
     assert_eq!(input.len(), m * n);
 
-    let mut out: Vec<MaybeUninit<T>> = unsafe { vec_uninit2(m * n) };
+    let mut out: Vec<MaybeUninit<T>> = unsafe { vec_uninit(m * n) };
 
     match layout {
         MatrixLayout::C { .. } => {

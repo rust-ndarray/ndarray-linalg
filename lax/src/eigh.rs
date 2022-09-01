@@ -42,10 +42,10 @@ macro_rules! impl_eigh {
                 assert_eq!(layout.len(), layout.lda());
                 let n = layout.len();
                 let jobz = if calc_v { EigenVectorFlag::Calc } else { EigenVectorFlag::Not };
-                let mut eigs: Vec<MaybeUninit<Self::Real>> = unsafe { vec_uninit2(n as usize) };
+                let mut eigs: Vec<MaybeUninit<Self::Real>> = unsafe { vec_uninit(n as usize) };
 
                 $(
-                let mut $rwork_ident: Vec<MaybeUninit<Self::Real>> = unsafe { vec_uninit2(3 * n as usize - 2 as usize) };
+                let mut $rwork_ident: Vec<MaybeUninit<Self::Real>> = unsafe { vec_uninit(3 * n as usize - 2 as usize) };
                 )*
 
                 // calc work size
@@ -69,7 +69,7 @@ macro_rules! impl_eigh {
 
                 // actual ev
                 let lwork = work_size[0].to_usize().unwrap();
-                let mut work: Vec<MaybeUninit<Self>> = unsafe { vec_uninit2(lwork) };
+                let mut work: Vec<MaybeUninit<Self>> = unsafe { vec_uninit(lwork) };
                 let lwork = lwork as i32;
                 unsafe {
                     $ev(
@@ -101,10 +101,10 @@ macro_rules! impl_eigh {
                 assert_eq!(layout.len(), layout.lda());
                 let n = layout.len();
                 let jobz = if calc_v { EigenVectorFlag::Calc } else { EigenVectorFlag::Not };
-                let mut eigs: Vec<MaybeUninit<Self::Real>> = unsafe { vec_uninit2(n as usize) };
+                let mut eigs: Vec<MaybeUninit<Self::Real>> = unsafe { vec_uninit(n as usize) };
 
                 $(
-                let mut $rwork_ident: Vec<MaybeUninit<Self::Real>> = unsafe { vec_uninit2(3 * n as usize - 2) };
+                let mut $rwork_ident: Vec<MaybeUninit<Self::Real>> = unsafe { vec_uninit(3 * n as usize - 2) };
                 )*
 
                 // calc work size
@@ -131,7 +131,7 @@ macro_rules! impl_eigh {
 
                 // actual evg
                 let lwork = work_size[0].to_usize().unwrap();
-                let mut work: Vec<MaybeUninit<Self>> = unsafe { vec_uninit2(lwork) };
+                let mut work: Vec<MaybeUninit<Self>> = unsafe { vec_uninit(lwork) };
                 let lwork = lwork as i32;
                 unsafe {
                     $evg(

@@ -25,7 +25,7 @@ macro_rules! impl_qr {
                 let m = l.lda();
                 let n = l.len();
                 let k = m.min(n);
-                let mut tau = unsafe { vec_uninit2(k as usize) };
+                let mut tau = unsafe { vec_uninit(k as usize) };
 
                 // eval work size
                 let mut info = 0;
@@ -62,7 +62,7 @@ macro_rules! impl_qr {
 
                 // calc
                 let lwork = work_size[0].to_usize().unwrap();
-                let mut work: Vec<MaybeUninit<Self>> = unsafe { vec_uninit2(lwork) };
+                let mut work: Vec<MaybeUninit<Self>> = unsafe { vec_uninit(lwork) };
                 unsafe {
                     match l {
                         MatrixLayout::F { .. } => {
@@ -136,7 +136,7 @@ macro_rules! impl_qr {
 
                 // calc
                 let lwork = work_size[0].to_usize().unwrap();
-                let mut work: Vec<MaybeUninit<Self>> = unsafe { vec_uninit2(lwork) };
+                let mut work: Vec<MaybeUninit<Self>> = unsafe { vec_uninit(lwork) };
                 unsafe {
                     match l {
                         MatrixLayout::F { .. } => $gqr(

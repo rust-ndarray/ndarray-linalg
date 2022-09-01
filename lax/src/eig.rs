@@ -41,14 +41,13 @@ macro_rules! impl_eig_complex {
                 } else {
                     (EigenVectorFlag::Not, EigenVectorFlag::Not)
                 };
-                let mut eigs: Vec<MaybeUninit<Self>> = unsafe { vec_uninit2(n as usize) };
-                let mut rwork: Vec<MaybeUninit<Self::Real>> =
-                    unsafe { vec_uninit2(2 * n as usize) };
+                let mut eigs: Vec<MaybeUninit<Self>> = unsafe { vec_uninit(n as usize) };
+                let mut rwork: Vec<MaybeUninit<Self::Real>> = unsafe { vec_uninit(2 * n as usize) };
 
                 let mut vl: Option<Vec<MaybeUninit<Self>>> =
-                    jobvl.then(|| unsafe { vec_uninit2((n * n) as usize) });
+                    jobvl.then(|| unsafe { vec_uninit((n * n) as usize) });
                 let mut vr: Option<Vec<MaybeUninit<Self>>> =
-                    jobvr.then(|| unsafe { vec_uninit2((n * n) as usize) });
+                    jobvr.then(|| unsafe { vec_uninit((n * n) as usize) });
 
                 // calc work size
                 let mut info = 0;
@@ -75,7 +74,7 @@ macro_rules! impl_eig_complex {
 
                 // actal ev
                 let lwork = work_size[0].to_usize().unwrap();
-                let mut work: Vec<MaybeUninit<Self>> = unsafe { vec_uninit2(lwork) };
+                let mut work: Vec<MaybeUninit<Self>> = unsafe { vec_uninit(lwork) };
                 let lwork = lwork as i32;
                 unsafe {
                     $ev(
@@ -150,13 +149,13 @@ macro_rules! impl_eig_real {
                 } else {
                     (EigenVectorFlag::Not, EigenVectorFlag::Not)
                 };
-                let mut eig_re: Vec<MaybeUninit<Self>> = unsafe { vec_uninit2(n as usize) };
-                let mut eig_im: Vec<MaybeUninit<Self>> = unsafe { vec_uninit2(n as usize) };
+                let mut eig_re: Vec<MaybeUninit<Self>> = unsafe { vec_uninit(n as usize) };
+                let mut eig_im: Vec<MaybeUninit<Self>> = unsafe { vec_uninit(n as usize) };
 
                 let mut vl: Option<Vec<MaybeUninit<Self>>> =
-                    jobvl.then(|| unsafe { vec_uninit2((n * n) as usize) });
+                    jobvl.then(|| unsafe { vec_uninit((n * n) as usize) });
                 let mut vr: Option<Vec<MaybeUninit<Self>>> =
-                    jobvr.then(|| unsafe { vec_uninit2((n * n) as usize) });
+                    jobvr.then(|| unsafe { vec_uninit((n * n) as usize) });
 
                 // calc work size
                 let mut info = 0;
@@ -183,7 +182,7 @@ macro_rules! impl_eig_real {
 
                 // actual ev
                 let lwork = work_size[0].to_usize().unwrap();
-                let mut work: Vec<MaybeUninit<Self>> = unsafe { vec_uninit2(lwork) };
+                let mut work: Vec<MaybeUninit<Self>> = unsafe { vec_uninit(lwork) };
                 let lwork = lwork as i32;
                 unsafe {
                     $ev(
@@ -238,7 +237,7 @@ macro_rules! impl_eig_real {
 
                 let n = n as usize;
                 let v = vr.or(vl).unwrap();
-                let mut eigvecs: Vec<MaybeUninit<Self::Complex>> = unsafe { vec_uninit2(n * n) };
+                let mut eigvecs: Vec<MaybeUninit<Self::Complex>> = unsafe { vec_uninit(n * n) };
                 let mut col = 0;
                 while col < n {
                     if eig_im[col] == 0. {

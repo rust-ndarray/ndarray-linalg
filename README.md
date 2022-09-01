@@ -1,7 +1,8 @@
 ndarray-linalg
 ===============
-[![crate](https://img.shields.io/badge/crates.io-ndarray--linalg-blue)](https://crates.io/crates/ndarray-linalg)
+[![crate](https://img.shields.io/crates/v/ndarray-linalg.svg)](https://crates.io/crates/ndarray-linalg) 
 [![docs.rs](https://docs.rs/ndarray-linalg/badge.svg)](https://docs.rs/ndarray-linalg)
+[![master](https://img.shields.io/badge/docs-master-blue)](https://rust-ndarray.github.io/ndarray-linalg/ndarray_linalg/index.html)
 
 Linear algebra package for Rust with [ndarray](https://github.com/rust-ndarray/ndarray) based on external LAPACK implementations.
 

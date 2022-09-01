@@ -1,21 +1,55 @@
+# Based on starter workflow
+# https://github.com/actions/starter-workflows/blob/8217436fdee2338da2d6fd02b7c9fcff634c40e7/pages/static.yml
+#
+# Simple workflow for deploying static content to GitHub Pages
 name: "GitHub Pages"
 
 on:
+  # Runs on pushes targeting the default branch
   push:
     branches:
       - master
 
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+# Sets permissions of the GITHUB_TOKEN to allow deployment to GitHub Pages
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Allow one concurrent deployment
+concurrency:
+  group: "pages"
+  cancel-in-progress: true
+
 jobs:
-  pages:
-    runs-on: ubuntu-22.04
+  # Single deploy job since we're just deploying
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
-      - name: Generate code coverage
-        run: |
-          RUSTDOCFLAGS="--html-in-header ndarray-linalg/katex-header.html" cargo doc --no-deps
-          mv target/doc public
-      - name: Deploy GitHub Pages
-        uses: peaceiris/actions-gh-pages@v3
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      # Generate cargo-doc
+      - uses: actions-rs/cargo@v1
         with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./public
+          command: doc
+          args: --no-deps
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v2
+
+      # Upload target/doc directory
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v1
+        with:
+          path: 'target/doc'
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v1

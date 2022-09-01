@@ -161,24 +161,15 @@ pub(crate) trait VecAssumeInit {
     unsafe fn assume_init(self) -> Self::Target;
 }
 
-macro_rules! impl_vec_assume_init {
-    ($e:ty) => {
-        impl VecAssumeInit for Vec<MaybeUninit<$e>> {
-            type Target = Vec<$e>;
-            unsafe fn assume_init(self) -> Self::Target {
-                // FIXME use Vec::into_raw_parts instead after stablized
-                // https://doc.rust-lang.org/std/vec/struct.Vec.html#method.into_raw_parts
-                let mut me = std::mem::ManuallyDrop::new(self);
-                Vec::from_raw_parts(me.as_mut_ptr() as *mut $e, me.len(), me.capacity())
-            }
-        }
-    };
+impl<T> VecAssumeInit for Vec<MaybeUninit<T>> {
+    type Target = Vec<T>;
+    unsafe fn assume_init(self) -> Self::Target {
+        // FIXME use Vec::into_raw_parts instead after stablized
+        // https://doc.rust-lang.org/std/vec/struct.Vec.html#method.into_raw_parts
+        let mut me = std::mem::ManuallyDrop::new(self);
+        Vec::from_raw_parts(me.as_mut_ptr() as *mut T, me.len(), me.capacity())
+    }
 }
-
-impl_vec_assume_init!(f32);
-impl_vec_assume_init!(f64);
-impl_vec_assume_init!(c32);
-impl_vec_assume_init!(c64);
 
 /// Upper/Lower specification for seveal usages
 #[derive(Debug, Clone, Copy)]

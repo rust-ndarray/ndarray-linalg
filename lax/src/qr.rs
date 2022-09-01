@@ -62,7 +62,7 @@ macro_rules! impl_qr {
 
                 // calc
                 let lwork = work_size[0].to_usize().unwrap();
-                let mut work: Vec<Self> = unsafe { vec_uninit(lwork) };
+                let mut work: Vec<MaybeUninit<Self>> = unsafe { vec_uninit(lwork) };
                 unsafe {
                     match l {
                         MatrixLayout::F { .. } => {
@@ -92,6 +92,8 @@ macro_rules! impl_qr {
                     }
                 }
                 info.as_lapack_result()?;
+
+                let tau = unsafe { tau.assume_init() };
 
                 Ok(tau)
             }
@@ -134,7 +136,7 @@ macro_rules! impl_qr {
 
                 // calc
                 let lwork = work_size[0].to_usize().unwrap();
-                let mut work: Vec<Self> = unsafe { vec_uninit(lwork) };
+                let mut work: Vec<MaybeUninit<Self>> = unsafe { vec_uninit(lwork) };
                 unsafe {
                     match l {
                         MatrixLayout::F { .. } => $gqr(

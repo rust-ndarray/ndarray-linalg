@@ -64,12 +64,12 @@ macro_rules! impl_svddc {
                     UVTFlag::None => 7 * mn,
                     _ => std::cmp::max(5*mn*mn + 5*mn, 2*mx*mn + 2*mn*mn + mn),
                 };
-                let mut $rwork_ident: Vec<Self::Real> = unsafe { vec_uninit( lrwork) };
+                let mut $rwork_ident: Vec<MaybeUninit<Self::Real>> = unsafe { vec_uninit( lrwork) };
                 )*
 
                 // eval work size
                 let mut info = 0;
-                let mut iwork = unsafe { vec_uninit( 8 * k as usize) };
+                let mut iwork: Vec<MaybeUninit<i32>> = unsafe { vec_uninit( 8 * k as usize) };
                 let mut work_size = [Self::zero()];
                 unsafe {
                     $gesdd(
@@ -86,7 +86,7 @@ macro_rules! impl_svddc {
                         AsPtr::as_mut_ptr(&mut work_size),
                         &(-1),
                         $(AsPtr::as_mut_ptr(&mut $rwork_ident),)*
-                        iwork.as_mut_ptr(),
+                        AsPtr::as_mut_ptr(&mut iwork),
                         &mut info,
                     );
                 }
@@ -94,7 +94,7 @@ macro_rules! impl_svddc {
 
                 // do svd
                 let lwork = work_size[0].to_usize().unwrap();
-                let mut work: Vec<Self> = unsafe { vec_uninit( lwork) };
+                let mut work: Vec<MaybeUninit<Self>> = unsafe { vec_uninit( lwork) };
                 unsafe {
                     $gesdd(
                         jobz.as_ptr(),
@@ -110,11 +110,15 @@ macro_rules! impl_svddc {
                         AsPtr::as_mut_ptr(&mut work),
                         &(lwork as i32),
                         $(AsPtr::as_mut_ptr(&mut $rwork_ident),)*
-                        iwork.as_mut_ptr(),
+                        AsPtr::as_mut_ptr(&mut iwork),
                         &mut info,
                     );
                 }
                 info.as_lapack_result()?;
+
+                let s = unsafe { s.assume_init() };
+                let u = u.map(|v| unsafe { v.assume_init() });
+                let vt = vt.map(|v| unsafe { v.assume_init() });
 
                 match l {
                     MatrixLayout::F { .. } => Ok(SVDOutput { s, u, vt }),

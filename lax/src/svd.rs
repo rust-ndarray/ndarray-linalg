@@ -79,7 +79,7 @@ macro_rules! impl_svd {
                 let mut s = unsafe { vec_uninit( k as usize) };
 
                 $(
-                let mut $rwork_ident: Vec<Self::Real> = unsafe { vec_uninit( 5 * k as usize) };
+                let mut $rwork_ident: Vec<MaybeUninit<Self::Real>> = unsafe { vec_uninit( 5 * k as usize) };
                 )*
 
                 // eval work size
@@ -108,7 +108,7 @@ macro_rules! impl_svd {
 
                 // calc
                 let lwork = work_size[0].to_usize().unwrap();
-                let mut work: Vec<Self> = unsafe { vec_uninit( lwork) };
+                let mut work: Vec<MaybeUninit<Self>> = unsafe { vec_uninit( lwork) };
                 unsafe {
                     $gesvd(
                         ju.as_ptr(),
@@ -129,6 +129,11 @@ macro_rules! impl_svd {
                     );
                 }
                 info.as_lapack_result()?;
+
+                let s = unsafe { s.assume_init() };
+                let u = u.map(|v| unsafe { v.assume_init() });
+                let vt = vt.map(|v| unsafe { v.assume_init() });
+
                 match l {
                     MatrixLayout::F { .. } => Ok(SVDOutput { s, u, vt }),
                     MatrixLayout::C { .. } => Ok(SVDOutput { s, u: vt, vt: u }),

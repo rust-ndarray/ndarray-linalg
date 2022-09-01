@@ -164,11 +164,13 @@ macro_rules! impl_tridiagonal {
                         AsPtr::as_mut_ptr(&mut a.d),
                         AsPtr::as_mut_ptr(&mut a.du),
                         AsPtr::as_mut_ptr(&mut du2),
-                        ipiv.as_mut_ptr(),
+                        AsPtr::as_mut_ptr(&mut ipiv),
                         &mut info,
                     )
                 };
                 info.as_lapack_result()?;
+                let du2 = unsafe { du2.assume_init() };
+                let ipiv = unsafe { ipiv.assume_init() };
                 Ok(LUFactorizedTridiagonal {
                     a,
                     du2,
@@ -180,9 +182,9 @@ macro_rules! impl_tridiagonal {
             fn rcond_tridiagonal(lu: &LUFactorizedTridiagonal<Self>) -> Result<Self::Real> {
                 let (n, _) = lu.a.l.size();
                 let ipiv = &lu.ipiv;
-                let mut work: Vec<Self> = unsafe { vec_uninit( 2 * n as usize) };
+                let mut work: Vec<MaybeUninit<Self>> = unsafe { vec_uninit( 2 * n as usize) };
                 $(
-                let mut $iwork = unsafe { vec_uninit( n as usize) };
+                let mut $iwork: Vec<MaybeUninit<i32>> = unsafe { vec_uninit( n as usize) };
                 )*
                 let mut rcond = Self::Real::zero();
                 let mut info = 0;
@@ -198,7 +200,7 @@ macro_rules! impl_tridiagonal {
                         &lu.a_opnorm_one,
                         &mut rcond,
                         AsPtr::as_mut_ptr(&mut work),
-                        $($iwork.as_mut_ptr(),)*
+                        $(AsPtr::as_mut_ptr(&mut $iwork),)*
                         &mut info,
                     );
                 }
@@ -218,8 +220,9 @@ macro_rules! impl_tridiagonal {
                 let mut b_t = None;
                 let b_layout = match b_layout {
                     MatrixLayout::C { .. } => {
-                        b_t = Some(unsafe { vec_uninit( b.len()) });
-                        transpose(b_layout, b, b_t.as_mut().unwrap())
+                        let (layout, t) = transpose(b_layout, b);
+                        b_t = Some(t);
+                        layout
                     }
                     MatrixLayout::F { .. } => b_layout,
                 };
@@ -242,7 +245,7 @@ macro_rules! impl_tridiagonal {
                 }
                 info.as_lapack_result()?;
                 if let Some(b_t) = b_t {
-                    transpose(b_layout, &b_t, b);
+                    transpose_over(b_layout, &b_t, b);
                 }
                 Ok(())
             }

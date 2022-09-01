@@ -43,8 +43,9 @@ macro_rules! impl_triangular {
                 let mut a_t = None;
                 let a_layout = match a_layout {
                     MatrixLayout::C { .. } => {
-                        a_t = Some(unsafe { vec_uninit(a.len()) });
-                        transpose(a_layout, a, a_t.as_mut().unwrap())
+                        let (layout, t) = transpose(a_layout, a);
+                        a_t = Some(t);
+                        layout
                     }
                     MatrixLayout::F { .. } => a_layout,
                 };
@@ -53,8 +54,9 @@ macro_rules! impl_triangular {
                 let mut b_t = None;
                 let b_layout = match b_layout {
                     MatrixLayout::C { .. } => {
-                        b_t = Some(unsafe { vec_uninit(b.len()) });
-                        transpose(b_layout, b, b_t.as_mut().unwrap())
+                        let (layout, t) = transpose(b_layout, b);
+                        b_t = Some(t);
+                        layout
                     }
                     MatrixLayout::F { .. } => b_layout,
                 };
@@ -82,7 +84,7 @@ macro_rules! impl_triangular {
 
                 // Re-transpose b
                 if let Some(b_t) = b_t {
-                    transpose(b_layout, &b_t, b);
+                    transpose_over(b_layout, &b_t, b);
                 }
                 Ok(())
             }

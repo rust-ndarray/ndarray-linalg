@@ -41,11 +41,12 @@ macro_rules! impl_solve {
                         &l.len(),
                         AsPtr::as_mut_ptr(a),
                         &l.lda(),
-                        ipiv.as_mut_ptr(),
+                        AsPtr::as_mut_ptr(&mut ipiv),
                         &mut info,
                     )
                 };
                 info.as_lapack_result()?;
+                let ipiv = unsafe { ipiv.assume_init() };
                 Ok(ipiv)
             }
 
@@ -74,7 +75,7 @@ macro_rules! impl_solve {
 
                 // actual
                 let lwork = work_size[0].to_usize().unwrap();
-                let mut work: Vec<Self> = unsafe { vec_uninit(lwork) };
+                let mut work: Vec<MaybeUninit<Self>> = unsafe { vec_uninit(lwork) };
                 unsafe {
                     $getri(
                         &l.len(),

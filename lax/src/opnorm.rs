@@ -18,7 +18,7 @@ macro_rules! impl_opnorm {
                     MatrixLayout::F { .. } => t,
                     MatrixLayout::C { .. } => t.transpose(),
                 };
-                let mut work: Vec<Self::Real> = if matches!(t, NormType::Infinity) {
+                let mut work: Vec<MaybeUninit<Self::Real>> = if matches!(t, NormType::Infinity) {
                     unsafe { vec_uninit(m as usize) }
                 } else {
                     Vec::new()

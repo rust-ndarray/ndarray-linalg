@@ -285,6 +285,16 @@
 <span id="262">262</span>
 <span id="263">263</span>
 <span id="264">264</span>
+<span id="265">265</span>
+<span id="266">266</span>
+<span id="267">267</span>
+<span id="268">268</span>
+<span id="269">269</span>
+<span id="270">270</span>
+<span id="271">271</span>
+<span id="272">272</span>
+<span id="273">273</span>
+<span id="274">274</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Eigenvalue decomposition for general matrices</span>
 
 <span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">error</span>::<span class="kw-2">*</span>, <span class="ident">layout::MatrixLayout</span>, <span class="kw-2">*</span>};
@@ -328,12 +338,12 @@
                 } <span class="kw">else</span> {
                     (<span class="ident">EigenVectorFlag::Not</span>, <span class="ident">EigenVectorFlag::Not</span>)
                 };
-                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">eigs</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">vec_uninit</span>(<span class="ident">n</span> <span class="kw">as</span> <span class="ident">usize</span>) };
-                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">rwork</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Real</span><span class="op">&gt;</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">vec_uninit</span>(<span class="number">2</span> <span class="op">*</span> <span class="ident">n</span> <span class="kw">as</span> <span class="ident">usize</span>) };
+                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">eigs</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">MaybeUninit</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">vec_uninit</span>(<span class="ident">n</span> <span class="kw">as</span> <span class="ident">usize</span>) };
+                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">rwork</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">MaybeUninit</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Real</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">vec_uninit</span>(<span class="number">2</span> <span class="op">*</span> <span class="ident">n</span> <span class="kw">as</span> <span class="ident">usize</span>) };
 
-                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">vl</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="op">=</span>
+                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">vl</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">MaybeUninit</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="op">=</span>
                     <span class="ident">jobvl</span>.<span class="ident">then</span>(<span class="op">|</span><span class="op">|</span> <span class="kw">unsafe</span> { <span class="ident">vec_uninit</span>((<span class="ident">n</span> <span class="op">*</span> <span class="ident">n</span>) <span class="kw">as</span> <span class="ident">usize</span>) });
-                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">vr</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="op">=</span>
+                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">vr</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">MaybeUninit</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="op">=</span>
                     <span class="ident">jobvr</span>.<span class="ident">then</span>(<span class="op">|</span><span class="op">|</span> <span class="kw">unsafe</span> { <span class="ident">vec_uninit</span>((<span class="ident">n</span> <span class="op">*</span> <span class="ident">n</span>) <span class="kw">as</span> <span class="ident">usize</span>) });
 
                 <span class="comment">// calc work size</span>
@@ -361,7 +371,7 @@
 
                 <span class="comment">// actal ev</span>
                 <span class="kw">let</span> <span class="ident">lwork</span> <span class="op">=</span> <span class="ident">work_size</span>[<span class="number">0</span>].<span class="ident">to_usize</span>().<span class="ident">unwrap</span>();
-                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">work</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">vec_uninit</span>(<span class="ident">lwork</span>) };
+                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">work</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">MaybeUninit</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">vec_uninit</span>(<span class="ident">lwork</span>) };
                 <span class="kw">let</span> <span class="ident">lwork</span> <span class="op">=</span> <span class="ident">lwork</span> <span class="kw">as</span> <span class="ident">i32</span>;
                 <span class="kw">unsafe</span> {
                     <span class="macro-nonterminal">$</span><span class="macro-nonterminal">ev</span>(
@@ -383,10 +393,14 @@
                 };
                 <span class="ident">info</span>.<span class="ident">as_lapack_result</span>()<span class="question-mark">?</span>;
 
+                <span class="kw">let</span> <span class="ident">eigs</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">eigs</span>.<span class="ident">assume_init</span>() };
+                <span class="kw">let</span> <span class="ident">vr</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">vr</span>.<span class="ident">map</span>(<span class="op">|</span><span class="ident">v</span><span class="op">|</span> <span class="ident">v</span>.<span class="ident">assume_init</span>()) };
+                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">vl</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">vl</span>.<span class="ident">map</span>(<span class="op">|</span><span class="ident">v</span><span class="op">|</span> <span class="ident">v</span>.<span class="ident">assume_init</span>()) };
+
                 <span class="comment">// Hermite conjugate</span>
                 <span class="kw">if</span> <span class="ident">jobvl</span>.<span class="ident">is_calc</span>() {
                     <span class="kw">for</span> <span class="ident">c</span> <span class="kw">in</span> <span class="ident">vl</span>.<span class="ident">as_mut</span>().<span class="ident">unwrap</span>().<span class="ident">iter_mut</span>() {
-                        <span class="ident">c</span>.<span class="ident">im</span> <span class="op">=</span> <span class="op">-</span><span class="ident">c</span>.<span class="ident">im</span>
+                        <span class="ident">c</span>.<span class="ident">im</span> <span class="op">=</span> <span class="op">-</span><span class="ident">c</span>.<span class="ident">im</span>;
                     }
                 }
 
@@ -432,12 +446,12 @@
                 } <span class="kw">else</span> {
                     (<span class="ident">EigenVectorFlag::Not</span>, <span class="ident">EigenVectorFlag::Not</span>)
                 };
-                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">eig_re</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">vec_uninit</span>(<span class="ident">n</span> <span class="kw">as</span> <span class="ident">usize</span>) };
-                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">eig_im</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">vec_uninit</span>(<span class="ident">n</span> <span class="kw">as</span> <span class="ident">usize</span>) };
+                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">eig_re</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">MaybeUninit</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">vec_uninit</span>(<span class="ident">n</span> <span class="kw">as</span> <span class="ident">usize</span>) };
+                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">eig_im</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">MaybeUninit</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">vec_uninit</span>(<span class="ident">n</span> <span class="kw">as</span> <span class="ident">usize</span>) };
 
-                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">vl</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="op">=</span>
+                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">vl</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">MaybeUninit</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="op">=</span>
                     <span class="ident">jobvl</span>.<span class="ident">then</span>(<span class="op">|</span><span class="op">|</span> <span class="kw">unsafe</span> { <span class="ident">vec_uninit</span>((<span class="ident">n</span> <span class="op">*</span> <span class="ident">n</span>) <span class="kw">as</span> <span class="ident">usize</span>) });
-                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">vr</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="op">=</span>
+                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">vr</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">MaybeUninit</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="op">=</span>
                     <span class="ident">jobvr</span>.<span class="ident">then</span>(<span class="op">|</span><span class="op">|</span> <span class="kw">unsafe</span> { <span class="ident">vec_uninit</span>((<span class="ident">n</span> <span class="op">*</span> <span class="ident">n</span>) <span class="kw">as</span> <span class="ident">usize</span>) });
 
                 <span class="comment">// calc work size</span>
@@ -465,7 +479,7 @@
 
                 <span class="comment">// actual ev</span>
                 <span class="kw">let</span> <span class="ident">lwork</span> <span class="op">=</span> <span class="ident">work_size</span>[<span class="number">0</span>].<span class="ident">to_usize</span>().<span class="ident">unwrap</span>();
-                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">work</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">vec_uninit</span>(<span class="ident">lwork</span>) };
+                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">work</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">MaybeUninit</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">vec_uninit</span>(<span class="ident">lwork</span>) };
                 <span class="kw">let</span> <span class="ident">lwork</span> <span class="op">=</span> <span class="ident">lwork</span> <span class="kw">as</span> <span class="ident">i32</span>;
                 <span class="kw">unsafe</span> {
                     <span class="macro-nonterminal">$</span><span class="macro-nonterminal">ev</span>(
@@ -486,6 +500,11 @@
                     )
                 };
                 <span class="ident">info</span>.<span class="ident">as_lapack_result</span>()<span class="question-mark">?</span>;
+
+                <span class="kw">let</span> <span class="ident">eig_re</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">eig_re</span>.<span class="ident">assume_init</span>() };
+                <span class="kw">let</span> <span class="ident">eig_im</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">eig_im</span>.<span class="ident">assume_init</span>() };
+                <span class="kw">let</span> <span class="ident">vl</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">vl</span>.<span class="ident">map</span>(<span class="op">|</span><span class="ident">v</span><span class="op">|</span> <span class="ident">v</span>.<span class="ident">assume_init</span>()) };
+                <span class="kw">let</span> <span class="ident">vr</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">vr</span>.<span class="ident">map</span>(<span class="op">|</span><span class="ident">v</span><span class="op">|</span> <span class="ident">v</span>.<span class="ident">assume_init</span>()) };
 
                 <span class="comment">// reconstruct eigenvalues</span>
                 <span class="kw">let</span> <span class="ident">eigs</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Complex</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">eig_re</span>
@@ -515,14 +534,14 @@
 
                 <span class="kw">let</span> <span class="ident">n</span> <span class="op">=</span> <span class="ident">n</span> <span class="kw">as</span> <span class="ident">usize</span>;
                 <span class="kw">let</span> <span class="ident">v</span> <span class="op">=</span> <span class="ident">vr</span>.<span class="ident">or</span>(<span class="ident">vl</span>).<span class="ident">unwrap</span>();
-                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">eigvecs</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">vec_uninit</span>(<span class="ident">n</span> <span class="op">*</span> <span class="ident">n</span>) };
+                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">eigvecs</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">MaybeUninit</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Complex</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">vec_uninit</span>(<span class="ident">n</span> <span class="op">*</span> <span class="ident">n</span>) };
                 <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">col</span> <span class="op">=</span> <span class="number">0</span>;
                 <span class="kw">while</span> <span class="ident">col</span> <span class="op">&lt;</span> <span class="ident">n</span> {
                     <span class="kw">if</span> <span class="ident">eig_im</span>[<span class="ident">col</span>] <span class="op">==</span> <span class="number">0.</span> {
                         <span class="comment">// The corresponding eigenvalue is real.</span>
                         <span class="kw">for</span> <span class="ident">row</span> <span class="kw">in</span> <span class="number">0</span>..<span class="ident">n</span> {
                             <span class="kw">let</span> <span class="ident">re</span> <span class="op">=</span> <span class="ident">v</span>[<span class="ident">row</span> <span class="op">+</span> <span class="ident">col</span> <span class="op">*</span> <span class="ident">n</span>];
-                            <span class="ident">eigvecs</span>[<span class="ident">row</span> <span class="op">+</span> <span class="ident">col</span> <span class="op">*</span> <span class="ident">n</span>] <span class="op">=</span> <span class="ident"><span class="self">Self</span>::complex</span>(<span class="ident">re</span>, <span class="number">0.</span>);
+                            <span class="ident">eigvecs</span>[<span class="ident">row</span> <span class="op">+</span> <span class="ident">col</span> <span class="op">*</span> <span class="ident">n</span>].<span class="ident">write</span>(<span class="ident"><span class="self">Self</span>::complex</span>(<span class="ident">re</span>, <span class="number">0.</span>));
                         }
                         <span class="ident">col</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
                     } <span class="kw">else</span> {
@@ -534,12 +553,13 @@
                             <span class="kw">if</span> <span class="ident">jobvl</span>.<span class="ident">is_calc</span>() {
                                 <span class="ident">im</span> <span class="op">=</span> <span class="op">-</span><span class="ident">im</span>;
                             }
-                            <span class="ident">eigvecs</span>[<span class="ident">row</span> <span class="op">+</span> <span class="ident">col</span> <span class="op">*</span> <span class="ident">n</span>] <span class="op">=</span> <span class="ident"><span class="self">Self</span>::complex</span>(<span class="ident">re</span>, <span class="ident">im</span>);
-                            <span class="ident">eigvecs</span>[<span class="ident">row</span> <span class="op">+</span> (<span class="ident">col</span> <span class="op">+</span> <span class="number">1</span>) <span class="op">*</span> <span class="ident">n</span>] <span class="op">=</span> <span class="ident"><span class="self">Self</span>::complex</span>(<span class="ident">re</span>, <span class="op">-</span><span class="ident">im</span>);
+                            <span class="ident">eigvecs</span>[<span class="ident">row</span> <span class="op">+</span> <span class="ident">col</span> <span class="op">*</span> <span class="ident">n</span>].<span class="ident">write</span>(<span class="ident"><span class="self">Self</span>::complex</span>(<span class="ident">re</span>, <span class="ident">im</span>));
+                            <span class="ident">eigvecs</span>[<span class="ident">row</span> <span class="op">+</span> (<span class="ident">col</span> <span class="op">+</span> <span class="number">1</span>) <span class="op">*</span> <span class="ident">n</span>].<span class="ident">write</span>(<span class="ident"><span class="self">Self</span>::complex</span>(<span class="ident">re</span>, <span class="op">-</span><span class="ident">im</span>));
                         }
                         <span class="ident">col</span> <span class="op">+</span><span class="op">=</span> <span class="number">2</span>;
                     }
                 }
+                <span class="kw">let</span> <span class="ident">eigvecs</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">eigvecs</span>.<span class="ident">assume_init</span>() };
 
                 <span class="prelude-val">Ok</span>((<span class="ident">eigs</span>, <span class="ident">eigvecs</span>))
             }

@@ -165,6 +165,11 @@
 <span id="142">142</span>
 <span id="143">143</span>
 <span id="144">144</span>
+<span id="145">145</span>
+<span id="146">146</span>
+<span id="147">147</span>
+<span id="148">148</span>
+<span id="149">149</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Singular-value decomposition</span>
 
 <span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">error</span>::<span class="kw-2">*</span>, <span class="ident">layout::MatrixLayout</span>, <span class="kw-2">*</span>};
@@ -246,7 +251,7 @@
                 <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">s</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">vec_uninit</span>( <span class="ident">k</span> <span class="kw">as</span> <span class="ident">usize</span>) };
 
                 $(
-                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">rwork_ident</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Real</span><span class="op">&gt;</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">vec_uninit</span>( <span class="number">5</span> <span class="op">*</span> <span class="ident">k</span> <span class="kw">as</span> <span class="ident">usize</span>) };
+                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">rwork_ident</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">MaybeUninit</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Real</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">vec_uninit</span>( <span class="number">5</span> <span class="op">*</span> <span class="ident">k</span> <span class="kw">as</span> <span class="ident">usize</span>) };
                 )<span class="op">*</span>
 
                 <span class="comment">// eval work size</span>
@@ -275,7 +280,7 @@
 
                 <span class="comment">// calc</span>
                 <span class="kw">let</span> <span class="ident">lwork</span> <span class="op">=</span> <span class="ident">work_size</span>[<span class="number">0</span>].<span class="ident">to_usize</span>().<span class="ident">unwrap</span>();
-                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">work</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">vec_uninit</span>( <span class="ident">lwork</span>) };
+                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">work</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">MaybeUninit</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">vec_uninit</span>( <span class="ident">lwork</span>) };
                 <span class="kw">unsafe</span> {
                     <span class="macro-nonterminal">$</span><span class="macro-nonterminal">gesvd</span>(
                         <span class="ident">ju</span>.<span class="ident">as_ptr</span>(),
@@ -296,6 +301,11 @@
                     );
                 }
                 <span class="ident">info</span>.<span class="ident">as_lapack_result</span>()<span class="question-mark">?</span>;
+
+                <span class="kw">let</span> <span class="ident">s</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">s</span>.<span class="ident">assume_init</span>() };
+                <span class="kw">let</span> <span class="ident">u</span> <span class="op">=</span> <span class="ident">u</span>.<span class="ident">map</span>(<span class="op">|</span><span class="ident">v</span><span class="op">|</span> <span class="kw">unsafe</span> { <span class="ident">v</span>.<span class="ident">assume_init</span>() });
+                <span class="kw">let</span> <span class="ident">vt</span> <span class="op">=</span> <span class="ident">vt</span>.<span class="ident">map</span>(<span class="op">|</span><span class="ident">v</span><span class="op">|</span> <span class="kw">unsafe</span> { <span class="ident">v</span>.<span class="ident">assume_init</span>() });
+
                 <span class="kw">match</span> <span class="ident">l</span> {
                     <span class="ident">MatrixLayout::F</span> { .. } =&gt; <span class="prelude-val">Ok</span>(<span class="ident">SVDOutput</span> { <span class="ident">s</span>, <span class="ident">u</span>, <span class="ident">vt</span> }),
                     <span class="ident">MatrixLayout::C</span> { .. } =&gt; <span class="prelude-val">Ok</span>(<span class="ident">SVDOutput</span> { <span class="ident">s</span>, <span class="ident">u</span>: <span class="ident">vt</span>, <span class="ident">vt</span>: <span class="ident">u</span> }),

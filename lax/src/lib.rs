@@ -74,6 +74,7 @@ pub mod layout;
 mod cholesky;
 mod eig;
 mod eigh;
+mod flags;
 mod least_squares;
 mod opnorm;
 mod qr;
@@ -88,6 +89,7 @@ mod tridiagonal;
 pub use self::cholesky::*;
 pub use self::eig::*;
 pub use self::eigh::*;
+pub use self::flags::*;
 pub use self::least_squares::*;
 pub use self::opnorm::*;
 pub use self::qr::*;
@@ -170,96 +172,6 @@ impl<T> VecAssumeInit for Vec<MaybeUninit<T>> {
         // https://doc.rust-lang.org/std/vec/struct.Vec.html#method.into_raw_parts
         let mut me = std::mem::ManuallyDrop::new(self);
         Vec::from_raw_parts(me.as_mut_ptr() as *mut T, me.len(), me.capacity())
-    }
-}
-
-/// Upper/Lower specification for seveal usages
-#[derive(Debug, Clone, Copy)]
-#[repr(u8)]
-pub enum UPLO {
-    Upper = b'U',
-    Lower = b'L',
-}
-
-impl UPLO {
-    pub fn t(self) -> Self {
-        match self {
-            UPLO::Upper => UPLO::Lower,
-            UPLO::Lower => UPLO::Upper,
-        }
-    }
-
-    /// To use Fortran LAPACK API in lapack-sys crate
-    pub fn as_ptr(&self) -> *const i8 {
-        self as *const UPLO as *const i8
-    }
-}
-
-#[derive(Debug, Clone, Copy)]
-#[repr(u8)]
-pub enum Transpose {
-    No = b'N',
-    Transpose = b'T',
-    Hermite = b'C',
-}
-
-impl Transpose {
-    /// To use Fortran LAPACK API in lapack-sys crate
-    pub fn as_ptr(&self) -> *const i8 {
-        self as *const Transpose as *const i8
-    }
-}
-
-#[derive(Debug, Clone, Copy)]
-#[repr(u8)]
-pub enum NormType {
-    One = b'O',
-    Infinity = b'I',
-    Frobenius = b'F',
-}
-
-impl NormType {
-    pub fn transpose(self) -> Self {
-        match self {
-            NormType::One => NormType::Infinity,
-            NormType::Infinity => NormType::One,
-            NormType::Frobenius => NormType::Frobenius,
-        }
-    }
-
-    /// To use Fortran LAPACK API in lapack-sys crate
-    pub fn as_ptr(&self) -> *const i8 {
-        self as *const NormType as *const i8
-    }
-}
-
-/// Flag for calculating eigenvectors or not
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-#[repr(u8)]
-pub enum EigenVectorFlag {
-    Calc = b'V',
-    Not = b'N',
-}
-
-impl EigenVectorFlag {
-    pub fn is_calc(&self) -> bool {
-        match self {
-            EigenVectorFlag::Calc => true,
-            EigenVectorFlag::Not => false,
-        }
-    }
-
-    pub fn then<T, F: FnOnce() -> T>(&self, f: F) -> Option<T> {
-        if self.is_calc() {
-            Some(f())
-        } else {
-            None
-        }
-    }
-
-    /// To use Fortran LAPACK API in lapack-sys crate
-    pub fn as_ptr(&self) -> *const i8 {
-        self as *const EigenVectorFlag as *const i8
     }
 }
 

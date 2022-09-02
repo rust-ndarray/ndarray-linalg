@@ -3,19 +3,6 @@
 use crate::{error::*, layout::*, *};
 use cauchy::*;
 
-#[derive(Debug, Clone, Copy)]
-#[repr(u8)]
-pub enum Diag {
-    Unit = b'U',
-    NonUnit = b'N',
-}
-
-impl Diag {
-    fn as_ptr(&self) -> *const i8 {
-        self as *const Diag as *const i8
-    }
-}
-
 /// Wraps `*trtri` and `*trtrs`
 pub trait Triangular_: Scalar {
     fn solve_triangular(

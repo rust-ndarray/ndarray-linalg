@@ -1,31 +1,8 @@
 //! Singular-value decomposition
 
-use crate::{error::*, layout::MatrixLayout, *};
+use super::{error::*, layout::*, *};
 use cauchy::*;
 use num_traits::{ToPrimitive, Zero};
-
-#[repr(u8)]
-#[derive(Debug, Copy, Clone)]
-enum FlagSVD {
-    All = b'A',
-    // OverWrite = b'O',
-    // Separately = b'S',
-    No = b'N',
-}
-
-impl FlagSVD {
-    fn from_bool(calc_uv: bool) -> Self {
-        if calc_uv {
-            FlagSVD::All
-        } else {
-            FlagSVD::No
-        }
-    }
-
-    fn as_ptr(&self) -> *const i8 {
-        self as *const FlagSVD as *const i8
-    }
-}
 
 /// Result of SVD
 pub struct SVDOutput<A: Scalar> {

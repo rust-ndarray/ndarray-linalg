@@ -69,12 +69,12 @@ extern crate openblas_src as _src;
 extern crate netlib_src as _src;
 
 pub mod error;
+pub mod flags;
 pub mod layout;
 
 mod cholesky;
 mod eig;
 mod eigh;
-mod flags;
 mod least_squares;
 mod opnorm;
 mod qr;

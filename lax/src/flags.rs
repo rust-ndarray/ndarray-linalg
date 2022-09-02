@@ -1,3 +1,5 @@
+//! Charactor flags, e.g. `'T'`, used in LAPACK API
+
 /// Upper/Lower specification for seveal usages
 #[derive(Debug, Clone, Copy)]
 #[repr(u8)]

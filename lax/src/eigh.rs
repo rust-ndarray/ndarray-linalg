@@ -41,7 +41,7 @@ macro_rules! impl_eigh {
             ) -> Result<Vec<Self::Real>> {
                 assert_eq!(layout.len(), layout.lda());
                 let n = layout.len();
-                let jobz = if calc_v { EigenVectorFlag::Calc } else { EigenVectorFlag::Not };
+                let jobz = if calc_v { JobEv::Calc } else { JobEv::Not };
                 let mut eigs: Vec<MaybeUninit<Self::Real>> = unsafe { vec_uninit(n as usize) };
 
                 $(
@@ -100,7 +100,7 @@ macro_rules! impl_eigh {
             ) -> Result<Vec<Self::Real>> {
                 assert_eq!(layout.len(), layout.lda());
                 let n = layout.len();
-                let jobz = if calc_v { EigenVectorFlag::Calc } else { EigenVectorFlag::Not };
+                let jobz = if calc_v { JobEv::Calc } else { JobEv::Not };
                 let mut eigs: Vec<MaybeUninit<Self::Real>> = unsafe { vec_uninit(n as usize) };
 
                 $(

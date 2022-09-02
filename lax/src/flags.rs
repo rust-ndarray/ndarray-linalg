@@ -63,16 +63,16 @@ impl NormType {
 /// Flag for calculating eigenvectors or not
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 #[repr(u8)]
-pub enum EigenVectorFlag {
+pub enum JobEv {
     Calc = b'V',
     Not = b'N',
 }
 
-impl EigenVectorFlag {
+impl JobEv {
     pub fn is_calc(&self) -> bool {
         match self {
-            EigenVectorFlag::Calc => true,
-            EigenVectorFlag::Not => false,
+            JobEv::Calc => true,
+            JobEv::Not => false,
         }
     }
 
@@ -86,7 +86,7 @@ impl EigenVectorFlag {
 
     /// To use Fortran LAPACK API in lapack-sys crate
     pub fn as_ptr(&self) -> *const i8 {
-        self as *const EigenVectorFlag as *const i8
+        self as *const JobEv as *const i8
     }
 }
 

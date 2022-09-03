@@ -1,24 +1,43 @@
-//! Solve linear problem using LU decomposition
-
 use crate::{error::*, layout::MatrixLayout, *};
 use cauchy::*;
 use num_traits::{ToPrimitive, Zero};
 
+#[cfg_attr(doc, katexit::katexit)]
+/// Solve linear equations using LU-decomposition
+///
+/// For a given matrix $A$, LU decomposition is described as $PA = LU$ where
+///
+/// - $L$ is lower matrix
+/// - $U$ is upper matrix
+/// - $P$ is permutation matrix represented by [Pivot]
+///
+/// This is designed as two step computation according to LAPACK API:
+///
+/// 1. Factorize input matrix $A$ into $L$, $U$, and $P$.
+/// 2. Solve linear equation $Ax = b$ or compute inverse matrix $A^{-1}$
+///    using the output of LU factorization.
+///
 pub trait Solve_: Scalar + Sized {
-    /// Computes the LU factorization of a general `m x n` matrix `a` using
-    /// partial pivoting with row interchanges.
+    /// Computes the LU factorization of a general $m \times n$ matrix
+    /// with partial pivoting with row interchanges.
     ///
-    /// $ PA = LU $
+    /// Output
+    /// -------
+    /// - $U$ and $L$ are stored in `a` after LU factorization has succeeded.
+    /// - $P$ is returned as [Pivot]
     ///
     /// Error
     /// ------
-    /// - `LapackComputationalFailure { return_code }` when the matrix is singular
-    ///   - Division by zero will occur if it is used to solve a system of equations
-    ///     because `U[(return_code-1, return_code-1)]` is exactly zero.
+    /// - if the matrix is singular
+    ///   - On this case, `return_code` in [Error::LapackComputationalFailure] means
+    ///     `return_code`-th diagonal element of $U$ becomes zero.
+    ///
     fn lu(l: MatrixLayout, a: &mut [Self]) -> Result<Pivot>;
 
+    /// Compute inverse matrix $A^{-1}$ from the output of LU-factorization
     fn inv(l: MatrixLayout, a: &mut [Self], p: &Pivot) -> Result<()>;
 
+    /// Solve linear equations $Ax = b$ using the output of LU-factorization
     fn solve(l: MatrixLayout, t: Transpose, a: &[Self], p: &Pivot, b: &mut [Self]) -> Result<()>;
 }
 

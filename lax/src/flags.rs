@@ -1,7 +1,7 @@
 //! Charactor flags, e.g. `'T'`, used in LAPACK API
 
 /// Upper/Lower specification for seveal usages
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[repr(u8)]
 pub enum UPLO {
     Upper = b'U',
@@ -22,7 +22,7 @@ impl UPLO {
     }
 }
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[repr(u8)]
 pub enum Transpose {
     No = b'N',
@@ -37,7 +37,7 @@ impl Transpose {
     }
 }
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[repr(u8)]
 pub enum NormType {
     One = b'O',
@@ -61,7 +61,7 @@ impl NormType {
 }
 
 /// Flag for calculating eigenvectors or not
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[repr(u8)]
 pub enum JobEv {
     /// Calculate eigenvectors in addition to eigenvalues
@@ -95,7 +95,7 @@ impl JobEv {
 /// Specifies how many of the columns of *U* and rows of *V*ᵀ are computed and returned.
 ///
 /// For an input array of shape *m*×*n*, the following are computed:
-#[derive(Clone, Copy, Eq, PartialEq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[repr(u8)]
 pub enum JobSvd {
     /// All *m* columns of *U* and all *n* rows of *V*ᵀ.
@@ -121,7 +121,7 @@ impl JobSvd {
 }
 
 /// Specify whether input triangular matrix is unit or not
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[repr(u8)]
 pub enum Diag {
     /// Unit triangular matrix, i.e. all diagonal elements of the matrix are `1`

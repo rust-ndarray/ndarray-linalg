@@ -35,11 +35,11 @@ macro_rules! impl_eig_complex {
                 // eigenvalues are the eigenvalues computed with `A`.
                 let (jobvl, jobvr) = if calc_v {
                     match l {
-                        MatrixLayout::C { .. } => (JobEv::Calc, JobEv::Not),
-                        MatrixLayout::F { .. } => (JobEv::Not, JobEv::Calc),
+                        MatrixLayout::C { .. } => (JobEv::All, JobEv::None),
+                        MatrixLayout::F { .. } => (JobEv::None, JobEv::All),
                     }
                 } else {
-                    (JobEv::Not, JobEv::Not)
+                    (JobEv::None, JobEv::None)
                 };
                 let mut eigs: Vec<MaybeUninit<Self>> = unsafe { vec_uninit(n as usize) };
                 let mut rwork: Vec<MaybeUninit<Self::Real>> = unsafe { vec_uninit(2 * n as usize) };
@@ -143,11 +143,11 @@ macro_rules! impl_eig_real {
                 // `sgeev`/`dgeev`.
                 let (jobvl, jobvr) = if calc_v {
                     match l {
-                        MatrixLayout::C { .. } => (JobEv::Calc, JobEv::Not),
-                        MatrixLayout::F { .. } => (JobEv::Not, JobEv::Calc),
+                        MatrixLayout::C { .. } => (JobEv::All, JobEv::None),
+                        MatrixLayout::F { .. } => (JobEv::None, JobEv::All),
                     }
                 } else {
-                    (JobEv::Not, JobEv::Not)
+                    (JobEv::None, JobEv::None)
                 };
                 let mut eig_re: Vec<MaybeUninit<Self>> = unsafe { vec_uninit(n as usize) };
                 let mut eig_im: Vec<MaybeUninit<Self>> = unsafe { vec_uninit(n as usize) };

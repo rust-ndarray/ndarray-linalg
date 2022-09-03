@@ -64,15 +64,17 @@ impl NormType {
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 #[repr(u8)]
 pub enum JobEv {
-    Calc = b'V',
-    Not = b'N',
+    /// Calculate eigenvectors in addition to eigenvalues
+    All = b'V',
+    /// Do not calculate eigenvectors. Only calculate eigenvalues.
+    None = b'N',
 }
 
 impl JobEv {
     pub fn is_calc(&self) -> bool {
         match self {
-            JobEv::Calc => true,
-            JobEv::Not => false,
+            JobEv::All => true,
+            JobEv::None => false,
         }
     }
 

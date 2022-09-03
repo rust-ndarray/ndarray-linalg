@@ -90,29 +90,6 @@ impl JobEv {
     }
 }
 
-#[repr(u8)]
-#[derive(Debug, Copy, Clone)]
-pub enum FlagSVD {
-    All = b'A',
-    // OverWrite = b'O',
-    // Separately = b'S',
-    No = b'N',
-}
-
-impl FlagSVD {
-    pub fn from_bool(calc_uv: bool) -> Self {
-        if calc_uv {
-            FlagSVD::All
-        } else {
-            FlagSVD::No
-        }
-    }
-
-    pub fn as_ptr(&self) -> *const i8 {
-        self as *const FlagSVD as *const i8
-    }
-}
-
 /// Specifies how many of the columns of *U* and rows of *V*ᵀ are computed and returned.
 ///
 /// For an input array of shape *m*×*n*, the following are computed:
@@ -128,6 +105,14 @@ pub enum UVTFlag {
 }
 
 impl UVTFlag {
+    pub fn from_bool(calc_uv: bool) -> Self {
+        if calc_uv {
+            UVTFlag::Full
+        } else {
+            UVTFlag::None
+        }
+    }
+
     pub fn as_ptr(&self) -> *const i8 {
         self as *const UVTFlag as *const i8
     }

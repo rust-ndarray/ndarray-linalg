@@ -32,24 +32,26 @@ macro_rules! impl_svd {
         impl SVD_ for $scalar {
             fn svd(l: MatrixLayout, calc_u: bool, calc_vt: bool, a: &mut [Self],) -> Result<SVDOutput<Self>> {
                 let ju = match l {
-                    MatrixLayout::F { .. } => FlagSVD::from_bool(calc_u),
-                    MatrixLayout::C { .. } => FlagSVD::from_bool(calc_vt),
+                    MatrixLayout::F { .. } => UVTFlag::from_bool(calc_u),
+                    MatrixLayout::C { .. } => UVTFlag::from_bool(calc_vt),
                 };
                 let jvt = match l {
-                    MatrixLayout::F { .. } => FlagSVD::from_bool(calc_vt),
-                    MatrixLayout::C { .. } => FlagSVD::from_bool(calc_u),
+                    MatrixLayout::F { .. } => UVTFlag::from_bool(calc_vt),
+                    MatrixLayout::C { .. } => UVTFlag::from_bool(calc_u),
                 };
 
                 let m = l.lda();
                 let mut u = match ju {
-                    FlagSVD::All => Some(unsafe { vec_uninit( (m * m) as usize) }),
-                    FlagSVD::No => None,
+                    UVTFlag::Full => Some(unsafe { vec_uninit( (m * m) as usize) }),
+                    UVTFlag::None => None,
+                    _ => unimplemented!("SVD with partial vector output is not supported yet")
                 };
 
                 let n = l.len();
                 let mut vt = match jvt {
-                    FlagSVD::All => Some(unsafe { vec_uninit( (n * n) as usize) }),
-                    FlagSVD::No => None,
+                    UVTFlag::Full => Some(unsafe { vec_uninit( (n * n) as usize) }),
+                    UVTFlag::None => None,
+                    _ => unimplemented!("SVD with partial vector output is not supported yet")
                 };
 
                 let k = std::cmp::min(m, n);

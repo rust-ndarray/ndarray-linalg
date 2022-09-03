@@ -120,10 +120,13 @@ impl JobSvd {
     }
 }
 
+/// Specify whether input triangular matrix is unit or not
 #[derive(Debug, Clone, Copy)]
 #[repr(u8)]
 pub enum Diag {
+    /// Unit triangular matrix, i.e. all diagonal elements of the matrix are `1`
     Unit = b'U',
+    /// Non-unit triangular matrix. Its diagonal elements may be different from `1`
     NonUnit = b'N',
 }
 

@@ -1,17 +1,70 @@
-//! Solve symmetric linear problem using the Bunch-Kaufman diagonal pivoting method.
-//!
-//! See also [the manual of dsytrf](http://www.netlib.org/lapack/lapack-3.1.1/html/dsytrf.f.html)
-
 use crate::{error::*, layout::MatrixLayout, *};
 use cauchy::*;
 use num_traits::{ToPrimitive, Zero};
 
+#[cfg_attr(doc, katexit::katexit)]
+/// Solve symmetric/hermite indefinite linear problem using the [Bunch-Kaufman diagonal pivoting method][BK].
+///
+/// For a given symmetric matrix $A$,
+/// this method factorizes $A = U^T D U$ or $A = L D L^T$ where
+///
+/// - $U$ (or $L$) are is a product of permutation and unit upper (lower) triangular matrices
+/// - $D$ is symmetric and block diagonal with 1-by-1 and 2-by-2 diagonal blocks.
+///
+/// This takes two-step approach based in LAPACK:
+///
+/// 1. Factorize given matrix $A$ into upper ($U$) or lower ($L$) form with diagonal matrix $D$
+/// 2. Then solve linear equation $Ax = b$, and/or calculate inverse matrix $A^{-1}$
+///
+/// [BK]: https://doi.org/10.2307/2005787
+///
 pub trait Solveh_: Sized {
-    /// Bunch-Kaufman: wrapper of `*sytrf` and `*hetrf`
+    /// Factorize input matrix using Bunch-Kaufman diagonal pivoting method
+    ///
+    /// LAPACK correspondance
+    /// ----------------------
+    ///
+    /// | f32      | f64      | c32      | c64      |
+    /// |:---------|:---------|:---------|:---------|
+    /// | [ssytrf] | [dsytrf] | [chetrf] | [zhetrf] |
+    ///
+    /// [ssytrf]: https://netlib.org/lapack/explore-html/d0/d14/group__real_s_ycomputational_ga12d2e56511cf7df066712c61d9acec45.html
+    /// [dsytrf]: https://netlib.org/lapack/explore-html/d3/db6/group__double_s_ycomputational_gad91bde1212277b3e909eb6af7f64858a.html
+    /// [chetrf]: https://netlib.org/lapack/explore-html/d4/d74/group__complex_h_ecomputational_ga081dd1908e46d064c2bf0a1f6b664b86.html
+    /// [zhetrf]: https://netlib.org/lapack/explore-html/d3/d80/group__complex16_h_ecomputational_gadc84a5c9818ee12ea19944623131bd52.html
+    ///
     fn bk(l: MatrixLayout, uplo: UPLO, a: &mut [Self]) -> Result<Pivot>;
-    /// Wrapper of `*sytri` and `*hetri`
+
+    /// Compute inverse matrix $A^{-1}$ from factroized result
+    ///
+    /// LAPACK correspondance
+    /// ----------------------
+    ///
+    /// | f32      | f64      | c32      | c64      |
+    /// |:---------|:---------|:---------|:---------|
+    /// | [ssytri] | [dsytri] | [chetri] | [zhetri] |
+    ///
+    /// [ssytri]: https://netlib.org/lapack/explore-html/d0/d14/group__real_s_ycomputational_gaef378ec0761234aac417f487b43b7a8b.html
+    /// [dsytri]: https://netlib.org/lapack/explore-html/d3/db6/group__double_s_ycomputational_ga75e09b4299b7955044a3bbf84c46b593.html
+    /// [chetri]: https://netlib.org/lapack/explore-html/d4/d74/group__complex_h_ecomputational_gad87a6a1ac131c5635d47ac440e672bcf.html
+    /// [zhetri]: https://netlib.org/lapack/explore-html/d3/d80/group__complex16_h_ecomputational_ga4d9cfa0653de400029b8051996ce1e96.html
+    ///
     fn invh(l: MatrixLayout, uplo: UPLO, a: &mut [Self], ipiv: &Pivot) -> Result<()>;
-    /// Wrapper of `*sytrs` and `*hetrs`
+
+    /// Solve linear equation $Ax = b$ using factroized result
+    ///
+    /// LAPACK correspondance
+    /// ----------------------
+    ///
+    /// | f32      | f64      | c32      | c64      |
+    /// |:---------|:---------|:---------|:---------|
+    /// | [ssytrs] | [dsytrs] | [chetrs] | [zhetrs] |
+    ///
+    /// [ssytrs]: https://netlib.org/lapack/explore-html/d0/d14/group__real_s_ycomputational_gae20133a1119b69a7319783ff982c8c62.html
+    /// [dsytrs]: https://netlib.org/lapack/explore-html/d3/db6/group__double_s_ycomputational_ga6a223e61effac7232e98b422f147f032.html
+    /// [chetrs]: https://netlib.org/lapack/explore-html/d4/d74/group__complex_h_ecomputational_ga6f9d8da222ffaa7b7535efc922faa1dc.html
+    /// [zhetrs]: https://netlib.org/lapack/explore-html/d3/d80/group__complex16_h_ecomputational_gacf697e3bb72c5fd88cd90972999401dd.html
+    ///
     fn solveh(l: MatrixLayout, uplo: UPLO, a: &[Self], ipiv: &Pivot, b: &mut [Self]) -> Result<()>;
 }
 

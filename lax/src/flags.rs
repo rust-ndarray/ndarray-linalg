@@ -92,17 +92,19 @@ impl JobEv {
     }
 }
 
-/// Specifies how many of the columns of *U* and rows of *V*ᵀ are computed and returned.
+/// Specifies how many singular vectors are computed
 ///
-/// For an input array of shape *m*×*n*, the following are computed:
+/// For an input matrix $A$ of shape $m \times n$,
+/// the following are computed on the singular value decomposition $A = U\Sigma V^T$:
+#[cfg_attr(doc, katexit::katexit)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[repr(u8)]
 pub enum JobSvd {
-    /// All *m* columns of *U* and all *n* rows of *V*ᵀ.
+    /// All $m$ columns of $U$, and/or all $n$ rows of $V^T$.
     All = b'A',
-    /// The first min(*m*,*n*) columns of *U* and the first min(*m*,*n*) rows of *V*ᵀ.
+    /// The first $\min(m, n)$ columns of $U$ and/or the first $\min(m, n)$ rows of $V^T$.
     Some = b'S',
-    /// No columns of *U* or rows of *V*ᵀ.
+    /// No columns of $U$ and/or rows of $V^T$.
     None = b'N',
 }
 

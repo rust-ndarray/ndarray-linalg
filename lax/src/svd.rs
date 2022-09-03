@@ -1,31 +1,8 @@
 //! Singular-value decomposition
 
-use crate::{error::*, layout::MatrixLayout, *};
+use super::{error::*, layout::*, *};
 use cauchy::*;
 use num_traits::{ToPrimitive, Zero};
-
-#[repr(u8)]
-#[derive(Debug, Copy, Clone)]
-enum FlagSVD {
-    All = b'A',
-    // OverWrite = b'O',
-    // Separately = b'S',
-    No = b'N',
-}
-
-impl FlagSVD {
-    fn from_bool(calc_uv: bool) -> Self {
-        if calc_uv {
-            FlagSVD::All
-        } else {
-            FlagSVD::No
-        }
-    }
-
-    fn as_ptr(&self) -> *const i8 {
-        self as *const FlagSVD as *const i8
-    }
-}
 
 /// Result of SVD
 pub struct SVDOutput<A: Scalar> {
@@ -55,24 +32,26 @@ macro_rules! impl_svd {
         impl SVD_ for $scalar {
             fn svd(l: MatrixLayout, calc_u: bool, calc_vt: bool, a: &mut [Self],) -> Result<SVDOutput<Self>> {
                 let ju = match l {
-                    MatrixLayout::F { .. } => FlagSVD::from_bool(calc_u),
-                    MatrixLayout::C { .. } => FlagSVD::from_bool(calc_vt),
+                    MatrixLayout::F { .. } => JobSvd::from_bool(calc_u),
+                    MatrixLayout::C { .. } => JobSvd::from_bool(calc_vt),
                 };
                 let jvt = match l {
-                    MatrixLayout::F { .. } => FlagSVD::from_bool(calc_vt),
-                    MatrixLayout::C { .. } => FlagSVD::from_bool(calc_u),
+                    MatrixLayout::F { .. } => JobSvd::from_bool(calc_vt),
+                    MatrixLayout::C { .. } => JobSvd::from_bool(calc_u),
                 };
 
                 let m = l.lda();
                 let mut u = match ju {
-                    FlagSVD::All => Some(unsafe { vec_uninit( (m * m) as usize) }),
-                    FlagSVD::No => None,
+                    JobSvd::All => Some(unsafe { vec_uninit( (m * m) as usize) }),
+                    JobSvd::None => None,
+                    _ => unimplemented!("SVD with partial vector output is not supported yet")
                 };
 
                 let n = l.len();
                 let mut vt = match jvt {
-                    FlagSVD::All => Some(unsafe { vec_uninit( (n * n) as usize) }),
-                    FlagSVD::No => None,
+                    JobSvd::All => Some(unsafe { vec_uninit( (n * n) as usize) }),
+                    JobSvd::None => None,
+                    _ => unimplemented!("SVD with partial vector output is not supported yet")
                 };
 
                 let k = std::cmp::min(m, n);

@@ -3,14 +3,14 @@
 use super::{convert::*, error::*, layout::*, types::*};
 use ndarray::*;
 
-pub use lax::UVTFlag;
+pub use lax::JobSvd;
 
 /// Singular-value decomposition of matrix (copying) by divide-and-conquer
 pub trait SVDDC {
     type U;
     type VT;
     type Sigma;
-    fn svddc(&self, uvt_flag: UVTFlag) -> Result<(Option<Self::U>, Self::Sigma, Option<Self::VT>)>;
+    fn svddc(&self, uvt_flag: JobSvd) -> Result<(Option<Self::U>, Self::Sigma, Option<Self::VT>)>;
 }
 
 /// Singular-value decomposition of matrix by divide-and-conquer
@@ -20,7 +20,7 @@ pub trait SVDDCInto {
     type Sigma;
     fn svddc_into(
         self,
-        uvt_flag: UVTFlag,
+        uvt_flag: JobSvd,
     ) -> Result<(Option<Self::U>, Self::Sigma, Option<Self::VT>)>;
 }
 
@@ -31,7 +31,7 @@ pub trait SVDDCInplace {
     type Sigma;
     fn svddc_inplace(
         &mut self,
-        uvt_flag: UVTFlag,
+        uvt_flag: JobSvd,
     ) -> Result<(Option<Self::U>, Self::Sigma, Option<Self::VT>)>;
 }
 
@@ -44,7 +44,7 @@ where
     type VT = Array2<A>;
     type Sigma = Array1<A::Real>;
 
-    fn svddc(&self, uvt_flag: UVTFlag) -> Result<(Option<Self::U>, Self::Sigma, Option<Self::VT>)> {
+    fn svddc(&self, uvt_flag: JobSvd) -> Result<(Option<Self::U>, Self::Sigma, Option<Self::VT>)> {
         self.to_owned().svddc_into(uvt_flag)
     }
 }
@@ -60,7 +60,7 @@ where
 
     fn svddc_into(
         mut self,
-        uvt_flag: UVTFlag,
+        uvt_flag: JobSvd,
     ) -> Result<(Option<Self::U>, Self::Sigma, Option<Self::VT>)> {
         self.svddc_inplace(uvt_flag)
     }
@@ -77,7 +77,7 @@ where
 
     fn svddc_inplace(
         &mut self,
-        uvt_flag: UVTFlag,
+        uvt_flag: JobSvd,
     ) -> Result<(Option<Self::U>, Self::Sigma, Option<Self::VT>)> {
         let l = self.layout()?;
         let svd_res = A::svddc(l, uvt_flag, self.as_allocated_mut()?)?;
@@ -85,9 +85,9 @@ where
         let k = m.min(n);
 
         let (u_col, vt_row) = match uvt_flag {
-            UVTFlag::Full => (m, n),
-            UVTFlag::Some => (k, k),
-            UVTFlag::None => (0, 0),
+            JobSvd::All => (m, n),
+            JobSvd::Some => (k, k),
+            JobSvd::None => (0, 0),
         };
 
         let u = svd_res

@@ -3,7 +3,7 @@ use cauchy::*;
 use num_traits::{ToPrimitive, Zero};
 
 pub trait SVDDC_: Scalar {
-    fn svddc(l: MatrixLayout, jobz: UVTFlag, a: &mut [Self]) -> Result<SVDOutput<Self>>;
+    fn svddc(l: MatrixLayout, jobz: JobSvd, a: &mut [Self]) -> Result<SVDOutput<Self>>;
 }
 
 macro_rules! impl_svddc {
@@ -15,33 +15,33 @@ macro_rules! impl_svddc {
     };
     (@body, $scalar:ty, $gesdd:path, $($rwork_ident:ident),*) => {
         impl SVDDC_ for $scalar {
-            fn svddc(l: MatrixLayout, jobz: UVTFlag, a: &mut [Self],) -> Result<SVDOutput<Self>> {
+            fn svddc(l: MatrixLayout, jobz: JobSvd, a: &mut [Self],) -> Result<SVDOutput<Self>> {
                 let m = l.lda();
                 let n = l.len();
                 let k = m.min(n);
                 let mut s = unsafe { vec_uninit( k as usize) };
 
                 let (u_col, vt_row) = match jobz {
-                    UVTFlag::Full | UVTFlag::None => (m, n),
-                    UVTFlag::Some => (k, k),
+                    JobSvd::All | JobSvd::None => (m, n),
+                    JobSvd::Some => (k, k),
                 };
                 let (mut u, mut vt) = match jobz {
-                    UVTFlag::Full => (
+                    JobSvd::All => (
                         Some(unsafe { vec_uninit( (m * m) as usize) }),
                         Some(unsafe { vec_uninit( (n * n) as usize) }),
                     ),
-                    UVTFlag::Some => (
+                    JobSvd::Some => (
                         Some(unsafe { vec_uninit( (m * u_col) as usize) }),
                         Some(unsafe { vec_uninit( (n * vt_row) as usize) }),
                     ),
-                    UVTFlag::None => (None, None),
+                    JobSvd::None => (None, None),
                 };
 
                 $( // for complex only
                 let mx = n.max(m) as usize;
                 let mn = n.min(m) as usize;
                 let lrwork = match jobz {
-                    UVTFlag::None => 7 * mn,
+                    JobSvd::None => 7 * mn,
                     _ => std::cmp::max(5*mn*mn + 5*mn, 2*mx*mn + 2*mn*mn + mn),
                 };
                 let mut $rwork_ident: Vec<MaybeUninit<Self::Real>> = unsafe { vec_uninit( lrwork) };

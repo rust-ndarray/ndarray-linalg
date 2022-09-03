@@ -95,26 +95,26 @@ impl JobEv {
 /// For an input array of shape *m*×*n*, the following are computed:
 #[derive(Clone, Copy, Eq, PartialEq)]
 #[repr(u8)]
-pub enum UVTFlag {
+pub enum JobSvd {
     /// All *m* columns of *U* and all *n* rows of *V*ᵀ.
-    Full = b'A',
+    All = b'A',
     /// The first min(*m*,*n*) columns of *U* and the first min(*m*,*n*) rows of *V*ᵀ.
     Some = b'S',
     /// No columns of *U* or rows of *V*ᵀ.
     None = b'N',
 }
 
-impl UVTFlag {
+impl JobSvd {
     pub fn from_bool(calc_uv: bool) -> Self {
         if calc_uv {
-            UVTFlag::Full
+            JobSvd::All
         } else {
-            UVTFlag::None
+            JobSvd::None
         }
     }
 
     pub fn as_ptr(&self) -> *const i8 {
-        self as *const UVTFlag as *const i8
+        self as *const JobSvd as *const i8
     }
 }
 

@@ -1,32 +1,55 @@
-//! Linear Algebra eXtension (LAX)
-//! ===============================
-//!
 //! ndarray-free safe Rust wrapper for LAPACK FFI
+//!
+//! `Lapack` trait and sub-traits
+//! -------------------------------
+//!
+//! This crates provides LAPACK wrapper as `impl` of traits to base scalar types.
+//! For example, LU factorization to double-precision matrix is provided like:
+//!
+//! ```ignore
+//! impl Solve_ for f64 {
+//!     fn lu(l: MatrixLayout, a: &mut [Self]) -> Result<Pivot> { ... }
+//! }
+//! ```
+//!
+//! see [Solve_] for detail. You can use it like `f64::lu`:
+//!
+//! ```
+//! use lax::{Solve_, layout::MatrixLayout, Transpose};
+//!
+//! let mut a = vec![
+//!   1.0, 2.0,
+//!   3.0, 4.0
+//! ];
+//! let mut b = vec![1.0, 2.0];
+//! let layout = MatrixLayout::C { row: 2, lda: 2 };
+//! let pivot = f64::lu(layout, &mut a).unwrap();
+//! f64::solve(layout, Transpose::No, &a, &pivot, &mut b).unwrap();
+//! ```
+//!
+//! When you want to write generic algorithm for real and complex matrices,
+//! this trait can be used as a trait bound:
+//!
+//! ```
+//! use lax::{Solve_, layout::MatrixLayout, Transpose};
+//!
+//! fn solve_at_once<T: Solve_>(layout: MatrixLayout, a: &mut [T], b: &mut [T]) -> Result<(), lax::error::Error> {
+//!   let pivot = T::lu(layout, a)?;
+//!   T::solve(layout, Transpose::No, a, &pivot, b)?;
+//!   Ok(())
+//! }
+//! ```
+//!
+//! There are several similar traits as described below to keep development easy.
+//! They are merged into a single trait, [Lapack].
 //!
 //! Linear equation, Inverse matrix, Condition number
 //! --------------------------------------------------
 //!
-//! As the property of $A$, several types of triangular factorization are used:
+//! According to the property input metrix, several types of triangular factorization are used:
 //!
-//! - LU-decomposition for general matrix
-//!   - $PA = LU$, where $L$ is lower matrix, $U$ is upper matrix, and $P$ is permutation matrix
-//! - Bunch-Kaufman diagonal pivoting method for nonpositive-definite Hermitian matrix
-//!   - $A = U D U^\dagger$, where $U$ is upper matrix,
-//!     $D$ is Hermitian and block diagonal with 1-by-1 and 2-by-2 diagonal blocks.
-//!
-//! | matrix type                     | Triangler factorization (TRF) | Solve (TRS) | Inverse matrix (TRI) | Reciprocal condition number (CON) |
-//! |:--------------------------------|:------------------------------|:------------|:---------------------|:----------------------------------|
-//! | General (GE)                    | [lu]                          | [solve]     | [inv]                | [rcond]                           |
-//! | Symmetric (SY) / Hermitian (HE) | [bk]                          | [solveh]    | [invh]               | -                                 |
-//!
-//! [lu]:    solve/trait.Solve_.html#tymethod.lu
-//! [solve]: solve/trait.Solve_.html#tymethod.solve
-//! [inv]:   solve/trait.Solve_.html#tymethod.inv
-//! [rcond]: solve/trait.Solve_.html#tymethod.rcond
-//!
-//! [bk]:     solveh/trait.Solveh_.html#tymethod.bk
-//! [solveh]: solveh/trait.Solveh_.html#tymethod.solveh
-//! [invh]:   solveh/trait.Solveh_.html#tymethod.invh
+//! - [Solve_] trait provides methods for LU-decomposition for general matrix.
+//! - [Solveh_] triat provides methods for Bunch-Kaufman diagonal pivoting method for symmetric/hermite indefinite matrix
 //!
 //! Eigenvalue Problem
 //! -------------------

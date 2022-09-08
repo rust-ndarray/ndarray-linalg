@@ -51,6 +51,3 @@ version = "0.10.4"
 optional = true
 default-features = false
 features = ["cblas"]
-
-[package.metadata.docs.rs]
-rustdoc-args = ["--html-in-header", "katex-header.html"]

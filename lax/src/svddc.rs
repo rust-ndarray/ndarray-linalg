@@ -30,7 +30,7 @@ macro_rules! impl_svddc {
                 let m = l.lda();
                 let n = l.len();
                 let k = m.min(n);
-                let mut s = unsafe { vec_uninit( k as usize) };
+                let mut s = vec_uninit(k as usize);
 
                 let (u_col, vt_row) = match jobz {
                     JobSvd::All | JobSvd::None => (m, n),
@@ -38,12 +38,12 @@ macro_rules! impl_svddc {
                 };
                 let (mut u, mut vt) = match jobz {
                     JobSvd::All => (
-                        Some(unsafe { vec_uninit( (m * m) as usize) }),
-                        Some(unsafe { vec_uninit( (n * n) as usize) }),
+                        Some(vec_uninit((m * m) as usize)),
+                        Some(vec_uninit((n * n) as usize)),
                     ),
                     JobSvd::Some => (
-                        Some(unsafe { vec_uninit( (m * u_col) as usize) }),
-                        Some(unsafe { vec_uninit( (n * vt_row) as usize) }),
+                        Some(vec_uninit((m * u_col) as usize)),
+                        Some(vec_uninit((n * vt_row) as usize)),
                     ),
                     JobSvd::None => (None, None),
                 };
@@ -55,12 +55,12 @@ macro_rules! impl_svddc {
                     JobSvd::None => 7 * mn,
                     _ => std::cmp::max(5*mn*mn + 5*mn, 2*mx*mn + 2*mn*mn + mn),
                 };
-                let mut $rwork_ident: Vec<MaybeUninit<Self::Real>> = unsafe { vec_uninit( lrwork) };
+                let mut $rwork_ident: Vec<MaybeUninit<Self::Real>> = vec_uninit(lrwork);
                 )*
 
                 // eval work size
                 let mut info = 0;
-                let mut iwork: Vec<MaybeUninit<i32>> = unsafe { vec_uninit( 8 * k as usize) };
+                let mut iwork: Vec<MaybeUninit<i32>> = vec_uninit(8 * k as usize);
                 let mut work_size = [Self::zero()];
                 unsafe {
                     $gesdd(
@@ -85,7 +85,7 @@ macro_rules! impl_svddc {
 
                 // do svd
                 let lwork = work_size[0].to_usize().unwrap();
-                let mut work: Vec<MaybeUninit<Self>> = unsafe { vec_uninit( lwork) };
+                let mut work: Vec<MaybeUninit<Self>> = vec_uninit(lwork);
                 unsafe {
                     $gesdd(
                         jobz.as_ptr(),

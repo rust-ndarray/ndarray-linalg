@@ -152,8 +152,8 @@ macro_rules! impl_tridiagonal {
         impl Tridiagonal_ for $scalar {
             fn lu_tridiagonal(mut a: Tridiagonal<Self>) -> Result<LUFactorizedTridiagonal<Self>> {
                 let (n, _) = a.l.size();
-                let mut du2 = unsafe { vec_uninit( (n - 2) as usize) };
-                let mut ipiv = unsafe { vec_uninit( n as usize) };
+                let mut du2 = vec_uninit( (n - 2) as usize);
+                let mut ipiv = vec_uninit( n as usize);
                 // We have to calc one-norm before LU factorization
                 let a_opnorm_one = a.opnorm_one();
                 let mut info = 0;
@@ -182,9 +182,9 @@ macro_rules! impl_tridiagonal {
             fn rcond_tridiagonal(lu: &LUFactorizedTridiagonal<Self>) -> Result<Self::Real> {
                 let (n, _) = lu.a.l.size();
                 let ipiv = &lu.ipiv;
-                let mut work: Vec<MaybeUninit<Self>> = unsafe { vec_uninit( 2 * n as usize) };
+                let mut work: Vec<MaybeUninit<Self>> = vec_uninit(2 * n as usize);
                 $(
-                let mut $iwork: Vec<MaybeUninit<i32>> = unsafe { vec_uninit( n as usize) };
+                let mut $iwork: Vec<MaybeUninit<i32>> = vec_uninit(n as usize);
                 )*
                 let mut rcond = Self::Real::zero();
                 let mut info = 0;

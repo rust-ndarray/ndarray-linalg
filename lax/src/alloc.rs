@@ -53,8 +53,10 @@ impl<T> VecAssumeInit for Vec<MaybeUninit<T>> {
 /// ------
 /// - Memory is not initialized. Do not read the memory before write.
 ///
-pub(crate) unsafe fn vec_uninit<T: Sized>(n: usize) -> Vec<MaybeUninit<T>> {
+pub(crate) fn vec_uninit<T: Sized>(n: usize) -> Vec<MaybeUninit<T>> {
     let mut v = Vec::with_capacity(n);
-    v.set_len(n);
+    unsafe {
+        v.set_len(n);
+    }
     v
 }

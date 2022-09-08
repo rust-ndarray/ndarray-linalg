@@ -75,7 +75,7 @@ macro_rules! impl_solve {
                     return Ok(Vec::new());
                 }
                 let k = ::std::cmp::min(row, col);
-                let mut ipiv = unsafe { vec_uninit(k as usize) };
+                let mut ipiv = vec_uninit(k as usize);
                 let mut info = 0;
                 unsafe {
                     $getrf(
@@ -117,7 +117,7 @@ macro_rules! impl_solve {
 
                 // actual
                 let lwork = work_size[0].to_usize().unwrap();
-                let mut work: Vec<MaybeUninit<Self>> = unsafe { vec_uninit(lwork) };
+                let mut work: Vec<MaybeUninit<Self>> = vec_uninit(lwork);
                 unsafe {
                     $getri(
                         &l.len(),

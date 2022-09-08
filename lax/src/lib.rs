@@ -49,7 +49,8 @@
 //! According to the property input metrix, several types of triangular factorization are used:
 //!
 //! - [Solve_] trait provides methods for LU-decomposition for general matrix.
-//! - [Solveh_] triat provides methods for Bunch-Kaufman diagonal pivoting method for symmetric/hermite indefinite matrix
+//! - [Solveh_] triat provides methods for Bunch-Kaufman diagonal pivoting method for symmetric/hermite indefinite matrix.
+//! - [Cholesky_] triat provides methods for Cholesky decomposition for symmetric/hermite positive dinite matrix.
 //!
 //! Eigenvalue Problem
 //! -------------------

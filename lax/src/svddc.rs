@@ -2,7 +2,18 @@ use crate::{error::*, layout::MatrixLayout, *};
 use cauchy::*;
 use num_traits::{ToPrimitive, Zero};
 
+#[cfg_attr(doc, katexit::katexit)]
+/// Singular value decomposition with divide-and-conquer method
 pub trait SVDDC_: Scalar {
+    /// Compute singular value decomposition $A = U \Sigma V^T$
+    ///
+    /// LAPACK correspondance
+    /// ----------------------
+    ///
+    /// | f32    | f64    | c32    | c64    |
+    /// |:-------|:-------|:-------|:-------|
+    /// | sgesdd | dgesdd | cgesdd | zgesdd |
+    ///
     fn svddc(l: MatrixLayout, jobz: JobSvd, a: &mut [Self]) -> Result<SVDOutput<Self>>;
 }
 

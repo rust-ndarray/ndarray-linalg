@@ -61,16 +61,15 @@
 //! - [Eig_] trait provides methods for eigenvalue problem for general matrix.
 //! - [Eigh_] trait provides methods for eigenvalue problem for symmetric/hermite matrix.
 //!
-//! Singular Value Decomposition (SVD), Least square problem
-//! ----------------------------------------------------------
+//! Singular Value Decomposition
+//! -----------------------------
 //!
-//! | matrix type  | Singular Value Decomposition (SVD) | SVD with divided-and-conquer (SDD) | Least square problem (LSD) |
-//! |:-------------|:-----------------------------------|:-----------------------------------|:---------------------------|
-//! | General (GE) | [svd]                              | [svddc]                            | [least_squares]            |
+//! - [SVD_] trait provides methods for singular value decomposition for general matrix
+//! - [SVDDC_] trait provides methods for singular value decomposition for general matrix
+//!   with divided-and-conquer algorithm
+//! - [LeastSquaresSvdDivideConquer_] trait provides methods
+//!   for solving least square problem by SVD
 //!
-//! [svd]:   svd/trait.SVD_.html#tymethod.svd
-//! [svddc]: svddck/trait.SVDDC_.html#tymethod.svddc
-//! [least_squares]: least_squares/trait.LeastSquaresSvdDivideConquer_.html#tymethod.least_squares
 
 #[cfg(any(feature = "intel-mkl-system", feature = "intel-mkl-static"))]
 extern crate intel_mkl_src as _src;

@@ -12,14 +12,18 @@ pub struct LeastSquaresOutput<A: Scalar> {
     pub rank: i32,
 }
 
-/// Wraps `*gelsd`
+#[cfg_attr(doc, katexit::katexit)]
+/// Solve least square problem
 pub trait LeastSquaresSvdDivideConquer_: Scalar {
+    /// Compute a vector $x$ which minimizes Euclidian norm $\| Ax - b\|$
+    /// for a given matrix $A$ and a vector $b$.
     fn least_squares(
         a_layout: MatrixLayout,
         a: &mut [Self],
         b: &mut [Self],
     ) -> Result<LeastSquaresOutput<Self>>;
 
+    /// Solve least square problems $\argmin_X \| AX - B\|$
     fn least_squares_nrhs(
         a_layout: MatrixLayout,
         a: &mut [Self],

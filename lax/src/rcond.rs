@@ -17,8 +17,8 @@ macro_rules! impl_rcond_real {
                 let mut rcond = Self::Real::zero();
                 let mut info = 0;
 
-                let mut work: Vec<MaybeUninit<Self>> = unsafe { vec_uninit(4 * n as usize) };
-                let mut iwork: Vec<MaybeUninit<i32>> = unsafe { vec_uninit(n as usize) };
+                let mut work: Vec<MaybeUninit<Self>> = vec_uninit(4 * n as usize);
+                let mut iwork: Vec<MaybeUninit<i32>> = vec_uninit(n as usize);
                 let norm_type = match l {
                     MatrixLayout::C { .. } => NormType::Infinity,
                     MatrixLayout::F { .. } => NormType::One,
@@ -54,8 +54,8 @@ macro_rules! impl_rcond_complex {
                 let (n, _) = l.size();
                 let mut rcond = Self::Real::zero();
                 let mut info = 0;
-                let mut work: Vec<MaybeUninit<Self>> = unsafe { vec_uninit(2 * n as usize) };
-                let mut rwork: Vec<MaybeUninit<Self::Real>> = unsafe { vec_uninit(2 * n as usize) };
+                let mut work: Vec<MaybeUninit<Self>> = vec_uninit(2 * n as usize);
+                let mut rwork: Vec<MaybeUninit<Self::Real>> = vec_uninit(2 * n as usize);
                 let norm_type = match l {
                     MatrixLayout::C { .. } => NormType::Infinity,
                     MatrixLayout::F { .. } => NormType::One,

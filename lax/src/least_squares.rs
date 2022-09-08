@@ -91,7 +91,7 @@ macro_rules! impl_least_squares {
                 };
 
                 let rcond: Self::Real = -1.;
-                let mut singular_values: Vec<MaybeUninit<Self::Real>> = unsafe { vec_uninit( k as usize) };
+                let mut singular_values: Vec<MaybeUninit<Self::Real>> = vec_uninit( k as usize);
                 let mut rank: i32 = 0;
 
                 // eval work size
@@ -124,12 +124,12 @@ macro_rules! impl_least_squares {
 
                 // calc
                 let lwork = work_size[0].to_usize().unwrap();
-                let mut work: Vec<MaybeUninit<Self>> = unsafe { vec_uninit(lwork) };
+                let mut work: Vec<MaybeUninit<Self>> = vec_uninit(lwork);
                 let liwork = iwork_size[0].to_usize().unwrap();
-                let mut iwork: Vec<MaybeUninit<i32>> = unsafe { vec_uninit(liwork) };
+                let mut iwork: Vec<MaybeUninit<i32>> = vec_uninit(liwork);
                 $(
                 let lrwork = $rwork[0].to_usize().unwrap();
-                let mut $rwork: Vec<MaybeUninit<Self::Real>> = unsafe { vec_uninit(lrwork) };
+                let mut $rwork: Vec<MaybeUninit<Self::Real>> = vec_uninit(lrwork);
                 )*
                 unsafe {
                     $gelsd(

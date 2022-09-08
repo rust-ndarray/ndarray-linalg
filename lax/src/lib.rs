@@ -55,22 +55,11 @@
 //! Eigenvalue Problem
 //! -------------------
 //!
-//! Solve eigenvalue problem for a matrix $A$
+//! According to the property input metrix,
+//! there are several types of eigenvalue problem API
 //!
-//! $$ Av_i = \lambda_i v_i $$
-//!
-//! or generalized eigenvalue problem
-//!
-//! $$ Av_i = \lambda_i B v_i $$
-//!
-//! | matrix type                     | Eigenvalue (EV) | Generalized Eigenvalue Problem (EG) |
-//! |:--------------------------------|:----------------|:------------------------------------|
-//! | General (GE)                    |[eig]            | -                                   |
-//! | Symmetric (SY) / Hermitian (HE) |[eigh]           |[eigh_generalized]                   |
-//!
-//! [eig]:              eig/trait.Eig_.html#tymethod.eig
-//! [eigh]:             eigh/trait.Eigh_.html#tymethod.eigh
-//! [eigh_generalized]: eigh/trait.Eigh_.html#tymethod.eigh_generalized
+//! - [Eig_] trait provides methods for eigenvalue problem for general matrix.
+//! - [Eigh_] trait provides methods for eigenvalue problem for symmetric/hermite matrix.
 //!
 //! Singular Value Decomposition (SVD), Least square problem
 //! ----------------------------------------------------------

@@ -1,12 +1,20 @@
-//! Eigenvalue decomposition for Symmetric/Hermite matrices
-
 use super::*;
 use crate::{error::*, layout::MatrixLayout};
 use cauchy::*;
 use num_traits::{ToPrimitive, Zero};
 
+#[cfg_attr(doc, katexit::katexit)]
+/// Eigenvalue problem for symmetric/hermite matrix
 pub trait Eigh_: Scalar {
-    /// Wraps `*syev` for real and `*heev` for complex
+    /// Compute right eigenvalue and eigenvectors $Ax = \lambda x$
+    ///
+    /// LAPACK correspondance
+    /// ----------------------
+    ///
+    /// | f32   | f64   | c32   | c64   |
+    /// |:------|:------|:------|:------|
+    /// | ssyev | dsyev | cheev | zheev |
+    ///
     fn eigh(
         calc_eigenvec: bool,
         layout: MatrixLayout,
@@ -14,7 +22,15 @@ pub trait Eigh_: Scalar {
         a: &mut [Self],
     ) -> Result<Vec<Self::Real>>;
 
-    /// Wraps `*sygv` for real and `*hegv` for complex
+    /// Compute generalized right eigenvalue and eigenvectors $Ax = \lambda B x$
+    ///
+    /// LAPACK correspondance
+    /// ----------------------
+    ///
+    /// | f32   | f64   | c32   | c64   |
+    /// |:------|:------|:------|:------|
+    /// | ssygv | dsygv | chegv | zhegv |
+    ///
     fn eigh_generalized(
         calc_eigenvec: bool,
         layout: MatrixLayout,

@@ -1,12 +1,19 @@
-//! Eigenvalue decomposition for general matrices
-
 use crate::{error::*, layout::MatrixLayout, *};
 use cauchy::*;
 use num_traits::{ToPrimitive, Zero};
 
-/// Wraps `*geev` for general matrices
+#[cfg_attr(doc, katexit::katexit)]
+/// Eigenvalue problem for general matrix
 pub trait Eig_: Scalar {
-    /// Calculate Right eigenvalue
+    /// Compute right eigenvalue and eigenvectors $Ax = \lambda x$
+    ///
+    /// LAPACK correspondance
+    /// ----------------------
+    ///
+    /// | f32   | f64   | c32   | c64   |
+    /// |:------|:------|:------|:------|
+    /// | sgeev | dgeev | cgeev | zgeev |
+    ///
     fn eig(
         calc_v: bool,
         l: MatrixLayout,

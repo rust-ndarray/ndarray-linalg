@@ -1,17 +1,55 @@
-//! Solve symmetric linear problem using the Bunch-Kaufman diagonal pivoting method.
-//!
-//! See also [the manual of dsytrf](http://www.netlib.org/lapack/lapack-3.1.1/html/dsytrf.f.html)
-
 use crate::{error::*, layout::MatrixLayout, *};
 use cauchy::*;
 use num_traits::{ToPrimitive, Zero};
 
+#[cfg_attr(doc, katexit::katexit)]
+/// Solve symmetric/hermite indefinite linear problem using the [Bunch-Kaufman diagonal pivoting method][BK].
+///
+/// For a given symmetric matrix $A$,
+/// this method factorizes $A = U^T D U$ or $A = L D L^T$ where
+///
+/// - $U$ (or $L$) are is a product of permutation and unit upper (lower) triangular matrices
+/// - $D$ is symmetric and block diagonal with 1-by-1 and 2-by-2 diagonal blocks.
+///
+/// This takes two-step approach based in LAPACK:
+///
+/// 1. Factorize given matrix $A$ into upper ($U$) or lower ($L$) form with diagonal matrix $D$
+/// 2. Then solve linear equation $Ax = b$, and/or calculate inverse matrix $A^{-1}$
+///
+/// [BK]: https://doi.org/10.2307/2005787
+///
 pub trait Solveh_: Sized {
-    /// Bunch-Kaufman: wrapper of `*sytrf` and `*hetrf`
+    /// Factorize input matrix using Bunch-Kaufman diagonal pivoting method
+    ///
+    /// LAPACK correspondance
+    /// ----------------------
+    ///
+    /// | f32    | f64    | c32    | c64    |
+    /// |:-------|:-------|:-------|:-------|
+    /// | ssytrf | dsytrf | chetrf | zhetrf |
+    ///
     fn bk(l: MatrixLayout, uplo: UPLO, a: &mut [Self]) -> Result<Pivot>;
-    /// Wrapper of `*sytri` and `*hetri`
+
+    /// Compute inverse matrix $A^{-1}$ from factroized result
+    ///
+    /// LAPACK correspondance
+    /// ----------------------
+    ///
+    /// | f32    | f64    | c32    | c64    |
+    /// |:-------|:-------|:-------|:-------|
+    /// | ssytri | dsytri | chetri | zhetri |
+    ///
     fn invh(l: MatrixLayout, uplo: UPLO, a: &mut [Self], ipiv: &Pivot) -> Result<()>;
-    /// Wrapper of `*sytrs` and `*hetrs`
+
+    /// Solve linear equation $Ax = b$ using factroized result
+    ///
+    /// LAPACK correspondance
+    /// ----------------------
+    ///
+    /// | f32    | f64    | c32    | c64    |
+    /// |:-------|:-------|:-------|:-------|
+    /// | ssytrs | dsytrs | chetrs | zhetrs |
+    ///
     fn solveh(l: MatrixLayout, uplo: UPLO, a: &[Self], ipiv: &Pivot, b: &mut [Self]) -> Result<()>;
 }
 

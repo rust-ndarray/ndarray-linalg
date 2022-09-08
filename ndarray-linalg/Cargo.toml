@@ -30,6 +30,7 @@ intel-mkl-system = ["lax/intel-mkl-system"]
 
 [dependencies]
 cauchy = "0.4.0"
+katexit = "0.1.2"
 num-complex = "0.4.0"
 num-traits  = "0.2.14"
 rand = "0.8.3"
@@ -78,6 +79,3 @@ harness = false
 [[bench]]
 name = "solveh"
 harness = false
-
-[package.metadata.docs.rs]
-rustdoc-args = ["--html-in-header", "katex-header.html"]

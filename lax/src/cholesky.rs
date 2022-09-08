@@ -1,21 +1,53 @@
-//! Cholesky decomposition
-
 use super::*;
 use crate::{error::*, layout::*};
 use cauchy::*;
 
+#[cfg_attr(doc, katexit::katexit)]
+/// Solve symmetric/hermite positive-definite linear equations using Cholesky decomposition
+///
+/// For a given positive definite matrix $A$,
+/// Cholesky decomposition is described as $A = U^T U$ or $A = LL^T$ where
+///
+/// - $L$ is lower matrix
+/// - $U$ is upper matrix
+///
+/// This is designed as two step computation according to LAPACK API
+///
+/// 1. Factorize input matrix $A$ into $L$ or $U$
+/// 2. Solve linear equation $Ax = b$ or compute inverse matrix $A^{-1}$
+///    using $U$ or $L$.
 pub trait Cholesky_: Sized {
-    /// Cholesky: wrapper of `*potrf`
+    /// Compute Cholesky decomposition $A = U^T U$ or $A = L L^T$ according to [UPLO]
     ///
-    /// **Warning: Only the portion of `a` corresponding to `UPLO` is written.**
+    /// LAPACK correspondance
+    /// ----------------------
+    ///
+    /// | f32    | f64    | c32    | c64    |
+    /// |:-------|:-------|:-------|:-------|
+    /// | spotrf | dpotrf | cpotrf | zpotrf |
+    ///
     fn cholesky(l: MatrixLayout, uplo: UPLO, a: &mut [Self]) -> Result<()>;
 
-    /// Wrapper of `*potri`
+    /// Compute inverse matrix $A^{-1}$ using $U$ or $L$
     ///
-    /// **Warning: Only the portion of `a` corresponding to `UPLO` is written.**
+    /// LAPACK correspondance
+    /// ----------------------
+    ///
+    /// | f32    | f64    | c32    | c64    |
+    /// |:-------|:-------|:-------|:-------|
+    /// | spotri | dpotri | cpotri | zpotri |
+    ///
     fn inv_cholesky(l: MatrixLayout, uplo: UPLO, a: &mut [Self]) -> Result<()>;
 
-    /// Wrapper of `*potrs`
+    /// Solve linear equation $Ax = b$ using $U$ or $L$
+    ///
+    /// LAPACK correspondance
+    /// ----------------------
+    ///
+    /// | f32    | f64    | c32    | c64    |
+    /// |:-------|:-------|:-------|:-------|
+    /// | spotrs | dpotrs | cpotrs | zpotrs |
+    ///
     fn solve_cholesky(l: MatrixLayout, uplo: UPLO, a: &[Self], b: &mut [Self]) -> Result<()>;
 }
 

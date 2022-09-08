@@ -14,9 +14,18 @@ pub struct SVDOutput<A: Scalar> {
     pub vt: Option<Vec<A>>,
 }
 
-/// Wraps `*gesvd`
+#[cfg_attr(doc, katexit::katexit)]
+/// Singular value decomposition
 pub trait SVD_: Scalar {
-    /// Calculate singular value decomposition $ A = U \Sigma V^T $
+    /// Compute singular value decomposition $A = U \Sigma V^T$
+    ///
+    /// LAPACK correspondance
+    /// ----------------------
+    ///
+    /// | f32    | f64    | c32    | c64    |
+    /// |:-------|:-------|:-------|:-------|
+    /// | sgesvd | dgesvd | cgesvd | zgesvd |
+    ///
     fn svd(l: MatrixLayout, calc_u: bool, calc_vt: bool, a: &mut [Self])
         -> Result<SVDOutput<Self>>;
 }

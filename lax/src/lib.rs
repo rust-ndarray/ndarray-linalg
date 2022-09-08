@@ -1,63 +1,75 @@
-//! Linear Algebra eXtension (LAX)
-//! ===============================
-//!
 //! ndarray-free safe Rust wrapper for LAPACK FFI
+//!
+//! `Lapack` trait and sub-traits
+//! -------------------------------
+//!
+//! This crates provides LAPACK wrapper as `impl` of traits to base scalar types.
+//! For example, LU decomposition to double-precision matrix is provided like:
+//!
+//! ```ignore
+//! impl Solve_ for f64 {
+//!     fn lu(l: MatrixLayout, a: &mut [Self]) -> Result<Pivot> { ... }
+//! }
+//! ```
+//!
+//! see [Solve_] for detail. You can use it like `f64::lu`:
+//!
+//! ```
+//! use lax::{Solve_, layout::MatrixLayout, Transpose};
+//!
+//! let mut a = vec![
+//!   1.0, 2.0,
+//!   3.0, 4.0
+//! ];
+//! let mut b = vec![1.0, 2.0];
+//! let layout = MatrixLayout::C { row: 2, lda: 2 };
+//! let pivot = f64::lu(layout, &mut a).unwrap();
+//! f64::solve(layout, Transpose::No, &a, &pivot, &mut b).unwrap();
+//! ```
+//!
+//! When you want to write generic algorithm for real and complex matrices,
+//! this trait can be used as a trait bound:
+//!
+//! ```
+//! use lax::{Solve_, layout::MatrixLayout, Transpose};
+//!
+//! fn solve_at_once<T: Solve_>(layout: MatrixLayout, a: &mut [T], b: &mut [T]) -> Result<(), lax::error::Error> {
+//!   let pivot = T::lu(layout, a)?;
+//!   T::solve(layout, Transpose::No, a, &pivot, b)?;
+//!   Ok(())
+//! }
+//! ```
+//!
+//! There are several similar traits as described below to keep development easy.
+//! They are merged into a single trait, [Lapack].
 //!
 //! Linear equation, Inverse matrix, Condition number
 //! --------------------------------------------------
 //!
-//! As the property of $A$, several types of triangular factorization are used:
+//! According to the property input metrix, several types of triangular decomposition are used:
 //!
-//! - LU-decomposition for general matrix
-//!   - $PA = LU$, where $L$ is lower matrix, $U$ is upper matrix, and $P$ is permutation matrix
-//! - Bunch-Kaufman diagonal pivoting method for nonpositive-definite Hermitian matrix
-//!   - $A = U D U^\dagger$, where $U$ is upper matrix,
-//!     $D$ is Hermitian and block diagonal with 1-by-1 and 2-by-2 diagonal blocks.
-//!
-//! | matrix type                     | Triangler factorization (TRF) | Solve (TRS) | Inverse matrix (TRI) | Reciprocal condition number (CON) |
-//! |:--------------------------------|:------------------------------|:------------|:---------------------|:----------------------------------|
-//! | General (GE)                    | [lu]                          | [solve]     | [inv]                | [rcond]                           |
-//! | Symmetric (SY) / Hermitian (HE) | [bk]                          | [solveh]    | [invh]               | -                                 |
-//!
-//! [lu]:    solve/trait.Solve_.html#tymethod.lu
-//! [solve]: solve/trait.Solve_.html#tymethod.solve
-//! [inv]:   solve/trait.Solve_.html#tymethod.inv
-//! [rcond]: solve/trait.Solve_.html#tymethod.rcond
-//!
-//! [bk]:     solveh/trait.Solveh_.html#tymethod.bk
-//! [solveh]: solveh/trait.Solveh_.html#tymethod.solveh
-//! [invh]:   solveh/trait.Solveh_.html#tymethod.invh
+//! - [Solve_] trait provides methods for LU-decomposition for general matrix.
+//! - [Solveh_] triat provides methods for Bunch-Kaufman diagonal pivoting method for symmetric/hermite indefinite matrix.
+//! - [Cholesky_] triat provides methods for Cholesky decomposition for symmetric/hermite positive dinite matrix.
 //!
 //! Eigenvalue Problem
 //! -------------------
 //!
-//! Solve eigenvalue problem for a matrix $A$
+//! According to the property input metrix,
+//! there are several types of eigenvalue problem API
 //!
-//! $$ Av_i = \lambda_i v_i $$
+//! - [Eig_] trait provides methods for eigenvalue problem for general matrix.
+//! - [Eigh_] trait provides methods for eigenvalue problem for symmetric/hermite matrix.
 //!
-//! or generalized eigenvalue problem
+//! Singular Value Decomposition
+//! -----------------------------
 //!
-//! $$ Av_i = \lambda_i B v_i $$
+//! - [SVD_] trait provides methods for singular value decomposition for general matrix
+//! - [SVDDC_] trait provides methods for singular value decomposition for general matrix
+//!   with divided-and-conquer algorithm
+//! - [LeastSquaresSvdDivideConquer_] trait provides methods
+//!   for solving least square problem by SVD
 //!
-//! | matrix type                     | Eigenvalue (EV) | Generalized Eigenvalue Problem (EG) |
-//! |:--------------------------------|:----------------|:------------------------------------|
-//! | General (GE)                    |[eig]            | -                                   |
-//! | Symmetric (SY) / Hermitian (HE) |[eigh]           |[eigh_generalized]                   |
-//!
-//! [eig]:              eig/trait.Eig_.html#tymethod.eig
-//! [eigh]:             eigh/trait.Eigh_.html#tymethod.eigh
-//! [eigh_generalized]: eigh/trait.Eigh_.html#tymethod.eigh_generalized
-//!
-//! Singular Value Decomposition (SVD), Least square problem
-//! ----------------------------------------------------------
-//!
-//! | matrix type  | Singular Value Decomposition (SVD) | SVD with divided-and-conquer (SDD) | Least square problem (LSD) |
-//! |:-------------|:-----------------------------------|:-----------------------------------|:---------------------------|
-//! | General (GE) | [svd]                              | [svddc]                            | [least_squares]            |
-//!
-//! [svd]:   svd/trait.SVD_.html#tymethod.svd
-//! [svddc]: svddck/trait.SVDDC_.html#tymethod.svddc
-//! [least_squares]: least_squares/trait.LeastSquaresSvdDivideConquer_.html#tymethod.least_squares
 
 #[cfg(any(feature = "intel-mkl-system", feature = "intel-mkl-static"))]
 extern crate intel_mkl_src as _src;

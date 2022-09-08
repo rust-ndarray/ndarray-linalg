@@ -24,14 +24,9 @@ pub trait Solveh_: Sized {
     /// LAPACK correspondance
     /// ----------------------
     ///
-    /// | f32      | f64      | c32      | c64      |
-    /// |:---------|:---------|:---------|:---------|
-    /// | [ssytrf] | [dsytrf] | [chetrf] | [zhetrf] |
-    ///
-    /// [ssytrf]: https://netlib.org/lapack/explore-html/d0/d14/group__real_s_ycomputational_ga12d2e56511cf7df066712c61d9acec45.html
-    /// [dsytrf]: https://netlib.org/lapack/explore-html/d3/db6/group__double_s_ycomputational_gad91bde1212277b3e909eb6af7f64858a.html
-    /// [chetrf]: https://netlib.org/lapack/explore-html/d4/d74/group__complex_h_ecomputational_ga081dd1908e46d064c2bf0a1f6b664b86.html
-    /// [zhetrf]: https://netlib.org/lapack/explore-html/d3/d80/group__complex16_h_ecomputational_gadc84a5c9818ee12ea19944623131bd52.html
+    /// | f32    | f64    | c32    | c64    |
+    /// |:-------|:-------|:-------|:-------|
+    /// | ssytrf | dsytrf | chetrf | zhetrf |
     ///
     fn bk(l: MatrixLayout, uplo: UPLO, a: &mut [Self]) -> Result<Pivot>;
 
@@ -40,14 +35,9 @@ pub trait Solveh_: Sized {
     /// LAPACK correspondance
     /// ----------------------
     ///
-    /// | f32      | f64      | c32      | c64      |
-    /// |:---------|:---------|:---------|:---------|
-    /// | [ssytri] | [dsytri] | [chetri] | [zhetri] |
-    ///
-    /// [ssytri]: https://netlib.org/lapack/explore-html/d0/d14/group__real_s_ycomputational_gaef378ec0761234aac417f487b43b7a8b.html
-    /// [dsytri]: https://netlib.org/lapack/explore-html/d3/db6/group__double_s_ycomputational_ga75e09b4299b7955044a3bbf84c46b593.html
-    /// [chetri]: https://netlib.org/lapack/explore-html/d4/d74/group__complex_h_ecomputational_gad87a6a1ac131c5635d47ac440e672bcf.html
-    /// [zhetri]: https://netlib.org/lapack/explore-html/d3/d80/group__complex16_h_ecomputational_ga4d9cfa0653de400029b8051996ce1e96.html
+    /// | f32    | f64    | c32    | c64    |
+    /// |:-------|:-------|:-------|:-------|
+    /// | ssytri | dsytri | chetri | zhetri |
     ///
     fn invh(l: MatrixLayout, uplo: UPLO, a: &mut [Self], ipiv: &Pivot) -> Result<()>;
 
@@ -56,14 +46,9 @@ pub trait Solveh_: Sized {
     /// LAPACK correspondance
     /// ----------------------
     ///
-    /// | f32      | f64      | c32      | c64      |
-    /// |:---------|:---------|:---------|:---------|
-    /// | [ssytrs] | [dsytrs] | [chetrs] | [zhetrs] |
-    ///
-    /// [ssytrs]: https://netlib.org/lapack/explore-html/d0/d14/group__real_s_ycomputational_gae20133a1119b69a7319783ff982c8c62.html
-    /// [dsytrs]: https://netlib.org/lapack/explore-html/d3/db6/group__double_s_ycomputational_ga6a223e61effac7232e98b422f147f032.html
-    /// [chetrs]: https://netlib.org/lapack/explore-html/d4/d74/group__complex_h_ecomputational_ga6f9d8da222ffaa7b7535efc922faa1dc.html
-    /// [zhetrs]: https://netlib.org/lapack/explore-html/d3/d80/group__complex16_h_ecomputational_gacf697e3bb72c5fd88cd90972999401dd.html
+    /// | f32    | f64    | c32    | c64    |
+    /// |:-------|:-------|:-------|:-------|
+    /// | ssytrs | dsytrs | chetrs | zhetrs |
     ///
     fn solveh(l: MatrixLayout, uplo: UPLO, a: &[Self], ipiv: &Pivot, b: &mut [Self]) -> Result<()>;
 }

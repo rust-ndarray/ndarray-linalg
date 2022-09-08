@@ -32,12 +32,35 @@ pub trait Solve_: Scalar + Sized {
     ///   - On this case, `return_code` in [Error::LapackComputationalFailure] means
     ///     `return_code`-th diagonal element of $U$ becomes zero.
     ///
+    /// LAPACK correspondance
+    /// ----------------------
+    ///
+    /// | f32    | f64    | c32    | c64    |
+    /// |:-------|:-------|:-------|:-------|
+    /// | sgetrf | dgetrf | cgetrf | zgetrf |
+    ///
     fn lu(l: MatrixLayout, a: &mut [Self]) -> Result<Pivot>;
 
-    /// Compute inverse matrix $A^{-1}$ from the output of LU-factorization
+    /// Compute inverse matrix $A^{-1}$ from the output of LU-decomposition
+    ///
+    /// LAPACK correspondance
+    /// ----------------------
+    ///
+    /// | f32    | f64    | c32    | c64    |
+    /// |:-------|:-------|:-------|:-------|
+    /// | sgetri | dgetri | cgetri | zgetri |
+    ///
     fn inv(l: MatrixLayout, a: &mut [Self], p: &Pivot) -> Result<()>;
 
-    /// Solve linear equations $Ax = b$ using the output of LU-factorization
+    /// Solve linear equations $Ax = b$ using the output of LU-decomposition
+    ///
+    /// LAPACK correspondance
+    /// ----------------------
+    ///
+    /// | f32    | f64    | c32    | c64    |
+    /// |:-------|:-------|:-------|:-------|
+    /// | sgetrs | dgetrs | cgetrs | zgetrs |
+    ///
     fn solve(l: MatrixLayout, t: Transpose, a: &[Self], p: &Pivot, b: &mut [Self]) -> Result<()>;
 }
 

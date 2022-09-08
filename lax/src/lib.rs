@@ -4,7 +4,7 @@
 //! -------------------------------
 //!
 //! This crates provides LAPACK wrapper as `impl` of traits to base scalar types.
-//! For example, LU factorization to double-precision matrix is provided like:
+//! For example, LU decomposition to double-precision matrix is provided like:
 //!
 //! ```ignore
 //! impl Solve_ for f64 {
@@ -46,7 +46,7 @@
 //! Linear equation, Inverse matrix, Condition number
 //! --------------------------------------------------
 //!
-//! According to the property input metrix, several types of triangular factorization are used:
+//! According to the property input metrix, several types of triangular decomposition are used:
 //!
 //! - [Solve_] trait provides methods for LU-decomposition for general matrix.
 //! - [Solveh_] triat provides methods for Bunch-Kaufman diagonal pivoting method for symmetric/hermite indefinite matrix.

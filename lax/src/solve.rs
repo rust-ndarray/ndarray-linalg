@@ -5,7 +5,7 @@ use num_traits::{ToPrimitive, Zero};
 #[cfg_attr(doc, katexit::katexit)]
 /// Solve linear equations using LU-decomposition
 ///
-/// For a given matrix $A$, LU decomposition is described as $PA = LU$ where
+/// For a given matrix $A$, LU decomposition is described as $A = PLU$ where:
 ///
 /// - $L$ is lower matrix
 /// - $U$ is upper matrix
@@ -15,15 +15,15 @@ use num_traits::{ToPrimitive, Zero};
 ///
 /// 1. Factorize input matrix $A$ into $L$, $U$, and $P$.
 /// 2. Solve linear equation $Ax = b$ or compute inverse matrix $A^{-1}$
-///    using the output of LU factorization.
+///    using the output of LU decomposition.
 ///
 pub trait Solve_: Scalar + Sized {
-    /// Computes the LU factorization of a general $m \times n$ matrix
+    /// Computes the LU decomposition of a general $m \times n$ matrix
     /// with partial pivoting with row interchanges.
     ///
     /// Output
     /// -------
-    /// - $U$ and $L$ are stored in `a` after LU factorization has succeeded.
+    /// - $U$ and $L$ are stored in `a` after LU decomposition has succeeded.
     /// - $P$ is returned as [Pivot]
     ///
     /// Error

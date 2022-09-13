@@ -25,7 +25,7 @@ netlib-system = ["netlib-src/system"]
 openblas-static = ["openblas-src/static"]
 openblas-system = ["openblas-src/system"]
 
-intel-mkl-static = ["intel-mkl-src/mkl-static-lp64-seq", "intel-mkl-src/download"]
+intel-mkl-static = ["intel-mkl-src/mkl-static-lp64-seq"]
 intel-mkl-system = ["intel-mkl-src/mkl-dynamic-lp64-seq"]
 
 [dependencies]
@@ -36,7 +36,7 @@ lapack-sys = "0.14.0"
 katexit = "0.1.2"
 
 [dependencies.intel-mkl-src]
-version = "0.7.0"
+version = "0.8.1"
 default-features = false
 optional = true
 

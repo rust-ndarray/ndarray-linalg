@@ -16,6 +16,15 @@ jobs:
         command: fmt
         args: -- --check
 
+  check:
+    runs-on: ubuntu-22.04
+    steps:
+    - uses: actions/checkout@v1
+    - uses: actions-rs/cargo@v1
+      with:
+        command: check
+        args: --all-targets
+
   clippy:
     runs-on: ubuntu-22.04
     steps:

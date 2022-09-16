@@ -19,7 +19,8 @@ fn size_longer() {
 
 #[test]
 fn abs() {
-    let a: Array1<c32> = random(1);
+    let mut rng = rand_pcg::Mcg128Xsl64::new(0xcafef00dd15ea5e5);
+    let a: Array1<c32> = random_using(1, &mut rng);
     let aa = a.inner(&a);
     assert_aclose!(aa.re(), a.norm().powi(2), 1e-5);
     assert_aclose!(aa.im(), 0.0, 1e-5);

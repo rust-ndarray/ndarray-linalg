@@ -5,7 +5,8 @@ fn qr_full<A: Scalar + Lapack>() {
     const N: usize = 5;
     let rtol: A::Real = A::real(1e-9);
 
-    let a: Array2<A> = random((N, N));
+    let mut rng = rand_pcg::Mcg128Xsl64::new(0xcafef00dd15ea5e5);
+    let a: Array2<A> = random_using((N, N), &mut rng);
     let (q, r) = mgs(a.axis_iter(Axis(1)), N, rtol, Strategy::Terminate);
     assert_close_l2!(&q.dot(&r), &a, rtol);
 
@@ -27,7 +28,8 @@ fn qr<A: Scalar + Lapack>() {
     const N: usize = 4;
     let rtol: A::Real = A::real(1e-9);
 
-    let a: Array2<A> = random((N, N / 2));
+    let mut rng = rand_pcg::Mcg128Xsl64::new(0xcafef00dd15ea5e5);
+    let a: Array2<A> = random_using((N, N / 2), &mut rng);
     let (q, r) = mgs(a.axis_iter(Axis(1)), N, rtol, Strategy::Terminate);
     assert_close_l2!(&q.dot(&r), &a, rtol);
 
@@ -49,7 +51,8 @@ fn qr_over<A: Scalar + Lapack>() {
     const N: usize = 4;
     let rtol: A::Real = A::real(1e-9);
 
-    let a: Array2<A> = random((N, N * 2));
+    let mut rng = rand_pcg::Mcg128Xsl64::new(0xcafef00dd15ea5e5);
+    let a: Array2<A> = random_using((N, N * 2), &mut rng);
 
     // Terminate
     let (q, r) = mgs(a.axis_iter(Axis(1)), N, rtol, Strategy::Terminate);

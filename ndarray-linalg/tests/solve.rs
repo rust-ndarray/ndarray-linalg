@@ -1,6 +1,7 @@
 use ndarray::prelude::*;
 use ndarray_linalg::{
-    assert_aclose, assert_close_l2, c32, c64, random, random_hpd, solve::*, OperationNorm, Scalar,
+    assert_aclose, assert_close_l2, c32, c64, random_hpd_using, random_using, solve::*,
+    OperationNorm, Scalar,
 };
 
 macro_rules! test_solve {
@@ -97,12 +98,13 @@ macro_rules! test_solve_all {
 
 #[test]
 fn solve_random_float() {
+    let mut rng = rand_pcg::Mcg128Xsl64::new(0xcafef00dd15ea5e5);
     for n in 0..=8 {
         for &set_f in &[false, true] {
             test_solve_all!(
                 [f32 => 1e-3, f64 => 1e-9],
-                a = random([n; 2].set_f(set_f)),
-                x = random(n),
+                a = random_using([n; 2].set_f(set_f), &mut rng),
+                x = random_using(n, &mut rng),
                 b = a.dot(&x),
                 [solve, solve_into, solve_inplace],
             );
@@ -112,12 +114,13 @@ fn solve_random_float() {
 
 #[test]
 fn solve_random_complex() {
+    let mut rng = rand_pcg::Mcg128Xsl64::new(0xcafef00dd15ea5e5);
     for n in 0..=8 {
         for &set_f in &[false, true] {
             test_solve_all!(
                 [c32 => 1e-3, c64 => 1e-9],
-                a = random([n; 2].set_f(set_f)),
-                x = random(n),
+                a = random_using([n; 2].set_f(set_f), &mut rng),
+                x = random_using(n, &mut rng),
                 b = a.dot(&x),
                 [solve, solve_into, solve_inplace],
             );
@@ -128,19 +131,21 @@ fn solve_random_complex() {
 #[should_panic]
 #[test]
 fn solve_shape_mismatch() {
-    let a: Array2<f64> = random((3, 3));
-    let b: Array1<f64> = random(2);
+    let mut rng = rand_pcg::Mcg128Xsl64::new(0xcafef00dd15ea5e5);
+    let a: Array2<f64> = random_using((3, 3), &mut rng);
+    let b: Array1<f64> = random_using(2, &mut rng);
     let _ = a.solve_into(b);
 }
 
 #[test]
 fn solve_t_random_float() {
+    let mut rng = rand_pcg::Mcg128Xsl64::new(0xcafef00dd15ea5e5);
     for n in 0..=8 {
         for &set_f in &[false, true] {
             test_solve_all!(
                 [f32 => 1e-3, f64 => 1e-9],
-                a = random([n; 2].set_f(set_f)),
-                x = random(n),
+                a = random_using([n; 2].set_f(set_f), &mut rng),
+                x = random_using(n, &mut rng),
                 b = a.t().dot(&x),
                 [solve_t, solve_t_into, solve_t_inplace],
             );
@@ -151,19 +156,21 @@ fn solve_t_random_float() {
 #[should_panic]
 #[test]
 fn solve_t_shape_mismatch() {
-    let a: Array2<f64> = random((3, 3).f());
-    let b: Array1<f64> = random(4);
+    let mut rng = rand_pcg::Mcg128Xsl64::new(0xcafef00dd15ea5e5);
+    let a: Array2<f64> = random_using((3, 3).f(), &mut rng);
+    let b: Array1<f64> = random_using(4, &mut rng);
     let _ = a.solve_into(b);
 }
 
 #[test]
 fn solve_t_random_complex() {
+    let mut rng = rand_pcg::Mcg128Xsl64::new(0xcafef00dd15ea5e5);
     for n in 0..=8 {
         for &set_f in &[false, true] {
             test_solve_all!(
                 [c32 => 1e-3, c64 => 1e-9],
-                a = random([n; 2].set_f(set_f)),
-                x = random(n),
+                a = random_using([n; 2].set_f(set_f), &mut rng),
+                x = random_using(n, &mut rng),
                 b = a.t().dot(&x),
                 [solve_t, solve_t_into, solve_t_inplace],
             );
@@ -174,20 +181,22 @@ fn solve_t_random_complex() {
 #[should_panic]
 #[test]
 fn solve_factorized_shape_mismatch() {
-    let a: Array2<f64> = random((3, 3));
-    let b: Array1<f64> = random(4);
+    let mut rng = rand_pcg::Mcg128Xsl64::new(0xcafef00dd15ea5e5);
+    let a: Array2<f64> = random_using((3, 3), &mut rng);
+    let b: Array1<f64> = random_using(4, &mut rng);
     let f = a.factorize_into().unwrap();
     let _ = f.solve_into(b);
 }
 
 #[test]
 fn solve_h_random_float() {
+    let mut rng = rand_pcg::Mcg128Xsl64::new(0xcafef00dd15ea5e5);
     for n in 0..=8 {
         for &set_f in &[false, true] {
             test_solve_all!(
                 [f32 => 1e-3, f64 => 1e-9],
-                a = random([n; 2].set_f(set_f)),
-                x = random(n),
+                a = random_using([n; 2].set_f(set_f), &mut rng),
+                x = random_using(n, &mut rng),
                 b = a.t().mapv(|x| x.conj()).dot(&x),
                 [solve_h, solve_h_into, solve_h_inplace],
             );
@@ -198,20 +207,22 @@ fn solve_h_random_float() {
 #[should_panic]
 #[test]
 fn solve_factorized_t_shape_mismatch() {
-    let a: Array2<f64> = random((3, 3).f());
-    let b: Array1<f64> = random(4);
+    let mut rng = rand_pcg::Mcg128Xsl64::new(0xcafef00dd15ea5e5);
+    let a: Array2<f64> = random_using((3, 3).f(), &mut rng);
+    let b: Array1<f64> = random_using(4, &mut rng);
     let f = a.factorize_into().unwrap();
     let _ = f.solve_into(b);
 }
 
 #[test]
 fn solve_h_random_complex() {
+    let mut rng = rand_pcg::Mcg128Xsl64::new(0xcafef00dd15ea5e5);
     for n in 0..=8 {
         for &set_f in &[false, true] {
             test_solve_all!(
                 [c32 => 1e-3, c64 => 1e-9],
-                a = random([n; 2].set_f(set_f)),
-                x = random(n),
+                a = random_using([n; 2].set_f(set_f), &mut rng),
+                x = random_using(n, &mut rng),
                 b = a.t().mapv(|x| x.conj()).dot(&x),
                 [solve_h, solve_h_into, solve_h_inplace],
             );
@@ -223,7 +234,8 @@ fn solve_h_random_complex() {
 fn rcond() {
     macro_rules! rcond {
         ($elem:ty, $rows:expr, $atol:expr) => {
-            let a: Array2<$elem> = random_hpd($rows);
+            let mut rng = rand_pcg::Mcg128Xsl64::new(0xcafef00dd15ea5e5);
+            let a: Array2<$elem> = random_hpd_using($rows, &mut rng);
             let rcond = 1. / (a.opnorm_one().unwrap() * a.inv().unwrap().opnorm_one().unwrap());
             assert_aclose!(a.rcond().unwrap(), rcond, $atol);
             assert_aclose!(a.rcond_into().unwrap(), rcond, $atol);

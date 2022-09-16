@@ -79,7 +79,8 @@ fn fixed_t_lower() {
 
 #[test]
 fn ssqrt() {
-    let a: Array2<f64> = random_hpd(3);
+    let mut rng = rand_pcg::Mcg128Xsl64::new(0xcafef00dd15ea5e5);
+    let a: Array2<f64> = random_hpd_using(3, &mut rng);
     let ans = a.clone();
     let s = a.ssqrt(UPLO::Upper).unwrap();
     println!("a = {:?}", &ans);
@@ -92,7 +93,8 @@ fn ssqrt() {
 
 #[test]
 fn ssqrt_t() {
-    let a: Array2<f64> = random_hpd(3).reversed_axes();
+    let mut rng = rand_pcg::Mcg128Xsl64::new(0xcafef00dd15ea5e5);
+    let a: Array2<f64> = random_hpd_using(3, &mut rng).reversed_axes();
     let ans = a.clone();
     let s = a.ssqrt(UPLO::Upper).unwrap();
     println!("a = {:?}", &ans);
@@ -105,7 +107,8 @@ fn ssqrt_t() {
 
 #[test]
 fn ssqrt_lower() {
-    let a: Array2<f64> = random_hpd(3);
+    let mut rng = rand_pcg::Mcg128Xsl64::new(0xcafef00dd15ea5e5);
+    let a: Array2<f64> = random_hpd_using(3, &mut rng);
     let ans = a.clone();
     let s = a.ssqrt(UPLO::Lower).unwrap();
     println!("a = {:?}", &ans);
@@ -118,7 +121,8 @@ fn ssqrt_lower() {
 
 #[test]
 fn ssqrt_t_lower() {
-    let a: Array2<f64> = random_hpd(3).reversed_axes();
+    let mut rng = rand_pcg::Mcg128Xsl64::new(0xcafef00dd15ea5e5);
+    let a: Array2<f64> = random_hpd_using(3, &mut rng).reversed_axes();
     let ans = a.clone();
     let s = a.ssqrt(UPLO::Lower).unwrap();
     println!("a = {:?}", &ans);

@@ -34,87 +34,99 @@ where
 #[test]
 fn triangular_1d_upper() {
     let n = 3;
-    let b: Array1<f64> = random(n);
-    let a: Array2<f64> = random((n, n)).into_triangular(UPLO::Upper);
+    let mut rng = rand_pcg::Mcg128Xsl64::new(0xcafef00dd15ea5e5);
+    let b: Array1<f64> = random_using(n, &mut rng);
+    let a: Array2<f64> = random_using((n, n), &mut rng).into_triangular(UPLO::Upper);
     test1d(UPLO::Upper, &a, &b, 1e-7);
 }
 
 #[test]
 fn triangular_1d_lower() {
     let n = 3;
-    let b: Array1<f64> = random(n);
-    let a: Array2<f64> = random((n, n)).into_triangular(UPLO::Lower);
+    let mut rng = rand_pcg::Mcg128Xsl64::new(0xcafef00dd15ea5e5);
+    let b: Array1<f64> = random_using(n, &mut rng);
+    let a: Array2<f64> = random_using((n, n), &mut rng).into_triangular(UPLO::Lower);
     test1d(UPLO::Lower, &a, &b, 1e-7);
 }
 
 #[test]
 fn triangular_1d_upper_t() {
     let n = 3;
-    let b: Array1<f64> = random(n);
-    let a: Array2<f64> = random((n, n).f()).into_triangular(UPLO::Upper);
+    let mut rng = rand_pcg::Mcg128Xsl64::new(0xcafef00dd15ea5e5);
+    let b: Array1<f64> = random_using(n, &mut rng);
+    let a: Array2<f64> = random_using((n, n).f(), &mut rng).into_triangular(UPLO::Upper);
     test1d(UPLO::Upper, &a, &b, 1e-7);
 }
 
 #[test]
 fn triangular_1d_lower_t() {
     let n = 3;
-    let b: Array1<f64> = random(n);
-    let a: Array2<f64> = random((n, n).f()).into_triangular(UPLO::Lower);
+    let mut rng = rand_pcg::Mcg128Xsl64::new(0xcafef00dd15ea5e5);
+    let b: Array1<f64> = random_using(n, &mut rng);
+    let a: Array2<f64> = random_using((n, n).f(), &mut rng).into_triangular(UPLO::Lower);
     test1d(UPLO::Lower, &a, &b, 1e-7);
 }
 
 #[test]
 fn triangular_2d_upper() {
-    let b: Array2<f64> = random((3, 4));
-    let a: Array2<f64> = random((3, 3)).into_triangular(UPLO::Upper);
+    let mut rng = rand_pcg::Mcg128Xsl64::new(0xcafef00dd15ea5e5);
+    let b: Array2<f64> = random_using((3, 4), &mut rng);
+    let a: Array2<f64> = random_using((3, 3), &mut rng).into_triangular(UPLO::Upper);
     test2d(UPLO::Upper, &a, &b, 1e-7);
 }
 
 #[test]
 fn triangular_2d_lower() {
-    let b: Array2<f64> = random((3, 4));
-    let a: Array2<f64> = random((3, 3)).into_triangular(UPLO::Lower);
+    let mut rng = rand_pcg::Mcg128Xsl64::new(0xcafef00dd15ea5e5);
+    let b: Array2<f64> = random_using((3, 4), &mut rng);
+    let a: Array2<f64> = random_using((3, 3), &mut rng).into_triangular(UPLO::Lower);
     test2d(UPLO::Lower, &a, &b, 1e-7);
 }
 
 #[test]
 fn triangular_2d_lower_t() {
-    let b: Array2<f64> = random((3, 4));
-    let a: Array2<f64> = random((3, 3).f()).into_triangular(UPLO::Lower);
+    let mut rng = rand_pcg::Mcg128Xsl64::new(0xcafef00dd15ea5e5);
+    let b: Array2<f64> = random_using((3, 4), &mut rng);
+    let a: Array2<f64> = random_using((3, 3).f(), &mut rng).into_triangular(UPLO::Lower);
     test2d(UPLO::Lower, &a, &b, 1e-7);
 }
 
 #[test]
 fn triangular_2d_upper_t() {
-    let b: Array2<f64> = random((3, 4));
-    let a: Array2<f64> = random((3, 3).f()).into_triangular(UPLO::Upper);
+    let mut rng = rand_pcg::Mcg128Xsl64::new(0xcafef00dd15ea5e5);
+    let b: Array2<f64> = random_using((3, 4), &mut rng);
+    let a: Array2<f64> = random_using((3, 3).f(), &mut rng).into_triangular(UPLO::Upper);
     test2d(UPLO::Upper, &a, &b, 1e-7);
 }
 
 #[test]
 fn triangular_2d_upper_bt() {
-    let b: Array2<f64> = random((3, 4).f());
-    let a: Array2<f64> = random((3, 3)).into_triangular(UPLO::Upper);
+    let mut rng = rand_pcg::Mcg128Xsl64::new(0xcafef00dd15ea5e5);
+    let b: Array2<f64> = random_using((3, 4).f(), &mut rng);
+    let a: Array2<f64> = random_using((3, 3), &mut rng).into_triangular(UPLO::Upper);
     test2d(UPLO::Upper, &a, &b, 1e-7);
 }
 
 #[test]
 fn triangular_2d_lower_bt() {
-    let b: Array2<f64> = random((3, 4).f());
-    let a: Array2<f64> = random((3, 3)).into_triangular(UPLO::Lower);
+    let mut rng = rand_pcg::Mcg128Xsl64::new(0xcafef00dd15ea5e5);
+    let b: Array2<f64> = random_using((3, 4).f(), &mut rng);
+    let a: Array2<f64> = random_using((3, 3), &mut rng).into_triangular(UPLO::Lower);
     test2d(UPLO::Lower, &a, &b, 1e-7);
 }
 
 #[test]
 fn triangular_2d_lower_t_bt() {
-    let b: Array2<f64> = random((3, 4).f());
-    let a: Array2<f64> = random((3, 3).f()).into_triangular(UPLO::Lower);
+    let mut rng = rand_pcg::Mcg128Xsl64::new(0xcafef00dd15ea5e5);
+    let b: Array2<f64> = random_using((3, 4).f(), &mut rng);
+    let a: Array2<f64> = random_using((3, 3).f(), &mut rng).into_triangular(UPLO::Lower);
     test2d(UPLO::Lower, &a, &b, 1e-7);
 }
 
 #[test]
 fn triangular_2d_upper_t_bt() {
-    let b: Array2<f64> = random((3, 4).f());
-    let a: Array2<f64> = random((3, 3).f()).into_triangular(UPLO::Upper);
+    let mut rng = rand_pcg::Mcg128Xsl64::new(0xcafef00dd15ea5e5);
+    let b: Array2<f64> = random_using((3, 4).f(), &mut rng);
+    let a: Array2<f64> = random_using((3, 3).f(), &mut rng).into_triangular(UPLO::Upper);
     test2d(UPLO::Upper, &a, &b, 1e-7);
 }

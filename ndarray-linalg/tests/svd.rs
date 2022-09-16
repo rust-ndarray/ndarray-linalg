@@ -53,13 +53,15 @@ macro_rules! test_svd_impl {
         paste::item! {
             #[test]
             fn [<svd_ $type _ $test _ $n x $m>]() {
-                let a = random(($n, $m));
+                let mut rng = rand_pcg::Mcg128Xsl64::new(0xcafef00dd15ea5e5);
+                let a = random_using(($n, $m), &mut rng);
                 $test::<$type>(&a);
             }
 
             #[test]
             fn [<svd_ $type _ $test _ $n x $m _t>]() {
-                let a = random(($n, $m).f());
+                let mut rng = rand_pcg::Mcg128Xsl64::new(0xcafef00dd15ea5e5);
+                let a = random_using(($n, $m).f(), &mut rng);
                 $test::<$type>(&a);
             }
         }

@@ -5,7 +5,8 @@ use ndarray_linalg::*;
 
 /// A is square. `x = A^{-1} b`, `|b - Ax| = 0`
 fn test_exact<T: Scalar + Lapack>(a: Array2<T>) {
-    let b: Array1<T> = random(3);
+    let mut rng = rand_pcg::Mcg128Xsl64::new(0xcafef00dd15ea5e5);
+    let b: Array1<T> = random_using(3, &mut rng);
     let result = a.least_squares(&b).unwrap();
     // unpack result
     let x = result.solution;
@@ -27,13 +28,15 @@ macro_rules! impl_exact {
         paste::item! {
             #[test]
             fn [<least_squares_ $scalar _exact>]() {
-                let a: Array2<$scalar> = random((3, 3));
+                let mut rng = rand_pcg::Mcg128Xsl64::new(0xcafef00dd15ea5e5);
+                let a: Array2<$scalar> = random_using((3, 3), &mut rng);
                 test_exact(a)
             }
 
             #[test]
             fn [<least_squares_ $scalar _exact_t>]() {
-                let a: Array2<$scalar> = random((3, 3).f());
+                let mut rng = rand_pcg::Mcg128Xsl64::new(0xcafef00dd15ea5e5);
+                let a: Array2<$scalar> = random_using((3, 3).f(), &mut rng);
                 test_exact(a)
             }
         }
@@ -51,7 +54,8 @@ fn test_overdetermined<T: Scalar + Lapack>(a: Array2<T>)
 where
     T::Real: AbsDiffEq<Epsilon = T::Real>,
 {
-    let b: Array1<T> = random(4);
+    let mut rng = rand_pcg::Mcg128Xsl64::new(0xcafef00dd15ea5e5);
+    let b: Array1<T> = random_using(4, &mut rng);
     let result = a.least_squares(&b).unwrap();
     // unpack result
     let x = result.solution;
@@ -73,13 +77,15 @@ macro_rules! impl_overdetermined {
         paste::item! {
             #[test]
             fn [<least_squares_ $scalar _overdetermined>]() {
-                let a: Array2<$scalar> = random((4, 3));
+                let mut rng = rand_pcg::Mcg128Xsl64::new(0xcafef00dd15ea5e5);
+                let a: Array2<$scalar> = random_using((4, 3), &mut rng);
                 test_overdetermined(a)
             }
 
             #[test]
             fn [<least_squares_ $scalar _overdetermined_t>]() {
-                let a: Array2<$scalar> = random((4, 3).f());
+                let mut rng = rand_pcg::Mcg128Xsl64::new(0xcafef00dd15ea5e5);
+                let a: Array2<$scalar> = random_using((4, 3).f(), &mut rng);
                 test_overdetermined(a)
             }
         }
@@ -94,7 +100,8 @@ impl_overdetermined!(c64);
 /// #column > #row case.
 /// Linear problem is underdetermined, `|b - Ax| = 0` and `x` is not unique
 fn test_underdetermined<T: Scalar + Lapack>(a: Array2<T>) {
-    let b: Array1<T> = random(3);
+    let mut rng = rand_pcg::Mcg128Xsl64::new(0xcafef00dd15ea5e5);
+    let b: Array1<T> = random_using(3, &mut rng);
     let result = a.least_squares(&b).unwrap();
     assert_eq!(result.rank, 3);
     assert!(result.residual_sum_of_squares.is_none());
@@ -110,13 +117,15 @@ macro_rules! impl_underdetermined {
         paste::item! {
             #[test]
             fn [<least_squares_ $scalar _underdetermined>]() {
-                let a: Array2<$scalar> = random((3, 4));
+                let mut rng = rand_pcg::Mcg128Xsl64::new(0xcafef00dd15ea5e5);
+                let a: Array2<$scalar> = random_using((3, 4), &mut rng);
                 test_underdetermined(a)
             }
 
             #[test]
             fn [<least_squares_ $scalar _underdetermined_t>]() {
-                let a: Array2<$scalar> = random((3, 4).f());
+                let mut rng = rand_pcg::Mcg128Xsl64::new(0xcafef00dd15ea5e5);
+                let a: Array2<$scalar> = random_using((3, 4).f(), &mut rng);
                 test_underdetermined(a)
             }
         }

@@ -62,37 +62,37 @@ fn svddc_small(c: &mut Criterion) {
         group.bench_with_input(BenchmarkId::new("C", n), &n, |b, n| {
             let a: Array2<f64> = random((*n, *n));
             b.iter(|| {
-                let _ = a.svddc(UVTFlag::None).unwrap();
+                let _ = a.svddc(JobSvd::None).unwrap();
             })
         });
         group.bench_with_input(BenchmarkId::new("F", n), &n, |b, n| {
             let a: Array2<f64> = random((*n, *n).f());
             b.iter(|| {
-                let _ = a.svddc(UVTFlag::None).unwrap();
+                let _ = a.svddc(JobSvd::None).unwrap();
             })
         });
         group.bench_with_input(BenchmarkId::new("some/C", n), &n, |b, n| {
             let a: Array2<f64> = random((*n, *n));
             b.iter(|| {
-                let _ = a.svddc(UVTFlag::Some).unwrap();
+                let _ = a.svddc(JobSvd::Some).unwrap();
             })
         });
         group.bench_with_input(BenchmarkId::new("some/F", n), &n, |b, n| {
             let a: Array2<f64> = random((*n, *n).f());
             b.iter(|| {
-                let _ = a.svddc(UVTFlag::Some).unwrap();
+                let _ = a.svddc(JobSvd::Some).unwrap();
             })
         });
         group.bench_with_input(BenchmarkId::new("full/C", n), &n, |b, n| {
             let a: Array2<f64> = random((*n, *n));
             b.iter(|| {
-                let _ = a.svddc(UVTFlag::Full).unwrap();
+                let _ = a.svddc(JobSvd::All).unwrap();
             })
         });
         group.bench_with_input(BenchmarkId::new("full/F", n), &n, |b, n| {
             let a: Array2<f64> = random((*n, *n).f());
             b.iter(|| {
-                let _ = a.svddc(UVTFlag::Full).unwrap();
+                let _ = a.svddc(JobSvd::All).unwrap();
             })
         });
     }

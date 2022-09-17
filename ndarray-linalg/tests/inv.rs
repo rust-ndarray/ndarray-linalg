@@ -5,7 +5,8 @@ fn test_inv_random<A>(n: usize, set_f: bool, rtol: A::Real)
 where
     A: Scalar + Lapack,
 {
-    let a: Array2<A> = random([n; 2].set_f(set_f));
+    let mut rng = rand_pcg::Mcg128Xsl64::new(0xcafef00dd15ea5e5);
+    let a: Array2<A> = random_using([n; 2].set_f(set_f), &mut rng);
     let identity = Array2::eye(n);
     assert_close_l2!(&a.inv().unwrap().dot(&a), &identity, rtol);
     assert_close_l2!(
@@ -24,7 +25,8 @@ fn test_inv_into_random<A>(n: usize, set_f: bool, rtol: A::Real)
 where
     A: Scalar + Lapack,
 {
-    let a: Array2<A> = random([n; 2].set_f(set_f));
+    let mut rng = rand_pcg::Mcg128Xsl64::new(0xcafef00dd15ea5e5);
+    let a: Array2<A> = random_using([n; 2].set_f(set_f), &mut rng);
     let identity = Array2::eye(n);
     assert_close_l2!(&a.clone().inv_into().unwrap().dot(&a), &identity, rtol);
     assert_close_l2!(

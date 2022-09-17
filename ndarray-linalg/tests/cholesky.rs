@@ -6,7 +6,8 @@ macro_rules! cholesky {
         paste::item! {
             #[test]
             fn [<cholesky_ $elem>]() {
-                let a_orig: Array2<$elem> = random_hpd(3);
+                let mut rng = rand_pcg::Mcg128Xsl64::new(0xcafef00dd15ea5e5);
+                let a_orig: Array2<$elem> = random_hpd_using(3, &mut rng);
                 println!("a = \n{:?}", a_orig);
 
                 let upper = a_orig.cholesky(UPLO::Upper).unwrap();
@@ -79,7 +80,8 @@ macro_rules! cholesky_into_lower_upper {
         paste::item! {
             #[test]
             fn [<cholesky_into_lower_upper_ $elem>]() {
-                let a: Array2<$elem> = random_hpd(3);
+                let mut rng = rand_pcg::Mcg128Xsl64::new(0xcafef00dd15ea5e5);
+                let a: Array2<$elem> = random_hpd_using(3, &mut rng);
                 println!("a = \n{:?}", a);
                 let upper = a.cholesky(UPLO::Upper).unwrap();
                 let fac_upper = a.factorizec(UPLO::Upper).unwrap();
@@ -106,7 +108,8 @@ macro_rules! cholesky_into_inverse {
         paste::item! {
             #[test]
             fn [<cholesky_inverse_ $elem>]() {
-                let a: Array2<$elem> = random_hpd(3);
+                let mut rng = rand_pcg::Mcg128Xsl64::new(0xcafef00dd15ea5e5);
+                let a: Array2<$elem> = random_hpd_using(3, &mut rng);
                 println!("a = \n{:?}", a);
                 let inv = a.invc().unwrap();
                 assert_close_l2!(&a.dot(&inv), &Array2::eye(3), $rtol);
@@ -134,7 +137,8 @@ macro_rules! cholesky_det {
         paste::item! {
             #[test]
             fn [<cholesky_det_ $elem>]() {
-                let a: Array2<$elem> = random_hpd(3);
+                let mut rng = rand_pcg::Mcg128Xsl64::new(0xcafef00dd15ea5e5);
+                let a: Array2<$elem> = random_hpd_using(3, &mut rng);
                 println!("a = \n{:?}", a);
                 let ln_det = a
                     .eigvalsh(UPLO::Upper)
@@ -168,8 +172,9 @@ macro_rules! cholesky_solve {
         paste::item! {
             #[test]
             fn [<cholesky_solve_ $elem>]() {
-                let a: Array2<$elem> = random_hpd(3);
-                let x: Array1<$elem> = random(3);
+                let mut rng = rand_pcg::Mcg128Xsl64::new(0xcafef00dd15ea5e5);
+                let a: Array2<$elem> = random_hpd_using(3, &mut rng);
+                let x: Array1<$elem> = random_using(3, &mut rng);
                 let b = a.dot(&x);
                 println!("a = \n{:?}", a);
                 println!("x = \n{:?}", x);

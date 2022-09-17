@@ -72,7 +72,8 @@ fn deth_zero_nonsquare() {
 fn deth() {
     macro_rules! deth {
         ($elem:ty, $rows:expr, $atol:expr) => {
-            let a: Array2<$elem> = random_hermite($rows);
+            let mut rng = rand_pcg::Mcg128Xsl64::new(0xcafef00dd15ea5e5);
+            let a: Array2<$elem> = random_hermite_using($rows, &mut rng);
             println!("a = \n{:?}", a);
 
             // Compute determinant from eigenvalues.

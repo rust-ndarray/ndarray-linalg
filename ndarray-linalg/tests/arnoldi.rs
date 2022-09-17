@@ -3,8 +3,9 @@ use ndarray_linalg::{krylov::*, *};
 
 #[test]
 fn aq_qh_mgs() {
-    let a: Array2<f64> = random((5, 5));
-    let v: Array1<f64> = random(5);
+    let mut rng = rand_pcg::Mcg128Xsl64::new(0xcafef00dd15ea5e5);
+    let a: Array2<f64> = random_using((5, 5), &mut rng);
+    let v: Array1<f64> = random_using(5, &mut rng);
     let (q, h) = arnoldi_mgs(a.clone(), v, 1e-9);
     println!("A = \n{:?}", &a);
     println!("Q = \n{:?}", &q);
@@ -18,8 +19,9 @@ fn aq_qh_mgs() {
 
 #[test]
 fn aq_qh_householder() {
-    let a: Array2<f64> = random((5, 5));
-    let v: Array1<f64> = random(5);
+    let mut rng = rand_pcg::Mcg128Xsl64::new(0xcafef00dd15ea5e5);
+    let a: Array2<f64> = random_using((5, 5), &mut rng);
+    let v: Array1<f64> = random_using(5, &mut rng);
     let (q, h) = arnoldi_mgs(a.clone(), v, 1e-9);
     println!("A = \n{:?}", &a);
     println!("Q = \n{:?}", &q);
@@ -33,8 +35,9 @@ fn aq_qh_householder() {
 
 #[test]
 fn aq_qh_mgs_complex() {
-    let a: Array2<c64> = random((5, 5));
-    let v: Array1<c64> = random(5);
+    let mut rng = rand_pcg::Mcg128Xsl64::new(0xcafef00dd15ea5e5);
+    let a: Array2<c64> = random_using((5, 5), &mut rng);
+    let v: Array1<c64> = random_using(5, &mut rng);
     let (q, h) = arnoldi_mgs(a.clone(), v, 1e-9);
     println!("A = \n{:?}", &a);
     println!("Q = \n{:?}", &q);
@@ -48,8 +51,9 @@ fn aq_qh_mgs_complex() {
 
 #[test]
 fn aq_qh_householder_complex() {
-    let a: Array2<c64> = random((5, 5));
-    let v: Array1<c64> = random(5);
+    let mut rng = rand_pcg::Mcg128Xsl64::new(0xcafef00dd15ea5e5);
+    let a: Array2<c64> = random_using((5, 5), &mut rng);
+    let v: Array1<c64> = random_using(5, &mut rng);
     let (q, h) = arnoldi_mgs(a.clone(), v, 1e-9);
     println!("A = \n{:?}", &a);
     println!("Q = \n{:?}", &q);

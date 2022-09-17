@@ -32,37 +32,43 @@ macro_rules! test_svd_impl {
         paste::item! {
             #[test]
             fn [<svddc_ $scalar _full_ $n x $m>]() {
-                let a = random(($n, $m));
+                let mut rng = rand_pcg::Mcg128Xsl64::new(0xcafef00dd15ea5e5);
+                let a = random_using(($n, $m), &mut rng);
                 test::<$scalar>(&a, JobSvd::All);
             }
 
             #[test]
             fn [<svddc_ $scalar _some_ $n x $m>]() {
-                let a = random(($n, $m));
+                let mut rng = rand_pcg::Mcg128Xsl64::new(0xcafef00dd15ea5e5);
+                let a = random_using(($n, $m), &mut rng);
                 test::<$scalar>(&a, JobSvd::Some);
             }
 
             #[test]
             fn [<svddc_ $scalar _none_ $n x $m>]() {
-                let a = random(($n, $m));
+                let mut rng = rand_pcg::Mcg128Xsl64::new(0xcafef00dd15ea5e5);
+                let a = random_using(($n, $m), &mut rng);
                 test::<$scalar>(&a, JobSvd::None);
             }
 
             #[test]
             fn [<svddc_ $scalar _full_ $n x $m _t>]() {
-                let a = random(($n, $m).f());
+                let mut rng = rand_pcg::Mcg128Xsl64::new(0xcafef00dd15ea5e5);
+                let a = random_using(($n, $m).f(), &mut rng);
                 test::<$scalar>(&a, JobSvd::All);
             }
 
             #[test]
             fn [<svddc_ $scalar _some_ $n x $m _t>]() {
-                let a = random(($n, $m).f());
+                let mut rng = rand_pcg::Mcg128Xsl64::new(0xcafef00dd15ea5e5);
+                let a = random_using(($n, $m).f(), &mut rng);
                 test::<$scalar>(&a, JobSvd::Some);
             }
 
             #[test]
             fn [<svddc_ $scalar _none_ $n x $m _t>]() {
-                let a = random(($n, $m).f());
+                let mut rng = rand_pcg::Mcg128Xsl64::new(0xcafef00dd15ea5e5);
+                let a = random_using(($n, $m).f(), &mut rng);
                 test::<$scalar>(&a, JobSvd::None);
             }
         }

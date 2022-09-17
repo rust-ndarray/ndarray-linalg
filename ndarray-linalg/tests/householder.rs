@@ -3,7 +3,8 @@ use ndarray_linalg::{krylov::*, *};
 
 fn over<A: Scalar + Lapack>(rtol: A::Real) {
     const N: usize = 4;
-    let a: Array2<A> = random((N, N * 2));
+    let mut rng = rand_pcg::Mcg128Xsl64::new(0xcafef00dd15ea5e5);
+    let a: Array2<A> = random_using((N, N * 2), &mut rng);
 
     // Terminate
     let (q, r) = householder(a.axis_iter(Axis(1)), N, rtol, Strategy::Terminate);
@@ -45,7 +46,8 @@ fn over_c64() {
 
 fn full<A: Scalar + Lapack>(rtol: A::Real) {
     const N: usize = 5;
-    let a: Array2<A> = random((N, N));
+    let mut rng = rand_pcg::Mcg128Xsl64::new(0xcafef00dd15ea5e5);
+    let a: Array2<A> = random_using((N, N), &mut rng);
     let (q, r) = householder(a.axis_iter(Axis(1)), N, rtol, Strategy::Terminate);
     let qc: Array2<A> = conjugate(&q);
     assert_close_l2!(&qc.dot(&q), &Array::eye(N), rtol; "Check Q^H Q = I");
@@ -71,7 +73,8 @@ fn full_c64() {
 
 fn half<A: Scalar + Lapack>(rtol: A::Real) {
     const N: usize = 4;
-    let a: Array2<A> = random((N, N / 2));
+    let mut rng = rand_pcg::Mcg128Xsl64::new(0xcafef00dd15ea5e5);
+    let a: Array2<A> = random_using((N, N / 2), &mut rng);
     let (q, r) = householder(a.axis_iter(Axis(1)), N, rtol, Strategy::Terminate);
     let qc: Array2<A> = conjugate(&q);
     assert_close_l2!(&qc.dot(&q), &Array::eye(N / 2), rtol; "Check Q^H Q = I");

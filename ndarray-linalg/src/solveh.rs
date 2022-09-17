@@ -8,13 +8,8 @@
 //! Solve `A * x = b`, where `A` is a Hermitian (or real symmetric) matrix:
 //!
 //! ```
-//! #[macro_use]
-//! extern crate ndarray;
-//! extern crate ndarray_linalg;
-//!
 //! use ndarray::prelude::*;
 //! use ndarray_linalg::SolveH;
-//! # fn main() {
 //!
 //! let a: Array2<f64> = array![
 //!     [3., 2., -1.],
@@ -24,8 +19,6 @@
 //! let b: Array1<f64> = array![11., -12., 1.];
 //! let x = a.solveh_into(b).unwrap();
 //! assert!(x.abs_diff_eq(&array![1., 3., -2.], 1e-9));
-//!
-//! # }
 //! ```
 //!
 //! If you are solving multiple systems of linear equations with the same
@@ -33,20 +26,18 @@
 //! the factorization once at the beginning than solving directly using `A`:
 //!
 //! ```
-//! # extern crate ndarray;
-//! # extern crate ndarray_linalg;
 //! use ndarray::prelude::*;
 //! use ndarray_linalg::*;
-//! # fn main() {
 //!
-//! let a: Array2<f64> = random((3, 3));
+//! /// Use fixed algorithm and seed of PRNG for reproducible test
+//! let mut rng = rand_pcg::Mcg128Xsl64::new(0xcafef00dd15ea5e5);
+//!
+//! let a: Array2<f64> = random_using((3, 3), &mut rng);
 //! let f = a.factorizeh_into().unwrap(); // Factorize A (A is consumed)
 //! for _ in 0..10 {
-//!     let b: Array1<f64> = random(3);
+//!     let b: Array1<f64> = random_using(3, &mut rng);
 //!     let x = f.solveh_into(b).unwrap(); // Solve A * x = b using the factorization
 //! }
-//!
-//! # }
 //! ```
 
 use ndarray::*;

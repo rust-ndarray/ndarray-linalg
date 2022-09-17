@@ -28,7 +28,8 @@ fn tridiagonal_index() {
 
 #[test]
 fn opnorm_tridiagonal() {
-    let mut a: Array2<f64> = random((4, 4));
+    let mut rng = rand_pcg::Mcg128Xsl64::new(0xcafef00dd15ea5e5);
+    let mut a: Array2<f64> = random_using((4, 4), &mut rng);
     a[[0, 2]] = 0.0;
     a[[0, 3]] = 0.0;
     a[[1, 3]] = 0.0;
@@ -129,10 +130,11 @@ fn solve_tridiagonal_c64() {
 
 #[test]
 fn solve_tridiagonal_random() {
-    let mut a: Array2<f64> = random((3, 3));
+    let mut rng = rand_pcg::Mcg128Xsl64::new(0xcafef00dd15ea5e5);
+    let mut a: Array2<f64> = random_using((3, 3), &mut rng);
     a[[0, 2]] = 0.0;
     a[[2, 0]] = 0.0;
-    let x: Array1<f64> = random(3);
+    let x: Array1<f64> = random_using(3, &mut rng);
     let b1 = a.dot(&x);
     let b2 = b1.clone();
     let y1 = a.solve_tridiagonal_into(b1).unwrap();
@@ -143,10 +145,11 @@ fn solve_tridiagonal_random() {
 
 #[test]
 fn solve_tridiagonal_random_t() {
-    let mut a: Array2<f64> = random((3, 3));
+    let mut rng = rand_pcg::Mcg128Xsl64::new(0xcafef00dd15ea5e5);
+    let mut a: Array2<f64> = random_using((3, 3), &mut rng);
     a[[0, 2]] = 0.0;
     a[[2, 0]] = 0.0;
-    let x: Array1<f64> = random(3);
+    let x: Array1<f64> = random_using(3, &mut rng);
     let at = a.t();
     let b1 = at.dot(&x);
     let b2 = b1.clone();
@@ -158,11 +161,12 @@ fn solve_tridiagonal_random_t() {
 
 #[test]
 fn extract_tridiagonal_solve_random() {
-    let mut a: Array2<f64> = random((3, 3));
+    let mut rng = rand_pcg::Mcg128Xsl64::new(0xcafef00dd15ea5e5);
+    let mut a: Array2<f64> = random_using((3, 3), &mut rng);
     a[[0, 2]] = 0.0;
     a[[2, 0]] = 0.0;
     let tridiag = a.extract_tridiagonal().unwrap();
-    let x: Array1<f64> = random(3);
+    let x: Array1<f64> = random_using(3, &mut rng);
     let b1 = a.dot(&x);
     let b2 = b1.clone();
     let y1 = tridiag.solve_tridiagonal_into(b1).unwrap();
@@ -180,7 +184,8 @@ fn det_tridiagonal_f64() {
 
 #[test]
 fn det_tridiagonal_random() {
-    let mut a: Array2<f64> = random((3, 3));
+    let mut rng = rand_pcg::Mcg128Xsl64::new(0xcafef00dd15ea5e5);
+    let mut a: Array2<f64> = random_using((3, 3), &mut rng);
     a[[0, 2]] = 0.0;
     a[[2, 0]] = 0.0;
     assert_aclose!(a.det_tridiagonal().unwrap(), a.det().unwrap(), 1e-7);

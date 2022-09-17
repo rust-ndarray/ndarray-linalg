@@ -26,48 +26,56 @@ fn test_square(a: &Array2<f64>, n: usize, m: usize) {
 
 #[test]
 fn qr_sq() {
-    let a = random((3, 3));
+    let mut rng = rand_pcg::Mcg128Xsl64::new(0xcafef00dd15ea5e5);
+    let a = random_using((3, 3), &mut rng);
     test_square(&a, 3, 3);
 }
 
 #[test]
 fn qr_sq_t() {
-    let a = random((3, 3).f());
+    let mut rng = rand_pcg::Mcg128Xsl64::new(0xcafef00dd15ea5e5);
+    let a = random_using((3, 3).f(), &mut rng);
     test_square(&a, 3, 3);
 }
 
 #[test]
 fn qr_3x3() {
-    let a = random((3, 3));
+    let mut rng = rand_pcg::Mcg128Xsl64::new(0xcafef00dd15ea5e5);
+    let a = random_using((3, 3), &mut rng);
     test(&a, 3, 3);
 }
 
 #[test]
 fn qr_3x3_t() {
-    let a = random((3, 3).f());
+    let mut rng = rand_pcg::Mcg128Xsl64::new(0xcafef00dd15ea5e5);
+    let a = random_using((3, 3).f(), &mut rng);
     test(&a, 3, 3);
 }
 
 #[test]
 fn qr_3x4() {
-    let a = random((3, 4));
+    let mut rng = rand_pcg::Mcg128Xsl64::new(0xcafef00dd15ea5e5);
+    let a = random_using((3, 4), &mut rng);
     test(&a, 3, 4);
 }
 
 #[test]
 fn qr_3x4_t() {
-    let a = random((3, 4).f());
+    let mut rng = rand_pcg::Mcg128Xsl64::new(0xcafef00dd15ea5e5);
+    let a = random_using((3, 4).f(), &mut rng);
     test(&a, 3, 4);
 }
 
 #[test]
 fn qr_4x3() {
-    let a = random((4, 3));
+    let mut rng = rand_pcg::Mcg128Xsl64::new(0xcafef00dd15ea5e5);
+    let a = random_using((4, 3), &mut rng);
     test(&a, 4, 3);
 }
 
 #[test]
 fn qr_4x3_t() {
-    let a = random((4, 3).f());
+    let mut rng = rand_pcg::Mcg128Xsl64::new(0xcafef00dd15ea5e5);
+    let a = random_using((4, 3).f(), &mut rng);
     test(&a, 4, 3);
 }

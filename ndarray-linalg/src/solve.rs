@@ -5,20 +5,13 @@
 //! Solve `A * x = b`:
 //!
 //! ```
-//! #[macro_use]
-//! extern crate ndarray;
-//! extern crate ndarray_linalg;
-//!
 //! use ndarray::prelude::*;
 //! use ndarray_linalg::Solve;
-//! # fn main() {
 //!
 //! let a: Array2<f64> = array![[3., 2., -1.], [2., -2., 4.], [-2., 1., -2.]];
 //! let b: Array1<f64> = array![1., -2., 0.];
 //! let x = a.solve_into(b).unwrap();
 //! assert!(x.abs_diff_eq(&array![1., -2., -2.], 1e-9));
-//!
-//! # }
 //! ```
 //!
 //! There are also special functions for solving `A^T * x = b` and
@@ -29,21 +22,18 @@
 //! the beginning than solving directly using `A`:
 //!
 //! ```
-//! # extern crate ndarray;
-//! # extern crate ndarray_linalg;
-//!
 //! use ndarray::prelude::*;
 //! use ndarray_linalg::*;
-//! # fn main() {
 //!
-//! let a: Array2<f64> = random((3, 3));
+//! /// Use fixed algorithm and seed of PRNG for reproducible test
+//! let mut rng = rand_pcg::Mcg128Xsl64::new(0xcafef00dd15ea5e5);
+//!
+//! let a: Array2<f64> = random_using((3, 3), &mut rng);
 //! let f = a.factorize_into().unwrap(); // LU factorize A (A is consumed)
 //! for _ in 0..10 {
-//!     let b: Array1<f64> = random(3);
+//!     let b: Array1<f64> = random_using(3, &mut  rng);
 //!     let x = f.solve_into(b).unwrap(); // Solve A * x = b using factorized L, U
 //! }
-//!
-//! # }
 //! ```
 
 use ndarray::*;

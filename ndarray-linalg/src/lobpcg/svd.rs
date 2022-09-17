@@ -214,7 +214,8 @@ mod tests {
 
     #[test]
     fn test_truncated_svd_random() {
-        let a: Array2<f64> = generate::random((50, 10));
+        let mut rng = rand_pcg::Mcg128Xsl64::new(0xcafef00dd15ea5e5);
+        let a: Array2<f64> = generate::random_using((50, 10), &mut rng);
 
         let res = TruncatedSvd::new(a.clone(), Order::Largest)
             .precision(1e-5)

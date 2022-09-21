@@ -4,6 +4,17 @@ use num_traits::{ToPrimitive, Zero};
 
 #[cfg_attr(doc, katexit::katexit)]
 /// Eigenvalue problem for general matrix
+///
+/// LAPACK assumes a column-major input. A row-major input can
+/// be interpreted as the transpose of a column-major input. So,
+/// for row-major inputs, we we want to solve the following,
+/// given the column-major input `A`:
+///
+///   A^T V = V Λ ⟺ V^T A = Λ V^T ⟺ conj(V)^H A = Λ conj(V)^H
+///
+/// So, in this case, the right eigenvectors are the conjugates
+/// of the left eigenvectors computed with `A`, and the
+/// eigenvalues are the eigenvalues computed with `A`.
 pub trait Eig_: Scalar {
     /// Compute right eigenvalue and eigenvectors $Ax = \lambda x$
     ///

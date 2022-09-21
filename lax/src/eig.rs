@@ -32,6 +32,33 @@ pub trait Eig_: Scalar {
     ) -> Result<(Vec<Self::Complex>, Vec<Self::Complex>)>;
 }
 
+/// Working memory for [Eig_]
+#[derive(Debug, Clone)]
+pub struct EigWork<T: Scalar> {
+    pub n: i32,
+    pub jobvr: JobEv,
+    pub jobvl: JobEv,
+
+    /// Eigenvalues used in complex routines
+    pub eigs: Vec<MaybeUninit<T::Complex>>,
+    /// Real part of eigenvalues used in real routines
+    pub eigs_re: Option<Vec<MaybeUninit<T::Real>>>,
+    /// Imaginary part of eigenvalues used in real routines
+    pub eigs_im: Option<Vec<MaybeUninit<T::Real>>>,
+
+    /// Left eigenvectors
+    pub vc_l: Option<Vec<MaybeUninit<T::Complex>>>,
+    pub vr_l: Option<Vec<MaybeUninit<T::Real>>>,
+    /// Right eigenvectors
+    pub vc_r: Option<Vec<MaybeUninit<T::Complex>>>,
+    pub vr_r: Option<Vec<MaybeUninit<T::Real>>>,
+
+    /// Working memory
+    pub work: Vec<MaybeUninit<T>>,
+    /// Working memory with `T::Real`
+    pub rwork: Option<Vec<MaybeUninit<T::Real>>>,
+}
+
 macro_rules! impl_eig_complex {
     ($scalar:ty, $ev:path) => {
         impl Eig_ for $scalar {

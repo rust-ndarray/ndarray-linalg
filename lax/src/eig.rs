@@ -59,6 +59,174 @@ pub struct EigWork<T: Scalar> {
     pub rwork: Option<Vec<MaybeUninit<T::Real>>>,
 }
 
+#[derive(Debug, Clone, PartialEq)]
+pub struct Eig<T: Scalar> {
+    pub eigs: Vec<T::Complex>,
+    pub vr: Option<Vec<T::Complex>>,
+    pub vl: Option<Vec<T::Complex>>,
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub struct EigRef<'work, T: Scalar> {
+    pub eigs: &'work [T::Complex],
+    pub vr: Option<&'work [T::Complex]>,
+    pub vl: Option<&'work [T::Complex]>,
+}
+
+pub trait EigWorkImpl: Sized {
+    type Elem: Scalar;
+    /// Create new working memory for eigenvalues compution.
+    fn new(calc_v: bool, l: MatrixLayout) -> Result<Self>;
+    /// Compute eigenvalues and vectors on this working memory.
+    fn calc<'work>(&'work mut self, a: &mut [Self::Elem]) -> Result<EigRef<'work, Self::Elem>>;
+    /// Compute eigenvalues and vectors by consuming this working memory.
+    fn eval(self, a: &mut [Self::Elem]) -> Result<Eig<Self::Elem>>;
+}
+
+impl EigWorkImpl for EigWork<c64> {
+    type Elem = c64;
+
+    fn new(calc_v: bool, l: MatrixLayout) -> Result<Self> {
+        let (n, _) = l.size();
+        let (jobvl, jobvr) = if calc_v {
+            match l {
+                MatrixLayout::C { .. } => (JobEv::All, JobEv::None),
+                MatrixLayout::F { .. } => (JobEv::None, JobEv::All),
+            }
+        } else {
+            (JobEv::None, JobEv::None)
+        };
+        let mut eigs: Vec<MaybeUninit<c64>> = vec_uninit(n as usize);
+        let mut rwork: Vec<MaybeUninit<f64>> = vec_uninit(2 * n as usize);
+
+        let mut vc_l: Option<Vec<MaybeUninit<c64>>> = jobvl.then(|| vec_uninit((n * n) as usize));
+        let mut vc_r: Option<Vec<MaybeUninit<c64>>> = jobvr.then(|| vec_uninit((n * n) as usize));
+
+        // calc work size
+        let mut info = 0;
+        let mut work_size = [c64::zero()];
+        unsafe {
+            lapack_sys::zgeev_(
+                jobvl.as_ptr(),
+                jobvr.as_ptr(),
+                &n,
+                std::ptr::null_mut(),
+                &n,
+                AsPtr::as_mut_ptr(&mut eigs),
+                AsPtr::as_mut_ptr(vc_l.as_deref_mut().unwrap_or(&mut [])),
+                &n,
+                AsPtr::as_mut_ptr(vc_r.as_deref_mut().unwrap_or(&mut [])),
+                &n,
+                AsPtr::as_mut_ptr(&mut work_size),
+                &(-1),
+                AsPtr::as_mut_ptr(&mut rwork),
+                &mut info,
+            )
+        };
+        info.as_lapack_result()?;
+
+        let lwork = work_size[0].to_usize().unwrap();
+        let work: Vec<MaybeUninit<c64>> = vec_uninit(lwork);
+        Ok(Self {
+            n,
+            jobvl,
+            jobvr,
+            eigs,
+            eigs_re: None,
+            eigs_im: None,
+            rwork: Some(rwork),
+            vc_l,
+            vc_r,
+            vr_l: None,
+            vr_r: None,
+            work,
+        })
+    }
+
+    fn calc<'work>(&'work mut self, a: &mut [c64]) -> Result<EigRef<'work, c64>> {
+        let lwork = self.work.len().to_i32().unwrap();
+        let mut info = 0;
+        unsafe {
+            lapack_sys::zgeev_(
+                self.jobvl.as_ptr(),
+                self.jobvr.as_ptr(),
+                &self.n,
+                AsPtr::as_mut_ptr(a),
+                &self.n,
+                AsPtr::as_mut_ptr(&mut self.eigs),
+                AsPtr::as_mut_ptr(self.vc_l.as_deref_mut().unwrap_or(&mut [])),
+                &self.n,
+                AsPtr::as_mut_ptr(self.vc_r.as_deref_mut().unwrap_or(&mut [])),
+                &self.n,
+                AsPtr::as_mut_ptr(&mut self.work),
+                &lwork,
+                AsPtr::as_mut_ptr(self.rwork.as_mut().unwrap()),
+                &mut info,
+            )
+        };
+        info.as_lapack_result()?;
+
+        let eigs = unsafe { self.eigs.slice_assume_init_ref() };
+
+        // Hermite conjugate
+        if let Some(vl) = self.vc_l.as_mut() {
+            for value in vl {
+                let value = unsafe { value.assume_init_mut() };
+                value.im = -value.im;
+            }
+        }
+        Ok(EigRef {
+            eigs,
+            vl: self
+                .vc_l
+                .as_ref()
+                .map(|v| unsafe { v.slice_assume_init_ref() }),
+            vr: self
+                .vc_r
+                .as_ref()
+                .map(|v| unsafe { v.slice_assume_init_ref() }),
+        })
+    }
+
+    fn eval(mut self, a: &mut [c64]) -> Result<Eig<c64>> {
+        let lwork = self.work.len().to_i32().unwrap();
+        let mut info = 0;
+        unsafe {
+            lapack_sys::zgeev_(
+                self.jobvl.as_ptr(),
+                self.jobvr.as_ptr(),
+                &self.n,
+                AsPtr::as_mut_ptr(a),
+                &self.n,
+                AsPtr::as_mut_ptr(&mut self.eigs),
+                AsPtr::as_mut_ptr(self.vc_l.as_deref_mut().unwrap_or(&mut [])),
+                &self.n,
+                AsPtr::as_mut_ptr(self.vc_r.as_deref_mut().unwrap_or(&mut [])),
+                &self.n,
+                AsPtr::as_mut_ptr(&mut self.work),
+                &lwork,
+                AsPtr::as_mut_ptr(self.rwork.as_mut().unwrap()),
+                &mut info,
+            )
+        };
+        info.as_lapack_result()?;
+        let eigs = unsafe { self.eigs.assume_init() };
+
+        // Hermite conjugate
+        if let Some(vl) = self.vc_l.as_mut() {
+            for value in vl {
+                let value = unsafe { value.assume_init_mut() };
+                value.im = -value.im;
+            }
+        }
+        Ok(Eig {
+            eigs,
+            vl: self.vc_l.map(|v| unsafe { v.assume_init() }),
+            vr: self.vc_r.map(|v| unsafe { v.assume_init() }),
+        })
+    }
+}
+
 macro_rules! impl_eig_complex {
     ($scalar:ty, $ev:path) => {
         impl Eig_ for $scalar {

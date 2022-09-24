@@ -58,7 +58,7 @@
 //! According to the property input metrix,
 //! there are several types of eigenvalue problem API
 //!
-//! - [Eig_] trait provides methods for eigenvalue problem for general matrix.
+//! - [eig] module for eigenvalue problem for general matrix.
 //! - [Eigh_] trait provides methods for eigenvalue problem for symmetric/hermite matrix.
 //!
 //! Singular Value Decomposition
@@ -146,6 +146,7 @@ pub trait Lapack:
 macro_rules! impl_lapack {
     ($s:ty) => {
         impl Lapack for $s {
+            /// Compute right eigenvalue and eigenvectors
             fn eig(
                 calc_v: bool,
                 l: MatrixLayout,

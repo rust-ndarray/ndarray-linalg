@@ -1,4 +1,12 @@
 //! Eigenvalue problem for general matricies
+//!
+//! LAPACK correspondance
+//! ----------------------
+//!
+//! | f32   | f64   | c32   | c64   |
+//! |:------|:------|:------|:------|
+//! | sgeev | dgeev | cgeev | zgeev |
+//!
 
 use crate::{error::*, layout::MatrixLayout, *};
 use cauchy::*;

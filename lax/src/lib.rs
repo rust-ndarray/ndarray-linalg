@@ -101,7 +101,6 @@ mod triangular;
 mod tridiagonal;
 
 pub use self::cholesky::*;
-pub use self::eig::Eig_;
 pub use self::eigh::*;
 pub use self::flags::*;
 pub use self::least_squares::*;
@@ -115,7 +114,7 @@ pub use self::svddc::*;
 pub use self::triangular::*;
 pub use self::tridiagonal::*;
 
-use self::alloc::*;
+use self::{alloc::*, error::*, layout::*};
 use cauchy::*;
 use std::mem::MaybeUninit;
 
@@ -130,16 +129,37 @@ pub trait Lapack:
     + Solve_
     + Solveh_
     + Cholesky_
-    + Eig_
     + Eigh_
     + Triangular_
     + Tridiagonal_
     + Rcond_
     + LeastSquaresSvdDivideConquer_
 {
+    /// Compute right eigenvalue and eigenvectors
+    fn eig(
+        calc_v: bool,
+        l: MatrixLayout,
+        a: &mut [Self],
+    ) -> Result<(Vec<Self::Complex>, Vec<Self::Complex>)>;
 }
 
-impl Lapack for f32 {}
-impl Lapack for f64 {}
-impl Lapack for c32 {}
-impl Lapack for c64 {}
+macro_rules! impl_lapack {
+    ($s:ty) => {
+        impl Lapack for $s {
+            fn eig(
+                calc_v: bool,
+                l: MatrixLayout,
+                a: &mut [Self],
+            ) -> Result<(Vec<Self::Complex>, Vec<Self::Complex>)> {
+                use eig::*;
+                let work = EigWork::<$s>::new(calc_v, l)?;
+                let EigOwned { eigs, vr, vl } = work.eval(a)?;
+                Ok((eigs, vr.or(vl).unwrap_or_default()))
+            }
+        }
+    };
+}
+impl_lapack!(c64);
+impl_lapack!(c32);
+impl_lapack!(f64);
+impl_lapack!(f32);

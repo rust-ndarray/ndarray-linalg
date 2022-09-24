@@ -268,34 +268,7 @@ macro_rules! impl_eig_work_c {
             }
 
             fn eval(mut self, a: &mut [Self::Elem]) -> Result<EigOwned<Self::Elem>> {
-                let lwork = self.work.len().to_i32().unwrap();
-                let mut info = 0;
-                unsafe {
-                    $ev(
-                        self.jobvl.as_ptr(),
-                        self.jobvr.as_ptr(),
-                        &self.n,
-                        AsPtr::as_mut_ptr(a),
-                        &self.n,
-                        AsPtr::as_mut_ptr(&mut self.eigs),
-                        AsPtr::as_mut_ptr(self.vc_l.as_deref_mut().unwrap_or(&mut [])),
-                        &self.n,
-                        AsPtr::as_mut_ptr(self.vc_r.as_deref_mut().unwrap_or(&mut [])),
-                        &self.n,
-                        AsPtr::as_mut_ptr(&mut self.work),
-                        &lwork,
-                        AsPtr::as_mut_ptr(self.rwork.as_mut().unwrap()),
-                        &mut info,
-                    )
-                };
-                info.as_lapack_result()?;
-                // Hermite conjugate
-                if let Some(vl) = self.vc_l.as_mut() {
-                    for value in vl {
-                        let value = unsafe { value.assume_init_mut() };
-                        value.im = -value.im;
-                    }
-                }
+                let _eig_ref = self.calc(a)?;
                 Ok(EigOwned {
                     eigs: unsafe { self.eigs.assume_init() },
                     vl: self.vc_l.map(|v| unsafe { v.assume_init() }),
@@ -435,49 +408,7 @@ macro_rules! impl_eig_work_r {
             }
 
             fn eval(mut self, a: &mut [Self::Elem]) -> Result<EigOwned<Self::Elem>> {
-                let lwork = self.work.len().to_i32().unwrap();
-                let mut info = 0;
-                unsafe {
-                    $ev(
-                        self.jobvl.as_ptr(),
-                        self.jobvr.as_ptr(),
-                        &self.n,
-                        AsPtr::as_mut_ptr(a),
-                        &self.n,
-                        AsPtr::as_mut_ptr(self.eigs_re.as_mut().unwrap()),
-                        AsPtr::as_mut_ptr(self.eigs_im.as_mut().unwrap()),
-                        AsPtr::as_mut_ptr(self.vr_l.as_deref_mut().unwrap_or(&mut [])),
-                        &self.n,
-                        AsPtr::as_mut_ptr(self.vr_r.as_deref_mut().unwrap_or(&mut [])),
-                        &self.n,
-                        AsPtr::as_mut_ptr(&mut self.work),
-                        &lwork,
-                        &mut info,
-                    )
-                };
-                info.as_lapack_result()?;
-
-                let eigs_re = self
-                    .eigs_re
-                    .as_ref()
-                    .map(|e| unsafe { e.slice_assume_init_ref() })
-                    .unwrap();
-                let eigs_im = self
-                    .eigs_im
-                    .as_ref()
-                    .map(|e| unsafe { e.slice_assume_init_ref() })
-                    .unwrap();
-                reconstruct_eigs(eigs_re, eigs_im, &mut self.eigs);
-
-                if let Some(v) = self.vr_l.as_ref() {
-                    let v = unsafe { v.slice_assume_init_ref() };
-                    reconstruct_eigenvectors(true, eigs_im, v, self.vc_l.as_mut().unwrap());
-                }
-                if let Some(v) = self.vr_r.as_ref() {
-                    let v = unsafe { v.slice_assume_init_ref() };
-                    reconstruct_eigenvectors(false, eigs_im, v, self.vc_r.as_mut().unwrap());
-                }
-
+                let _eig_ref = self.calc(a)?;
                 Ok(EigOwned {
                     eigs: unsafe { self.eigs.assume_init() },
                     vl: self.vc_l.map(|v| unsafe { v.assume_init() }),

@@ -1,3 +1,5 @@
+//! Eigenvalue problem for general matricies
+
 use crate::{error::*, layout::MatrixLayout, *};
 use cauchy::*;
 use num_traits::{ToPrimitive, Zero};
@@ -5,16 +7,39 @@ use num_traits::{ToPrimitive, Zero};
 #[cfg_attr(doc, katexit::katexit)]
 /// Eigenvalue problem for general matrix
 ///
-/// LAPACK assumes a column-major input. A row-major input can
-/// be interpreted as the transpose of a column-major input. So,
-/// for row-major inputs, we we want to solve the following,
-/// given the column-major input `A`:
+/// To manage memory more strictly, use [EigWork].
 ///
-///   A^T V = V Λ ⟺ V^T A = Λ V^T ⟺ conj(V)^H A = Λ conj(V)^H
+/// Right and Left eigenvalue problem
+/// ----------------------------------
+/// LAPACK can solve both right eigenvalue problem
+/// $$
+/// AV_R = V_R \Lambda
+/// $$
+/// where $V_R = \left( v_R^1, \cdots, v_R^n \right)$ are right eigenvectors
+/// and left eigenvalue problem
+/// $$
+/// V_L^\dagger A = V_L^\dagger \Lambda
+/// $$
+/// where $V_L = \left( v_L^1, \cdots, v_L^n \right)$ are left eigenvectors
+/// and eigenvalues
+/// $$
+/// \Lambda = \begin{pmatrix}
+///   \lambda_1 &        & 0 \\\\
+///             & \ddots &   \\\\
+///   0         &        & \lambda_n
+/// \end{pmatrix}
+/// $$
+/// which satisfies $A v_R^i = \lambda_i v_R^i$ and
+/// $\left(v_L^i\right)^\dagger A = \lambda_i \left(v_L^i\right)^\dagger$
+/// for column-major matrices, although row-major matrices are not supported.
+/// Since a row-major matrix can be interpreted
+/// as a transpose of a column-major matrix,
+/// this transforms right eigenvalue problem to left one:
 ///
-/// So, in this case, the right eigenvectors are the conjugates
-/// of the left eigenvectors computed with `A`, and the
-/// eigenvalues are the eigenvalues computed with `A`.
+/// $$
+/// A^\dagger V = V Λ ⟺ V^\dagger A = Λ V^\dagger
+/// $$
+///
 pub trait Eig_: Scalar {
     /// Compute right eigenvalue and eigenvectors $Ax = \lambda x$
     ///
@@ -41,7 +66,7 @@ macro_rules! impl_eig {
                 a: &mut [Self],
             ) -> Result<(Vec<Self::Complex>, Vec<Self::Complex>)> {
                 let work = EigWork::<$s>::new(calc_v, l)?;
-                let Eig { eigs, vr, vl } = work.eval(a)?;
+                let EigOwned { eigs, vr, vl } = work.eval(a)?;
                 Ok((eigs, vr.or(vl).unwrap_or_default()))
             }
         }
@@ -53,13 +78,16 @@ impl_eig!(f64);
 impl_eig!(f32);
 
 /// Working memory for [Eig_]
-#[derive(Debug, Clone)]
+#[non_exhaustive]
 pub struct EigWork<T: Scalar> {
+    /// Problem size
     pub n: i32,
+    /// Compute right eigenvectors or not
     pub jobvr: JobEv,
+    /// Compute left eigenvectors or not
     pub jobvl: JobEv,
 
-    /// Eigenvalues used in complex routines
+    /// Eigenvalues
     pub eigs: Vec<MaybeUninit<T::Complex>>,
     /// Real part of eigenvalues used in real routines
     pub eigs_re: Option<Vec<MaybeUninit<T::Real>>>,
@@ -68,9 +96,11 @@ pub struct EigWork<T: Scalar> {
 
     /// Left eigenvectors
     pub vc_l: Option<Vec<MaybeUninit<T::Complex>>>,
+    /// Left eigenvectors used in real routines
     pub vr_l: Option<Vec<MaybeUninit<T::Real>>>,
     /// Right eigenvectors
     pub vc_r: Option<Vec<MaybeUninit<T::Complex>>>,
+    /// Right eigenvectors used in real routines
     pub vr_r: Option<Vec<MaybeUninit<T::Real>>>,
 
     /// Working memory
@@ -79,28 +109,55 @@ pub struct EigWork<T: Scalar> {
     pub rwork: Option<Vec<MaybeUninit<T::Real>>>,
 }
 
+impl<T> EigWork<T>
+where
+    T: Scalar,
+    EigWork<T>: EigWorkImpl<Elem = T>,
+{
+    /// Create new working memory for eigenvalues compution.
+    pub fn new(calc_v: bool, l: MatrixLayout) -> Result<Self> {
+        EigWorkImpl::new(calc_v, l)
+    }
+
+    /// Compute eigenvalues and vectors on this working memory.
+    pub fn calc(&mut self, a: &mut [T]) -> Result<EigRef<T>> {
+        EigWorkImpl::calc(self, a)
+    }
+
+    /// Compute eigenvalues and vectors by consuming this working memory.
+    pub fn eval(self, a: &mut [T]) -> Result<EigOwned<T>> {
+        EigWorkImpl::eval(self, a)
+    }
+}
+
+/// Owned result of eigenvalue problem by [EigWork::eval]
 #[derive(Debug, Clone, PartialEq)]
-pub struct Eig<T: Scalar> {
+pub struct EigOwned<T: Scalar> {
+    /// Eigenvalues
     pub eigs: Vec<T::Complex>,
+    /// Right eigenvectors
     pub vr: Option<Vec<T::Complex>>,
+    /// Left eigenvectors
     pub vl: Option<Vec<T::Complex>>,
 }
 
+/// Reference result of eigenvalue problem by [EigWork::calc]
 #[derive(Debug, Clone, PartialEq)]
 pub struct EigRef<'work, T: Scalar> {
+    /// Eigenvalues
     pub eigs: &'work [T::Complex],
+    /// Right eigenvectors
     pub vr: Option<&'work [T::Complex]>,
+    /// Left eigenvectors
     pub vl: Option<&'work [T::Complex]>,
 }
 
+/// Helper trait for implementing [EigWork] methods
 pub trait EigWorkImpl: Sized {
     type Elem: Scalar;
-    /// Create new working memory for eigenvalues compution.
     fn new(calc_v: bool, l: MatrixLayout) -> Result<Self>;
-    /// Compute eigenvalues and vectors on this working memory.
     fn calc<'work>(&'work mut self, a: &mut [Self::Elem]) -> Result<EigRef<'work, Self::Elem>>;
-    /// Compute eigenvalues and vectors by consuming this working memory.
-    fn eval(self, a: &mut [Self::Elem]) -> Result<Eig<Self::Elem>>;
+    fn eval(self, a: &mut [Self::Elem]) -> Result<EigOwned<Self::Elem>>;
 }
 
 macro_rules! impl_eig_work_c {
@@ -210,7 +267,7 @@ macro_rules! impl_eig_work_c {
                 })
             }
 
-            fn eval(mut self, a: &mut [Self::Elem]) -> Result<Eig<Self::Elem>> {
+            fn eval(mut self, a: &mut [Self::Elem]) -> Result<EigOwned<Self::Elem>> {
                 let lwork = self.work.len().to_i32().unwrap();
                 let mut info = 0;
                 unsafe {
@@ -239,7 +296,7 @@ macro_rules! impl_eig_work_c {
                         value.im = -value.im;
                     }
                 }
-                Ok(Eig {
+                Ok(EigOwned {
                     eigs: unsafe { self.eigs.assume_init() },
                     vl: self.vc_l.map(|v| unsafe { v.assume_init() }),
                     vr: self.vc_r.map(|v| unsafe { v.assume_init() }),
@@ -377,7 +434,7 @@ macro_rules! impl_eig_work_r {
                 })
             }
 
-            fn eval(mut self, a: &mut [Self::Elem]) -> Result<Eig<Self::Elem>> {
+            fn eval(mut self, a: &mut [Self::Elem]) -> Result<EigOwned<Self::Elem>> {
                 let lwork = self.work.len().to_i32().unwrap();
                 let mut info = 0;
                 unsafe {
@@ -421,7 +478,7 @@ macro_rules! impl_eig_work_r {
                     reconstruct_eigenvectors(false, eigs_im, v, self.vc_r.as_mut().unwrap());
                 }
 
-                Ok(Eig {
+                Ok(EigOwned {
                     eigs: unsafe { self.eigs.assume_init() },
                     vl: self.vc_l.map(|v| unsafe { v.assume_init() }),
                     vr: self.vc_r.map(|v| unsafe { v.assume_init() }),

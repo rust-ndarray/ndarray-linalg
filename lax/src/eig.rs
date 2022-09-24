@@ -32,6 +32,26 @@ pub trait Eig_: Scalar {
     ) -> Result<(Vec<Self::Complex>, Vec<Self::Complex>)>;
 }
 
+macro_rules! impl_eig {
+    ($s:ty) => {
+        impl Eig_ for $s {
+            fn eig(
+                calc_v: bool,
+                l: MatrixLayout,
+                a: &mut [Self],
+            ) -> Result<(Vec<Self::Complex>, Vec<Self::Complex>)> {
+                let work = EigWork::<$s>::new(calc_v, l)?;
+                let Eig { eigs, vr, vl } = work.eval(a)?;
+                Ok((eigs, vr.or(vl).unwrap_or_default()))
+            }
+        }
+    };
+}
+impl_eig!(c64);
+impl_eig!(c32);
+impl_eig!(f64);
+impl_eig!(f32);
+
 /// Working memory for [Eig_]
 #[derive(Debug, Clone)]
 pub struct EigWork<T: Scalar> {
@@ -412,228 +432,6 @@ macro_rules! impl_eig_work_r {
 }
 impl_eig_work_r!(f32, lapack_sys::sgeev_);
 impl_eig_work_r!(f64, lapack_sys::dgeev_);
-
-macro_rules! impl_eig_complex {
-    ($scalar:ty, $ev:path) => {
-        impl Eig_ for $scalar {
-            fn eig(
-                calc_v: bool,
-                l: MatrixLayout,
-                a: &mut [Self],
-            ) -> Result<(Vec<Self::Complex>, Vec<Self::Complex>)> {
-                let (n, _) = l.size();
-                // LAPACK assumes a column-major input. A row-major input can
-                // be interpreted as the transpose of a column-major input. So,
-                // for row-major inputs, we we want to solve the following,
-                // given the column-major input `A`:
-                //
-                //   A^T V = V Λ ⟺ V^T A = Λ V^T ⟺ conj(V)^H A = Λ conj(V)^H
-                //
-                // So, in this case, the right eigenvectors are the conjugates
-                // of the left eigenvectors computed with `A`, and the
-                // eigenvalues are the eigenvalues computed with `A`.
-                let (jobvl, jobvr) = if calc_v {
-                    match l {
-                        MatrixLayout::C { .. } => (JobEv::All, JobEv::None),
-                        MatrixLayout::F { .. } => (JobEv::None, JobEv::All),
-                    }
-                } else {
-                    (JobEv::None, JobEv::None)
-                };
-                let mut eigs: Vec<MaybeUninit<Self>> = vec_uninit(n as usize);
-                let mut rwork: Vec<MaybeUninit<Self::Real>> = vec_uninit(2 * n as usize);
-
-                let mut vl: Option<Vec<MaybeUninit<Self>>> =
-                    jobvl.then(|| vec_uninit((n * n) as usize));
-                let mut vr: Option<Vec<MaybeUninit<Self>>> =
-                    jobvr.then(|| vec_uninit((n * n) as usize));
-
-                // calc work size
-                let mut info = 0;
-                let mut work_size = [Self::zero()];
-                unsafe {
-                    $ev(
-                        jobvl.as_ptr(),
-                        jobvr.as_ptr(),
-                        &n,
-                        AsPtr::as_mut_ptr(a),
-                        &n,
-                        AsPtr::as_mut_ptr(&mut eigs),
-                        AsPtr::as_mut_ptr(vl.as_mut().map(|v| v.as_mut_slice()).unwrap_or(&mut [])),
-                        &n,
-                        AsPtr::as_mut_ptr(vr.as_mut().map(|v| v.as_mut_slice()).unwrap_or(&mut [])),
-                        &n,
-                        AsPtr::as_mut_ptr(&mut work_size),
-                        &(-1),
-                        AsPtr::as_mut_ptr(&mut rwork),
-                        &mut info,
-                    )
-                };
-                info.as_lapack_result()?;
-
-                // actal ev
-                let lwork = work_size[0].to_usize().unwrap();
-                let mut work: Vec<MaybeUninit<Self>> = vec_uninit(lwork);
-                let lwork = lwork as i32;
-                unsafe {
-                    $ev(
-                        jobvl.as_ptr(),
-                        jobvr.as_ptr(),
-                        &n,
-                        AsPtr::as_mut_ptr(a),
-                        &n,
-                        AsPtr::as_mut_ptr(&mut eigs),
-                        AsPtr::as_mut_ptr(vl.as_mut().map(|v| v.as_mut_slice()).unwrap_or(&mut [])),
-                        &n,
-                        AsPtr::as_mut_ptr(vr.as_mut().map(|v| v.as_mut_slice()).unwrap_or(&mut [])),
-                        &n,
-                        AsPtr::as_mut_ptr(&mut work),
-                        &lwork,
-                        AsPtr::as_mut_ptr(&mut rwork),
-                        &mut info,
-                    )
-                };
-                info.as_lapack_result()?;
-
-                let eigs = unsafe { eigs.assume_init() };
-                let vr = unsafe { vr.map(|v| v.assume_init()) };
-                let mut vl = unsafe { vl.map(|v| v.assume_init()) };
-
-                // Hermite conjugate
-                if jobvl.is_calc() {
-                    for c in vl.as_mut().unwrap().iter_mut() {
-                        c.im = -c.im;
-                    }
-                }
-
-                Ok((eigs, vr.or(vl).unwrap_or(Vec::new())))
-            }
-        }
-    };
-}
-
-impl_eig_complex!(c64, lapack_sys::zgeev_);
-impl_eig_complex!(c32, lapack_sys::cgeev_);
-
-macro_rules! impl_eig_real {
-    ($scalar:ty, $ev:path) => {
-        impl Eig_ for $scalar {
-            fn eig(
-                calc_v: bool,
-                l: MatrixLayout,
-                a: &mut [Self],
-            ) -> Result<(Vec<Self::Complex>, Vec<Self::Complex>)> {
-                let (n, _) = l.size();
-                // LAPACK assumes a column-major input. A row-major input can
-                // be interpreted as the transpose of a column-major input. So,
-                // for row-major inputs, we we want to solve the following,
-                // given the column-major input `A`:
-                //
-                //   A^T V = V Λ ⟺ V^T A = Λ V^T ⟺ conj(V)^H A = Λ conj(V)^H
-                //
-                // So, in this case, the right eigenvectors are the conjugates
-                // of the left eigenvectors computed with `A`, and the
-                // eigenvalues are the eigenvalues computed with `A`.
-                //
-                // We could conjugate the eigenvalues instead of the
-                // eigenvectors, but we have to reconstruct the eigenvectors
-                // into new matrices anyway, and by not modifying the
-                // eigenvalues, we preserve the nice ordering specified by
-                // `sgeev`/`dgeev`.
-                let (jobvl, jobvr) = if calc_v {
-                    match l {
-                        MatrixLayout::C { .. } => (JobEv::All, JobEv::None),
-                        MatrixLayout::F { .. } => (JobEv::None, JobEv::All),
-                    }
-                } else {
-                    (JobEv::None, JobEv::None)
-                };
-                let mut eig_re: Vec<MaybeUninit<Self>> = vec_uninit(n as usize);
-                let mut eig_im: Vec<MaybeUninit<Self>> = vec_uninit(n as usize);
-
-                let mut vl: Option<Vec<MaybeUninit<Self>>> =
-                    jobvl.then(|| vec_uninit((n * n) as usize));
-                let mut vr: Option<Vec<MaybeUninit<Self>>> =
-                    jobvr.then(|| vec_uninit((n * n) as usize));
-
-                // calc work size
-                let mut info = 0;
-                let mut work_size: [Self; 1] = [0.0];
-                unsafe {
-                    $ev(
-                        jobvl.as_ptr(),
-                        jobvr.as_ptr(),
-                        &n,
-                        AsPtr::as_mut_ptr(a),
-                        &n,
-                        AsPtr::as_mut_ptr(&mut eig_re),
-                        AsPtr::as_mut_ptr(&mut eig_im),
-                        AsPtr::as_mut_ptr(vl.as_mut().map(|v| v.as_mut_slice()).unwrap_or(&mut [])),
-                        &n,
-                        AsPtr::as_mut_ptr(vr.as_mut().map(|v| v.as_mut_slice()).unwrap_or(&mut [])),
-                        &n,
-                        AsPtr::as_mut_ptr(&mut work_size),
-                        &(-1),
-                        &mut info,
-                    )
-                };
-                info.as_lapack_result()?;
-
-                // actual ev
-                let lwork = work_size[0].to_usize().unwrap();
-                let mut work: Vec<MaybeUninit<Self>> = vec_uninit(lwork);
-                let lwork = lwork as i32;
-                unsafe {
-                    $ev(
-                        jobvl.as_ptr(),
-                        jobvr.as_ptr(),
-                        &n,
-                        AsPtr::as_mut_ptr(a),
-                        &n,
-                        AsPtr::as_mut_ptr(&mut eig_re),
-                        AsPtr::as_mut_ptr(&mut eig_im),
-                        AsPtr::as_mut_ptr(vl.as_mut().map(|v| v.as_mut_slice()).unwrap_or(&mut [])),
-                        &n,
-                        AsPtr::as_mut_ptr(vr.as_mut().map(|v| v.as_mut_slice()).unwrap_or(&mut [])),
-                        &n,
-                        AsPtr::as_mut_ptr(&mut work),
-                        &lwork,
-                        &mut info,
-                    )
-                };
-                info.as_lapack_result()?;
-
-                let eig_re = unsafe { eig_re.assume_init() };
-                let eig_im = unsafe { eig_im.assume_init() };
-                let vl = unsafe { vl.map(|v| v.assume_init()) };
-                let vr = unsafe { vr.map(|v| v.assume_init()) };
-
-                // reconstruct eigenvalues
-                let eigs: Vec<Self::Complex> = eig_re
-                    .iter()
-                    .zip(eig_im.iter())
-                    .map(|(&re, &im)| Self::complex(re, im))
-                    .collect();
-
-                if calc_v {
-                    let mut eigvecs = vec_uninit((n * n) as usize);
-                    reconstruct_eigenvectors(
-                        jobvl.is_calc(),
-                        &eig_im,
-                        &vr.or(vl).unwrap(),
-                        &mut eigvecs,
-                    );
-                    Ok((eigs, unsafe { eigvecs.assume_init() }))
-                } else {
-                    Ok((eigs, Vec::new()))
-                }
-            }
-        }
-    };
-}
-
-impl_eig_real!(f64, lapack_sys::dgeev_);
-impl_eig_real!(f32, lapack_sys::sgeev_);
 
 /// Reconstruct eigenvectors into complex-array
 ///

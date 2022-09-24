@@ -1,4 +1,12 @@
 //! Eigenvalue problem for general matricies
+//!
+//! LAPACK correspondance
+//! ----------------------
+//!
+//! | f32   | f64   | c32   | c64   |
+//! |:------|:------|:------|:------|
+//! | sgeev | dgeev | cgeev | zgeev |
+//!
 
 use crate::{error::*, layout::MatrixLayout, *};
 use cauchy::*;
@@ -40,44 +48,6 @@ use num_traits::{ToPrimitive, Zero};
 /// A^\dagger V = V Λ ⟺ V^\dagger A = Λ V^\dagger
 /// $$
 ///
-pub trait Eig_: Scalar {
-    /// Compute right eigenvalue and eigenvectors $Ax = \lambda x$
-    ///
-    /// LAPACK correspondance
-    /// ----------------------
-    ///
-    /// | f32   | f64   | c32   | c64   |
-    /// |:------|:------|:------|:------|
-    /// | sgeev | dgeev | cgeev | zgeev |
-    ///
-    fn eig(
-        calc_v: bool,
-        l: MatrixLayout,
-        a: &mut [Self],
-    ) -> Result<(Vec<Self::Complex>, Vec<Self::Complex>)>;
-}
-
-macro_rules! impl_eig {
-    ($s:ty) => {
-        impl Eig_ for $s {
-            fn eig(
-                calc_v: bool,
-                l: MatrixLayout,
-                a: &mut [Self],
-            ) -> Result<(Vec<Self::Complex>, Vec<Self::Complex>)> {
-                let work = EigWork::<$s>::new(calc_v, l)?;
-                let EigOwned { eigs, vr, vl } = work.eval(a)?;
-                Ok((eigs, vr.or(vl).unwrap_or_default()))
-            }
-        }
-    };
-}
-impl_eig!(c64);
-impl_eig!(c32);
-impl_eig!(f64);
-impl_eig!(f32);
-
-/// Working memory for [Eig_]
 #[non_exhaustive]
 pub struct EigWork<T: Scalar> {
     /// Problem size

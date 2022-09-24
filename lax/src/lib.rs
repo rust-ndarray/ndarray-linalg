@@ -89,6 +89,7 @@ pub mod eig;
 mod alloc;
 mod cholesky;
 mod eigh;
+mod eigh_generalized;
 mod least_squares;
 mod opnorm;
 mod qr;
@@ -102,6 +103,7 @@ mod tridiagonal;
 
 pub use self::cholesky::*;
 pub use self::eigh::*;
+pub use self::eigh_generalized::*;
 pub use self::flags::*;
 pub use self::least_squares::*;
 pub use self::opnorm::*;
@@ -130,6 +132,7 @@ pub trait Lapack:
     + Solveh_
     + Cholesky_
     + Eigh_
+    + EighGeneralized_
     + Triangular_
     + Tridiagonal_
     + Rcond_

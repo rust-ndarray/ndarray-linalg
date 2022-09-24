@@ -357,11 +357,11 @@ macro_rules! impl_eig_work_r {
 
                 if let Some(v) = self.vr_l.as_ref() {
                     let v = unsafe { v.slice_assume_init_ref() };
-                    reconstruct_eigenvectors(false, eigs_im, v, self.vc_l.as_mut().unwrap());
+                    reconstruct_eigenvectors(true, eigs_im, v, self.vc_l.as_mut().unwrap());
                 }
                 if let Some(v) = self.vr_r.as_ref() {
                     let v = unsafe { v.slice_assume_init_ref() };
-                    reconstruct_eigenvectors(false, eigs_im, v, self.vc_l.as_mut().unwrap());
+                    reconstruct_eigenvectors(false, eigs_im, v, self.vc_r.as_mut().unwrap());
                 }
 
                 Ok(EigRef {
@@ -414,11 +414,11 @@ macro_rules! impl_eig_work_r {
 
                 if let Some(v) = self.vr_l.as_ref() {
                     let v = unsafe { v.slice_assume_init_ref() };
-                    reconstruct_eigenvectors(false, eigs_im, v, self.vc_l.as_mut().unwrap());
+                    reconstruct_eigenvectors(true, eigs_im, v, self.vc_l.as_mut().unwrap());
                 }
                 if let Some(v) = self.vr_r.as_ref() {
                     let v = unsafe { v.slice_assume_init_ref() };
-                    reconstruct_eigenvectors(false, eigs_im, v, self.vc_l.as_mut().unwrap());
+                    reconstruct_eigenvectors(false, eigs_im, v, self.vc_r.as_mut().unwrap());
                 }
 
                 Ok(Eig {

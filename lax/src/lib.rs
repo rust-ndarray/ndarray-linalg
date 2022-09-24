@@ -84,9 +84,10 @@ pub mod error;
 pub mod flags;
 pub mod layout;
 
+pub mod eig;
+
 mod alloc;
 mod cholesky;
-mod eig;
 mod eigh;
 mod least_squares;
 mod opnorm;
@@ -100,7 +101,7 @@ mod triangular;
 mod tridiagonal;
 
 pub use self::cholesky::*;
-pub use self::eig::*;
+pub use self::eig::Eig_;
 pub use self::eigh::*;
 pub use self::flags::*;
 pub use self::least_squares::*;

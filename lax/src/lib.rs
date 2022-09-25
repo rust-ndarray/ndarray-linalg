@@ -131,25 +131,31 @@ pub trait Lapack:
     + Solve_
     + Solveh_
     + Cholesky_
-    + Eigh_
     + EighGeneralized_
     + Triangular_
     + Tridiagonal_
     + Rcond_
     + LeastSquaresSvdDivideConquer_
 {
-    /// Compute right eigenvalue and eigenvectors
+    /// Compute right eigenvalue and eigenvectors for a general matrix
     fn eig(
         calc_v: bool,
         l: MatrixLayout,
         a: &mut [Self],
     ) -> Result<(Vec<Self::Complex>, Vec<Self::Complex>)>;
+
+    /// Compute right eigenvalue and eigenvectors for a symmetric or hermite matrix
+    fn eigh(
+        calc_eigenvec: bool,
+        layout: MatrixLayout,
+        uplo: UPLO,
+        a: &mut [Self],
+    ) -> Result<Vec<Self::Real>>;
 }
 
 macro_rules! impl_lapack {
     ($s:ty) => {
         impl Lapack for $s {
-            /// Compute right eigenvalue and eigenvectors
             fn eig(
                 calc_v: bool,
                 l: MatrixLayout,
@@ -159,6 +165,17 @@ macro_rules! impl_lapack {
                 let work = EigWork::<$s>::new(calc_v, l)?;
                 let EigOwned { eigs, vr, vl } = work.eval(a)?;
                 Ok((eigs, vr.or(vl).unwrap_or_default()))
+            }
+
+            fn eigh(
+                calc_eigenvec: bool,
+                layout: MatrixLayout,
+                uplo: UPLO,
+                a: &mut [Self],
+            ) -> Result<Vec<Self::Real>> {
+                use eigh::*;
+                let work = EighWork::<$s>::new(calc_eigenvec, layout)?;
+                work.eval(uplo, a)
             }
         }
     };

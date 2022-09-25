@@ -44,6 +44,7 @@
     clippy::type_complexity,
     clippy::ptr_arg
 )]
+#![deny(rustdoc::broken_intra_doc_links)]
 
 #[macro_use]
 extern crate ndarray;

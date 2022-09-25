@@ -59,7 +59,8 @@
 //! there are several types of eigenvalue problem API
 //!
 //! - [eig] module for eigenvalue problem for general matrix.
-//! - [Eigh_] trait provides methods for eigenvalue problem for symmetric/hermite matrix.
+//! - [eigh] module for eigenvalue problem for symmetric/hermite matrix.
+//! - [eigh_generalized] module for generalized eigenvalue problem for symmetric/hermite matrix.
 //!
 //! Singular Value Decomposition
 //! -----------------------------

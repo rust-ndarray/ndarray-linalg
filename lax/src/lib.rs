@@ -131,7 +131,6 @@ pub trait Lapack:
     + Solve_
     + Solveh_
     + Cholesky_
-    + EighGeneralized_
     + Triangular_
     + Tridiagonal_
     + Rcond_
@@ -150,6 +149,15 @@ pub trait Lapack:
         layout: MatrixLayout,
         uplo: UPLO,
         a: &mut [Self],
+    ) -> Result<Vec<Self::Real>>;
+
+    /// Compute right eigenvalue and eigenvectors for a symmetric or hermite matrix
+    fn eigh_generalized(
+        calc_eigenvec: bool,
+        layout: MatrixLayout,
+        uplo: UPLO,
+        a: &mut [Self],
+        b: &mut [Self],
     ) -> Result<Vec<Self::Real>>;
 }
 
@@ -176,6 +184,18 @@ macro_rules! impl_lapack {
                 use eigh::*;
                 let work = EighWork::<$s>::new(calc_eigenvec, layout)?;
                 work.eval(uplo, a)
+            }
+
+            fn eigh_generalized(
+                calc_eigenvec: bool,
+                layout: MatrixLayout,
+                uplo: UPLO,
+                a: &mut [Self],
+                b: &mut [Self],
+            ) -> Result<Vec<Self::Real>> {
+                use eigh_generalized::*;
+                let work = EighGeneralizedWork::<$s>::new(calc_eigenvec, layout)?;
+                work.eval(uplo, a, b)
             }
         }
     };

@@ -1,18 +1,19 @@
-//! Eigenvalue problem for symmetric/Hermite matricies
+//! Compute generalized right eigenvalue and eigenvectors
 //!
 //! LAPACK correspondance
 //! ----------------------
 //!
 //! | f32   | f64   | c32   | c64   |
 //! |:------|:------|:------|:------|
-//! | ssyev | dsyev | cheev | zheev |
+//! | ssygv | dsygv | chegv | zhegv |
+//!
 
 use super::*;
 use crate::{error::*, layout::MatrixLayout};
 use cauchy::*;
 use num_traits::{ToPrimitive, Zero};
 
-pub struct EighWork<T: Scalar> {
+pub struct EighGeneralizedWork<T: Scalar> {
     pub n: i32,
     pub jobz: JobEv,
     pub eigs: Vec<MaybeUninit<T::Real>>,
@@ -20,17 +21,26 @@ pub struct EighWork<T: Scalar> {
     pub rwork: Option<Vec<MaybeUninit<T::Real>>>,
 }
 
-pub trait EighWorkImpl: Sized {
+pub trait EighGeneralizedWorkImpl: Sized {
     type Elem: Scalar;
     fn new(calc_eigenvectors: bool, layout: MatrixLayout) -> Result<Self>;
-    fn calc(&mut self, uplo: UPLO, a: &mut [Self::Elem])
-        -> Result<&[<Self::Elem as Scalar>::Real]>;
-    fn eval(self, uplo: UPLO, a: &mut [Self::Elem]) -> Result<Vec<<Self::Elem as Scalar>::Real>>;
+    fn calc(
+        &mut self,
+        uplo: UPLO,
+        a: &mut [Self::Elem],
+        b: &mut [Self::Elem],
+    ) -> Result<&[<Self::Elem as Scalar>::Real]>;
+    fn eval(
+        self,
+        uplo: UPLO,
+        a: &mut [Self::Elem],
+        b: &mut [Self::Elem],
+    ) -> Result<Vec<<Self::Elem as Scalar>::Real>>;
 }
 
-macro_rules! impl_eigh_work_c {
-    ($c:ty, $ev:path) => {
-        impl EighWorkImpl for EighWork<$c> {
+macro_rules! impl_eigh_generalized_work_c {
+    ($c:ty, $gv:path) => {
+        impl EighGeneralizedWorkImpl for EighGeneralizedWork<$c> {
             type Elem = $c;
 
             fn new(calc_eigenvectors: bool, layout: MatrixLayout) -> Result<Self> {
@@ -46,9 +56,12 @@ macro_rules! impl_eigh_work_c {
                 let mut info = 0;
                 let mut work_size = [Self::Elem::zero()];
                 unsafe {
-                    $ev(
+                    $gv(
+                        &1, // ITYPE A*x = (lambda)*B*x
                         jobz.as_ptr(),
                         UPLO::Upper.as_ptr(), // dummy, working memory is not affected by UPLO
+                        &n,
+                        std::ptr::null_mut(),
                         &n,
                         std::ptr::null_mut(),
                         &n,
@@ -62,7 +75,7 @@ macro_rules! impl_eigh_work_c {
                 info.as_lapack_result()?;
                 let lwork = work_size[0].to_usize().unwrap();
                 let work = vec_uninit(lwork);
-                Ok(EighWork {
+                Ok(EighGeneralizedWork {
                     n,
                     eigs,
                     jobz,
@@ -75,15 +88,19 @@ macro_rules! impl_eigh_work_c {
                 &mut self,
                 uplo: UPLO,
                 a: &mut [Self::Elem],
+                b: &mut [Self::Elem],
             ) -> Result<&[<Self::Elem as Scalar>::Real]> {
                 let lwork = self.work.len().to_i32().unwrap();
                 let mut info = 0;
                 unsafe {
-                    $ev(
+                    $gv(
+                        &1, // ITYPE A*x = (lambda)*B*x
                         self.jobz.as_ptr(),
                         uplo.as_ptr(),
                         &self.n,
                         AsPtr::as_mut_ptr(a),
+                        &self.n,
+                        AsPtr::as_mut_ptr(b),
                         &self.n,
                         AsPtr::as_mut_ptr(&mut self.eigs),
                         AsPtr::as_mut_ptr(&mut self.work),
@@ -100,19 +117,20 @@ macro_rules! impl_eigh_work_c {
                 mut self,
                 uplo: UPLO,
                 a: &mut [Self::Elem],
+                b: &mut [Self::Elem],
             ) -> Result<Vec<<Self::Elem as Scalar>::Real>> {
-                let _eig = self.calc(uplo, a)?;
+                let _eig = self.calc(uplo, a, b)?;
                 Ok(unsafe { self.eigs.assume_init() })
             }
         }
     };
 }
-impl_eigh_work_c!(c64, lapack_sys::zheev_);
-impl_eigh_work_c!(c32, lapack_sys::cheev_);
+impl_eigh_generalized_work_c!(c64, lapack_sys::zhegv_);
+impl_eigh_generalized_work_c!(c32, lapack_sys::chegv_);
 
-macro_rules! impl_eigh_work_r {
-    ($f:ty, $ev:path) => {
-        impl EighWorkImpl for EighWork<$f> {
+macro_rules! impl_eigh_generalized_work_r {
+    ($f:ty, $gv:path) => {
+        impl EighGeneralizedWorkImpl for EighGeneralizedWork<$f> {
             type Elem = $f;
 
             fn new(calc_eigenvectors: bool, layout: MatrixLayout) -> Result<Self> {
@@ -127,9 +145,12 @@ macro_rules! impl_eigh_work_r {
                 let mut info = 0;
                 let mut work_size = [Self::Elem::zero()];
                 unsafe {
-                    $ev(
+                    $gv(
+                        &1, // ITYPE A*x = (lambda)*B*x
                         jobz.as_ptr(),
                         UPLO::Upper.as_ptr(), // dummy, working memory is not affected by UPLO
+                        &n,
+                        std::ptr::null_mut(),
                         &n,
                         std::ptr::null_mut(),
                         &n,
@@ -142,7 +163,7 @@ macro_rules! impl_eigh_work_r {
                 info.as_lapack_result()?;
                 let lwork = work_size[0].to_usize().unwrap();
                 let work = vec_uninit(lwork);
-                Ok(EighWork {
+                Ok(EighGeneralizedWork {
                     n,
                     eigs,
                     jobz,
@@ -155,15 +176,19 @@ macro_rules! impl_eigh_work_r {
                 &mut self,
                 uplo: UPLO,
                 a: &mut [Self::Elem],
+                b: &mut [Self::Elem],
             ) -> Result<&[<Self::Elem as Scalar>::Real]> {
                 let lwork = self.work.len().to_i32().unwrap();
                 let mut info = 0;
                 unsafe {
-                    $ev(
+                    $gv(
+                        &1, // ITYPE A*x = (lambda)*B*x
                         self.jobz.as_ptr(),
                         uplo.as_ptr(),
                         &self.n,
                         AsPtr::as_mut_ptr(a),
+                        &self.n,
+                        AsPtr::as_mut_ptr(b),
                         &self.n,
                         AsPtr::as_mut_ptr(&mut self.eigs),
                         AsPtr::as_mut_ptr(&mut self.work),
@@ -179,12 +204,13 @@ macro_rules! impl_eigh_work_r {
                 mut self,
                 uplo: UPLO,
                 a: &mut [Self::Elem],
+                b: &mut [Self::Elem],
             ) -> Result<Vec<<Self::Elem as Scalar>::Real>> {
-                let _eig = self.calc(uplo, a)?;
+                let _eig = self.calc(uplo, a, b)?;
                 Ok(unsafe { self.eigs.assume_init() })
             }
         }
     };
 }
-impl_eigh_work_r!(f64, lapack_sys::dsyev_);
-impl_eigh_work_r!(f32, lapack_sys::ssyev_);
+impl_eigh_generalized_work_r!(f64, lapack_sys::dsygv_);
+impl_eigh_generalized_work_r!(f32, lapack_sys::ssygv_);

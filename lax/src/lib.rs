@@ -59,7 +59,8 @@
 //! there are several types of eigenvalue problem API
 //!
 //! - [eig] module for eigenvalue problem for general matrix.
-//! - [Eigh_] trait provides methods for eigenvalue problem for symmetric/hermite matrix.
+//! - [eigh] module for eigenvalue problem for symmetric/hermite matrix.
+//! - [eigh_generalized] module for generalized eigenvalue problem for symmetric/hermite matrix.
 //!
 //! Singular Value Decomposition
 //! -----------------------------
@@ -70,6 +71,8 @@
 //! - [LeastSquaresSvdDivideConquer_] trait provides methods
 //!   for solving least square problem by SVD
 //!
+
+#![deny(rustdoc::broken_intra_doc_links)]
 
 #[cfg(any(feature = "intel-mkl-system", feature = "intel-mkl-static"))]
 extern crate intel_mkl_src as _src;

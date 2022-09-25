@@ -25,6 +25,15 @@ jobs:
         command: check
         args: --all-targets
 
+  check-doc:
+    runs-on: ubuntu-22.04
+    steps:
+    - uses: actions/checkout@v1
+    - uses: actions-rs/cargo@v1
+      with:
+        command: doc
+        args: --no-deps
+
   clippy:
     runs-on: ubuntu-22.04
     steps:

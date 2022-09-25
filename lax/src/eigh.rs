@@ -1,4 +1,4 @@
-//! Eigenvalue problem for symmetric/Hermite matricies
+//! Eigenvalue problem for symmetric/Hermitian matricies
 //!
 //! LAPACK correspondance
 //! ----------------------

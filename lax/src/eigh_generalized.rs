@@ -1,4 +1,4 @@
-//! Compute generalized right eigenvalue and eigenvectors
+//! Generalized eigenvalue problem for symmetric/Hermitian matrices
 //!
 //! LAPACK correspondance
 //! ----------------------

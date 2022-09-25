@@ -88,11 +88,11 @@ pub mod flags;
 pub mod layout;
 
 pub mod eig;
+pub mod eigh;
+pub mod eigh_generalized;
 
 mod alloc;
 mod cholesky;
-mod eigh;
-mod eigh_generalized;
 mod least_squares;
 mod opnorm;
 mod qr;
@@ -105,8 +105,6 @@ mod triangular;
 mod tridiagonal;
 
 pub use self::cholesky::*;
-pub use self::eigh::*;
-pub use self::eigh_generalized::*;
 pub use self::flags::*;
 pub use self::least_squares::*;
 pub use self::opnorm::*;

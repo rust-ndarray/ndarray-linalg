@@ -90,12 +90,12 @@ pub mod layout;
 pub mod eig;
 pub mod eigh;
 pub mod eigh_generalized;
+pub mod qr;
 
 mod alloc;
 mod cholesky;
 mod least_squares;
 mod opnorm;
-mod qr;
 mod rcond;
 mod solve;
 mod solveh;
@@ -108,7 +108,6 @@ pub use self::cholesky::*;
 pub use self::flags::*;
 pub use self::least_squares::*;
 pub use self::opnorm::*;
-pub use self::qr::*;
 pub use self::rcond::*;
 pub use self::solve::*;
 pub use self::solveh::*;
@@ -126,7 +125,6 @@ pub type Pivot = Vec<i32>;
 /// Trait for primitive types which implements LAPACK subroutines
 pub trait Lapack:
     OperatorNorm_
-    + QR_
     + SVD_
     + SVDDC_
     + Solve_
@@ -160,6 +158,18 @@ pub trait Lapack:
         a: &mut [Self],
         b: &mut [Self],
     ) -> Result<Vec<Self::Real>>;
+
+    /// Execute Householder reflection as the first step of QR-decomposition
+    ///
+    /// For C-continuous array,
+    /// this will call LQ-decomposition of the transposed matrix $ A^T = LQ^T $
+    fn householder(l: MatrixLayout, a: &mut [Self]) -> Result<Vec<Self>>;
+
+    /// Reconstruct Q-matrix from Householder-reflectors
+    fn q(l: MatrixLayout, a: &mut [Self], tau: &[Self]) -> Result<()>;
+
+    /// Execute QR-decomposition at once
+    fn qr(l: MatrixLayout, a: &mut [Self]) -> Result<Vec<Self>>;
 }
 
 macro_rules! impl_lapack {
@@ -197,6 +207,26 @@ macro_rules! impl_lapack {
                 use eigh_generalized::*;
                 let work = EighGeneralizedWork::<$s>::new(calc_eigenvec, layout)?;
                 work.eval(uplo, a, b)
+            }
+
+            fn householder(l: MatrixLayout, a: &mut [Self]) -> Result<Vec<Self>> {
+                use qr::*;
+                let work = HouseholderWork::<$s>::new(l)?;
+                work.eval(a)
+            }
+
+            fn q(l: MatrixLayout, a: &mut [Self], tau: &[Self]) -> Result<()> {
+                use qr::*;
+                let mut work = QWork::<$s>::new(l)?;
+                work.calc(a, tau)?;
+                Ok(())
+            }
+
+            fn qr(l: MatrixLayout, a: &mut [Self]) -> Result<Vec<Self>> {
+                let tau = Self::householder(l, a)?;
+                let r = Vec::from(&*a);
+                Self::q(l, a, &tau)?;
+                Ok(r)
             }
         }
     };

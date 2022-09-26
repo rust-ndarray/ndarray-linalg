@@ -128,6 +128,107 @@ impl_householder_work!(c32, lapack_sys::cgeqrf_, lapack_sys::cgelqf_);
 impl_householder_work!(f64, lapack_sys::dgeqrf_, lapack_sys::dgelqf_);
 impl_householder_work!(f32, lapack_sys::sgeqrf_, lapack_sys::sgelqf_);
 
+pub struct QWork<T: Scalar> {
+    pub layout: MatrixLayout,
+    pub work: Vec<MaybeUninit<T>>,
+}
+
+pub trait QWorkImpl: Sized {
+    type Elem: Scalar;
+    fn new(layout: MatrixLayout) -> Result<Self>;
+    fn calc(&mut self, a: &mut [Self::Elem], tau: &mut [Self::Elem]) -> Result<()>;
+}
+
+macro_rules! impl_q_work {
+    ($s:ty, $gqr:path, $glq:path) => {
+        impl QWorkImpl for QWork<$s> {
+            type Elem = $s;
+
+            fn new(layout: MatrixLayout) -> Result<Self> {
+                let m = layout.lda();
+                let n = layout.len();
+                let k = m.min(n);
+                let mut info = 0;
+                let mut work_size = [Self::Elem::zero()];
+                match layout {
+                    MatrixLayout::F { .. } => unsafe {
+                        $gqr(
+                            &m,
+                            &k,
+                            &k,
+                            std::ptr::null_mut(),
+                            &m,
+                            std::ptr::null_mut(),
+                            AsPtr::as_mut_ptr(&mut work_size),
+                            &(-1),
+                            &mut info,
+                        )
+                    },
+                    MatrixLayout::C { .. } => unsafe {
+                        $glq(
+                            &k,
+                            &n,
+                            &k,
+                            std::ptr::null_mut(),
+                            &m,
+                            std::ptr::null_mut(),
+                            AsPtr::as_mut_ptr(&mut work_size),
+                            &(-1),
+                            &mut info,
+                        )
+                    },
+                }
+                let lwork = work_size[0].to_usize().unwrap();
+                let work = vec_uninit(lwork);
+                Ok(QWork { layout, work })
+            }
+
+            fn calc(&mut self, a: &mut [Self::Elem], tau: &mut [Self::Elem]) -> Result<()> {
+                let m = self.layout.lda();
+                let n = self.layout.len();
+                let k = m.min(n);
+                let lwork = self.work.len().to_i32().unwrap();
+                let mut info = 0;
+                match self.layout {
+                    MatrixLayout::F { .. } => unsafe {
+                        $gqr(
+                            &m,
+                            &k,
+                            &k,
+                            AsPtr::as_mut_ptr(a),
+                            &m,
+                            AsPtr::as_ptr(&tau),
+                            AsPtr::as_mut_ptr(&mut self.work),
+                            &lwork,
+                            &mut info,
+                        )
+                    },
+                    MatrixLayout::C { .. } => unsafe {
+                        $glq(
+                            &k,
+                            &n,
+                            &k,
+                            AsPtr::as_mut_ptr(a),
+                            &m,
+                            AsPtr::as_ptr(&tau),
+                            AsPtr::as_mut_ptr(&mut self.work),
+                            &lwork,
+                            &mut info,
+                        )
+                    },
+                }
+                info.as_lapack_result()?;
+                Ok(())
+            }
+        }
+    };
+}
+
+impl_q_work!(c64, lapack_sys::zungqr_, lapack_sys::zunglq_);
+impl_q_work!(c32, lapack_sys::cungqr_, lapack_sys::cunglq_);
+impl_q_work!(f64, lapack_sys::dorgqr_, lapack_sys::dorglq_);
+impl_q_work!(f32, lapack_sys::sorgqr_, lapack_sys::sorglq_);
+
 macro_rules! impl_qr {
     ($scalar:ty, $qrf:path, $lqf:path, $gqr:path, $glq:path) => {
         impl QR_ for $scalar {

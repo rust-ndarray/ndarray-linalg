@@ -212,7 +212,7 @@ macro_rules! impl_lapack {
             fn householder(l: MatrixLayout, a: &mut [Self]) -> Result<Vec<Self>> {
                 use qr::*;
                 let work = HouseholderWork::<$s>::new(l)?;
-                Ok(work.eval(a)?)
+                work.eval(a)
             }
 
             fn q(l: MatrixLayout, a: &mut [Self], tau: &[Self]) -> Result<()> {

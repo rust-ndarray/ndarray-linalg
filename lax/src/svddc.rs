@@ -14,7 +14,7 @@ pub trait SVDDC_: Scalar {
     /// |:-------|:-------|:-------|:-------|
     /// | sgesdd | dgesdd | cgesdd | zgesdd |
     ///
-    fn svddc(l: MatrixLayout, jobz: JobSvd, a: &mut [Self]) -> Result<SVDOutput<Self>>;
+    fn svddc(l: MatrixLayout, jobz: JobSvd, a: &mut [Self]) -> Result<SvdOwned<Self>>;
 }
 
 macro_rules! impl_svddc {
@@ -26,7 +26,7 @@ macro_rules! impl_svddc {
     };
     (@body, $scalar:ty, $gesdd:path, $($rwork_ident:ident),*) => {
         impl SVDDC_ for $scalar {
-            fn svddc(l: MatrixLayout, jobz: JobSvd, a: &mut [Self],) -> Result<SVDOutput<Self>> {
+            fn svddc(l: MatrixLayout, jobz: JobSvd, a: &mut [Self],) -> Result<SvdOwned<Self>> {
                 let m = l.lda();
                 let n = l.len();
                 let k = m.min(n);
@@ -112,8 +112,8 @@ macro_rules! impl_svddc {
                 let vt = vt.map(|v| unsafe { v.assume_init() });
 
                 match l {
-                    MatrixLayout::F { .. } => Ok(SVDOutput { s, u, vt }),
-                    MatrixLayout::C { .. } => Ok(SVDOutput { s, u: vt, vt: u }),
+                    MatrixLayout::F { .. } => Ok(SvdOwned { s, u, vt }),
+                    MatrixLayout::C { .. } => Ok(SvdOwned { s, u: vt, vt: u }),
                 }
             }
         }

@@ -65,7 +65,7 @@
 //! Singular Value Decomposition
 //! -----------------------------
 //!
-//! - [SVD_] trait provides methods for singular value decomposition for general matrix
+//! - [svd] module for singular value decomposition (SVD) for general matrix
 //! - [SVDDC_] trait provides methods for singular value decomposition for general matrix
 //!   with divided-and-conquer algorithm
 //! - [LeastSquaresSvdDivideConquer_] trait provides methods
@@ -91,6 +91,7 @@ pub mod eig;
 pub mod eigh;
 pub mod eigh_generalized;
 pub mod qr;
+pub mod svd;
 
 mod alloc;
 mod cholesky;
@@ -99,7 +100,6 @@ mod opnorm;
 mod rcond;
 mod solve;
 mod solveh;
-mod svd;
 mod svddc;
 mod triangular;
 mod tridiagonal;
@@ -111,7 +111,7 @@ pub use self::opnorm::*;
 pub use self::rcond::*;
 pub use self::solve::*;
 pub use self::solveh::*;
-pub use self::svd::*;
+pub use self::svd::SvdOwned;
 pub use self::svddc::*;
 pub use self::triangular::*;
 pub use self::tridiagonal::*;
@@ -125,7 +125,6 @@ pub type Pivot = Vec<i32>;
 /// Trait for primitive types which implements LAPACK subroutines
 pub trait Lapack:
     OperatorNorm_
-    + SVD_
     + SVDDC_
     + Solve_
     + Solveh_
@@ -170,6 +169,9 @@ pub trait Lapack:
 
     /// Execute QR-decomposition at once
     fn qr(l: MatrixLayout, a: &mut [Self]) -> Result<Vec<Self>>;
+
+    /// Compute singular-value decomposition (SVD)
+    fn svd(l: MatrixLayout, calc_u: bool, calc_vt: bool, a: &mut [Self]) -> Result<SvdOwned<Self>>;
 }
 
 macro_rules! impl_lapack {
@@ -227,6 +229,17 @@ macro_rules! impl_lapack {
                 let r = Vec::from(&*a);
                 Self::q(l, a, &tau)?;
                 Ok(r)
+            }
+
+            fn svd(
+                l: MatrixLayout,
+                calc_u: bool,
+                calc_vt: bool,
+                a: &mut [Self],
+            ) -> Result<SvdOwned<Self>> {
+                use svd::*;
+                let work = SvdWork::<$s>::new(l, calc_u, calc_vt)?;
+                work.eval(a)
             }
         }
     };

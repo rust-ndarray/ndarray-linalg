@@ -66,8 +66,7 @@
 //! -----------------------------
 //!
 //! - [svd] module for singular value decomposition (SVD) for general matrix
-//! - [SVDDC_] trait provides methods for singular value decomposition for general matrix
-//!   with divided-and-conquer algorithm
+//! - [svddc] module for singular value decomposition (SVD) with divided-and-conquer algorithm for general matrix
 //! - [LeastSquaresSvdDivideConquer_] trait provides methods
 //!   for solving least square problem by SVD
 //!
@@ -92,6 +91,7 @@ pub mod eigh;
 pub mod eigh_generalized;
 pub mod qr;
 pub mod svd;
+pub mod svddc;
 
 mod alloc;
 mod cholesky;
@@ -100,7 +100,6 @@ mod opnorm;
 mod rcond;
 mod solve;
 mod solveh;
-mod svddc;
 mod triangular;
 mod tridiagonal;
 
@@ -112,7 +111,6 @@ pub use self::rcond::*;
 pub use self::solve::*;
 pub use self::solveh::*;
 pub use self::svd::{SvdOwned, SvdRef};
-pub use self::svddc::*;
 pub use self::triangular::*;
 pub use self::tridiagonal::*;
 
@@ -125,7 +123,6 @@ pub type Pivot = Vec<i32>;
 /// Trait for primitive types which implements LAPACK subroutines
 pub trait Lapack:
     OperatorNorm_
-    + SVDDC_
     + Solve_
     + Solveh_
     + Cholesky_
@@ -172,6 +169,9 @@ pub trait Lapack:
 
     /// Compute singular-value decomposition (SVD)
     fn svd(l: MatrixLayout, calc_u: bool, calc_vt: bool, a: &mut [Self]) -> Result<SvdOwned<Self>>;
+
+    /// Compute singular value decomposition (SVD) with divide-and-conquer algorithm
+    fn svddc(layout: MatrixLayout, jobz: JobSvd, a: &mut [Self]) -> Result<SvdOwned<Self>>;
 }
 
 macro_rules! impl_lapack {
@@ -239,6 +239,12 @@ macro_rules! impl_lapack {
             ) -> Result<SvdOwned<Self>> {
                 use svd::*;
                 let work = SvdWork::<$s>::new(l, calc_u, calc_vt)?;
+                work.eval(a)
+            }
+
+            fn svddc(layout: MatrixLayout, jobz: JobSvd, a: &mut [Self]) -> Result<SvdOwned<Self>> {
+                use svddc::*;
+                let work = SvdDcWork::<$s>::new(layout, jobz)?;
                 work.eval(a)
             }
         }

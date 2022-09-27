@@ -111,7 +111,7 @@ pub use self::opnorm::*;
 pub use self::rcond::*;
 pub use self::solve::*;
 pub use self::solveh::*;
-pub use self::svd::SvdOwned;
+pub use self::svd::{SvdOwned, SvdRef};
 pub use self::svddc::*;
 pub use self::triangular::*;
 pub use self::tridiagonal::*;

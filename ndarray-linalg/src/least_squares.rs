@@ -297,7 +297,7 @@ where
     D1: DataMut<Elem = E>,
     D2: DataMut<Elem = E>,
 {
-    let LeastSquaresOutput::<E> {
+    let LeastSquaresOwned::<E> {
         singular_values,
         rank,
     } = E::least_squares(
@@ -386,7 +386,7 @@ where
 {
     let a_layout = a.layout()?;
     let rhs_layout = rhs.layout()?;
-    let LeastSquaresOutput::<E> {
+    let LeastSquaresOwned::<E> {
         singular_values,
         rank,
     } = E::least_squares_nrhs(

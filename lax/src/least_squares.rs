@@ -5,7 +5,7 @@ use cauchy::*;
 use num_traits::{ToPrimitive, Zero};
 
 /// Result of LeastSquares
-pub struct LeastSquaresOutput<A: Scalar> {
+pub struct LeastSquaresOwned<A: Scalar> {
     /// singular values
     pub singular_values: Vec<A::Real>,
     /// The rank of the input matrix A
@@ -21,7 +21,7 @@ pub trait LeastSquaresSvdDivideConquer_: Scalar {
         a_layout: MatrixLayout,
         a: &mut [Self],
         b: &mut [Self],
-    ) -> Result<LeastSquaresOutput<Self>>;
+    ) -> Result<LeastSquaresOwned<Self>>;
 
     /// Solve least square problems $\argmin_X \| AX - B\|$
     fn least_squares_nrhs(
@@ -46,7 +46,7 @@ macro_rules! impl_least_squares {
                 l: MatrixLayout,
                 a: &mut [Self],
                 b: &mut [Self],
-            ) -> Result<LeastSquaresOutput<Self>> {
+            ) -> Result<LeastSquaresOwned<Self>> {
                 let b_layout = l.resized(b.len() as i32, 1);
                 Self::least_squares_nrhs(l, a, b_layout, b)
             }
@@ -56,7 +56,7 @@ macro_rules! impl_least_squares {
                 a: &mut [Self],
                 b_layout: MatrixLayout,
                 b: &mut [Self],
-            ) -> Result<LeastSquaresOutput<Self>> {
+            ) -> Result<LeastSquaresOwned<Self>> {
                 // Minimize |b - Ax|_2
                 //
                 // where
@@ -160,7 +160,7 @@ macro_rules! impl_least_squares {
                     transpose_over(b_layout, &b_t, b);
                 }
 
-                Ok(LeastSquaresOutput {
+                Ok(LeastSquaresOwned {
                     singular_values,
                     rank,
                 })

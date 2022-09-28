@@ -67,8 +67,7 @@
 //!
 //! - [svd] module for singular value decomposition (SVD) for general matrix
 //! - [svddc] module for singular value decomposition (SVD) with divided-and-conquer algorithm for general matrix
-//! - [LeastSquaresSvdDivideConquer_] trait provides methods
-//!   for solving least square problem by SVD
+//! - [least_squares] module for solving least square problem using SVD
 //!
 
 #![deny(rustdoc::broken_intra_doc_links, rustdoc::private_intra_doc_links)]
@@ -89,13 +88,13 @@ pub mod layout;
 pub mod eig;
 pub mod eigh;
 pub mod eigh_generalized;
+pub mod least_squares;
 pub mod qr;
 pub mod svd;
 pub mod svddc;
 
 mod alloc;
 mod cholesky;
-mod least_squares;
 mod opnorm;
 mod rcond;
 mod solve;
@@ -105,7 +104,7 @@ mod tridiagonal;
 
 pub use self::cholesky::*;
 pub use self::flags::*;
-pub use self::least_squares::*;
+pub use self::least_squares::LeastSquaresOwned;
 pub use self::opnorm::*;
 pub use self::rcond::*;
 pub use self::solve::*;

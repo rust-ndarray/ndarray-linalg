@@ -70,9 +70,9 @@ macro_rules! impl_least_squares_work_c {
                         &n,
                         &nrhs,
                         std::ptr::null_mut(),
-                        &a_layout.lda(),
+                        &m,
                         std::ptr::null_mut(),
-                        &b_layout.lda(),
+                        &m_,
                         AsPtr::as_mut_ptr(&mut singular_values),
                         &rcond,
                         &mut rank,
@@ -116,7 +116,7 @@ macro_rules! impl_least_squares_work_c {
 
                 // Transpose if a is C-continuous
                 let mut a_t = None;
-                let a_layout = match self.a_layout {
+                let _ = match self.a_layout {
                     MatrixLayout::C { .. } => {
                         let (layout, t) = transpose(self.a_layout, a);
                         a_t = Some(t);
@@ -146,9 +146,9 @@ macro_rules! impl_least_squares_work_c {
                         &n,
                         &nrhs,
                         AsPtr::as_mut_ptr(a_t.as_mut().map(|v| v.as_mut_slice()).unwrap_or(a)),
-                        &a_layout.lda(),
+                        &m,
                         AsPtr::as_mut_ptr(b_t.as_mut().map(|v| v.as_mut_slice()).unwrap_or(b)),
-                        &b_layout.lda(),
+                        &m_,
                         AsPtr::as_mut_ptr(&mut self.singular_values),
                         &rcond,
                         &mut rank,
@@ -218,9 +218,9 @@ macro_rules! impl_least_squares_work_r {
                         &n,
                         &nrhs,
                         std::ptr::null_mut(),
-                        &a_layout.lda(),
+                        &m,
                         std::ptr::null_mut(),
-                        &b_layout.lda(),
+                        &m_,
                         AsPtr::as_mut_ptr(&mut singular_values),
                         &rcond,
                         &mut rank,
@@ -261,7 +261,7 @@ macro_rules! impl_least_squares_work_r {
 
                 // Transpose if a is C-continuous
                 let mut a_t = None;
-                let a_layout = match self.a_layout {
+                let _ = match self.a_layout {
                     MatrixLayout::C { .. } => {
                         let (layout, t) = transpose(self.a_layout, a);
                         a_t = Some(t);
@@ -291,9 +291,9 @@ macro_rules! impl_least_squares_work_r {
                         &n,
                         &nrhs,
                         AsPtr::as_mut_ptr(a_t.as_mut().map(|v| v.as_mut_slice()).unwrap_or(a)),
-                        &a_layout.lda(),
+                        &m,
                         AsPtr::as_mut_ptr(b_t.as_mut().map(|v| v.as_mut_slice()).unwrap_or(b)),
-                        &b_layout.lda(),
+                        &m_,
                         AsPtr::as_mut_ptr(&mut self.singular_values),
                         &rcond,
                         &mut rank,

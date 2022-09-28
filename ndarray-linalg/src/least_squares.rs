@@ -340,7 +340,7 @@ fn compute_residual_scalar<E: Scalar, D: Data<Elem = E>>(
 /// valid representation for `ArrayBase` (over `E`).
 impl<E, D1, D2> LeastSquaresSvdInPlace<D2, E, Ix2> for ArrayBase<D1, Ix2>
 where
-    E: Scalar + Lapack + LeastSquaresSvdDivideConquer_,
+    E: Scalar + Lapack,
     D1: DataMut<Elem = E>,
     D2: DataMut<Elem = E>,
 {

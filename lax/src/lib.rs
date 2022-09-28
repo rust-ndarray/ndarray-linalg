@@ -120,16 +120,10 @@ use std::mem::MaybeUninit;
 
 pub type Pivot = Vec<i32>;
 
+#[cfg_attr(doc, katexit::katexit)]
 /// Trait for primitive types which implements LAPACK subroutines
 pub trait Lapack:
-    OperatorNorm_
-    + Solve_
-    + Solveh_
-    + Cholesky_
-    + Triangular_
-    + Tridiagonal_
-    + Rcond_
-    + LeastSquaresSvdDivideConquer_
+    OperatorNorm_ + Solve_ + Solveh_ + Cholesky_ + Triangular_ + Tridiagonal_ + Rcond_
 {
     /// Compute right eigenvalue and eigenvectors for a general matrix
     fn eig(
@@ -172,6 +166,22 @@ pub trait Lapack:
 
     /// Compute singular value decomposition (SVD) with divide-and-conquer algorithm
     fn svddc(layout: MatrixLayout, jobz: JobSvd, a: &mut [Self]) -> Result<SvdOwned<Self>>;
+
+    /// Compute a vector $x$ which minimizes Euclidian norm $\| Ax - b\|$
+    /// for a given matrix $A$ and a vector $b$.
+    fn least_squares(
+        a_layout: MatrixLayout,
+        a: &mut [Self],
+        b: &mut [Self],
+    ) -> Result<LeastSquaresOwned<Self>>;
+
+    /// Solve least square problems $\argmin_X \| AX - B\|$
+    fn least_squares_nrhs(
+        a_layout: MatrixLayout,
+        a: &mut [Self],
+        b_layout: MatrixLayout,
+        b: &mut [Self],
+    ) -> Result<LeastSquaresOwned<Self>>;
 }
 
 macro_rules! impl_lapack {
@@ -246,6 +256,26 @@ macro_rules! impl_lapack {
                 use svddc::*;
                 let work = SvdDcWork::<$s>::new(layout, jobz)?;
                 work.eval(a)
+            }
+
+            fn least_squares(
+                l: MatrixLayout,
+                a: &mut [Self],
+                b: &mut [Self],
+            ) -> Result<LeastSquaresOwned<Self>> {
+                let b_layout = l.resized(b.len() as i32, 1);
+                Self::least_squares_nrhs(l, a, b_layout, b)
+            }
+
+            fn least_squares_nrhs(
+                a_layout: MatrixLayout,
+                a: &mut [Self],
+                b_layout: MatrixLayout,
+                b: &mut [Self],
+            ) -> Result<LeastSquaresOwned<Self>> {
+                use least_squares::*;
+                let work = LeastSquaresWork::<$s>::new(a_layout, b_layout)?;
+                work.eval(a, b)
             }
         }
     };

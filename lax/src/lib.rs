@@ -65,11 +65,9 @@
 //! Singular Value Decomposition
 //! -----------------------------
 //!
-//! - [SVD_] trait provides methods for singular value decomposition for general matrix
-//! - [SVDDC_] trait provides methods for singular value decomposition for general matrix
-//!   with divided-and-conquer algorithm
-//! - [LeastSquaresSvdDivideConquer_] trait provides methods
-//!   for solving least square problem by SVD
+//! - [svd] module for singular value decomposition (SVD) for general matrix
+//! - [svddc] module for singular value decomposition (SVD) with divided-and-conquer algorithm for general matrix
+//! - [least_squares] module for solving least square problem using SVD
 //!
 
 #![deny(rustdoc::broken_intra_doc_links, rustdoc::private_intra_doc_links)]
@@ -90,29 +88,28 @@ pub mod layout;
 pub mod eig;
 pub mod eigh;
 pub mod eigh_generalized;
+pub mod least_squares;
 pub mod qr;
+pub mod svd;
+pub mod svddc;
 
 mod alloc;
 mod cholesky;
-mod least_squares;
 mod opnorm;
 mod rcond;
 mod solve;
 mod solveh;
-mod svd;
-mod svddc;
 mod triangular;
 mod tridiagonal;
 
 pub use self::cholesky::*;
 pub use self::flags::*;
-pub use self::least_squares::*;
+pub use self::least_squares::LeastSquaresOwned;
 pub use self::opnorm::*;
 pub use self::rcond::*;
 pub use self::solve::*;
 pub use self::solveh::*;
-pub use self::svd::*;
-pub use self::svddc::*;
+pub use self::svd::{SvdOwned, SvdRef};
 pub use self::triangular::*;
 pub use self::tridiagonal::*;
 
@@ -122,18 +119,10 @@ use std::mem::MaybeUninit;
 
 pub type Pivot = Vec<i32>;
 
+#[cfg_attr(doc, katexit::katexit)]
 /// Trait for primitive types which implements LAPACK subroutines
 pub trait Lapack:
-    OperatorNorm_
-    + SVD_
-    + SVDDC_
-    + Solve_
-    + Solveh_
-    + Cholesky_
-    + Triangular_
-    + Tridiagonal_
-    + Rcond_
-    + LeastSquaresSvdDivideConquer_
+    OperatorNorm_ + Solve_ + Solveh_ + Cholesky_ + Triangular_ + Tridiagonal_ + Rcond_
 {
     /// Compute right eigenvalue and eigenvectors for a general matrix
     fn eig(
@@ -170,6 +159,28 @@ pub trait Lapack:
 
     /// Execute QR-decomposition at once
     fn qr(l: MatrixLayout, a: &mut [Self]) -> Result<Vec<Self>>;
+
+    /// Compute singular-value decomposition (SVD)
+    fn svd(l: MatrixLayout, calc_u: bool, calc_vt: bool, a: &mut [Self]) -> Result<SvdOwned<Self>>;
+
+    /// Compute singular value decomposition (SVD) with divide-and-conquer algorithm
+    fn svddc(layout: MatrixLayout, jobz: JobSvd, a: &mut [Self]) -> Result<SvdOwned<Self>>;
+
+    /// Compute a vector $x$ which minimizes Euclidian norm $\| Ax - b\|$
+    /// for a given matrix $A$ and a vector $b$.
+    fn least_squares(
+        a_layout: MatrixLayout,
+        a: &mut [Self],
+        b: &mut [Self],
+    ) -> Result<LeastSquaresOwned<Self>>;
+
+    /// Solve least square problems $\argmin_X \| AX - B\|$
+    fn least_squares_nrhs(
+        a_layout: MatrixLayout,
+        a: &mut [Self],
+        b_layout: MatrixLayout,
+        b: &mut [Self],
+    ) -> Result<LeastSquaresOwned<Self>>;
 }
 
 macro_rules! impl_lapack {
@@ -227,6 +238,43 @@ macro_rules! impl_lapack {
                 let r = Vec::from(&*a);
                 Self::q(l, a, &tau)?;
                 Ok(r)
+            }
+
+            fn svd(
+                l: MatrixLayout,
+                calc_u: bool,
+                calc_vt: bool,
+                a: &mut [Self],
+            ) -> Result<SvdOwned<Self>> {
+                use svd::*;
+                let work = SvdWork::<$s>::new(l, calc_u, calc_vt)?;
+                work.eval(a)
+            }
+
+            fn svddc(layout: MatrixLayout, jobz: JobSvd, a: &mut [Self]) -> Result<SvdOwned<Self>> {
+                use svddc::*;
+                let work = SvdDcWork::<$s>::new(layout, jobz)?;
+                work.eval(a)
+            }
+
+            fn least_squares(
+                l: MatrixLayout,
+                a: &mut [Self],
+                b: &mut [Self],
+            ) -> Result<LeastSquaresOwned<Self>> {
+                let b_layout = l.resized(b.len() as i32, 1);
+                Self::least_squares_nrhs(l, a, b_layout, b)
+            }
+
+            fn least_squares_nrhs(
+                a_layout: MatrixLayout,
+                a: &mut [Self],
+                b_layout: MatrixLayout,
+                b: &mut [Self],
+            ) -> Result<LeastSquaresOwned<Self>> {
+                use least_squares::*;
+                let work = LeastSquaresWork::<$s>::new(a_layout, b_layout)?;
+                work.eval(a, b)
             }
         }
     };

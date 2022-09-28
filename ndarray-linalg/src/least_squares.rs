@@ -297,7 +297,7 @@ where
     D1: DataMut<Elem = E>,
     D2: DataMut<Elem = E>,
 {
-    let LeastSquaresOutput::<E> {
+    let LeastSquaresOwned::<E> {
         singular_values,
         rank,
     } = E::least_squares(
@@ -340,7 +340,7 @@ fn compute_residual_scalar<E: Scalar, D: Data<Elem = E>>(
 /// valid representation for `ArrayBase` (over `E`).
 impl<E, D1, D2> LeastSquaresSvdInPlace<D2, E, Ix2> for ArrayBase<D1, Ix2>
 where
-    E: Scalar + Lapack + LeastSquaresSvdDivideConquer_,
+    E: Scalar + Lapack,
     D1: DataMut<Elem = E>,
     D2: DataMut<Elem = E>,
 {
@@ -386,7 +386,7 @@ where
 {
     let a_layout = a.layout()?;
     let rhs_layout = rhs.layout()?;
-    let LeastSquaresOutput::<E> {
+    let LeastSquaresOwned::<E> {
         singular_values,
         rank,
     } = E::least_squares_nrhs(

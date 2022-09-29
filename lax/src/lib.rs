@@ -1,21 +1,24 @@
-//! ndarray-free safe Rust wrapper for LAPACK FFI
+//! Safe Rust wrapper for LAPACK without external dependency.
 //!
-//! `Lapack` trait and sub-traits
-//! -------------------------------
+//! [Lapack] trait
+//! ----------------
 //!
-//! This crates provides LAPACK wrapper as `impl` of traits to base scalar types.
-//! For example, LU decomposition to double-precision matrix is provided like:
+//! This crates provides LAPACK wrapper as a traits.
+//! For example, LU decomposition of general matrices is provided like:
 //!
-//! ```ignore
-//! impl Solve_ for f64 {
-//!     fn lu(l: MatrixLayout, a: &mut [Self]) -> Result<Pivot> { ... }
+//! ```
+//! pub trait Lapack{
+//!     fn lu(l: MatrixLayout, a: &mut [Self]) -> Result<Pivot>;
 //! }
 //! ```
 //!
-//! see [Solve_] for detail. You can use it like `f64::lu`:
+//! see [Lapack] for detail.
+//! This trait is implemented for [f32], [f64], [c32] which is an alias to `num::Complex<f32>`,
+//! and [c64] which is an alias to `num::Complex<f64>`.
+//! You can use it like `f64::lu`:
 //!
 //! ```
-//! use lax::{Solve_, layout::MatrixLayout, Transpose};
+//! use lax::{Lapack, layout::MatrixLayout, Transpose};
 //!
 //! let mut a = vec![
 //!   1.0, 2.0,
@@ -31,9 +34,9 @@
 //! this trait can be used as a trait bound:
 //!
 //! ```
-//! use lax::{Solve_, layout::MatrixLayout, Transpose};
+//! use lax::{Lapack, layout::MatrixLayout, Transpose};
 //!
-//! fn solve_at_once<T: Solve_>(layout: MatrixLayout, a: &mut [T], b: &mut [T]) -> Result<(), lax::error::Error> {
+//! fn solve_at_once<T: Lapack>(layout: MatrixLayout, a: &mut [T], b: &mut [T]) -> Result<(), lax::error::Error> {
 //!   let pivot = T::lu(layout, a)?;
 //!   T::solve(layout, Transpose::No, a, &pivot, b)?;
 //!   Ok(())
@@ -48,7 +51,7 @@
 //!
 //! According to the property input metrix, several types of triangular decomposition are used:
 //!
-//! - [Solve_] trait provides methods for LU-decomposition for general matrix.
+//! - [solve] module provides methods for LU-decomposition for general matrix.
 //! - [Solveh_] triat provides methods for Bunch-Kaufman diagonal pivoting method for symmetric/hermite indefinite matrix.
 //! - [Cholesky_] triat provides methods for Cholesky decomposition for symmetric/hermite positive dinite matrix.
 //!
@@ -184,6 +187,18 @@ pub trait Lapack:
     /// Computes the LU decomposition of a general $m \times n$ matrix
     /// with partial pivoting with row interchanges.
     ///
+    /// For a given matrix $A$, LU decomposition is described as $A = PLU$ where:
+    ///
+    /// - $L$ is lower matrix
+    /// - $U$ is upper matrix
+    /// - $P$ is permutation matrix represented by [Pivot]
+    ///
+    /// This is designed as two step computation according to LAPACK API:
+    ///
+    /// 1. Factorize input matrix $A$ into $L$, $U$, and $P$.
+    /// 2. Solve linear equation $Ax = b$ by [Lapack::solve]
+    ///    or compute inverse matrix $A^{-1}$ by [Lapack::inv] using the output of LU decomposition.
+    ///
     /// Output
     /// -------
     /// - $U$ and $L$ are stored in `a` after LU decomposition has succeeded.
@@ -195,35 +210,12 @@ pub trait Lapack:
     ///   - On this case, `return_code` in [Error::LapackComputationalFailure] means
     ///     `return_code`-th diagonal element of $U$ becomes zero.
     ///
-    /// LAPACK correspondance
-    /// ----------------------
-    ///
-    /// | f32    | f64    | c32    | c64    |
-    /// |:-------|:-------|:-------|:-------|
-    /// | sgetrf | dgetrf | cgetrf | zgetrf |
-    ///
     fn lu(l: MatrixLayout, a: &mut [Self]) -> Result<Pivot>;
 
     /// Compute inverse matrix $A^{-1}$ from the output of LU-decomposition
-    ///
-    /// LAPACK correspondance
-    /// ----------------------
-    ///
-    /// | f32    | f64    | c32    | c64    |
-    /// |:-------|:-------|:-------|:-------|
-    /// | sgetri | dgetri | cgetri | zgetri |
-    ///
     fn inv(l: MatrixLayout, a: &mut [Self], p: &Pivot) -> Result<()>;
 
     /// Solve linear equations $Ax = b$ using the output of LU-decomposition
-    ///
-    /// LAPACK correspondance
-    /// ----------------------
-    ///
-    /// | f32    | f64    | c32    | c64    |
-    /// |:-------|:-------|:-------|:-------|
-    /// | sgetrs | dgetrs | cgetrs | zgetrs |
-    ///
     fn solve(l: MatrixLayout, t: Transpose, a: &[Self], p: &Pivot, b: &mut [Self]) -> Result<()>;
 }
 

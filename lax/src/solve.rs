@@ -1,21 +1,17 @@
+//! Solve linear equations using LU-decomposition
+
 use crate::{error::*, layout::MatrixLayout, *};
 use cauchy::*;
 use num_traits::{ToPrimitive, Zero};
 
-#[cfg_attr(doc, katexit::katexit)]
-/// Solve linear equations using LU-decomposition
+/// Helper trait to abstract `*getrf` LAPACK routines for implementing [Lapack::lu]
 ///
-/// For a given matrix $A$, LU decomposition is described as $A = PLU$ where:
+/// LAPACK correspondance
+/// ----------------------
 ///
-/// - $L$ is lower matrix
-/// - $U$ is upper matrix
-/// - $P$ is permutation matrix represented by [Pivot]
-///
-/// This is designed as two step computation according to LAPACK API:
-///
-/// 1. Factorize input matrix $A$ into $L$, $U$, and $P$.
-/// 2. Solve linear equation $Ax = b$ or compute inverse matrix $A^{-1}$
-///    using the output of LU decomposition.
+/// | f32    | f64    | c32    | c64    |
+/// |:-------|:-------|:-------|:-------|
+/// | sgetrf | dgetrf | cgetrf | zgetrf |
 ///
 pub trait LuImpl: Scalar {
     fn lu(l: MatrixLayout, a: &mut [Self]) -> Result<Pivot>;
@@ -57,6 +53,36 @@ impl_lu!(c32, lapack_sys::cgetrf_);
 impl_lu!(f64, lapack_sys::dgetrf_);
 impl_lu!(f32, lapack_sys::sgetrf_);
 
+/// Helper trait to abstract `*getrs` LAPACK routines for implementing [Lapack::solve]
+///
+/// If the array has C layout, then it needs to be handled
+/// specially, since LAPACK expects a Fortran-layout array.
+/// Reinterpreting a C layout array as Fortran layout is
+/// equivalent to transposing it. So, we can handle the "no
+/// transpose" and "transpose" cases by swapping to "transpose"
+/// or "no transpose", respectively. For the "Hermite" case, we
+/// can take advantage of the following:
+///
+/// ```text
+/// A^H x = b
+/// ⟺ conj(A^T) x = b
+/// ⟺ conj(conj(A^T) x) = conj(b)
+/// ⟺ conj(conj(A^T)) conj(x) = conj(b)
+/// ⟺ A^T conj(x) = conj(b)
+/// ```
+///
+/// So, we can handle this case by switching to "no transpose"
+/// (which is equivalent to transposing the array since it will
+/// be reinterpreted as Fortran layout) and applying the
+/// elementwise conjugate to `x` and `b`.
+///
+/// LAPACK correspondance
+/// ----------------------
+///
+/// | f32    | f64    | c32    | c64    |
+/// |:-------|:-------|:-------|:-------|
+/// | sgetrs | dgetrs | cgetrs | zgetrs |
+///
 pub trait SolveImpl: Scalar {
     fn solve(l: MatrixLayout, t: Transpose, a: &[Self], p: &Pivot, b: &mut [Self]) -> Result<()>;
 }
@@ -71,26 +97,6 @@ macro_rules! impl_solve {
                 ipiv: &Pivot,
                 b: &mut [Self],
             ) -> Result<()> {
-                // If the array has C layout, then it needs to be handled
-                // specially, since LAPACK expects a Fortran-layout array.
-                // Reinterpreting a C layout array as Fortran layout is
-                // equivalent to transposing it. So, we can handle the "no
-                // transpose" and "transpose" cases by swapping to "transpose"
-                // or "no transpose", respectively. For the "Hermite" case, we
-                // can take advantage of the following:
-                //
-                // ```text
-                // A^H x = b
-                // ⟺ conj(A^T) x = b
-                // ⟺ conj(conj(A^T) x) = conj(b)
-                // ⟺ conj(conj(A^T)) conj(x) = conj(b)
-                // ⟺ A^T conj(x) = conj(b)
-                // ```
-                //
-                // So, we can handle this case by switching to "no transpose"
-                // (which is equivalent to transposing the array since it will
-                // be reinterpreted as Fortran layout) and applying the
-                // elementwise conjugate to `x` and `b`.
                 let (t, conj) = match l {
                     MatrixLayout::C { .. } => match t {
                         Transpose::No => (Transpose::Transpose, false),
@@ -138,11 +144,21 @@ impl_solve!(f32, lapack_sys::sgetrs_);
 impl_solve!(c64, lapack_sys::zgetrs_);
 impl_solve!(c32, lapack_sys::cgetrs_);
 
+/// Working memory for computing inverse matrix
 pub struct InvWork<T: Scalar> {
     pub layout: MatrixLayout,
     pub work: Vec<MaybeUninit<T>>,
 }
 
+/// Helper trait to abstract `*getri` LAPACK rotuines for implementing [Lapack::inv]
+///
+/// LAPACK correspondance
+/// ----------------------
+///
+/// | f32    | f64    | c32    | c64    |
+/// |:-------|:-------|:-------|:-------|
+/// | sgetri | dgetri | cgetri | zgetri |
+///
 pub trait InvWorkImpl: Sized {
     type Elem: Scalar;
     fn new(layout: MatrixLayout) -> Result<Self>;

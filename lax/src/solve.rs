@@ -176,6 +176,9 @@ macro_rules! impl_inv_work {
             }
 
             fn calc(&mut self, a: &mut [Self::Elem], ipiv: &Pivot) -> Result<()> {
+                if self.layout.len() == 0 {
+                    return Ok(());
+                }
                 let lwork = self.work.len().to_i32().unwrap();
                 let mut info = 0;
                 unsafe {

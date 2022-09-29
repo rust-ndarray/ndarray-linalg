@@ -90,6 +90,7 @@ pub mod eigh;
 pub mod eigh_generalized;
 pub mod least_squares;
 pub mod qr;
+pub mod solve;
 pub mod svd;
 pub mod svddc;
 
@@ -97,7 +98,6 @@ mod alloc;
 mod cholesky;
 mod opnorm;
 mod rcond;
-mod solve;
 mod solveh;
 mod triangular;
 mod tridiagonal;
@@ -107,7 +107,6 @@ pub use self::flags::*;
 pub use self::least_squares::LeastSquaresOwned;
 pub use self::opnorm::*;
 pub use self::rcond::*;
-pub use self::solve::*;
 pub use self::solveh::*;
 pub use self::svd::{SvdOwned, SvdRef};
 pub use self::triangular::*;
@@ -122,7 +121,7 @@ pub type Pivot = Vec<i32>;
 #[cfg_attr(doc, katexit::katexit)]
 /// Trait for primitive types which implements LAPACK subroutines
 pub trait Lapack:
-    OperatorNorm_ + Solve_ + Solveh_ + Cholesky_ + Triangular_ + Tridiagonal_ + Rcond_
+    OperatorNorm_ + Solveh_ + Cholesky_ + Triangular_ + Tridiagonal_ + Rcond_
 {
     /// Compute right eigenvalue and eigenvectors for a general matrix
     fn eig(
@@ -181,6 +180,51 @@ pub trait Lapack:
         b_layout: MatrixLayout,
         b: &mut [Self],
     ) -> Result<LeastSquaresOwned<Self>>;
+
+    /// Computes the LU decomposition of a general $m \times n$ matrix
+    /// with partial pivoting with row interchanges.
+    ///
+    /// Output
+    /// -------
+    /// - $U$ and $L$ are stored in `a` after LU decomposition has succeeded.
+    /// - $P$ is returned as [Pivot]
+    ///
+    /// Error
+    /// ------
+    /// - if the matrix is singular
+    ///   - On this case, `return_code` in [Error::LapackComputationalFailure] means
+    ///     `return_code`-th diagonal element of $U$ becomes zero.
+    ///
+    /// LAPACK correspondance
+    /// ----------------------
+    ///
+    /// | f32    | f64    | c32    | c64    |
+    /// |:-------|:-------|:-------|:-------|
+    /// | sgetrf | dgetrf | cgetrf | zgetrf |
+    ///
+    fn lu(l: MatrixLayout, a: &mut [Self]) -> Result<Pivot>;
+
+    /// Compute inverse matrix $A^{-1}$ from the output of LU-decomposition
+    ///
+    /// LAPACK correspondance
+    /// ----------------------
+    ///
+    /// | f32    | f64    | c32    | c64    |
+    /// |:-------|:-------|:-------|:-------|
+    /// | sgetri | dgetri | cgetri | zgetri |
+    ///
+    fn inv(l: MatrixLayout, a: &mut [Self], p: &Pivot) -> Result<()>;
+
+    /// Solve linear equations $Ax = b$ using the output of LU-decomposition
+    ///
+    /// LAPACK correspondance
+    /// ----------------------
+    ///
+    /// | f32    | f64    | c32    | c64    |
+    /// |:-------|:-------|:-------|:-------|
+    /// | sgetrs | dgetrs | cgetrs | zgetrs |
+    ///
+    fn solve(l: MatrixLayout, t: Transpose, a: &[Self], p: &Pivot, b: &mut [Self]) -> Result<()>;
 }
 
 macro_rules! impl_lapack {
@@ -275,6 +319,29 @@ macro_rules! impl_lapack {
                 use least_squares::*;
                 let work = LeastSquaresWork::<$s>::new(a_layout, b_layout)?;
                 work.eval(a, b)
+            }
+
+            fn lu(l: MatrixLayout, a: &mut [Self]) -> Result<Pivot> {
+                use solve::*;
+                LuImpl::lu(l, a)
+            }
+
+            fn inv(l: MatrixLayout, a: &mut [Self], p: &Pivot) -> Result<()> {
+                use solve::*;
+                let mut work = InvWork::<$s>::new(l)?;
+                work.calc(a, p)?;
+                Ok(())
+            }
+
+            fn solve(
+                l: MatrixLayout,
+                t: Transpose,
+                a: &[Self],
+                p: &Pivot,
+                b: &mut [Self],
+            ) -> Result<()> {
+                use solve::*;
+                SolveImpl::solve(l, t, a, p, b)
             }
         }
     };

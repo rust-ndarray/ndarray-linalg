@@ -17,119 +17,13 @@ use num_traits::{ToPrimitive, Zero};
 /// 2. Solve linear equation $Ax = b$ or compute inverse matrix $A^{-1}$
 ///    using the output of LU decomposition.
 ///
-pub trait Solve_: Scalar + Sized {
-    /// Computes the LU decomposition of a general $m \times n$ matrix
-    /// with partial pivoting with row interchanges.
-    ///
-    /// Output
-    /// -------
-    /// - $U$ and $L$ are stored in `a` after LU decomposition has succeeded.
-    /// - $P$ is returned as [Pivot]
-    ///
-    /// Error
-    /// ------
-    /// - if the matrix is singular
-    ///   - On this case, `return_code` in [Error::LapackComputationalFailure] means
-    ///     `return_code`-th diagonal element of $U$ becomes zero.
-    ///
-    /// LAPACK correspondance
-    /// ----------------------
-    ///
-    /// | f32    | f64    | c32    | c64    |
-    /// |:-------|:-------|:-------|:-------|
-    /// | sgetrf | dgetrf | cgetrf | zgetrf |
-    ///
+pub trait LuImpl: Scalar {
     fn lu(l: MatrixLayout, a: &mut [Self]) -> Result<Pivot>;
-
-    /// Compute inverse matrix $A^{-1}$ from the output of LU-decomposition
-    ///
-    /// LAPACK correspondance
-    /// ----------------------
-    ///
-    /// | f32    | f64    | c32    | c64    |
-    /// |:-------|:-------|:-------|:-------|
-    /// | sgetri | dgetri | cgetri | zgetri |
-    ///
-    fn inv(l: MatrixLayout, a: &mut [Self], p: &Pivot) -> Result<()>;
-
-    /// Solve linear equations $Ax = b$ using the output of LU-decomposition
-    ///
-    /// LAPACK correspondance
-    /// ----------------------
-    ///
-    /// | f32    | f64    | c32    | c64    |
-    /// |:-------|:-------|:-------|:-------|
-    /// | sgetrs | dgetrs | cgetrs | zgetrs |
-    ///
-    fn solve(l: MatrixLayout, t: Transpose, a: &[Self], p: &Pivot, b: &mut [Self]) -> Result<()>;
 }
 
-pub struct InvWork<T: Scalar> {
-    pub layout: MatrixLayout,
-    pub work: Vec<MaybeUninit<T>>,
-}
-
-pub trait InvWorkImpl: Sized {
-    type Elem: Scalar;
-    fn new(layout: MatrixLayout) -> Result<Self>;
-    fn calc(&mut self, a: &mut [Self::Elem], p: &Pivot) -> Result<()>;
-}
-
-macro_rules! impl_inv_work {
-    ($s:ty, $tri:path) => {
-        impl InvWorkImpl for InvWork<$s> {
-            type Elem = $s;
-
-            fn new(layout: MatrixLayout) -> Result<Self> {
-                let (n, _) = layout.size();
-                let mut info = 0;
-                let mut work_size = [Self::Elem::zero()];
-                unsafe {
-                    $tri(
-                        &n,
-                        std::ptr::null_mut(),
-                        &layout.lda(),
-                        std::ptr::null(),
-                        AsPtr::as_mut_ptr(&mut work_size),
-                        &(-1),
-                        &mut info,
-                    )
-                };
-                info.as_lapack_result()?;
-                let lwork = work_size[0].to_usize().unwrap();
-                let work = vec_uninit(lwork);
-                Ok(InvWork { layout, work })
-            }
-
-            fn calc(&mut self, a: &mut [Self::Elem], ipiv: &Pivot) -> Result<()> {
-                let lwork = self.work.len().to_i32().unwrap();
-                let mut info = 0;
-                unsafe {
-                    $tri(
-                        &self.layout.len(),
-                        AsPtr::as_mut_ptr(a),
-                        &self.layout.lda(),
-                        ipiv.as_ptr(),
-                        AsPtr::as_mut_ptr(&mut self.work),
-                        &lwork,
-                        &mut info,
-                    )
-                };
-                info.as_lapack_result()?;
-                Ok(())
-            }
-        }
-    };
-}
-
-impl_inv_work!(c64, lapack_sys::zgetri_);
-impl_inv_work!(c32, lapack_sys::cgetri_);
-impl_inv_work!(f64, lapack_sys::dgetri_);
-impl_inv_work!(f32, lapack_sys::sgetri_);
-
-macro_rules! impl_solve {
-    ($scalar:ty, $getrf:path, $getri:path, $getrs:path) => {
-        impl Solve_ for $scalar {
+macro_rules! impl_lu {
+    ($scalar:ty, $getrf:path) => {
+        impl LuImpl for $scalar {
             fn lu(l: MatrixLayout, a: &mut [Self]) -> Result<Pivot> {
                 let (row, col) = l.size();
                 assert_eq!(a.len() as i32, row * col);
@@ -154,49 +48,22 @@ macro_rules! impl_solve {
                 let ipiv = unsafe { ipiv.assume_init() };
                 Ok(ipiv)
             }
+        }
+    };
+}
 
-            fn inv(l: MatrixLayout, a: &mut [Self], ipiv: &Pivot) -> Result<()> {
-                let (n, _) = l.size();
-                if n == 0 {
-                    // Do nothing for empty matrices.
-                    return Ok(());
-                }
+impl_lu!(c64, lapack_sys::zgetrf_);
+impl_lu!(c32, lapack_sys::cgetrf_);
+impl_lu!(f64, lapack_sys::dgetrf_);
+impl_lu!(f32, lapack_sys::sgetrf_);
 
-                // calc work size
-                let mut info = 0;
-                let mut work_size = [Self::zero()];
-                unsafe {
-                    $getri(
-                        &n,
-                        AsPtr::as_mut_ptr(a),
-                        &l.lda(),
-                        ipiv.as_ptr(),
-                        AsPtr::as_mut_ptr(&mut work_size),
-                        &(-1),
-                        &mut info,
-                    )
-                };
-                info.as_lapack_result()?;
+pub trait SolveImpl: Scalar {
+    fn solve(l: MatrixLayout, t: Transpose, a: &[Self], p: &Pivot, b: &mut [Self]) -> Result<()>;
+}
 
-                // actual
-                let lwork = work_size[0].to_usize().unwrap();
-                let mut work: Vec<MaybeUninit<Self>> = vec_uninit(lwork);
-                unsafe {
-                    $getri(
-                        &l.len(),
-                        AsPtr::as_mut_ptr(a),
-                        &l.lda(),
-                        ipiv.as_ptr(),
-                        AsPtr::as_mut_ptr(&mut work),
-                        &(lwork as i32),
-                        &mut info,
-                    )
-                };
-                info.as_lapack_result()?;
-
-                Ok(())
-            }
-
+macro_rules! impl_solve {
+    ($scalar:ty, $getrs:path) => {
+        impl SolveImpl for $scalar {
             fn solve(
                 l: MatrixLayout,
                 t: Transpose,
@@ -266,27 +133,70 @@ macro_rules! impl_solve {
     };
 } // impl_solve!
 
-impl_solve!(
-    f64,
-    lapack_sys::dgetrf_,
-    lapack_sys::dgetri_,
-    lapack_sys::dgetrs_
-);
-impl_solve!(
-    f32,
-    lapack_sys::sgetrf_,
-    lapack_sys::sgetri_,
-    lapack_sys::sgetrs_
-);
-impl_solve!(
-    c64,
-    lapack_sys::zgetrf_,
-    lapack_sys::zgetri_,
-    lapack_sys::zgetrs_
-);
-impl_solve!(
-    c32,
-    lapack_sys::cgetrf_,
-    lapack_sys::cgetri_,
-    lapack_sys::cgetrs_
-);
+impl_solve!(f64, lapack_sys::dgetrs_);
+impl_solve!(f32, lapack_sys::sgetrs_);
+impl_solve!(c64, lapack_sys::zgetrs_);
+impl_solve!(c32, lapack_sys::cgetrs_);
+
+pub struct InvWork<T: Scalar> {
+    pub layout: MatrixLayout,
+    pub work: Vec<MaybeUninit<T>>,
+}
+
+pub trait InvWorkImpl: Sized {
+    type Elem: Scalar;
+    fn new(layout: MatrixLayout) -> Result<Self>;
+    fn calc(&mut self, a: &mut [Self::Elem], p: &Pivot) -> Result<()>;
+}
+
+macro_rules! impl_inv_work {
+    ($s:ty, $tri:path) => {
+        impl InvWorkImpl for InvWork<$s> {
+            type Elem = $s;
+
+            fn new(layout: MatrixLayout) -> Result<Self> {
+                let (n, _) = layout.size();
+                let mut info = 0;
+                let mut work_size = [Self::Elem::zero()];
+                unsafe {
+                    $tri(
+                        &n,
+                        std::ptr::null_mut(),
+                        &layout.lda(),
+                        std::ptr::null(),
+                        AsPtr::as_mut_ptr(&mut work_size),
+                        &(-1),
+                        &mut info,
+                    )
+                };
+                info.as_lapack_result()?;
+                let lwork = work_size[0].to_usize().unwrap();
+                let work = vec_uninit(lwork);
+                Ok(InvWork { layout, work })
+            }
+
+            fn calc(&mut self, a: &mut [Self::Elem], ipiv: &Pivot) -> Result<()> {
+                let lwork = self.work.len().to_i32().unwrap();
+                let mut info = 0;
+                unsafe {
+                    $tri(
+                        &self.layout.len(),
+                        AsPtr::as_mut_ptr(a),
+                        &self.layout.lda(),
+                        ipiv.as_ptr(),
+                        AsPtr::as_mut_ptr(&mut self.work),
+                        &lwork,
+                        &mut info,
+                    )
+                };
+                info.as_lapack_result()?;
+                Ok(())
+            }
+        }
+    };
+}
+
+impl_inv_work!(c64, lapack_sys::zgetri_);
+impl_inv_work!(c32, lapack_sys::cgetri_);
+impl_inv_work!(f64, lapack_sys::dgetri_);
+impl_inv_work!(f32, lapack_sys::sgetri_);

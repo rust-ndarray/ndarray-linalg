@@ -52,7 +52,7 @@
 //! According to the property input metrix, several types of triangular decomposition are used:
 //!
 //! - [solve] module provides methods for LU-decomposition for general matrix.
-//! - [Solveh_] triat provides methods for Bunch-Kaufman diagonal pivoting method for symmetric/hermite indefinite matrix.
+//! - [solveh] module provides methods for Bunch-Kaufman diagonal pivoting method for symmetric/hermite indefinite matrix.
 //! - [Cholesky_] triat provides methods for Cholesky decomposition for symmetric/hermite positive dinite matrix.
 //!
 //! Eigenvalue Problem
@@ -94,6 +94,7 @@ pub mod eigh_generalized;
 pub mod least_squares;
 pub mod qr;
 pub mod solve;
+pub mod solveh;
 pub mod svd;
 pub mod svddc;
 
@@ -101,7 +102,6 @@ mod alloc;
 mod cholesky;
 mod opnorm;
 mod rcond;
-mod solveh;
 mod triangular;
 mod tridiagonal;
 
@@ -110,7 +110,6 @@ pub use self::flags::*;
 pub use self::least_squares::LeastSquaresOwned;
 pub use self::opnorm::*;
 pub use self::rcond::*;
-pub use self::solveh::*;
 pub use self::svd::{SvdOwned, SvdRef};
 pub use self::triangular::*;
 pub use self::tridiagonal::*;

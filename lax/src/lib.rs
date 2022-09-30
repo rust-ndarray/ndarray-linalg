@@ -123,9 +123,7 @@ pub type Pivot = Vec<i32>;
 
 #[cfg_attr(doc, katexit::katexit)]
 /// Trait for primitive types which implements LAPACK subroutines
-pub trait Lapack:
-    OperatorNorm_ + Solveh_ + Cholesky_ + Triangular_ + Tridiagonal_ + Rcond_
-{
+pub trait Lapack: OperatorNorm_ + Cholesky_ + Triangular_ + Tridiagonal_ + Rcond_ {
     /// Compute right eigenvalue and eigenvectors for a general matrix
     fn eig(
         calc_v: bool,
@@ -217,6 +215,30 @@ pub trait Lapack:
 
     /// Solve linear equations $Ax = b$ using the output of LU-decomposition
     fn solve(l: MatrixLayout, t: Transpose, a: &[Self], p: &Pivot, b: &mut [Self]) -> Result<()>;
+
+    /// Factorize symmetric/Hermitian matrix using Bunch-Kaufman diagonal pivoting method
+    ///
+    ///
+    /// For a given symmetric matrix $A$,
+    /// this method factorizes $A = U^T D U$ or $A = L D L^T$ where
+    ///
+    /// - $U$ (or $L$) are is a product of permutation and unit upper (lower) triangular matrices
+    /// - $D$ is symmetric and block diagonal with 1-by-1 and 2-by-2 diagonal blocks.
+    ///
+    /// This takes two-step approach based in LAPACK:
+    ///
+    /// 1. Factorize given matrix $A$ into upper ($U$) or lower ($L$) form with diagonal matrix $D$
+    /// 2. Then solve linear equation $Ax = b$, and/or calculate inverse matrix $A^{-1}$
+    ///
+    /// [BK]: https://doi.org/10.2307/2005787
+    ///
+    fn bk(l: MatrixLayout, uplo: UPLO, a: &mut [Self]) -> Result<Pivot>;
+
+    /// Compute inverse matrix $A^{-1}$ of symmetric/Hermitian matrix using factroized result
+    fn invh(l: MatrixLayout, uplo: UPLO, a: &mut [Self], ipiv: &Pivot) -> Result<()>;
+
+    /// Solve symmetric/Hermitian linear equation $Ax = b$ using factroized result
+    fn solveh(l: MatrixLayout, uplo: UPLO, a: &[Self], ipiv: &Pivot, b: &mut [Self]) -> Result<()>;
 }
 
 macro_rules! impl_lapack {
@@ -334,6 +356,29 @@ macro_rules! impl_lapack {
             ) -> Result<()> {
                 use solve::*;
                 SolveImpl::solve(l, t, a, p, b)
+            }
+
+            fn bk(l: MatrixLayout, uplo: UPLO, a: &mut [Self]) -> Result<Pivot> {
+                use solveh::*;
+                let work = BkWork::<$s>::new(l)?;
+                work.eval(uplo, a)
+            }
+
+            fn invh(l: MatrixLayout, uplo: UPLO, a: &mut [Self], ipiv: &Pivot) -> Result<()> {
+                use solveh::*;
+                let mut work = InvhWork::<$s>::new(l)?;
+                work.calc(uplo, a, ipiv)
+            }
+
+            fn solveh(
+                l: MatrixLayout,
+                uplo: UPLO,
+                a: &[Self],
+                ipiv: &Pivot,
+                b: &mut [Self],
+            ) -> Result<()> {
+                use solveh::*;
+                SolvehImpl::solveh(l, uplo, a, ipiv, b)
             }
         }
     };

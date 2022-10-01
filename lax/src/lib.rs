@@ -1,21 +1,24 @@
-//! ndarray-free safe Rust wrapper for LAPACK FFI
+//! Safe Rust wrapper for LAPACK without external dependency.
 //!
-//! `Lapack` trait and sub-traits
-//! -------------------------------
+//! [Lapack] trait
+//! ----------------
 //!
-//! This crates provides LAPACK wrapper as `impl` of traits to base scalar types.
-//! For example, LU decomposition to double-precision matrix is provided like:
+//! This crates provides LAPACK wrapper as a traits.
+//! For example, LU decomposition of general matrices is provided like:
 //!
 //! ```ignore
-//! impl Solve_ for f64 {
-//!     fn lu(l: MatrixLayout, a: &mut [Self]) -> Result<Pivot> { ... }
+//! pub trait Lapack {
+//!     fn lu(l: MatrixLayout, a: &mut [Self]) -> Result<Pivot>;
 //! }
 //! ```
 //!
-//! see [Solve_] for detail. You can use it like `f64::lu`:
+//! see [Lapack] for detail.
+//! This trait is implemented for [f32], [f64], [c32] which is an alias to `num::Complex<f32>`,
+//! and [c64] which is an alias to `num::Complex<f64>`.
+//! You can use it like `f64::lu`:
 //!
 //! ```
-//! use lax::{Solve_, layout::MatrixLayout, Transpose};
+//! use lax::{Lapack, layout::MatrixLayout, Transpose};
 //!
 //! let mut a = vec![
 //!   1.0, 2.0,
@@ -31,9 +34,9 @@
 //! this trait can be used as a trait bound:
 //!
 //! ```
-//! use lax::{Solve_, layout::MatrixLayout, Transpose};
+//! use lax::{Lapack, layout::MatrixLayout, Transpose};
 //!
-//! fn solve_at_once<T: Solve_>(layout: MatrixLayout, a: &mut [T], b: &mut [T]) -> Result<(), lax::error::Error> {
+//! fn solve_at_once<T: Lapack>(layout: MatrixLayout, a: &mut [T], b: &mut [T]) -> Result<(), lax::error::Error> {
 //!   let pivot = T::lu(layout, a)?;
 //!   T::solve(layout, Transpose::No, a, &pivot, b)?;
 //!   Ok(())
@@ -48,9 +51,9 @@
 //!
 //! According to the property input metrix, several types of triangular decomposition are used:
 //!
-//! - [Solve_] trait provides methods for LU-decomposition for general matrix.
-//! - [Solveh_] triat provides methods for Bunch-Kaufman diagonal pivoting method for symmetric/hermite indefinite matrix.
-//! - [Cholesky_] triat provides methods for Cholesky decomposition for symmetric/hermite positive dinite matrix.
+//! - [solve] module provides methods for LU-decomposition for general matrix.
+//! - [solveh] module provides methods for Bunch-Kaufman diagonal pivoting method for symmetric/Hermitian indefinite matrix.
+//! - [cholesky] module provides methods for Cholesky decomposition for symmetric/Hermitian positive dinite matrix.
 //!
 //! Eigenvalue Problem
 //! -------------------
@@ -59,8 +62,8 @@
 //! there are several types of eigenvalue problem API
 //!
 //! - [eig] module for eigenvalue problem for general matrix.
-//! - [eigh] module for eigenvalue problem for symmetric/hermite matrix.
-//! - [eigh_generalized] module for generalized eigenvalue problem for symmetric/hermite matrix.
+//! - [eigh] module for eigenvalue problem for symmetric/Hermitian matrix.
+//! - [eigh_generalized] module for generalized eigenvalue problem for symmetric/Hermitian matrix.
 //!
 //! Singular Value Decomposition
 //! -----------------------------
@@ -85,20 +88,20 @@ pub mod error;
 pub mod flags;
 pub mod layout;
 
+pub mod cholesky;
 pub mod eig;
 pub mod eigh;
 pub mod eigh_generalized;
 pub mod least_squares;
 pub mod qr;
+pub mod solve;
+pub mod solveh;
 pub mod svd;
 pub mod svddc;
 
 mod alloc;
-mod cholesky;
 mod opnorm;
 mod rcond;
-mod solve;
-mod solveh;
 mod triangular;
 mod tridiagonal;
 
@@ -107,8 +110,6 @@ pub use self::flags::*;
 pub use self::least_squares::LeastSquaresOwned;
 pub use self::opnorm::*;
 pub use self::rcond::*;
-pub use self::solve::*;
-pub use self::solveh::*;
 pub use self::svd::{SvdOwned, SvdRef};
 pub use self::triangular::*;
 pub use self::tridiagonal::*;
@@ -121,9 +122,7 @@ pub type Pivot = Vec<i32>;
 
 #[cfg_attr(doc, katexit::katexit)]
 /// Trait for primitive types which implements LAPACK subroutines
-pub trait Lapack:
-    OperatorNorm_ + Solve_ + Solveh_ + Cholesky_ + Triangular_ + Tridiagonal_ + Rcond_
-{
+pub trait Lapack: OperatorNorm_ + Triangular_ + Tridiagonal_ + Rcond_ {
     /// Compute right eigenvalue and eigenvectors for a general matrix
     fn eig(
         calc_v: bool,
@@ -131,7 +130,7 @@ pub trait Lapack:
         a: &mut [Self],
     ) -> Result<(Vec<Self::Complex>, Vec<Self::Complex>)>;
 
-    /// Compute right eigenvalue and eigenvectors for a symmetric or hermite matrix
+    /// Compute right eigenvalue and eigenvectors for a symmetric or Hermitian matrix
     fn eigh(
         calc_eigenvec: bool,
         layout: MatrixLayout,
@@ -139,7 +138,7 @@ pub trait Lapack:
         a: &mut [Self],
     ) -> Result<Vec<Self::Real>>;
 
-    /// Compute right eigenvalue and eigenvectors for a symmetric or hermite matrix
+    /// Compute right eigenvalue and eigenvectors for a symmetric or Hermitian matrix
     fn eigh_generalized(
         calc_eigenvec: bool,
         layout: MatrixLayout,
@@ -181,6 +180,83 @@ pub trait Lapack:
         b_layout: MatrixLayout,
         b: &mut [Self],
     ) -> Result<LeastSquaresOwned<Self>>;
+
+    /// Computes the LU decomposition of a general $m \times n$ matrix
+    /// with partial pivoting with row interchanges.
+    ///
+    /// For a given matrix $A$, LU decomposition is described as $A = PLU$ where:
+    ///
+    /// - $L$ is lower matrix
+    /// - $U$ is upper matrix
+    /// - $P$ is permutation matrix represented by [Pivot]
+    ///
+    /// This is designed as two step computation according to LAPACK API:
+    ///
+    /// 1. Factorize input matrix $A$ into $L$, $U$, and $P$.
+    /// 2. Solve linear equation $Ax = b$ by [Lapack::solve]
+    ///    or compute inverse matrix $A^{-1}$ by [Lapack::inv] using the output of LU decomposition.
+    ///
+    /// Output
+    /// -------
+    /// - $U$ and $L$ are stored in `a` after LU decomposition has succeeded.
+    /// - $P$ is returned as [Pivot]
+    ///
+    /// Error
+    /// ------
+    /// - if the matrix is singular
+    ///   - On this case, `return_code` in [Error::LapackComputationalFailure] means
+    ///     `return_code`-th diagonal element of $U$ becomes zero.
+    ///
+    fn lu(l: MatrixLayout, a: &mut [Self]) -> Result<Pivot>;
+
+    /// Compute inverse matrix $A^{-1}$ from the output of LU-decomposition
+    fn inv(l: MatrixLayout, a: &mut [Self], p: &Pivot) -> Result<()>;
+
+    /// Solve linear equations $Ax = b$ using the output of LU-decomposition
+    fn solve(l: MatrixLayout, t: Transpose, a: &[Self], p: &Pivot, b: &mut [Self]) -> Result<()>;
+
+    /// Factorize symmetric/Hermitian matrix using Bunch-Kaufman diagonal pivoting method
+    ///
+    /// For a given symmetric matrix $A$,
+    /// this method factorizes $A = U^T D U$ or $A = L D L^T$ where
+    ///
+    /// - $U$ (or $L$) are is a product of permutation and unit upper (lower) triangular matrices
+    /// - $D$ is symmetric and block diagonal with 1-by-1 and 2-by-2 diagonal blocks.
+    ///
+    /// This takes two-step approach based in LAPACK:
+    ///
+    /// 1. Factorize given matrix $A$ into upper ($U$) or lower ($L$) form with diagonal matrix $D$
+    /// 2. Then solve linear equation $Ax = b$, and/or calculate inverse matrix $A^{-1}$
+    ///
+    fn bk(l: MatrixLayout, uplo: UPLO, a: &mut [Self]) -> Result<Pivot>;
+
+    /// Compute inverse matrix $A^{-1}$ using the result of [Lapack::bk]
+    fn invh(l: MatrixLayout, uplo: UPLO, a: &mut [Self], ipiv: &Pivot) -> Result<()>;
+
+    /// Solve symmetric/Hermitian linear equation $Ax = b$ using the result of [Lapack::bk]
+    fn solveh(l: MatrixLayout, uplo: UPLO, a: &[Self], ipiv: &Pivot, b: &mut [Self]) -> Result<()>;
+
+    /// Solve symmetric/Hermitian positive-definite linear equations using Cholesky decomposition
+    ///
+    /// For a given positive definite matrix $A$,
+    /// Cholesky decomposition is described as $A = U^T U$ or $A = LL^T$ where
+    ///
+    /// - $L$ is lower matrix
+    /// - $U$ is upper matrix
+    ///
+    /// This is designed as two step computation according to LAPACK API
+    ///
+    /// 1. Factorize input matrix $A$ into $L$ or $U$
+    /// 2. Solve linear equation $Ax = b$ by [Lapack::solve_cholesky]
+    ///    or compute inverse matrix $A^{-1}$ by [Lapack::inv_cholesky]
+    ///
+    fn cholesky(l: MatrixLayout, uplo: UPLO, a: &mut [Self]) -> Result<()>;
+
+    /// Compute inverse matrix $A^{-1}$ using $U$ or $L$ calculated by [Lapack::cholesky]
+    fn inv_cholesky(l: MatrixLayout, uplo: UPLO, a: &mut [Self]) -> Result<()>;
+
+    /// Solve linear equation $Ax = b$ using $U$ or $L$ calculated by [Lapack::cholesky]
+    fn solve_cholesky(l: MatrixLayout, uplo: UPLO, a: &[Self], b: &mut [Self]) -> Result<()>;
 }
 
 macro_rules! impl_lapack {
@@ -275,6 +351,72 @@ macro_rules! impl_lapack {
                 use least_squares::*;
                 let work = LeastSquaresWork::<$s>::new(a_layout, b_layout)?;
                 work.eval(a, b)
+            }
+
+            fn lu(l: MatrixLayout, a: &mut [Self]) -> Result<Pivot> {
+                use solve::*;
+                LuImpl::lu(l, a)
+            }
+
+            fn inv(l: MatrixLayout, a: &mut [Self], p: &Pivot) -> Result<()> {
+                use solve::*;
+                let mut work = InvWork::<$s>::new(l)?;
+                work.calc(a, p)?;
+                Ok(())
+            }
+
+            fn solve(
+                l: MatrixLayout,
+                t: Transpose,
+                a: &[Self],
+                p: &Pivot,
+                b: &mut [Self],
+            ) -> Result<()> {
+                use solve::*;
+                SolveImpl::solve(l, t, a, p, b)
+            }
+
+            fn bk(l: MatrixLayout, uplo: UPLO, a: &mut [Self]) -> Result<Pivot> {
+                use solveh::*;
+                let work = BkWork::<$s>::new(l)?;
+                work.eval(uplo, a)
+            }
+
+            fn invh(l: MatrixLayout, uplo: UPLO, a: &mut [Self], ipiv: &Pivot) -> Result<()> {
+                use solveh::*;
+                let mut work = InvhWork::<$s>::new(l)?;
+                work.calc(uplo, a, ipiv)
+            }
+
+            fn solveh(
+                l: MatrixLayout,
+                uplo: UPLO,
+                a: &[Self],
+                ipiv: &Pivot,
+                b: &mut [Self],
+            ) -> Result<()> {
+                use solveh::*;
+                SolvehImpl::solveh(l, uplo, a, ipiv, b)
+            }
+
+            fn cholesky(l: MatrixLayout, uplo: UPLO, a: &mut [Self]) -> Result<()> {
+                use cholesky::*;
+                CholeskyImpl::cholesky(l, uplo, a)
+            }
+
+            fn inv_cholesky(l: MatrixLayout, uplo: UPLO, a: &mut [Self]) -> Result<()> {
+                use cholesky::*;
+                InvCholeskyImpl::inv_cholesky(l, uplo, a)
+            }
+
+            fn solve_cholesky(
+                l: MatrixLayout,
+                uplo: UPLO,
+                a: &[Self],
+                b: &mut [Self],
+            ) -> Result<()> {
+                use cholesky::*;
+                SolveCholeskyImpl::solve_cholesky(l, uplo, a, b)
             }
         }
     };

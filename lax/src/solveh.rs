@@ -55,6 +55,9 @@ macro_rules! impl_bk_work {
             fn calc(&mut self, uplo: UPLO, a: &mut [Self::Elem]) -> Result<&[i32]> {
                 let (n, _) = self.layout.size();
                 let lwork = self.work.len().to_i32().unwrap();
+                if lwork == 0 {
+                    return Ok(&[]);
+                }
                 let mut info = 0;
                 unsafe {
                     $trf(

@@ -94,6 +94,7 @@ pub mod eigh;
 pub mod eigh_generalized;
 pub mod least_squares;
 pub mod qr;
+pub mod rcond;
 pub mod solve;
 pub mod solveh;
 pub mod svd;
@@ -101,7 +102,6 @@ pub mod svddc;
 
 mod alloc;
 mod opnorm;
-mod rcond;
 mod triangular;
 mod tridiagonal;
 
@@ -109,7 +109,6 @@ pub use self::cholesky::*;
 pub use self::flags::*;
 pub use self::least_squares::LeastSquaresOwned;
 pub use self::opnorm::*;
-pub use self::rcond::*;
 pub use self::svd::{SvdOwned, SvdRef};
 pub use self::triangular::*;
 pub use self::tridiagonal::*;
@@ -122,7 +121,7 @@ pub type Pivot = Vec<i32>;
 
 #[cfg_attr(doc, katexit::katexit)]
 /// Trait for primitive types which implements LAPACK subroutines
-pub trait Lapack: OperatorNorm_ + Triangular_ + Tridiagonal_ + Rcond_ {
+pub trait Lapack: OperatorNorm_ + Triangular_ + Tridiagonal_ {
     /// Compute right eigenvalue and eigenvectors for a general matrix
     fn eig(
         calc_v: bool,
@@ -257,6 +256,11 @@ pub trait Lapack: OperatorNorm_ + Triangular_ + Tridiagonal_ + Rcond_ {
 
     /// Solve linear equation $Ax = b$ using $U$ or $L$ calculated by [Lapack::cholesky]
     fn solve_cholesky(l: MatrixLayout, uplo: UPLO, a: &[Self], b: &mut [Self]) -> Result<()>;
+
+    /// Estimates the the reciprocal of the condition number of the matrix in 1-norm.
+    ///
+    /// `anorm` should be the 1-norm of the matrix `a`.
+    fn rcond(l: MatrixLayout, a: &[Self], anorm: Self::Real) -> Result<Self::Real>;
 }
 
 macro_rules! impl_lapack {
@@ -417,6 +421,12 @@ macro_rules! impl_lapack {
             ) -> Result<()> {
                 use cholesky::*;
                 SolveCholeskyImpl::solve_cholesky(l, uplo, a, b)
+            }
+
+            fn rcond(l: MatrixLayout, a: &[Self], anorm: Self::Real) -> Result<Self::Real> {
+                use rcond::*;
+                let mut work = RcondWork::<$s>::new(l);
+                work.calc(a, anorm)
             }
         }
     };

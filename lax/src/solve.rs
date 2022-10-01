@@ -79,14 +79,14 @@ impl_lu!(f32, lapack_sys::sgetrf_);
 /// be reinterpreted as Fortran layout) and applying the
 /// elementwise conjugate to `x` and `b`.
 ///
-/// LAPACK correspondance
-/// ----------------------
-///
-/// | f32    | f64    | c32    | c64    |
-/// |:-------|:-------|:-------|:-------|
-/// | sgetrs | dgetrs | cgetrs | zgetrs |
-///
 pub trait SolveImpl: Scalar {
+    /// LAPACK correspondance
+    /// ----------------------
+    ///
+    /// | f32    | f64    | c32    | c64    |
+    /// |:-------|:-------|:-------|:-------|
+    /// | sgetrs | dgetrs | cgetrs | zgetrs |
+    ///
     fn solve(l: MatrixLayout, t: Transpose, a: &[Self], p: &Pivot, b: &mut [Self]) -> Result<()>;
 }
 

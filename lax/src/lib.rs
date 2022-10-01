@@ -52,8 +52,8 @@
 //! According to the property input metrix, several types of triangular decomposition are used:
 //!
 //! - [solve] module provides methods for LU-decomposition for general matrix.
-//! - [solveh] module provides methods for Bunch-Kaufman diagonal pivoting method for symmetric/hermite indefinite matrix.
-//! - [Cholesky_] triat provides methods for Cholesky decomposition for symmetric/hermite positive dinite matrix.
+//! - [solveh] module provides methods for Bunch-Kaufman diagonal pivoting method for symmetric/Hermitian indefinite matrix.
+//! - [cholesky] module provides methods for Cholesky decomposition for symmetric/Hermitian positive dinite matrix.
 //!
 //! Eigenvalue Problem
 //! -------------------
@@ -62,8 +62,8 @@
 //! there are several types of eigenvalue problem API
 //!
 //! - [eig] module for eigenvalue problem for general matrix.
-//! - [eigh] module for eigenvalue problem for symmetric/hermite matrix.
-//! - [eigh_generalized] module for generalized eigenvalue problem for symmetric/hermite matrix.
+//! - [eigh] module for eigenvalue problem for symmetric/Hermitian matrix.
+//! - [eigh_generalized] module for generalized eigenvalue problem for symmetric/Hermitian matrix.
 //!
 //! Singular Value Decomposition
 //! -----------------------------
@@ -88,6 +88,7 @@ pub mod error;
 pub mod flags;
 pub mod layout;
 
+pub mod cholesky;
 pub mod eig;
 pub mod eigh;
 pub mod eigh_generalized;
@@ -99,7 +100,6 @@ pub mod svd;
 pub mod svddc;
 
 mod alloc;
-mod cholesky;
 mod opnorm;
 mod rcond;
 mod triangular;
@@ -130,7 +130,7 @@ pub trait Lapack: OperatorNorm_ + Triangular_ + Tridiagonal_ + Rcond_ {
         a: &mut [Self],
     ) -> Result<(Vec<Self::Complex>, Vec<Self::Complex>)>;
 
-    /// Compute right eigenvalue and eigenvectors for a symmetric or hermite matrix
+    /// Compute right eigenvalue and eigenvectors for a symmetric or Hermitian matrix
     fn eigh(
         calc_eigenvec: bool,
         layout: MatrixLayout,
@@ -138,7 +138,7 @@ pub trait Lapack: OperatorNorm_ + Triangular_ + Tridiagonal_ + Rcond_ {
         a: &mut [Self],
     ) -> Result<Vec<Self::Real>>;
 
-    /// Compute right eigenvalue and eigenvectors for a symmetric or hermite matrix
+    /// Compute right eigenvalue and eigenvectors for a symmetric or Hermitian matrix
     fn eigh_generalized(
         calc_eigenvec: bool,
         layout: MatrixLayout,
@@ -217,7 +217,6 @@ pub trait Lapack: OperatorNorm_ + Triangular_ + Tridiagonal_ + Rcond_ {
 
     /// Factorize symmetric/Hermitian matrix using Bunch-Kaufman diagonal pivoting method
     ///
-    ///
     /// For a given symmetric matrix $A$,
     /// this method factorizes $A = U^T D U$ or $A = L D L^T$ where
     ///
@@ -233,13 +232,13 @@ pub trait Lapack: OperatorNorm_ + Triangular_ + Tridiagonal_ + Rcond_ {
     ///
     fn bk(l: MatrixLayout, uplo: UPLO, a: &mut [Self]) -> Result<Pivot>;
 
-    /// Compute inverse matrix $A^{-1}$ of symmetric/Hermitian matrix using factroized result
+    /// Compute inverse matrix $A^{-1}$ using the result of [Lapack::bk]
     fn invh(l: MatrixLayout, uplo: UPLO, a: &mut [Self], ipiv: &Pivot) -> Result<()>;
 
-    /// Solve symmetric/Hermitian linear equation $Ax = b$ using factroized result
+    /// Solve symmetric/Hermitian linear equation $Ax = b$ using the result of [Lapack::bk]
     fn solveh(l: MatrixLayout, uplo: UPLO, a: &[Self], ipiv: &Pivot, b: &mut [Self]) -> Result<()>;
 
-    /// Solve symmetric/hermite positive-definite linear equations using Cholesky decomposition
+    /// Solve symmetric/Hermitian positive-definite linear equations using Cholesky decomposition
     ///
     /// For a given positive definite matrix $A$,
     /// Cholesky decomposition is described as $A = U^T U$ or $A = LL^T$ where
@@ -250,14 +249,15 @@ pub trait Lapack: OperatorNorm_ + Triangular_ + Tridiagonal_ + Rcond_ {
     /// This is designed as two step computation according to LAPACK API
     ///
     /// 1. Factorize input matrix $A$ into $L$ or $U$
-    /// 2. Solve linear equation $Ax = b$ or compute inverse matrix $A^{-1}$
-    ///    using $U$ or $L$.
+    /// 2. Solve linear equation $Ax = b$ by [Lapack::solve_cholesky]
+    ///    or compute inverse matrix $A^{-1}$ by [Lapack::inv_cholesky]
+    ///
     fn cholesky(l: MatrixLayout, uplo: UPLO, a: &mut [Self]) -> Result<()>;
 
-    /// Compute inverse matrix $A^{-1}$ using $U$ or $L$
+    /// Compute inverse matrix $A^{-1}$ using $U$ or $L$ calculated by [Lapack::cholesky]
     fn inv_cholesky(l: MatrixLayout, uplo: UPLO, a: &mut [Self]) -> Result<()>;
 
-    /// Solve linear equation $Ax = b$ using $U$ or $L$
+    /// Solve linear equation $Ax = b$ using $U$ or $L$ calculated by [Lapack::cholesky]
     fn solve_cholesky(l: MatrixLayout, uplo: UPLO, a: &[Self], b: &mut [Self]) -> Result<()>;
 }
 

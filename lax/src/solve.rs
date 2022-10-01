@@ -53,6 +53,7 @@ impl_lu!(c32, lapack_sys::cgetrf_);
 impl_lu!(f64, lapack_sys::dgetrf_);
 impl_lu!(f32, lapack_sys::sgetrf_);
 
+#[cfg_attr(doc, katexit::katexit)]
 /// Helper trait to abstract `*getrs` LAPACK routines for implementing [Lapack::solve]
 ///
 /// If the array has C layout, then it needs to be handled
@@ -63,13 +64,15 @@ impl_lu!(f32, lapack_sys::sgetrf_);
 /// or "no transpose", respectively. For the "Hermite" case, we
 /// can take advantage of the following:
 ///
-/// ```text
-/// A^H x = b
-/// ⟺ conj(A^T) x = b
-/// ⟺ conj(conj(A^T) x) = conj(b)
-/// ⟺ conj(conj(A^T)) conj(x) = conj(b)
-/// ⟺ A^T conj(x) = conj(b)
-/// ```
+/// $$
+/// \begin{align*}
+///   A^H x &= b \\\\
+///   \Leftrightarrow \overline{A^T} x &= b \\\\
+///   \Leftrightarrow \overline{\overline{A^T} x} &= \overline{b} \\\\
+///   \Leftrightarrow \overline{\overline{A^T}} \overline{x} &= \overline{b} \\\\
+///   \Leftrightarrow A^T \overline{x} &= \overline{b}
+/// \end{align*}
+/// $$
 ///
 /// So, we can handle this case by switching to "no transpose"
 /// (which is equivalent to transposing the array since it will

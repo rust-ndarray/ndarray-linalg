@@ -93,6 +93,7 @@ pub mod eig;
 pub mod eigh;
 pub mod eigh_generalized;
 pub mod least_squares;
+pub mod opnorm;
 pub mod qr;
 pub mod rcond;
 pub mod solve;
@@ -101,7 +102,6 @@ pub mod svd;
 pub mod svddc;
 
 mod alloc;
-mod opnorm;
 mod triangular;
 mod tridiagonal;
 
@@ -121,7 +121,7 @@ pub type Pivot = Vec<i32>;
 
 #[cfg_attr(doc, katexit::katexit)]
 /// Trait for primitive types which implements LAPACK subroutines
-pub trait Lapack: OperatorNorm_ + Triangular_ + Tridiagonal_ {
+pub trait Lapack: Triangular_ + Tridiagonal_ {
     /// Compute right eigenvalue and eigenvectors for a general matrix
     fn eig(
         calc_v: bool,
@@ -261,6 +261,9 @@ pub trait Lapack: OperatorNorm_ + Triangular_ + Tridiagonal_ {
     ///
     /// `anorm` should be the 1-norm of the matrix `a`.
     fn rcond(l: MatrixLayout, a: &[Self], anorm: Self::Real) -> Result<Self::Real>;
+
+    /// Compute operator norm of a matrix
+    fn opnorm(t: NormType, l: MatrixLayout, a: &[Self]) -> Self::Real;
 }
 
 macro_rules! impl_lapack {
@@ -427,6 +430,12 @@ macro_rules! impl_lapack {
                 use rcond::*;
                 let mut work = RcondWork::<$s>::new(l);
                 work.calc(a, anorm)
+            }
+
+            fn opnorm(t: NormType, l: MatrixLayout, a: &[Self]) -> Self::Real {
+                use opnorm::*;
+                let mut work = OperatorNormWork::<$s>::new(t, l);
+                work.calc(a)
             }
         }
     };

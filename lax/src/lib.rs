@@ -6,8 +6,8 @@
 //! This crates provides LAPACK wrapper as a traits.
 //! For example, LU decomposition of general matrices is provided like:
 //!
-//! ```
-//! pub trait Lapack{
+//! ```ignore
+//! pub trait Lapack {
 //!     fn lu(l: MatrixLayout, a: &mut [Self]) -> Result<Pivot>;
 //! }
 //! ```

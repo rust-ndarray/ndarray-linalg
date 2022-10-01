@@ -228,8 +228,6 @@ pub trait Lapack: OperatorNorm_ + Triangular_ + Tridiagonal_ + Rcond_ {
     /// 1. Factorize given matrix $A$ into upper ($U$) or lower ($L$) form with diagonal matrix $D$
     /// 2. Then solve linear equation $Ax = b$, and/or calculate inverse matrix $A^{-1}$
     ///
-    /// [BK]: https://doi.org/10.2307/2005787
-    ///
     fn bk(l: MatrixLayout, uplo: UPLO, a: &mut [Self]) -> Result<Pivot>;
 
     /// Compute inverse matrix $A^{-1}$ using the result of [Lapack::bk]

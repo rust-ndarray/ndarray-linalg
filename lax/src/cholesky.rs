@@ -1,3 +1,5 @@
+//! Factorize positive-definite symmetric/Hermitian matrices using Cholesky algorithm
+
 use super::*;
 use crate::{error::*, layout::*};
 use cauchy::*;

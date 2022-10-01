@@ -1,3 +1,8 @@
+//! Factorize symmetric/Hermitian matrix using [Bunch-Kaufman diagonal pivoting method][BK]
+//!
+//! [BK]: https://doi.org/10.2307/2005787
+//!
+
 use crate::{error::*, layout::MatrixLayout, *};
 use cauchy::*;
 use num_traits::{ToPrimitive, Zero};

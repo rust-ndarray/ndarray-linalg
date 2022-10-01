@@ -122,7 +122,7 @@ pub type Pivot = Vec<i32>;
 
 #[cfg_attr(doc, katexit::katexit)]
 /// Trait for primitive types which implements LAPACK subroutines
-pub trait Lapack: OperatorNorm_ + Cholesky_ + Triangular_ + Tridiagonal_ + Rcond_ {
+pub trait Lapack: OperatorNorm_ + Triangular_ + Tridiagonal_ + Rcond_ {
     /// Compute right eigenvalue and eigenvectors for a general matrix
     fn eig(
         calc_v: bool,
@@ -238,6 +238,27 @@ pub trait Lapack: OperatorNorm_ + Cholesky_ + Triangular_ + Tridiagonal_ + Rcond
 
     /// Solve symmetric/Hermitian linear equation $Ax = b$ using factroized result
     fn solveh(l: MatrixLayout, uplo: UPLO, a: &[Self], ipiv: &Pivot, b: &mut [Self]) -> Result<()>;
+
+    /// Solve symmetric/hermite positive-definite linear equations using Cholesky decomposition
+    ///
+    /// For a given positive definite matrix $A$,
+    /// Cholesky decomposition is described as $A = U^T U$ or $A = LL^T$ where
+    ///
+    /// - $L$ is lower matrix
+    /// - $U$ is upper matrix
+    ///
+    /// This is designed as two step computation according to LAPACK API
+    ///
+    /// 1. Factorize input matrix $A$ into $L$ or $U$
+    /// 2. Solve linear equation $Ax = b$ or compute inverse matrix $A^{-1}$
+    ///    using $U$ or $L$.
+    fn cholesky(l: MatrixLayout, uplo: UPLO, a: &mut [Self]) -> Result<()>;
+
+    /// Compute inverse matrix $A^{-1}$ using $U$ or $L$
+    fn inv_cholesky(l: MatrixLayout, uplo: UPLO, a: &mut [Self]) -> Result<()>;
+
+    /// Solve linear equation $Ax = b$ using $U$ or $L$
+    fn solve_cholesky(l: MatrixLayout, uplo: UPLO, a: &[Self], b: &mut [Self]) -> Result<()>;
 }
 
 macro_rules! impl_lapack {
@@ -378,6 +399,26 @@ macro_rules! impl_lapack {
             ) -> Result<()> {
                 use solveh::*;
                 SolvehImpl::solveh(l, uplo, a, ipiv, b)
+            }
+
+            fn cholesky(l: MatrixLayout, uplo: UPLO, a: &mut [Self]) -> Result<()> {
+                use cholesky::*;
+                CholeskyImpl::cholesky(l, uplo, a)
+            }
+
+            fn inv_cholesky(l: MatrixLayout, uplo: UPLO, a: &mut [Self]) -> Result<()> {
+                use cholesky::*;
+                InvCholeskyImpl::inv_cholesky(l, uplo, a)
+            }
+
+            fn solve_cholesky(
+                l: MatrixLayout,
+                uplo: UPLO,
+                a: &[Self],
+                b: &mut [Self],
+            ) -> Result<()> {
+                use cholesky::*;
+                SolveCholeskyImpl::solve_cholesky(l, uplo, a, b)
             }
         }
     };

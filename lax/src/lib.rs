@@ -262,7 +262,41 @@ pub trait Lapack: Triangular_ + Tridiagonal_ {
     /// `anorm` should be the 1-norm of the matrix `a`.
     fn rcond(l: MatrixLayout, a: &[Self], anorm: Self::Real) -> Result<Self::Real>;
 
-    /// Compute operator norm of a matrix
+    /// Compute norm of matrices
+    ///
+    /// For a $n \times m$ matrix
+    /// $$
+    /// A = \begin{pmatrix}
+    ///   a_{11} & \cdots & a_{1m} \\\\
+    ///   \vdots & \ddots & \vdots \\\\
+    ///   a_{n1} & \cdots & a_{nm}
+    /// \end{pmatrix}
+    /// $$
+    /// LAPACK can compute three types of norms:
+    ///
+    /// - Operator norm based on 1-norm for its domain linear space:
+    ///   $$
+    ///   \Vert A \Vert_1 = \sup_{\Vert x \Vert_1 = 1} \Vert Ax \Vert_1
+    ///   = \max_{1 \le j \le m } \sum_{i=1}^n |a_{ij}|
+    ///   $$
+    ///   where
+    ///   $\Vert x\Vert_1 = \sum_{j=1}^m |x_j|$
+    ///   is 1-norm for a vector $x$.
+    ///
+    /// - Operator norm based on $\infty$-norm for its domain linear space:
+    ///   $$
+    ///   \Vert A \Vert_\infty = \sup_{\Vert x \Vert_\infty = 1} \Vert Ax \Vert_\infty
+    ///   = \max_{1 \le i \le n } \sum_{j=1}^m |a_{ij}|
+    ///   $$
+    ///   where
+    ///   $\Vert x\Vert_\infty = \max_{j=1}^m |x_j|$
+    ///   is $\infty$-norm for a vector $x$.
+    ///
+    /// - Frobenious norm
+    ///   $$
+    ///   \Vert A \Vert_F = \sqrt{\mathrm{Tr} \left(AA^\dagger\right)} = \sqrt{\sum_{i=1}^n \sum_{j=1}^m |a_{ij}|^2}
+    ///   $$
+    ///
     fn opnorm(t: NormType, l: MatrixLayout, a: &[Self]) -> Self::Real;
 }
 

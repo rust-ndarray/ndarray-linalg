@@ -1,4 +1,4 @@
-//! Operator norms of matrices
+//! Operator norm
 
 use super::{AsPtr, NormType};
 use crate::{layout::MatrixLayout, *};

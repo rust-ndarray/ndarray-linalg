@@ -1,3 +1,5 @@
+//! Reciprocal conditional number
+
 use crate::{error::*, layout::MatrixLayout, *};
 use cauchy::*;
 use num_traits::Zero;

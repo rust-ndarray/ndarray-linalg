@@ -93,15 +93,15 @@ pub mod eig;
 pub mod eigh;
 pub mod eigh_generalized;
 pub mod least_squares;
+pub mod opnorm;
 pub mod qr;
+pub mod rcond;
 pub mod solve;
 pub mod solveh;
 pub mod svd;
 pub mod svddc;
 
 mod alloc;
-mod opnorm;
-mod rcond;
 mod triangular;
 mod tridiagonal;
 
@@ -109,7 +109,6 @@ pub use self::cholesky::*;
 pub use self::flags::*;
 pub use self::least_squares::LeastSquaresOwned;
 pub use self::opnorm::*;
-pub use self::rcond::*;
 pub use self::svd::{SvdOwned, SvdRef};
 pub use self::triangular::*;
 pub use self::tridiagonal::*;
@@ -122,7 +121,7 @@ pub type Pivot = Vec<i32>;
 
 #[cfg_attr(doc, katexit::katexit)]
 /// Trait for primitive types which implements LAPACK subroutines
-pub trait Lapack: OperatorNorm_ + Triangular_ + Tridiagonal_ + Rcond_ {
+pub trait Lapack: Triangular_ + Tridiagonal_ {
     /// Compute right eigenvalue and eigenvectors for a general matrix
     fn eig(
         calc_v: bool,
@@ -257,6 +256,48 @@ pub trait Lapack: OperatorNorm_ + Triangular_ + Tridiagonal_ + Rcond_ {
 
     /// Solve linear equation $Ax = b$ using $U$ or $L$ calculated by [Lapack::cholesky]
     fn solve_cholesky(l: MatrixLayout, uplo: UPLO, a: &[Self], b: &mut [Self]) -> Result<()>;
+
+    /// Estimates the the reciprocal of the condition number of the matrix in 1-norm.
+    ///
+    /// `anorm` should be the 1-norm of the matrix `a`.
+    fn rcond(l: MatrixLayout, a: &[Self], anorm: Self::Real) -> Result<Self::Real>;
+
+    /// Compute norm of matrices
+    ///
+    /// For a $n \times m$ matrix
+    /// $$
+    /// A = \begin{pmatrix}
+    ///   a_{11} & \cdots & a_{1m} \\\\
+    ///   \vdots & \ddots & \vdots \\\\
+    ///   a_{n1} & \cdots & a_{nm}
+    /// \end{pmatrix}
+    /// $$
+    /// LAPACK can compute three types of norms:
+    ///
+    /// - Operator norm based on 1-norm for its domain linear space:
+    ///   $$
+    ///   \Vert A \Vert_1 = \sup_{\Vert x \Vert_1 = 1} \Vert Ax \Vert_1
+    ///   = \max_{1 \le j \le m } \sum_{i=1}^n |a_{ij}|
+    ///   $$
+    ///   where
+    ///   $\Vert x\Vert_1 = \sum_{j=1}^m |x_j|$
+    ///   is 1-norm for a vector $x$.
+    ///
+    /// - Operator norm based on $\infty$-norm for its domain linear space:
+    ///   $$
+    ///   \Vert A \Vert_\infty = \sup_{\Vert x \Vert_\infty = 1} \Vert Ax \Vert_\infty
+    ///   = \max_{1 \le i \le n } \sum_{j=1}^m |a_{ij}|
+    ///   $$
+    ///   where
+    ///   $\Vert x\Vert_\infty = \max_{j=1}^m |x_j|$
+    ///   is $\infty$-norm for a vector $x$.
+    ///
+    /// - Frobenious norm
+    ///   $$
+    ///   \Vert A \Vert_F = \sqrt{\mathrm{Tr} \left(AA^\dagger\right)} = \sqrt{\sum_{i=1}^n \sum_{j=1}^m |a_{ij}|^2}
+    ///   $$
+    ///
+    fn opnorm(t: NormType, l: MatrixLayout, a: &[Self]) -> Self::Real;
 }
 
 macro_rules! impl_lapack {
@@ -417,6 +458,18 @@ macro_rules! impl_lapack {
             ) -> Result<()> {
                 use cholesky::*;
                 SolveCholeskyImpl::solve_cholesky(l, uplo, a, b)
+            }
+
+            fn rcond(l: MatrixLayout, a: &[Self], anorm: Self::Real) -> Result<Self::Real> {
+                use rcond::*;
+                let mut work = RcondWork::<$s>::new(l);
+                work.calc(a, anorm)
+            }
+
+            fn opnorm(t: NormType, l: MatrixLayout, a: &[Self]) -> Self::Real {
+                use opnorm::*;
+                let mut work = OperatorNormWork::<$s>::new(t, l);
+                work.calc(a)
             }
         }
     };

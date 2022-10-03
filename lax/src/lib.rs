@@ -100,9 +100,9 @@ pub mod solve;
 pub mod solveh;
 pub mod svd;
 pub mod svddc;
+pub mod triangular;
 
 mod alloc;
-mod triangular;
 mod tridiagonal;
 
 pub use self::cholesky::*;
@@ -110,7 +110,6 @@ pub use self::flags::*;
 pub use self::least_squares::LeastSquaresOwned;
 pub use self::opnorm::*;
 pub use self::svd::{SvdOwned, SvdRef};
-pub use self::triangular::*;
 pub use self::tridiagonal::*;
 
 use self::{alloc::*, error::*, layout::*};
@@ -121,7 +120,7 @@ pub type Pivot = Vec<i32>;
 
 #[cfg_attr(doc, katexit::katexit)]
 /// Trait for primitive types which implements LAPACK subroutines
-pub trait Lapack: Triangular_ + Tridiagonal_ {
+pub trait Lapack: Tridiagonal_ {
     /// Compute right eigenvalue and eigenvectors for a general matrix
     fn eig(
         calc_v: bool,
@@ -298,6 +297,15 @@ pub trait Lapack: Triangular_ + Tridiagonal_ {
     ///   $$
     ///
     fn opnorm(t: NormType, l: MatrixLayout, a: &[Self]) -> Self::Real;
+
+    fn solve_triangular(
+        al: MatrixLayout,
+        bl: MatrixLayout,
+        uplo: UPLO,
+        d: Diag,
+        a: &[Self],
+        b: &mut [Self],
+    ) -> Result<()>;
 }
 
 macro_rules! impl_lapack {
@@ -470,6 +478,18 @@ macro_rules! impl_lapack {
                 use opnorm::*;
                 let mut work = OperatorNormWork::<$s>::new(t, l);
                 work.calc(a)
+            }
+
+            fn solve_triangular(
+                al: MatrixLayout,
+                bl: MatrixLayout,
+                uplo: UPLO,
+                d: Diag,
+                a: &[Self],
+                b: &mut [Self],
+            ) -> Result<()> {
+                use triangular::*;
+                SolveTriangularImpl::solve_triangular(al, bl, uplo, d, a, b)
             }
         }
     };

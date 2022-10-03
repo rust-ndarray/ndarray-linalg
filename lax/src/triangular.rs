@@ -1,10 +1,18 @@
-//! Implement linear solver and inverse matrix
+//! Linear problem for triangular matrices
 
 use crate::{error::*, layout::*, *};
 use cauchy::*;
 
-/// Wraps `*trtri` and `*trtrs`
-pub trait Triangular_: Scalar {
+/// Solve linear problem for triangular matrices
+///
+/// LAPACK correspondance
+/// ----------------------
+///
+/// | f32    | f64    | c32    | c64    |
+/// |:-------|:-------|:-------|:-------|
+/// | strtrs | dtrtrs | ctrtrs | ztrtrs |
+///
+pub trait SolveTriangularImpl: Scalar {
     fn solve_triangular(
         al: MatrixLayout,
         bl: MatrixLayout,
@@ -16,8 +24,8 @@ pub trait Triangular_: Scalar {
 }
 
 macro_rules! impl_triangular {
-    ($scalar:ty, $trtri:path, $trtrs:path) => {
-        impl Triangular_ for $scalar {
+    ($scalar:ty, $trtrs:path) => {
+        impl SolveTriangularImpl for $scalar {
             fn solve_triangular(
                 a_layout: MatrixLayout,
                 b_layout: MatrixLayout,
@@ -79,7 +87,7 @@ macro_rules! impl_triangular {
     };
 } // impl_triangular!
 
-impl_triangular!(f64, lapack_sys::dtrtri_, lapack_sys::dtrtrs_);
-impl_triangular!(f32, lapack_sys::strtri_, lapack_sys::strtrs_);
-impl_triangular!(c64, lapack_sys::ztrtri_, lapack_sys::ztrtrs_);
-impl_triangular!(c32, lapack_sys::ctrtri_, lapack_sys::ctrtrs_);
+impl_triangular!(f64, lapack_sys::dtrtrs_);
+impl_triangular!(f32, lapack_sys::strtrs_);
+impl_triangular!(c64, lapack_sys::ztrtrs_);
+impl_triangular!(c32, lapack_sys::ctrtrs_);

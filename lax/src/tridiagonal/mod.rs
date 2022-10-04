@@ -2,9 +2,11 @@
 //! for tridiagonal matrix
 
 mod matrix;
+mod rcond;
 mod solve;
 
 pub use matrix::*;
+pub use rcond::*;
 pub use solve::*;
 
 use crate::{error::*, layout::*, *};

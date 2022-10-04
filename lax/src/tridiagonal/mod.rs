@@ -2,8 +2,10 @@
 //! for tridiagonal matrix
 
 mod matrix;
+mod solve;
 
 pub use matrix::*;
+pub use solve::*;
 
 use crate::{error::*, layout::*, *};
 use cauchy::*;

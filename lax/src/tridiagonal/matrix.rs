@@ -1,6 +1,5 @@
 use crate::layout::*;
 use cauchy::*;
-use num_traits::Zero;
 use std::ops::{Index, IndexMut};
 
 /// Represents a tridiagonal matrix as 3 one-dimensional vectors.
@@ -22,27 +21,6 @@ pub struct Tridiagonal<A: Scalar> {
     pub d: Vec<A>,
     /// (n-1) super-diagonal elements of matrix.
     pub du: Vec<A>,
-}
-
-impl<A: Scalar> Tridiagonal<A> {
-    pub fn opnorm_one(&self) -> A::Real {
-        let mut col_sum: Vec<A::Real> = self.d.iter().map(|val| val.abs()).collect();
-        for i in 0..col_sum.len() {
-            if i < self.dl.len() {
-                col_sum[i] += self.dl[i].abs();
-            }
-            if i > 0 {
-                col_sum[i] += self.du[i - 1].abs();
-            }
-        }
-        let mut max = A::Real::zero();
-        for &val in &col_sum {
-            if max < val {
-                max = val;
-            }
-        }
-        max
-    }
 }
 
 impl<A: Scalar> Index<(i32, i32)> for Tridiagonal<A> {

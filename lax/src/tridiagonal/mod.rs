@@ -1,10 +1,12 @@
 //! Implement linear solver using LU decomposition
 //! for tridiagonal matrix
 
+mod lu;
 mod matrix;
 mod rcond;
 mod solve;
 
+pub use lu::*;
 pub use matrix::*;
 pub use rcond::*;
 pub use solve::*;
@@ -12,23 +14,6 @@ pub use solve::*;
 use crate::{error::*, layout::*, *};
 use cauchy::*;
 use num_traits::Zero;
-
-/// Represents the LU factorization of a tridiagonal matrix `A` as `A = P*L*U`.
-#[derive(Clone, PartialEq)]
-pub struct LUFactorizedTridiagonal<A: Scalar> {
-    /// A tridiagonal matrix which consists of
-    /// - l : layout of raw matrix
-    /// - dl: (n-1) multipliers that define the matrix L.
-    /// - d : (n) diagonal elements of the upper triangular matrix U.
-    /// - du: (n-1) elements of the first super-diagonal of U.
-    pub a: Tridiagonal<A>,
-    /// (n-2) elements of the second super-diagonal of U.
-    pub du2: Vec<A>,
-    /// The pivot indices that define the permutation matrix `P`.
-    pub ipiv: Pivot,
-
-    a_opnorm_one: A::Real,
-}
 
 /// Wraps `*gttrf`, `*gtcon` and `*gttrs`
 pub trait Tridiagonal_: Scalar + Sized {

@@ -1,4 +1,4 @@
-use std::iter::{Zip, zip};
+use std::iter::{zip, Zip};
 
 use ndarray::{concatenate, prelude::*};
 use num_complex::ComplexFloat;
@@ -106,7 +106,7 @@ fn update_indices(indices: &mut Vec<usize>, index_history: &Vec<usize>, t: usize
     }
 }
 
-fn normest(A: &Array2<f64>, t: u32, itmax: u32) -> f64 {
+pub fn normest(A: &Array2<f64>, t: u32, itmax: u32) -> f64 {
     let mut est = 0.0;
     let mut best_index = 0;
     // Need to ensure that A is square
@@ -167,7 +167,7 @@ fn normest(A: &Array2<f64>, t: u32, itmax: u32) -> f64 {
             break;
         }
         let mut zipped_pairs: Vec<(f64, usize)> = zip(h.to_vec(), indices.clone()).collect();
-        zipped_pairs.sort_unstable_by(|a,b| b.0.partial_cmp(&a.0).unwrap());
+        zipped_pairs.sort_unstable_by(|a, b| b.0.partial_cmp(&a.0).unwrap());
         for ix in 0..zipped_pairs.len() {
             h[[ix]] = zipped_pairs[ix].0;
             indices[ix] = zipped_pairs[ix].1;
@@ -190,12 +190,13 @@ fn normest(A: &Array2<f64>, t: u32, itmax: u32) -> f64 {
 mod tests {
     use crate::{
         ndarray::ShapeBuilder,
-        normest1::{ensure_no_parallel_columns, is_column_parallel, prepare_x_matrix}, OperationNorm,
+        normest1::{ensure_no_parallel_columns, is_column_parallel, prepare_x_matrix},
+        OperationNorm,
     };
     use ndarray::Array2;
     use rand::{thread_rng, Rng};
 
-    use super::{special_delivery, normest};
+    use super::{normest, special_delivery};
 
     #[test]
     fn test_prep() {
@@ -248,10 +249,11 @@ mod tests {
         let mut rng = rand::thread_rng();
         for _ in 0..1000 {
             mat.mapv_inplace(|_| rng.gen());
-            results.push({
-                normest(&mat, t as u32, itmax) / mat.opnorm_one().unwrap()
-            });
+            results.push({ normest(&mat, t as u32, itmax) / mat.opnorm_one().unwrap() });
         }
-        println!("results average: {:}", results.iter().sum::<f64>() / results.len() as f64);
+        println!(
+            "results average: {:}",
+            results.iter().sum::<f64>() / results.len() as f64
+        );
     }
 }

@@ -3,6 +3,8 @@ use std::iter::{zip, Zip};
 use ndarray::{concatenate, prelude::*};
 use num_complex::ComplexFloat;
 use rand::Rng;
+
+use crate::OperationNorm;
 // use rand::prelude::*;
 
 const MAX_COLUMN_RESAMPLES: u32 = 10;
@@ -14,7 +16,7 @@ fn prepare_x_matrix(num_rows: usize, num_columns: usize) -> Array2<f64> {
     // todo - check sizes?
     output.column_mut(0).fill(1.);
     ensure_no_parallel_columns(&mut output);
-    output
+    output / (num_rows as f64)
 }
 
 fn is_column_parallel(index: usize, matrix: &Array2<f64>) -> bool {
@@ -52,7 +54,7 @@ fn ensure_no_parallel_columns(mat: &mut Array2<f64>) {
 }
 
 /// Outputs true if every column of s_new is parallel to some column in s_old, false otherwise.
-fn special_delivery(s_new: &Array2<f64>, s_old: &Array2<f64>) -> bool {
+fn check_if_s_parallel_to_s_old(s_new: &Array2<f64>, s_old: &Array2<f64>) -> bool {
     let mut ret = true;
     let dots = s_old.t().dot(s_new);
     for col in dots.columns() {
@@ -70,6 +72,8 @@ fn special_delivery(s_new: &Array2<f64>, s_old: &Array2<f64>) -> bool {
     ret
 }
 
+/// Resamples columns of s that are parallel to to any prior columns of s itself or to any column
+/// of s_old.
 fn ensure_new_s_matrix(s: &mut Array2<f64>, s_old: &Array2<f64>) {
     let mut big_matrix: Array2<f64> = concatenate(Axis(1), &[s_old.view(), s.view()]).unwrap();
     for col_ix in 0..s.ncols() {
@@ -106,84 +110,116 @@ fn update_indices(indices: &mut Vec<usize>, index_history: &Vec<usize>, t: usize
     }
 }
 
-pub fn normest(A: &Array2<f64>, t: u32, itmax: u32) -> f64 {
+/// Compute a lower bound of the 1-norm of a square matrix. The 1-norm is defined as
+/// || A ||_1 = max_{1 <= j <= n} \sum_i |a_{i,j} |
+/// In other words find the column with the largest sum over all rows (and take absolute value).
+/// Note this is not equivalent to the induced 1-norm or the Schatten 1-norm.
+/// We do not give the option of returning the v, w that maximize the resulting norm to keep the
+/// function signature clean. This could be implemented in the future.
+/// Panics if input matrix is non-square to avoid returning a Result<_,_>.
+/// This is computed following Algorithm 2.4 of the paper "A Block Algorithm for Matrix 1-Norm
+/// Estimation with an Application to 1-Norm Pseudospectra" by Nicholas J. Higham and
+/// Francoise Tisseur (2000) SIAM J. Matrix Anal. Appl. Vol. 21, No. 4, pp. 1185-1201.
+pub fn normest(input_matrix: &Array2<f64>, t: usize, itmax: u32) -> f64 {
+    if input_matrix.is_square() == false {
+        panic!("One Norm Estimation encountered non-square input matrix.");
+    }
+    if t < 1 {
+        panic!("One Norm Estimation requires at least one column for estimation.");
+    }
+    if itmax < 2 {
+        panic!("One Norm Estimation requires at least two iterations.");
+    }
+    let n = input_matrix.nrows();
+
+    // This is worse than just computing the norm exactly, so just do that. Will panic
+    // if opnorm_one() fails.
+    if t > n {
+        return input_matrix.opnorm_one().unwrap();
+    }
     let mut est = 0.0;
     let mut best_index = 0;
-    // Need to ensure that A is square
-    let n = A.nrows();
-    let mut x_matrix = prepare_x_matrix(n, t as usize);
+
+    let mut x_matrix = prepare_x_matrix(n, t);
     let mut index_history: Vec<usize> = Vec::new();
     let mut est_old = 0.0;
     let mut indices: Vec<usize> = (0..n).collect();
-    let mut S_matrix: Array2<f64> = Array::<_, _>::zeros((n, t as usize).f());
-    let mut S_old = S_matrix.clone();
+    let mut s_matrix: Array2<f64> = Array::<_, _>::zeros((n, t).f());
+    let mut s_old: Array2<f64> = Array::<_, _>::zeros((n, t).f());
     // Main loop of algorithm 2.4 in higham and tisseur
     for iteration in 0..itmax {
-        let Y = A.dot(&x_matrix);
-        let index_norm_pairs: Vec<(usize, f64)> = (0..Y.ncols())
+        // Y = AX
+        let y = input_matrix.dot(&x_matrix);
+
+        // est = max { ||Y(:, j)||_1 : j = 1:t}
+        let index_norm_pairs: Vec<(usize, f64)> = (0..y.ncols())
             .into_iter()
-            .map(|ix| (ix, Y.column(ix).map(|elem| f64::abs(*elem)).sum()))
+            .map(|ix| (ix, y.column(ix).map(|elem| f64::abs(*elem)).sum()))
             .collect();
-        let mut ix_best = 0;
-        let mut max_est = -1.0;
-        for ix in 0..index_norm_pairs.len() {
-            if index_norm_pairs[ix].1 > max_est {
-                ix_best = ix;
-                max_est = index_norm_pairs[ix].1;
-            }
-        }
+        let (maximizing_ix, max_est) = *index_norm_pairs
+            .iter()
+            .reduce(|x, y| if x.1 > y.1 { x } else { y })
+            .unwrap();
         est = max_est;
+
         if est > est_old || iteration == 1 {
-            best_index = ix_best;
+            best_index = indices[maximizing_ix];
         }
-        if iteration > 1 && est < est_old {
+
+        // Section (1) of Alg. 2.4
+        if iteration > 1 && est <= est_old {
             est = est_old;
             break;
         }
-        S_old = S_matrix.clone();
-        S_matrix = Y.mapv(|x| x.signum());
-        if special_delivery(&S_matrix, &S_old) {
+
+        est_old = est;
+        s_old.assign(&s_matrix);
+        // Is there a faster way to do this? I wanted to avoid creating a new matrix of signs
+        // and then copying it into s_matrix, this was the first way I could think of doing so.
+        for row_ix in 0..s_matrix.nrows() {
+            for col_ix in 0..s_matrix.ncols() {
+                s_matrix[[row_ix, col_ix]] = y[[row_ix, col_ix]].signum()
+            }
+        }
+
+        // Section (2) of Alg. 2.4
+        if check_if_s_parallel_to_s_old(&s_matrix, &s_old) {
             break;
         }
         if t > 1 {
-            ensure_new_s_matrix(&mut S_matrix, &S_old);
+            ensure_new_s_matrix(&mut s_matrix, &s_old);
         }
-        let z_matrix: Array2<f64> = A.t().dot(&S_matrix);
-        let mut h: Array1<f64> = ndarray::Array::<f64, _>::zeros((z_matrix.nrows()).f());
-        let mut max_h = f64::MIN;
-        for row_ix in 0..z_matrix.nrows() {
-            let mut max = f64::MIN;
-            for col_ix in 0..z_matrix.ncols() {
-                if z_matrix[[row_ix, col_ix]] > max {
-                    max = z_matrix[[row_ix, col_ix]];
-                }
-            }
-            h[[row_ix]] = max;
-            if max > max_h {
-                max_h = max;
-            }
-        }
-        if iteration >= 2 && max_h == h[[best_index]] {
+
+        // Section (3) of Alg. 2.4
+        let z_matrix: Array2<f64> = input_matrix.t().dot(&s_matrix);
+        let mut h: Vec<f64> = z_matrix
+            .rows()
+            .into_iter()
+            .map(|row| *row.iter().reduce(|x, y| if x > y { x } else { y }).unwrap())
+            .collect();
+        let max_h = *h.iter().reduce(|x, y| if x > y { x } else { y }).unwrap();
+
+        // Section (4) of Alg. 2.4
+        if iteration >= 2 && max_h == h[best_index] {
             break;
         }
-        let mut zipped_pairs: Vec<(f64, usize)> = zip(h.to_vec(), indices.clone()).collect();
+        let mut zipped_pairs: Vec<(f64, usize)> = zip(h.clone(), 0..n).collect();
         zipped_pairs.sort_unstable_by(|a, b| b.0.partial_cmp(&a.0).unwrap());
-        for ix in 0..zipped_pairs.len() {
-            h[[ix]] = zipped_pairs[ix].0;
-            indices[ix] = zipped_pairs[ix].1;
-        }
+        (h, indices) = zipped_pairs.into_iter().unzip();
         if t > 1 {
-            if check_index_history(&indices, &index_history, t as usize) {
+            // Section (5) of Alg. 2.4
+            if check_index_history(&indices, &index_history, t) {
                 break;
             }
-            update_indices(&mut indices, &index_history, t as usize);
+            update_indices(&mut indices, &index_history, t);
         }
-        for ix in 0..(t as usize) {
+        for ix in 0..t {
             x_matrix.column_mut(ix).fill(0.0);
             x_matrix[[indices[ix], ix]] = 1.0;
             index_history.push(indices[ix]);
         }
     }
+    // Would be Section (6) of Alg 2.4 if we returned the best index guess.
     est
 }
 
@@ -191,12 +227,12 @@ mod tests {
     use crate::{
         ndarray::ShapeBuilder,
         normest1::{ensure_no_parallel_columns, is_column_parallel, prepare_x_matrix},
-        OperationNorm,
+        OperationNorm, Inverse,
     };
     use ndarray::Array2;
     use rand::{thread_rng, Rng};
 
-    use super::{normest, special_delivery};
+    use super::{check_if_s_parallel_to_s_old, normest};
 
     #[test]
     fn test_prep() {
@@ -231,29 +267,41 @@ mod tests {
     }
 
     #[test]
-    fn test_special_delivery() {
+    fn test_check_if_s_parallel_to_s_old() {
         let n = 100;
         let t = 4;
         let s_1: Array2<f64> = array![[-1., 1., 1.], [1., 1., 1.], [-1., -1., 1.]];
         let s_2: Array2<f64> = array![[-1., -1., 1.], [-1., -1., 1.], [-1., 1., -1.]];
-        println!("special delivery: {:}", special_delivery(&s_2, &s_1));
+        println!(
+            "check_if_s_parallel_to_s_old: {:}",
+            check_if_s_parallel_to_s_old(&s_2, &s_1)
+        );
     }
 
     #[test]
-    fn test_normest() {
+    fn test_average_normest() {
         let n = 100;
-        let mut results = Vec::new();
-        let t = 10;
-        let itmax = 10;
+        let mut differenial_error = Vec::new();
+        let mut ratios = Vec::new();
+        let t = 2;
+        let itmax = 5;
         let mut mat: Array2<f64> = ndarray::Array::<f64, _>::zeros((n, n).f());
         let mut rng = rand::thread_rng();
-        for _ in 0..1000 {
+        for _i in 0..5000 {
             mat.mapv_inplace(|_| rng.gen());
-            results.push({ normest(&mat, t as u32, itmax) / mat.opnorm_one().unwrap() });
+            mat.assign(&mat.inv().unwrap());
+            let est = normest(&mat, t, itmax);
+            let exp = mat.opnorm_one().unwrap();
+            differenial_error.push((est - exp).abs() / exp);
+            ratios.push(est / exp);
         }
         println!(
-            "results average: {:}",
-            results.iter().sum::<f64>() / results.len() as f64
+            "differential error average: {:}",
+            differenial_error.iter().sum::<f64>() / differenial_error.len() as f64
+        );
+        println!(
+            "ratio average: {:?}",
+            ratios.iter().sum::<f64>() / ratios.len() as f64
         );
     }
 }

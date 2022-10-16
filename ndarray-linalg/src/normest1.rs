@@ -122,7 +122,6 @@ fn update_indices(indices: &mut Vec<usize>, index_history: &Vec<usize>, t: usize
 /// Francoise Tisseur (2000) SIAM J. Matrix Anal. Appl. Vol. 21, No. 4, pp. 1185-1201.
 pub fn normest(input_matrix: &Array2<f64>, t: usize, itmax: u32) -> f64 {
     if input_matrix.is_square() == false {
-    
         panic!("One Norm Estimation encountered non-square input matrix.");
     }
     if t < 1 {

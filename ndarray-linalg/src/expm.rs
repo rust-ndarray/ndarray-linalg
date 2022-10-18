@@ -1,7 +1,7 @@
 use std::ops::MulAssign;
 
 use crate::{normest1::normest, types, Inverse, OperationNorm};
-use cauchy::{Scalar};
+use cauchy::Scalar;
 use lax::{Lapack, NormType};
 use ndarray::{linalg::Dot, prelude::*};
 use num_complex::{Complex, Complex32 as c32, Complex64 as c64};
@@ -18,17 +18,11 @@ const THETA_7: f64 = 9.504178996162932e-1;
 const THETA_9: f64 = 2.097847961257068e0;
 const THETA_13: f64 = 4.25; // Alg 5.1
 
-// this is pure laziness aka "ergonomics"
-const THETA_MAP: [f64; 14] = [
-    0., 0., 0., THETA_3, 0., THETA_5, 0., THETA_7, 0., THETA_9, 0., 0., 0., THETA_13,
-];
-
 // The Pade Coefficients for the numerator of the diagonal approximation to Exp[x]. Computed via Mathematica/WolframAlpha.
 // Note that the denominator has the same coefficients but odd powers have an opposite sign.
 // Coefficients are also stored via the power of x, so for example the numerator would look like
 // x^0 * PADE_COEFF_M[0] + x^1 * PADE_COEFF_M[1] + ... + x^m * PADE_COEFF_M[M]
 const PADE_COEFFS_3: [f64; 4] = [1., 0.5, 0.1, 1. / 120.];
-// const PADE_COEFFS_3:[f64; 4] = [1., 12., 60., 120.];
 
 const PADE_COEFFS_5: [f64; 6] = [1., 0.5, 1. / 9., 1. / 72., 1. / 1_008., 1. / 30_240.];
 
@@ -73,6 +67,155 @@ const PADE_COEFFS_13: [f64; 14] = [
     1. / 64_764_752_532_480_000.,
 ];
 
+// These are the ones used in scipy
+// const PADE_COEFFS_13: [f64; 14] = [
+//     64764752532480000.,
+//     32382376266240000.,
+//     7771770303897600.,
+//     1187353796428800.,
+//     129060195264000.,
+//     10559470521600.,
+//     670442572800.,
+//     33522128640.,
+//     1323241920.,
+//     40840800.,
+//     960960.,
+//     16380.,
+//     182.,
+//     1.,
+// ];
+
+fn pade_approximation_3<S: Scalar<Real = f64> + Lapack>(
+    a_1: &Array2<S>,
+    a_2: &Array2<S>,
+) -> Array2<S> {
+    let mut evens: Array2<S> = Array2::<S>::eye(a_1.nrows());
+    // evens.mapv_inplace(|x| x * S::from_real(PADE_COEFFS_3[0]));
+    evens.scaled_add(S::from_real(PADE_COEFFS_3[2]), a_2);
+
+    let mut odds: Array2<S> = Array2::<S>::eye(a_1.nrows());
+    odds.mapv_inplace(|x| x * S::from_real(PADE_COEFFS_3[1]));
+    odds.scaled_add(S::from_real(PADE_COEFFS_3[3]), a_2);
+    odds = odds.dot(a_1);
+
+    odds.mapv_inplace(|x| -x);
+    let inverted = (&odds + &evens).inv().unwrap();
+    odds.mapv_inplace(|x| -x);
+    inverted.dot(&(odds + evens))
+}
+
+fn pade_approximation_5<S: Scalar<Real = f64> + Lapack>(
+    a_1: &Array2<S>,
+    a_2: &Array2<S>,
+    a_4: &Array2<S>,
+) -> Array2<S> {
+    let mut evens: Array2<S> = Array2::<S>::eye(a_1.nrows());
+    // evens.mapv_inplace(|x| S::from_real(PADE_COEFFS_5[0]) * x);
+    evens.scaled_add(S::from_real(PADE_COEFFS_5[2]), a_2);
+    evens.scaled_add(S::from_real(PADE_COEFFS_5[4]), a_4);
+
+    let mut odds: Array2<S> = Array::eye(a_1.nrows());
+    odds.mapv_inplace(|x| S::from_real(PADE_COEFFS_5[1]) * x);
+    odds.scaled_add(S::from_real(PADE_COEFFS_5[3]), a_2);
+    odds.scaled_add(S::from_real(PADE_COEFFS_5[5]), a_4);
+    odds = odds.dot(a_1);
+
+    odds.mapv_inplace(|x| -x);
+    let inverted = (&odds + &evens).inv().unwrap();
+    odds.mapv_inplace(|x| -x);
+    inverted.dot(&(odds + evens))
+}
+
+fn pade_approximation_7<S: Scalar<Real = f64> + Lapack>(
+    a_1: &Array2<S>,
+    a_2: &Array2<S>,
+    a_4: &Array2<S>,
+    a_6: &Array2<S>,
+) -> Array2<S> {
+    let mut evens: Array2<S> = Array::eye(a_1.nrows());
+    // evens.mapv_inplace(|x| S::from_real(PADE_COEFFS_7[0]) * x);
+    evens.scaled_add(S::from_real(PADE_COEFFS_7[2]), a_2);
+    evens.scaled_add(S::from_real(PADE_COEFFS_7[4]), a_4);
+    evens.scaled_add(S::from_real(PADE_COEFFS_7[6]), a_6);
+
+    let mut odds: Array2<S> = Array::eye(a_1.nrows());
+    odds.mapv_inplace(|x| S::from_real(PADE_COEFFS_7[1]) * x);
+    odds.scaled_add(S::from_real(PADE_COEFFS_7[3]), a_2);
+    odds.scaled_add(S::from_real(PADE_COEFFS_7[5]), a_4);
+    odds.scaled_add(S::from_real(PADE_COEFFS_7[7]), a_6);
+    odds = odds.dot(a_1);
+
+    odds.mapv_inplace(|x| -x);
+    let inverted = (&odds + &evens).inv().unwrap();
+    odds.mapv_inplace(|x| -x);
+    inverted.dot(&(odds + evens))
+}
+
+fn pade_approximation_9<S: Scalar<Real = f64> + Lapack>(
+    a_1: &Array2<S>,
+    a_2: &Array2<S>,
+    a_4: &Array2<S>,
+    a_6: &Array2<S>,
+    a_8: &Array2<S>,
+) -> Array2<S> {
+    let mut evens: Array2<S> = Array::eye(a_1.nrows());
+    // evens.mapv_inplace(|x| S::from_real(PADE_COEFFS_9[0]) * x);
+    evens.scaled_add(S::from_real(PADE_COEFFS_9[2]), a_2);
+    evens.scaled_add(S::from_real(PADE_COEFFS_9[4]), a_4);
+    evens.scaled_add(S::from_real(PADE_COEFFS_9[6]), a_6);
+    evens.scaled_add(S::from_real(PADE_COEFFS_9[8]), a_8);
+
+    let mut odds: Array2<S> = Array::eye(a_1.nrows());
+    odds.mapv_inplace(|x| S::from_real(PADE_COEFFS_9[1]) * x);
+    odds.scaled_add(S::from_real(PADE_COEFFS_9[3]), a_2);
+    odds.scaled_add(S::from_real(PADE_COEFFS_9[5]), a_4);
+    odds.scaled_add(S::from_real(PADE_COEFFS_9[7]), a_6);
+    odds.scaled_add(S::from_real(PADE_COEFFS_9[9]), a_8);
+    odds = odds.dot(a_1);
+
+    odds.mapv_inplace(|x| -x);
+    let inverted: Array2<S> = (&odds + &evens).inv().unwrap();
+    odds.mapv_inplace(|x| -x);
+    inverted.dot(&(odds + evens))
+}
+
+// TODO: scale powers by appropriate value of s.
+fn pade_approximation_13<S: Scalar<Real = f64> + Lapack>(
+    a_1: &Array2<S>,
+    a_2: &Array2<S>,
+    a_4: &Array2<S>,
+    a_6: &Array2<S>,
+) -> Array2<S> {
+    let mut evens_1: Array2<S> = Array::eye(a_1.nrows());
+    evens_1.mapv_inplace(|x| S::from_real(PADE_COEFFS_13[0]) * x);
+    evens_1.scaled_add(S::from_real(PADE_COEFFS_13[2]), a_2);
+    evens_1.scaled_add(S::from_real(PADE_COEFFS_13[4]), a_4);
+    evens_1.scaled_add(S::from_real(PADE_COEFFS_13[6]), a_6);
+
+    let mut evens_2 = a_2.clone();
+    evens_2.mapv_inplace(|x| S::from_real(PADE_COEFFS_13[8]) * x);
+    evens_2.scaled_add(S::from_real(PADE_COEFFS_13[10]), a_4);
+    evens_2.scaled_add(S::from_real(PADE_COEFFS_13[12]), a_6);
+    let evens = evens_2.dot(a_6) + &evens_1;
+
+    let mut odds_1: Array2<S> = Array::eye(a_1.nrows());
+    odds_1.mapv_inplace(|x| S::from_real(PADE_COEFFS_13[1]) * x);
+    odds_1.scaled_add(S::from_real(PADE_COEFFS_13[3]), a_2);
+    odds_1.scaled_add(S::from_real(PADE_COEFFS_13[5]), a_4);
+    odds_1.scaled_add(S::from_real(PADE_COEFFS_13[7]), a_6);
+
+    let mut odds_2 = a_2.clone();
+    odds_2.mapv_inplace(|x| S::from_real(PADE_COEFFS_13[9]) * x);
+    odds_2.scaled_add(S::from_real(PADE_COEFFS_13[11]), a_4);
+    odds_2.scaled_add(S::from_real(PADE_COEFFS_13[13]), a_6);
+    odds_2 = odds_2.dot(a_6);
+
+    let mut odds = (&odds_1 + &odds_2).dot(a_1);
+    // odds.mapv_inplace(|x| -x);
+    let inverted: Array2<S> = (&odds - &evens).inv().unwrap();
+    // odds.mapv_inplace(|x| -x);
+    inverted.dot(&(odds + evens))
+}
 
 fn power_abs_norm<S>(input_matrix: &Array2<S>, p: usize) -> f64
 where
@@ -97,14 +240,14 @@ fn ell<S: Scalar<Real = f64>>(a_matrix: &Array2<S>, m: u64) -> i32 {
     let p = 2 * m + 1;
     let a_one_norm = a_matrix.map(|x| x.abs()).opnorm_one().unwrap();
 
-    if a_one_norm < f64::EPSILON * 2.0 {
+    if a_one_norm < f64::EPSILON * 2. {
         panic!("Subroutine ell encountered zero norm matrix.");
     }
     let powered_abs_norm = power_abs_norm(a_matrix, p as usize);
     let alpha = powered_abs_norm * pade_error_coefficient(m) / a_one_norm;
     let u = f64::EPSILON / 2.;
     let log2_alpha_div_u = f64::log2(alpha / u);
-    let val = f64::ceil(log2_alpha_div_u / ((2 * m) as f64)).round() as i32;
+    let val = f64::ceil(log2_alpha_div_u / ((2 * m) as f64)) as i32;
     i32::max(val, 0)
 }
 
@@ -112,494 +255,50 @@ fn ell<S: Scalar<Real = f64>>(a_matrix: &Array2<S>, m: u64) -> i32 {
 fn pade_error_coefficient(m: u64) -> f64 {
     1.0 / (binomial(2 * m, m) * factorial(2 * m + 1))
 }
-
-fn pade_approximation_3<S: Scalar<Real = f64> + Lapack>(
-    mp: &mut MatrixPowers<S>,
-    output: &mut Array2<S>,
-) {
-    let mut evens: Array2<S> = Array2::<S>::eye(mp.get(1).nrows());
-    // evens.mapv_inplace(|x| x * S::from_real(PADE_COEFFS_3[0]));
-    evens.scaled_add(S::from_real(PADE_COEFFS_3[2]), mp.get(2));
-
-    let mut odds: Array2<S> = Array2::<S>::eye(mp.get(1).nrows());
-    odds.mapv_inplace(|x| x * S::from_real(PADE_COEFFS_3[1]));
-    odds.scaled_add(S::from_real(PADE_COEFFS_3[3]), mp.get(2));
-    odds = odds.dot(mp.get(1));
-
-    odds.mapv_inplace(|x| -x);
-    let inverted = (&odds + &evens).inv().unwrap();
-    odds.mapv_inplace(|x| -x);
-    output.assign(&inverted.dot(&(odds + evens)));
-}
-
-fn pade_approximation_5<S: Scalar<Real = f64> + Lapack>(
-    mp: &mut MatrixPowers<S>,
-    output: &mut Array2<S>,
-) {
-    let mut evens: Array2<S> = Array2::<S>::eye(mp.get(1).nrows());
-    // evens.mapv_inplace(|x| S::from_real(PADE_COEFFS_5[0]) * x);
-    for m in 1..=2 {
-        evens.scaled_add(S::from_real(PADE_COEFFS_5[2 * m]), mp.get(2 * m));
-    }
-    let mut odds: Array2<S> = Array::eye(mp.get(1).nrows());
-    odds.mapv_inplace(|x| S::from_real(PADE_COEFFS_5[1]) * x);
-    for m in 1..=2 {
-        odds.scaled_add(S::from_real(PADE_COEFFS_5[2 * m + 1]), mp.get(2 * m));
-    }
-    odds = odds.dot(mp.get(1));
-    odds.mapv_inplace(|x| -x);
-    let inverted = (&odds + &evens).inv().unwrap();
-    odds.mapv_inplace(|x| -x);
-    output.assign(&inverted.dot(&(odds + evens)));
-}
-
-fn pade_approximation_7<S: Scalar<Real = f64> + Lapack>(
-    mp: &mut MatrixPowers<S>,
-    output: &mut Array2<S>,
-) {
-    let mut evens: Array2<S> = Array::eye(mp.get(1).nrows());
-    // evens.mapv_inplace(|x| S::from_real(PADE_COEFFS_7[0]) * x);
-    for m in 1..=3 {
-        evens.scaled_add(S::from_real(PADE_COEFFS_7[2 * m]), mp.get(2 * m));
-    }
-    let mut odds: Array2<S> = Array::eye(mp.get(1).nrows());
-    odds.mapv_inplace(|x| S::from_real(PADE_COEFFS_7[1]) * x);
-    for m in 1..=3 {
-        odds.scaled_add(S::from_real(PADE_COEFFS_7[2 * m + 1]), mp.get(2 * m));
-    }
-    odds = odds.dot(mp.get(1));
-    odds.mapv_inplace(|x| -x);
-    let inverted = (&odds + &evens).inv().unwrap();
-    odds.mapv_inplace(|x| -x);
-    output.assign(&inverted.dot(&(odds + evens)));
-}
-fn pade_approximation_9<S: Scalar<Real = f64> + Lapack>(
-    mp: &mut MatrixPowers<S>,
-    output: &mut Array2<S>,
-) {
-    let mut evens: Array2<S> = Array::eye(mp.get(1).nrows());
-    // evens.mapv_inplace(|x| S::from_real(PADE_COEFFS_9[0]) * x);
-    for m in 1..=4 {
-        evens.scaled_add(S::from_real(PADE_COEFFS_9[2 * m]), mp.get(2 * m));
-        let delta = mp.get(2 * m).map(|x| S::from_real(PADE_COEFFS_9[2 * m]) * *x);
-    }
-    let mut odds: Array2<S> = Array::eye(mp.get(1).nrows());
-    odds.mapv_inplace(|x| S::from_real(PADE_COEFFS_9[1]) * x);
-    for m in 1..=4 {
-        odds.scaled_add(S::from_real(PADE_COEFFS_9[2 * m + 1]), mp.get(2 * m));
-    }
-    odds = odds.dot(mp.get(1));
-    odds.mapv_inplace(|x| -x);
-    let inverted: Array2<S> = (&odds + &evens).inv().unwrap();
-    odds.mapv_inplace(|x| -x);
-    output.assign(&inverted.dot(&(odds + evens)));
-}
-
-// TODO: scale powers by appropriate value of s.
-fn pade_approximation_13<S: Scalar<Real = f64> + Lapack>(
-    mp: &mut MatrixPowers<S>,
-    output: &mut Array2<S>,
-) {
-    // note this may have unnecessary allocations.
-    let mut evens_1: Array2<S> = Array::eye(mp.get(1).nrows());
-    evens_1.mapv_inplace(|x| S::from_real(PADE_COEFFS_13[0]) * x);
-    for m in 1..=3 {
-        evens_1.scaled_add(S::from_real(PADE_COEFFS_13[2 * m]), mp.get(2 * m));
-    }
-    let mut evens_2 = mp.get(2).clone();
-    evens_2.mapv_inplace(|x| S::from_real(PADE_COEFFS_13[8]) * x);
-    evens_2.scaled_add(S::from_real(PADE_COEFFS_13[10]), mp.get(4));
-    evens_2.scaled_add(S::from_real(PADE_COEFFS_13[12]), mp.get(6));
-    let evens = evens_2.dot(mp.get(6)) + &evens_1;
-    let mut odds_1: Array2<S> = Array::eye(mp.get(1).nrows());
-    odds_1.mapv_inplace(|x| S::from_real(PADE_COEFFS_13[1]) * x);
-    for m in 1..=3 {
-        odds_1.scaled_add(S::from_real(PADE_COEFFS_13[2 * m + 1]), mp.get(2 * m));
-    }
-    let mut odds_2 = mp.get(2).clone();
-    odds_2.mapv_inplace(|x| S::from_real(PADE_COEFFS_13[9]) * x);
-    odds_2.scaled_add(S::from_real(PADE_COEFFS_13[11]), mp.get(4));
-    odds_2.scaled_add(S::from_real(PADE_COEFFS_13[13]), mp.get(6));
-    odds_2 = odds_2.dot(mp.get(6));
-    let mut odds = (odds_1 + odds_2).dot(mp.get(1));
-    odds.mapv_inplace(|x| -x);
-    let inverted: Array2<S> = (&odds + &evens).inv().unwrap();
-    odds.mapv_inplace(|x| -x);
-    output.assign(&inverted.dot(&(odds + evens)));
-}
-
-/// Helper struct to ensure that the power of the input matrix is only computed once.
-#[derive(Debug)]
-struct MatrixPowers<S: Scalar + Lapack> {
-    pub input_1: Option<Array2<S>>,
-    pub input_2: Option<Array2<S>>,
-    pub input_3: Option<Array2<S>>,
-    pub input_4: Option<Array2<S>>,
-    pub input_5: Option<Array2<S>>,
-    pub input_6: Option<Array2<S>>,
-    pub input_7: Option<Array2<S>>,
-    pub input_8: Option<Array2<S>>,
-    pub input_9: Option<Array2<S>>,
-    pub input_10: Option<Array2<S>>,
-    pub input_11: Option<Array2<S>>,
-    pub input_12: Option<Array2<S>>,
-    pub input_13: Option<Array2<S>>,
-    pub num_matprods: usize,
-}
-impl<S: Scalar + Lapack> MatrixPowers<S> {
-    pub fn new(input: Array2<S>) -> Self {
-        MatrixPowers {
-            input_1: Some(input),
-            input_2: None,
-            input_3: None,
-            input_4: None,
-            input_5: None,
-            input_6: None,
-            input_7: None,
-            input_8: None,
-            input_9: None,
-            input_10: None,
-            input_11: None,
-            input_12: None,
-            input_13: None,
-            num_matprods: 0,
-        }
-    }
-    pub fn scale(&mut self, s: i32) {
-        let scale_factor = S::from_i32(2).unwrap().pow(-S::from_i32(s).unwrap());
-        let mut scaler = scale_factor.clone();
-        if let Some(i1) = &mut self.input_1 {
-            i1.mapv_inplace(|x| x * scaler);
-        }
-        scaler *= scale_factor;
-        if let Some(i2) = &mut self.input_2 {
-            i2.mapv_inplace(|x| x * scaler);
-        }
-        scaler *= scale_factor;
-        if let Some(i3) = &mut self.input_3 {
-            i3.mapv_inplace(|x| x * scaler);
-        }
-        scaler *= scale_factor;
-        if let Some(i4) = &mut self.input_4 {
-            i4.mapv_inplace(|x| x * scaler);
-        }
-        scaler *= scale_factor;
-        if let Some(i5) = &mut self.input_5 {
-            i5.mapv_inplace(|x| x * scaler);
-        }
-        scaler *= scale_factor;
-        if let Some(i6) = &mut self.input_6 {
-            i6.mapv_inplace(|x| x * scaler);
-        }
-    }
-    fn compute2(&mut self) {
-        if let Some(input_1) = self.input_1.clone() {
-            self.input_2 = Some(input_1.dot(&input_1));
-            self.num_matprods += 1;
-        }
-    }
-    fn compute3(&mut self) {
-        match &self.input_2 {
-            Some(i2) => {
-                self.input_3 = Some(self.input_1.as_ref().unwrap().dot(i2));
-                self.num_matprods += 1;
-            }
-            None => {
-                // after calling self.compute2() then self.input_2 will match to Some(_)
-                // so just recurse.
-                self.compute2();
-                self.compute3();
-            }
-        }
-    }
-    fn compute4(&mut self) {
-        match &self.input_2 {
-            Some(i2) => {
-                self.input_4 = Some(self.input_2.as_ref().unwrap().dot(i2));
-                self.num_matprods += 1;
-            }
-            None => {
-                self.compute2();
-                self.compute4();
-            }
-        }
-    }
-    fn compute5(&mut self) {
-        match &self.input_3 {
-            Some(i3) => match &self.input_2 {
-                Some(i2) => {
-                    self.input_5 = Some(i2.dot(i3));
-                    self.num_matprods += 1;
-                }
-                None => {
-                    self.compute2();
-                    self.compute5();
-                }
-            },
-            None => {
-                self.compute3();
-                self.compute5();
-            }
-        };
-    }
-    fn compute6(&mut self) {
-        match &self.input_4 {
-            Some(i4) => {
-                // If input_4 is computed then input_2 must be computed.
-                self.input_6 = Some(i4.dot(self.input_2.as_ref().unwrap()));
-                self.num_matprods += 1;
-            }
-            None => {
-                match &self.input_3 {
-                    Some(i3) => {
-                        self.input_6 = Some(i3.dot(i3));
-                        self.num_matprods += 1;
-                    }
-                    None => {
-                        // We do not have 4 or 3 computed yet, so we will either have 2 or have to compute it.
-                        // in that case easiest way is to first compute 4 and then revisit.
-                        self.compute4();
-                        self.compute6();
-                    }
-                }
-            }
-        };
-    }
-    fn compute7(&mut self) {
-        match &self.input_6 {
-            Some(i6) => {
-                self.input_7 = Some(self.input_1.as_ref().unwrap().dot(i6));
-                self.num_matprods += 1;
-            },
-            None => {
-                match &self.input_5 {
-                    Some(i5) => {
-                        self.input_7 = Some(self.input_2.as_ref().unwrap().dot(i5));
-                        self.num_matprods += 1;
-                    },
-                    None => {
-                        match &self.input_4 {
-                            Some(i4) => {
-                                if let Some(i3) = &self.input_3 {
-                                    self.input_7 = Some(i3.dot(i4));
-                                    self.num_matprods += 1;
-                                } else {
-                                    self.compute3();
-                                    self.compute7();
-                                }
-                            },
-                            None => {
-                                self.compute4();
-                                self.compute7();
-                            }
-                        }
-                    },
-                }
-            }
-        }
-    }
-    fn compute8(&mut self) {
-        match &self.input_4 {
-            Some(i4) => {
-                self.input_8 = Some(i4.dot(i4));
-                self.num_matprods += 1;
-            },
-            None => {
-                self.compute4();
-                self.compute8();
-            }
-        }
-    }
-    fn compute10(&mut self) {
-        match &self.input_5 {
-            Some(i5) => {
-                self.input_10 = Some(i5.dot(i5));
-                self.num_matprods += 1;
-            },
-            None => {
-                match &self.input_6 {
-                    Some(i6) => {
-                        self.input_10 = Some(i6.dot(self.input_4.as_ref().unwrap()));
-                        self.num_matprods += 1;
-                    },
-                    None => {
-                        if self.input_3.is_some() {
-                            self.compute5();
-                        } else {
-                            self.compute6()
-                        }
-                        self.compute10();
-                    }
-                }
-            }
-        }
-    }
-
-    pub fn get(&mut self, m: usize) -> &Array2<S> {
-        match m {
-            1 => self.get1(),
-            2 => self.get2(),
-            3 => self.get3(),
-            4 => self.get4(),
-            5 => self.get5(),
-            6 => self.get6(),
-            7 => self.get7(),
-            8 => self.get8(),
-            // 9 => self.get9(),
-            10 => self.get10(),
-            // 11 => self.get11(),
-            // 12 => self.get12(),
-            // 13 => self.get13(),
-            _ => {
-                println!("I need:{:}", m);
-                println!("This power of input matrix is not implemented. Returning input matrix.");
-                self.input_1.as_ref().unwrap()
-            }
-        }
-    }
-    fn get1(&mut self) -> &Array2<S> {
-        self.input_1.as_ref().unwrap()
-    }
-    fn get2(&mut self) -> &Array2<S> {
-        match &self.input_2 {
-            Some(mat) => self.input_2.as_ref().unwrap(),
-            None => {
-                self.compute2();
-                self.input_2.as_ref().unwrap()
-            }
-        }
-    }
-    fn get3(&mut self) -> &Array2<S> {
-        match &self.input_3 {
-            Some(mat) => self.input_3.as_ref().unwrap(),
-            None => {
-                self.compute3();
-                &self.input_3.as_ref().unwrap()
-            }
-        }
-    }
-    fn get4(&mut self) -> &Array2<S> {
-        match &self.input_4 {
-            Some(mat) => &self.input_4.as_ref().unwrap(),
-            None => {
-                self.compute4();
-                &self.input_4.as_ref().unwrap()
-            }
-        }
-    }
-    fn get5(&mut self) -> &Array2<S> {
-        match &self.input_5 {
-            Some(mat) => &self.input_5.as_ref().unwrap(),
-            None => {
-                self.compute5();
-                &self.input_5.as_ref().unwrap()
-            }
-        }
-    }
-    fn get6(&mut self) -> &Array2<S> {
-        match &self.input_6 {
-            Some(mat) => &self.input_6.as_ref().unwrap(),
-            None => {
-                self.compute6();
-                &self.input_6.as_ref().unwrap()
-            }
-        }
-    }
-    fn get7(&mut self) -> &Array2<S> {
-        match &self.input_7 {
-            Some(mat) => &self.input_6.as_ref().unwrap(),
-            None => {
-                self.compute7();
-                &self.input_6.as_ref().unwrap()
-            }
-        }
-    }
-    fn get8(&mut self) -> &Array2<S> {
-        match &self.input_8 {
-            Some(mat) => &self.input_8.as_ref().unwrap(),
-            None => {
-                self.compute8();
-                &self.input_8.as_ref().unwrap()
-            }
-        }
-    }
-    fn get10(&mut self) -> &Array2<S> {
-        match &self.input_10 {
-            Some(mat) => &self.input_10.as_ref().unwrap(),
-            None => {
-                self.compute10();
-                &self.input_10.as_ref().unwrap()
-            }
-        }
-    }
-}
-
-fn pade_approximation<'a, S: Scalar<Real = f64> + Lapack>(
-    mp: &'a mut MatrixPowers<S>,
-    output: &mut Array2<S>,
-    degree: usize,
-) {
-    match degree {
-        3 => {
-            pade_approximation_3(mp, output);
-        }
-        5 => {
-            pade_approximation_5(mp, output);
-        }
-        7 => {
-            pade_approximation_7(mp, output);
-        }
-        9 => {
-            pade_approximation_9(mp, output);
-        }
-        13 => {
-            pade_approximation_13(mp, output);
-        }
-        _ => {
-            println!(
-                "Undefined pade approximant order. Returning first order approximation to expm"
-            );
-            output.assign(&(Array2::<S>::eye(mp.get(1).nrows()) + mp.get(1)));
-        }
-    }
-}
-
 /// Computes matrix exponential based on the scale-and-squaring algorithm by
 pub fn expm<S: Scalar<Real = f64> + Lapack>(a_matrix: &Array2<S>) -> (Array2<S>, usize) {
-    let mut output = Array2::<S>::zeros((a_matrix.nrows(), a_matrix.ncols()).f());
-    let mut mp = MatrixPowers::new(a_matrix.clone());
-    let d4 = f64::powf(mp.get(4).opnorm_one().unwrap(), 1. / 4.);
-    let d6 = f64::powf((*mp.get(6)).opnorm_one().unwrap(), 1. / 6.);
+    let mut a_2 = a_matrix.dot(a_matrix);
+    let mut a_4 = a_2.dot(&a_2);
+    let mut a_6 = a_2.dot(&a_4);
+    let d4 = a_4.opnorm_one().unwrap().powf(1. / 4.);
+    let d6 = a_6.opnorm_one().unwrap().powf(1. / 6.);
     // Note d6 should be an estimate and d4 an estimate
     let eta_1 = f64::max(d4, d6);
     if eta_1 < THETA_3 && ell(&a_matrix, 3) == 0 {
-        pade_approximation(&mut mp, &mut output, 3);
-        return (output, 3);
+        return (pade_approximation_3(a_matrix, &a_2), 3);
     }
     // d4 should be exact here, d6 an estimate
     let eta_2 = f64::max(d4, d6);
     if eta_2 < THETA_5 && ell(&a_matrix, 5) == 0 {
-        pade_approximation(&mut mp, &mut output, 5);
-        return (output, 5);
+        return (pade_approximation_5(a_matrix, &a_2, &a_4), 5);
     }
-    let d8 = f64::powf(mp.get(8).opnorm_one().unwrap(), 1. / 8.);
+    let a_8 = a_4.dot(&a_4);
+    let d8 = a_8.opnorm_one().unwrap().powf(1. / 8.);
     let eta_3 = f64::max(d6, d8);
     if eta_3 < THETA_7 && ell(&a_matrix, 7) == 0 {
-        pade_approximation(&mut mp, &mut output, 7);
-        return (output, 7);
+        return (pade_approximation_7(a_matrix, &a_2, &a_4, &a_6), 7);
     }
     if eta_3 < THETA_9 && ell(&a_matrix, 9) == 0 {
-        pade_approximation(&mut mp, &mut output, 9);
-        return (output, 9);
+        return (pade_approximation_9(a_matrix, &a_2, &a_4, &a_6, &a_8), 9);
     }
-    let eta_4 = f64::max(d8, mp.get(10).opnorm_one().unwrap());
+    let a_10 = a_2.dot(&a_8);
+    let eta_4 = f64::max(d8, a_10.opnorm_one().unwrap());
     let eta_5 = f64::min(eta_3, eta_4);
+
     let mut s = f64::max(0., (eta_5 / THETA_13).log2().ceil()) as i32;
     let mut a_scaled = a_matrix.clone();
-    a_scaled.mapv_inplace(|x| x * S::from_real(cauchy::Scalar::pow(2., -s as f64)));
+    let mut scaler = S::from_real(cauchy::Scalar::pow(2., -s as f64));
+    a_scaled.mapv_inplace(|x| x * scaler);
     s += ell(&a_scaled, 13);
-    mp.scale(s);
-    pade_approximation(&mut mp, &mut output, 13);
+
+    a_scaled.assign(a_matrix);
+    scaler = S::from_real(cauchy::Scalar::pow(2., -s as f64));
+    a_scaled.mapv_inplace(|x| x * scaler);
+    a_2.mapv_inplace(|x| x * scaler.pow(S::from(2).unwrap()));
+    a_4.mapv_inplace(|x| x * scaler.pow(S::from(4).unwrap()));
+    a_6.mapv_inplace(|x| x * scaler.pow(S::from(6).unwrap()));
+
+    let mut output = pade_approximation_13(&a_scaled, &a_2, &a_4, &a_6);
     for _ in 0..s {
         output = output.dot(&output);
     }
@@ -607,120 +306,80 @@ pub fn expm<S: Scalar<Real = f64> + Lapack>(a_matrix: &Array2<S>) -> (Array2<S>,
 }
 
 mod tests {
+    use crate::{
+        expm::{
+            pade_approximation_13, pade_approximation_3, pade_approximation_5,
+            pade_approximation_7, pade_approximation_9,
+        },
+        Eig, OperationNorm, SVD,
+    };
+    use ndarray::{linalg::Dot, *};
+    use num_complex::{Complex, Complex32 as c32, Complex64 as c64, ComplexFloat};
+    use rand::Rng;
     use std::{collections::HashMap, fs::File, io::Read, str::FromStr};
 
-    use crate::{expm::{
-        pade_approximation_13, pade_approximation_3, pade_approximation_5, pade_approximation_7,
-        pade_approximation_9,
-    }, OperationNorm, SVD, Eig};
-    use ndarray::{linalg::Dot, *};
-    use num_complex::{Complex, ComplexFloat, Complex32 as c32, Complex64 as c64};
-    use rand::Rng;
-    use ndarray_csv::Array2Reader;
-    use csv::ReaderBuilder;
+    use super::expm;
 
-    use super::{expm, MatrixPowers};
-
+    // 50 -> 5x worse error each entry than scipy
+    // 100 -> 7.3x worse error each entry than scipy
+    // 200 -> broken
     #[test]
-    fn test_matrix_powers() {
-        let a: Array2<f64> = array![[0., 1.], [1., 0.]];
-        let mut mp = MatrixPowers::new(a);
-        println!("get3():");
-        println!("{:?}", mp.get3());
-        println!("get3():");
-        println!("{:?}", mp.get3());
-        println!("mp?");
-        println!("{:?}", mp);
-    }
-
-    #[test]
-    fn test_expm() {
-        fn compute_pade_diff_error(output: &Array2<f64>, expected: &Array2<f64>) -> f64 {
-            let mut diff = (output - expected);
-            diff.mapv_inplace(|x| x.abs());
-            diff.opnorm_one().unwrap()
-        }
-        let mat: Array2<f64> =
-            10. as f64 * array![[0.1, 0.2, 0.3], [0.2, 0.1, 0.5], [0.11, 0.22, 0.32]];
-        let expected: Array2<f64> = array![[157.7662816 , 217.94900112, 432.14352751],
-        [200.6740715 , 278.69078891, 552.72474352],
-        [169.9692465 , 236.2889153 , 469.43670795]];
-        println!("expm output:");
-        let  out =expm(&mat);
-        println!("{:?}", out);
-        println!("diff: {:}", compute_pade_diff_error(&out.0, &expected));
-    }
-
-    #[test]
-    fn test_high_norm() {
+    fn random_matrix_ensemble() {
         let mut rng = rand::thread_rng();
         let n = 200;
-        let samps = 100;
+        let samps = 10;
         let mut results = Vec::new();
         let mut avg_entry_error = Vec::new();
-        let scale = 0.002;
+        // Used to control what pade approximation is most likely to be used.
+        // the smaller the norm the lower the degree used.
+        let scale = 1.;
         for _ in 0..samps {
-            let mut m:Array2<c64> = Array2::<c64>::ones((n,n).f());
-            m.mapv_inplace(|_| {
-                c64::new(rng.gen::<f64>() * 1., rng.gen::<f64>() * 1.)
-            });
-            m = m.dot(&m.t().map(|x| x.conj()));
-            let (mut eigs,mut  vecs) = m.eig().unwrap();
-            eigs.mapv_inplace(|_| scale * c64::new(rng.gen::<f64>() , rng.gen::<f64>()));
+            // Sample a completely random matrix.
+            let mut matrix: Array2<c64> = Array2::<c64>::ones((n, n).f());
+            matrix.mapv_inplace(|_| c64::new(rng.gen::<f64>() * 1., rng.gen::<f64>() * 1.));
+
+            // Make m positive semidefinite so it has orthonormal eigenvecs.
+            matrix = matrix.dot(&matrix.t().map(|x| x.conj()));
+            let (mut eigs, vecs) = matrix.eig().unwrap();
             let adjoint_vecs = vecs.t().clone().mapv(|x| x.conj());
 
-            let recomputed_m = vecs.dot(&Array2::from_diag(&eigs)).dot(&adjoint_vecs);
-            // println!("reconstruction diff: {:}", m_diff.opnorm_one().unwrap() / f64::EPSILON);
-            eigs.mapv_inplace(|x| x.exp() );
+            // Generate new random eigenvalues (complex, previously m had real eigenvals)
+            // and a new matrix m
+            eigs.mapv_inplace(|_| scale * c64::new(rng.gen::<f64>(), rng.gen::<f64>()));
+            let new_matrix = vecs.dot(&Array2::from_diag(&eigs)).dot(&adjoint_vecs);
+
+            // compute the exponentiated matrix by exponentiating the eigenvalues
+            // and doing V e^Lambda V^\dagger
+            eigs.mapv_inplace(|x| x.exp());
             let eigen_expm = vecs.dot(&Array2::from_diag(&eigs)).dot(&adjoint_vecs);
-            let (expm_comp, deg) = expm(&recomputed_m);
+
+            // Compute the expm routine, compute error metrics for this sample
+            let (expm_comp, deg) = expm(&new_matrix);
             let diff = &expm_comp - &eigen_expm;
             avg_entry_error.push({
                 let tot = diff.map(|x| x.abs()).into_iter().sum::<f64>();
                 tot / (n * n) as f64
             });
             results.push(diff.opnorm_one().unwrap());
-            // println!("diff norm over epsilon: {:}", diff.opnorm_one().unwrap() / f64::EPSILON);
         }
+
+        // compute averages
         let avg: f64 = results.iter().sum::<f64>() / results.len() as f64;
         let avg_entry_diff = avg_entry_error.iter().sum::<f64>() / avg_entry_error.len() as f64;
-        let std: f64 = f64::powf(results.iter().map(|x| f64::powi(x - avg, 2)).sum::<f64>() / (results.len() -1)  as f64, 0.5);
+        let std: f64 = f64::powf(
+            results.iter().map(|x| f64::powi(x - avg, 2)).sum::<f64>() / (results.len() - 1) as f64,
+            0.5,
+        );
         println!("collected {:} samples.", results.len());
         println!("diff norm: {:} +- ({:})", avg, std);
-        println!("average entry error over epsilon:{:}", avg_entry_diff / f64::EPSILON);
+        println!(
+            "average entry error over epsilon: {:}",
+            avg_entry_diff / f64::EPSILON
+        );
         println!("avg over epsilon: {:.2}", avg / f64::EPSILON);
         println!("std over epsilon: {:.2}", std / f64::EPSILON);
     }
 
-    #[test]
-    fn test_random_matrix() {
-        // load data from csv
-        let mut input_file = File::open("/Users/matt/Desktop/matrix_input.csv").unwrap();
-        let mut output_file = File::open("/Users/matt/Desktop/expm_output.csv").unwrap();
-        let mut input_reader = ReaderBuilder::new().has_headers(false).from_reader(input_file);
-        let mut output_reader = ReaderBuilder::new().has_headers(false).from_reader(output_file);
-        let input: Vec<c64> = Vec::new();
-        for res in output_reader.records() {
-            res.unwrap().iter().map(|x| {
-                let real:Vec<_> = x.split('.').collect();
-                println!("real: {:?}", real);
-                let mut re: f64 = (real[0].clone()).parse().unwrap();
-                println!("re: {:}",re);
-                if real[1].contains("*^") {
-                    // re += "." + real[1].split("*^").into_iter().take(n)
-                }
-                let c = c64::from_str(x);
-                println!("x: {:}", x);
-                println!("c: {:?}", c);
-            }).collect::<()>();
-            break;
-        }
-        let input: Array2<c64> = input_reader.deserialize_array2((100,100)).unwrap();
-        let expected: Array2<c64> = output_reader.deserialize_array2((100,100)).unwrap();
-        let (computed, deg) = expm(&input);
-        let diff = &expected - &computed;
-        println!("diff norm: {:}", diff.opnorm_one().unwrap());
-    }
     #[test]
     fn test_pauli_rotation() {
         let mut results = Vec::new();
@@ -732,13 +391,14 @@ mod tests {
         let mut rng = rand::thread_rng();
         let num_samples = 10;
         for _ in 0..num_samples {
-            let theta: c64 =  c64::from_polar(2. * std::f64::consts::PI * rng.gen::<f64>(), 0.);
+            let theta: c64 = c64::from_polar(2. * std::f64::consts::PI * rng.gen::<f64>(), 0.);
             let pauli_y: Array2<c64> = array![
                 [c64::new(0., 0.), c64::new(0., -1.)],
                 [c64::new(0., 1.), c64::new(0., 0.)],
             ];
             let x = c64::new(0., 1.) * theta * pauli_y.clone();
-            let actual = c64::cos(theta /2.) * Array2::<c64>::eye(x.nrows()) - c64::sin(theta / 2.) * c64::new(0., 1.) * &pauli_y;
+            let actual = c64::cos(theta / 2.) * Array2::<c64>::eye(x.nrows())
+                - c64::sin(theta / 2.) * c64::new(0., 1.) * &pauli_y;
             let (computed, deg) = expm(&(c64::new(0., -0.5) * theta * pauli_y));
             match deg {
                 3 => d3 += 1,
@@ -746,14 +406,17 @@ mod tests {
                 7 => d7 += 1,
                 9 => d9 += 1,
                 13 => d13 += 1,
-                _ => {},
+                _ => {}
             }
             let diff = (actual - computed).map(|x| x.abs());
             let diff_norm = diff.opnorm_one().unwrap();
             results.push(diff_norm);
         }
         let avg: f64 = results.iter().sum::<f64>() / results.len() as f64;
-        let std: f64 = f64::powf(results.iter().map(|x| f64::powi(x - avg, 2)).sum::<f64>() / (results.len() -1)  as f64, 0.5);
+        let std: f64 = f64::powf(
+            results.iter().map(|x| f64::powi(x - avg, 2)).sum::<f64>() / (results.len() - 1) as f64,
+            0.5,
+        );
         println!("collected {:} samples.", results.len());
         println!("diff norm: {:} +- ({:})", avg, std);
         println!("avg over epsilon: {:.2}", avg / f64::EPSILON);
@@ -765,7 +428,6 @@ mod tests {
         d9 as f64 / num_samples as f64,
         d13 as f64 / num_samples as f64);
         // println!("results: {:?}", results);
-
     }
     #[test]
     fn test_pade_approximants() {
@@ -785,12 +447,11 @@ mod tests {
             }
             tot
         }
-        let mut mp = MatrixPowers::new(mat);
-        pade_approximation_3(&mut mp, &mut output_3);
-        pade_approximation_5(&mut mp, &mut output_5);
-        pade_approximation_7(&mut mp, &mut output_7);
-        pade_approximation_9(&mut mp, &mut output_9);
-        pade_approximation_13(&mut mp, &mut output_13);
+        // pade_approximation_3(&mut mp, &mut output_3);
+        // pade_approximation_5(&mut mp, &mut output_5);
+        // pade_approximation_7(&mut mp, &mut output_7);
+        // pade_approximation_9(&mut mp, &mut output_9);/
+        // pade_approximation_13(&mut mp, &mut output_13);
         let expected = array![
             [157.766, 217.949, 432.144],
             [200.674, 278.691, 552.725],

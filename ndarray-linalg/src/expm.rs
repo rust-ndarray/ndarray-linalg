@@ -1,10 +1,10 @@
 use std::ops::MulAssign;
 
 use crate::{normest1::normest, types, Inverse, OperationNorm};
-use cauchy::{c64, Scalar};
+use cauchy::{Scalar};
 use lax::{Lapack, NormType};
 use ndarray::{linalg::Dot, prelude::*};
-use num_complex::Complex;
+use num_complex::{Complex, Complex32 as c32, Complex64 as c64};
 use num_traits::{real::Real, Pow};
 use statrs::{
     function::factorial::{binomial, factorial},
@@ -28,6 +28,7 @@ const THETA_MAP: [f64; 14] = [
 // Coefficients are also stored via the power of x, so for example the numerator would look like
 // x^0 * PADE_COEFF_M[0] + x^1 * PADE_COEFF_M[1] + ... + x^m * PADE_COEFF_M[M]
 const PADE_COEFFS_3: [f64; 4] = [1., 0.5, 0.1, 1. / 120.];
+// const PADE_COEFFS_3:[f64; 4] = [1., 12., 60., 120.];
 
 const PADE_COEFFS_5: [f64; 6] = [1., 0.5, 1. / 9., 1. / 72., 1. / 1_008., 1. / 30_240.];
 
@@ -72,37 +73,6 @@ const PADE_COEFFS_13: [f64; 14] = [
     1. / 64_764_752_532_480_000.,
 ];
 
-struct OneNormOneCalc {}
-
-/// Computes operator one norms either exactly or estimates them using Higham & Tisseur (ref)
-pub enum OpNormOne<'a> {
-    Exact {
-        a_matrix: &'a Array2<f64>,
-    },
-    Estimate {
-        a_matrix: &'a Array2<f64>,
-        t: usize,
-        itmax: usize,
-    },
-    EstimateSequence {
-        matrices: Vec<&'a Array2<f64>>,
-    },
-    EstimatePower {
-        a_matrix: &'a Array2<f64>,
-        p: usize,
-    },
-}
-
-impl<'a> OpNormOne<'a> {
-    fn compute(&self) -> f64 {
-        match self {
-            Self::Exact { a_matrix } => a_matrix.opnorm_one().unwrap(),
-            Self::Estimate { a_matrix, t, itmax } => normest(a_matrix, *t, *itmax as u32),
-            Self::EstimateSequence { matrices } => 1.,
-            _ => 1.,
-        }
-    }
-}
 
 fn power_abs_norm<S>(input_matrix: &Array2<S>, p: usize) -> f64
 where
@@ -143,21 +113,12 @@ fn pade_error_coefficient(m: u64) -> f64 {
     1.0 / (binomial(2 * m, m) * factorial(2 * m + 1))
 }
 
-trait Number {
-    fn abs(&self) -> f64;
-}
-impl Number for f64 {
-    fn abs(&self) -> f64 {
-        self.abs()
-    }
-}
-
 fn pade_approximation_3<S: Scalar<Real = f64> + Lapack>(
     mp: &mut MatrixPowers<S>,
     output: &mut Array2<S>,
 ) {
     let mut evens: Array2<S> = Array2::<S>::eye(mp.get(1).nrows());
-    evens.mapv_inplace(|x| x * S::from_real(PADE_COEFFS_3[0]));
+    // evens.mapv_inplace(|x| x * S::from_real(PADE_COEFFS_3[0]));
     evens.scaled_add(S::from_real(PADE_COEFFS_3[2]), mp.get(2));
 
     let mut odds: Array2<S> = Array2::<S>::eye(mp.get(1).nrows());
@@ -176,14 +137,14 @@ fn pade_approximation_5<S: Scalar<Real = f64> + Lapack>(
     output: &mut Array2<S>,
 ) {
     let mut evens: Array2<S> = Array2::<S>::eye(mp.get(1).nrows());
-    evens.mapv_inplace(|x| S::from_real(PADE_COEFFS_9[0]) * x);
+    // evens.mapv_inplace(|x| S::from_real(PADE_COEFFS_5[0]) * x);
     for m in 1..=2 {
-        evens.scaled_add(S::from_real(PADE_COEFFS_9[2 * m]), mp.get(2 * m));
+        evens.scaled_add(S::from_real(PADE_COEFFS_5[2 * m]), mp.get(2 * m));
     }
     let mut odds: Array2<S> = Array::eye(mp.get(1).nrows());
-    odds.mapv_inplace(|x| S::from_real(PADE_COEFFS_9[1]) * x);
+    odds.mapv_inplace(|x| S::from_real(PADE_COEFFS_5[1]) * x);
     for m in 1..=2 {
-        odds.scaled_add(S::from_real(PADE_COEFFS_9[2 * m + 1]), mp.get(2 * m));
+        odds.scaled_add(S::from_real(PADE_COEFFS_5[2 * m + 1]), mp.get(2 * m));
     }
     odds = odds.dot(mp.get(1));
     odds.mapv_inplace(|x| -x);
@@ -197,14 +158,14 @@ fn pade_approximation_7<S: Scalar<Real = f64> + Lapack>(
     output: &mut Array2<S>,
 ) {
     let mut evens: Array2<S> = Array::eye(mp.get(1).nrows());
-    evens.mapv_inplace(|x| S::from_real(PADE_COEFFS_9[0]) * x);
+    // evens.mapv_inplace(|x| S::from_real(PADE_COEFFS_7[0]) * x);
     for m in 1..=3 {
-        evens.scaled_add(S::from_real(PADE_COEFFS_9[2 * m]), mp.get(2 * m));
+        evens.scaled_add(S::from_real(PADE_COEFFS_7[2 * m]), mp.get(2 * m));
     }
     let mut odds: Array2<S> = Array::eye(mp.get(1).nrows());
-    odds.mapv_inplace(|x| S::from_real(PADE_COEFFS_9[1]) * x);
+    odds.mapv_inplace(|x| S::from_real(PADE_COEFFS_7[1]) * x);
     for m in 1..=3 {
-        odds.scaled_add(S::from_real(PADE_COEFFS_9[2 * m + 1]), mp.get(2 * m));
+        odds.scaled_add(S::from_real(PADE_COEFFS_7[2 * m + 1]), mp.get(2 * m));
     }
     odds = odds.dot(mp.get(1));
     odds.mapv_inplace(|x| -x);
@@ -217,9 +178,10 @@ fn pade_approximation_9<S: Scalar<Real = f64> + Lapack>(
     output: &mut Array2<S>,
 ) {
     let mut evens: Array2<S> = Array::eye(mp.get(1).nrows());
-    evens.mapv_inplace(|x| S::from_real(PADE_COEFFS_9[0]) * x);
+    // evens.mapv_inplace(|x| S::from_real(PADE_COEFFS_9[0]) * x);
     for m in 1..=4 {
         evens.scaled_add(S::from_real(PADE_COEFFS_9[2 * m]), mp.get(2 * m));
+        let delta = mp.get(2 * m).map(|x| S::from_real(PADE_COEFFS_9[2 * m]) * *x);
     }
     let mut odds: Array2<S> = Array::eye(mp.get(1).nrows());
     odds.mapv_inplace(|x| S::from_real(PADE_COEFFS_9[1]) * x);
@@ -236,7 +198,6 @@ fn pade_approximation_9<S: Scalar<Real = f64> + Lapack>(
 // TODO: scale powers by appropriate value of s.
 fn pade_approximation_13<S: Scalar<Real = f64> + Lapack>(
     mp: &mut MatrixPowers<S>,
-    scale_factor: i32,
     output: &mut Array2<S>,
 ) {
     // note this may have unnecessary allocations.
@@ -575,7 +536,6 @@ impl<S: Scalar + Lapack> MatrixPowers<S> {
 
 fn pade_approximation<'a, S: Scalar<Real = f64> + Lapack>(
     mp: &'a mut MatrixPowers<S>,
-    scale_factor: i32,
     output: &mut Array2<S>,
     degree: usize,
 ) {
@@ -593,7 +553,7 @@ fn pade_approximation<'a, S: Scalar<Real = f64> + Lapack>(
             pade_approximation_9(mp, output);
         }
         13 => {
-            pade_approximation_13(mp, scale_factor, output);
+            pade_approximation_13(mp, output);
         }
         _ => {
             println!(
@@ -604,78 +564,60 @@ fn pade_approximation<'a, S: Scalar<Real = f64> + Lapack>(
     }
 }
 
-// fn old_expm(matrix: &Array2<f64>) -> Array2<f64> {
-//     let mut ret: Array2<f64> = ndarray::Array2::<f64>::zeros((matrix.nrows(), matrix.ncols()));
-//     for m in vec![3, 5, 7, 9].iter() {
-//         if super::normest1::normest(matrix, 4, 4) <= THETA_MAP[*m] {
-//             pade_approximation(matrix, &mut ret, m);
-//             return ret;
-//         }
-//     }
-//     ret
-// }
 /// Computes matrix exponential based on the scale-and-squaring algorithm by
-pub fn expm<S: Scalar<Real = f64> + Lapack>(a_matrix: &Array2<S>) -> Array2<S> {
+pub fn expm<S: Scalar<Real = f64> + Lapack>(a_matrix: &Array2<S>) -> (Array2<S>, usize) {
     let mut output = Array2::<S>::zeros((a_matrix.nrows(), a_matrix.ncols()).f());
     let mut mp = MatrixPowers::new(a_matrix.clone());
     let d4 = f64::powf(mp.get(4).opnorm_one().unwrap(), 1. / 4.);
     let d6 = f64::powf((*mp.get(6)).opnorm_one().unwrap(), 1. / 6.);
     // Note d6 should be an estimate and d4 an estimate
     let eta_1 = f64::max(d4, d6);
-
     if eta_1 < THETA_3 && ell(&a_matrix, 3) == 0 {
-        pade_approximation(&mut mp, 1, &mut output, 3);
-        println!("returning pade 3");
-        println!("matrix mupltiplications of input mat: {:}", mp.num_matprods);
-        return output;
+        pade_approximation(&mut mp, &mut output, 3);
+        return (output, 3);
     }
     // d4 should be exact here, d6 an estimate
     let eta_2 = f64::max(d4, d6);
     if eta_2 < THETA_5 && ell(&a_matrix, 5) == 0 {
-        pade_approximation(&mut mp, 1, &mut output, 5);
-        println!("returning pade 5");
-        println!("matrix mupltiplications of input mat: {:}", mp.num_matprods);
-        return output;
+        pade_approximation(&mut mp, &mut output, 5);
+        return (output, 5);
     }
     let d8 = f64::powf(mp.get(8).opnorm_one().unwrap(), 1. / 8.);
     let eta_3 = f64::max(d6, d8);
     if eta_3 < THETA_7 && ell(&a_matrix, 7) == 0 {
-        pade_approximation(&mut mp, 1, &mut output, 7);
-        println!("returning pade 7");
-        println!("matrix mupltiplications of input mat: {:}", mp.num_matprods);
-        return output;
+        pade_approximation(&mut mp, &mut output, 7);
+        return (output, 7);
     }
     if eta_3 < THETA_9 && ell(&a_matrix, 9) == 0 {
-        pade_approximation(&mut mp, 1, &mut output, 9);
-        println!("returning pade 9");
-        println!("matrix mupltiplications of input mat: {:}", mp.num_matprods);
-        return output;
+        pade_approximation(&mut mp, &mut output, 9);
+        return (output, 9);
     }
     let eta_4 = f64::max(d8, mp.get(10).opnorm_one().unwrap());
     let eta_5 = f64::min(eta_3, eta_4);
     let mut s = f64::max(0., (eta_5 / THETA_13).log2().ceil()) as i32;
     let mut a_scaled = a_matrix.clone();
-    println!("a norm before: {:}", a_matrix.opnorm_one().unwrap());
     a_scaled.mapv_inplace(|x| x * S::from_real(cauchy::Scalar::pow(2., -s as f64)));
-    println!("scaled norm: {:}", a_scaled.opnorm_one().unwrap());
     s += ell(&a_scaled, 13);
     mp.scale(s);
-    pade_approximation(&mut mp, s, &mut output, 13);
+    pade_approximation(&mut mp, &mut output, 13);
     for _ in 0..s {
         output = output.dot(&output);
     }
-    println!("returning pade 13");
-    println!("matrix mupltiplications of input mat: {:}", mp.num_matprods);
-    output
-    // arr2(&[[2.]])
+    (output, 13)
 }
 
 mod tests {
+    use std::{collections::HashMap, fs::File, io::Read, str::FromStr};
+
     use crate::{expm::{
         pade_approximation_13, pade_approximation_3, pade_approximation_5, pade_approximation_7,
         pade_approximation_9,
-    }, OperationNorm};
+    }, OperationNorm, SVD, Eig};
     use ndarray::{linalg::Dot, *};
+    use num_complex::{Complex, ComplexFloat, Complex32 as c32, Complex64 as c64};
+    use rand::Rng;
+    use ndarray_csv::Array2Reader;
+    use csv::ReaderBuilder;
 
     use super::{expm, MatrixPowers};
 
@@ -706,9 +648,125 @@ mod tests {
         println!("expm output:");
         let  out =expm(&mat);
         println!("{:?}", out);
-        println!("diff: {:}", compute_pade_diff_error(&out, &expected));
+        println!("diff: {:}", compute_pade_diff_error(&out.0, &expected));
     }
 
+    #[test]
+    fn test_high_norm() {
+        let mut rng = rand::thread_rng();
+        let n = 200;
+        let samps = 100;
+        let mut results = Vec::new();
+        let mut avg_entry_error = Vec::new();
+        let scale = 0.002;
+        for _ in 0..samps {
+            let mut m:Array2<c64> = Array2::<c64>::ones((n,n).f());
+            m.mapv_inplace(|_| {
+                c64::new(rng.gen::<f64>() * 1., rng.gen::<f64>() * 1.)
+            });
+            m = m.dot(&m.t().map(|x| x.conj()));
+            let (mut eigs,mut  vecs) = m.eig().unwrap();
+            eigs.mapv_inplace(|_| scale * c64::new(rng.gen::<f64>() , rng.gen::<f64>()));
+            let adjoint_vecs = vecs.t().clone().mapv(|x| x.conj());
+
+            let recomputed_m = vecs.dot(&Array2::from_diag(&eigs)).dot(&adjoint_vecs);
+            // println!("reconstruction diff: {:}", m_diff.opnorm_one().unwrap() / f64::EPSILON);
+            eigs.mapv_inplace(|x| x.exp() );
+            let eigen_expm = vecs.dot(&Array2::from_diag(&eigs)).dot(&adjoint_vecs);
+            let (expm_comp, deg) = expm(&recomputed_m);
+            let diff = &expm_comp - &eigen_expm;
+            avg_entry_error.push({
+                let tot = diff.map(|x| x.abs()).into_iter().sum::<f64>();
+                tot / (n * n) as f64
+            });
+            results.push(diff.opnorm_one().unwrap());
+            // println!("diff norm over epsilon: {:}", diff.opnorm_one().unwrap() / f64::EPSILON);
+        }
+        let avg: f64 = results.iter().sum::<f64>() / results.len() as f64;
+        let avg_entry_diff = avg_entry_error.iter().sum::<f64>() / avg_entry_error.len() as f64;
+        let std: f64 = f64::powf(results.iter().map(|x| f64::powi(x - avg, 2)).sum::<f64>() / (results.len() -1)  as f64, 0.5);
+        println!("collected {:} samples.", results.len());
+        println!("diff norm: {:} +- ({:})", avg, std);
+        println!("average entry error over epsilon:{:}", avg_entry_diff / f64::EPSILON);
+        println!("avg over epsilon: {:.2}", avg / f64::EPSILON);
+        println!("std over epsilon: {:.2}", std / f64::EPSILON);
+    }
+
+    #[test]
+    fn test_random_matrix() {
+        // load data from csv
+        let mut input_file = File::open("/Users/matt/Desktop/matrix_input.csv").unwrap();
+        let mut output_file = File::open("/Users/matt/Desktop/expm_output.csv").unwrap();
+        let mut input_reader = ReaderBuilder::new().has_headers(false).from_reader(input_file);
+        let mut output_reader = ReaderBuilder::new().has_headers(false).from_reader(output_file);
+        let input: Vec<c64> = Vec::new();
+        for res in output_reader.records() {
+            res.unwrap().iter().map(|x| {
+                let real:Vec<_> = x.split('.').collect();
+                println!("real: {:?}", real);
+                let mut re: f64 = (real[0].clone()).parse().unwrap();
+                println!("re: {:}",re);
+                if real[1].contains("*^") {
+                    // re += "." + real[1].split("*^").into_iter().take(n)
+                }
+                let c = c64::from_str(x);
+                println!("x: {:}", x);
+                println!("c: {:?}", c);
+            }).collect::<()>();
+            break;
+        }
+        let input: Array2<c64> = input_reader.deserialize_array2((100,100)).unwrap();
+        let expected: Array2<c64> = output_reader.deserialize_array2((100,100)).unwrap();
+        let (computed, deg) = expm(&input);
+        let diff = &expected - &computed;
+        println!("diff norm: {:}", diff.opnorm_one().unwrap());
+    }
+    #[test]
+    fn test_pauli_rotation() {
+        let mut results = Vec::new();
+        let mut d3 = 0;
+        let mut d5 = 0;
+        let mut d7 = 0;
+        let mut d9 = 0;
+        let mut d13 = 0;
+        let mut rng = rand::thread_rng();
+        let num_samples = 10;
+        for _ in 0..num_samples {
+            let theta: c64 =  c64::from_polar(2. * std::f64::consts::PI * rng.gen::<f64>(), 0.);
+            let pauli_y: Array2<c64> = array![
+                [c64::new(0., 0.), c64::new(0., -1.)],
+                [c64::new(0., 1.), c64::new(0., 0.)],
+            ];
+            let x = c64::new(0., 1.) * theta * pauli_y.clone();
+            let actual = c64::cos(theta /2.) * Array2::<c64>::eye(x.nrows()) - c64::sin(theta / 2.) * c64::new(0., 1.) * &pauli_y;
+            let (computed, deg) = expm(&(c64::new(0., -0.5) * theta * pauli_y));
+            match deg {
+                3 => d3 += 1,
+                5 => d5 += 1,
+                7 => d7 += 1,
+                9 => d9 += 1,
+                13 => d13 += 1,
+                _ => {},
+            }
+            let diff = (actual - computed).map(|x| x.abs());
+            let diff_norm = diff.opnorm_one().unwrap();
+            results.push(diff_norm);
+        }
+        let avg: f64 = results.iter().sum::<f64>() / results.len() as f64;
+        let std: f64 = f64::powf(results.iter().map(|x| f64::powi(x - avg, 2)).sum::<f64>() / (results.len() -1)  as f64, 0.5);
+        println!("collected {:} samples.", results.len());
+        println!("diff norm: {:} +- ({:})", avg, std);
+        println!("avg over epsilon: {:.2}", avg / f64::EPSILON);
+        println!("std over epsilon: {:.2}", std / f64::EPSILON);
+        println!("degree percentages: \n3  - {:.4}, \n5  - {:.4}, \n7  - {:.4}, \n9  - {:.4}, \n13 - {:.4}",
+        d3 as f64 / num_samples as f64,
+        d5 as f64 / num_samples as f64,
+        d7 as f64 / num_samples as f64,
+        d9 as f64 / num_samples as f64,
+        d13 as f64 / num_samples as f64);
+        // println!("results: {:?}", results);
+
+    }
     #[test]
     fn test_pade_approximants() {
         let mat: Array2<f64> =
@@ -732,7 +790,7 @@ mod tests {
         pade_approximation_5(&mut mp, &mut output_5);
         pade_approximation_7(&mut mp, &mut output_7);
         pade_approximation_9(&mut mp, &mut output_9);
-        pade_approximation_13(&mut mp, 1, &mut output_13);
+        pade_approximation_13(&mut mp, &mut output_13);
         let expected = array![
             [157.766, 217.949, 432.144],
             [200.674, 278.691, 552.725],

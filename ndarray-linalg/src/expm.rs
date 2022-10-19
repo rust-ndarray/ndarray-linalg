@@ -6,6 +6,7 @@ use lax::{Lapack, NormType};
 use ndarray::{linalg::Dot, prelude::*};
 use num_complex::{Complex, Complex32 as c32, Complex64 as c64};
 use num_traits::{real::Real, Pow};
+extern crate statrs;
 use statrs::{
     function::factorial::{binomial, factorial},
     statistics::Statistics,

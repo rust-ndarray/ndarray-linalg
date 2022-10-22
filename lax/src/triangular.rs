@@ -1,17 +1,18 @@
-//! Implement linear solver and inverse matrix
+//! Linear problem for triangular matrices
 
 use crate::{error::*, layout::*, *};
 use cauchy::*;
 
-#[derive(Debug, Clone, Copy)]
-#[repr(u8)]
-pub enum Diag {
-    Unit = b'U',
-    NonUnit = b'N',
-}
-
-/// Wraps `*trtri` and `*trtrs`
-pub trait Triangular_: Scalar {
+/// Solve linear problem for triangular matrices
+///
+/// LAPACK correspondance
+/// ----------------------
+///
+/// | f32    | f64    | c32    | c64    |
+/// |:-------|:-------|:-------|:-------|
+/// | strtrs | dtrtrs | ctrtrs | ztrtrs |
+///
+pub trait SolveTriangularImpl: Scalar {
     fn solve_triangular(
         al: MatrixLayout,
         bl: MatrixLayout,
@@ -23,8 +24,8 @@ pub trait Triangular_: Scalar {
 }
 
 macro_rules! impl_triangular {
-    ($scalar:ty, $trtri:path, $trtrs:path) => {
-        impl Triangular_ for $scalar {
+    ($scalar:ty, $trtrs:path) => {
+        impl SolveTriangularImpl for $scalar {
             fn solve_triangular(
                 a_layout: MatrixLayout,
                 b_layout: MatrixLayout,
@@ -37,8 +38,9 @@ macro_rules! impl_triangular {
                 let mut a_t = None;
                 let a_layout = match a_layout {
                     MatrixLayout::C { .. } => {
-                        a_t = Some(unsafe { vec_uninit(a.len()) });
-                        transpose(a_layout, a, a_t.as_mut().unwrap())
+                        let (layout, t) = transpose(a_layout, a);
+                        a_t = Some(t);
+                        layout
                     }
                     MatrixLayout::F { .. } => a_layout,
                 };
@@ -47,8 +49,9 @@ macro_rules! impl_triangular {
                 let mut b_t = None;
                 let b_layout = match b_layout {
                     MatrixLayout::C { .. } => {
-                        b_t = Some(unsafe { vec_uninit(b.len()) });
-                        transpose(b_layout, b, b_t.as_mut().unwrap())
+                        let (layout, t) = transpose(b_layout, b);
+                        b_t = Some(t);
+                        layout
                     }
                     MatrixLayout::F { .. } => b_layout,
                 };
@@ -60,15 +63,15 @@ macro_rules! impl_triangular {
                 let mut info = 0;
                 unsafe {
                     $trtrs(
-                        uplo as u8,
-                        Transpose::No as u8,
-                        diag as u8,
-                        m,
-                        nrhs,
-                        a_t.as_ref().map(|v| v.as_slice()).unwrap_or(a),
-                        a_layout.lda(),
-                        b_t.as_mut().map(|v| v.as_mut_slice()).unwrap_or(b),
-                        b_layout.lda(),
+                        uplo.as_ptr(),
+                        Transpose::No.as_ptr(),
+                        diag.as_ptr(),
+                        &m,
+                        &nrhs,
+                        AsPtr::as_ptr(a_t.as_ref().map(|v| v.as_slice()).unwrap_or(a)),
+                        &a_layout.lda(),
+                        AsPtr::as_mut_ptr(b_t.as_mut().map(|v| v.as_mut_slice()).unwrap_or(b)),
+                        &b_layout.lda(),
                         &mut info,
                     );
                 }
@@ -76,7 +79,7 @@ macro_rules! impl_triangular {
 
                 // Re-transpose b
                 if let Some(b_t) = b_t {
-                    transpose(b_layout, &b_t, b);
+                    transpose_over(b_layout, &b_t, b);
                 }
                 Ok(())
             }
@@ -84,7 +87,7 @@ macro_rules! impl_triangular {
     };
 } // impl_triangular!
 
-impl_triangular!(f64, lapack::dtrtri, lapack::dtrtrs);
-impl_triangular!(f32, lapack::strtri, lapack::strtrs);
-impl_triangular!(c64, lapack::ztrtri, lapack::ztrtrs);
-impl_triangular!(c32, lapack::ctrtri, lapack::ctrtrs);
+impl_triangular!(f64, lapack_sys::dtrtrs_);
+impl_triangular!(f32, lapack_sys::strtrs_);
+impl_triangular!(c64, lapack_sys::ztrtrs_);
+impl_triangular!(c32, lapack_sys::ctrtrs_);

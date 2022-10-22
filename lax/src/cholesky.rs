@@ -1,27 +1,25 @@
-//! Cholesky decomposition
+//! Factorize positive-definite symmetric/Hermitian matrices using Cholesky algorithm
 
 use super::*;
 use crate::{error::*, layout::*};
 use cauchy::*;
 
-pub trait Cholesky_: Sized {
-    /// Cholesky: wrapper of `*potrf`
-    ///
-    /// **Warning: Only the portion of `a` corresponding to `UPLO` is written.**
+/// Compute Cholesky decomposition according to [UPLO]
+///
+/// LAPACK correspondance
+/// ----------------------
+///
+/// | f32    | f64    | c32    | c64    |
+/// |:-------|:-------|:-------|:-------|
+/// | spotrf | dpotrf | cpotrf | zpotrf |
+///
+pub trait CholeskyImpl: Scalar {
     fn cholesky(l: MatrixLayout, uplo: UPLO, a: &mut [Self]) -> Result<()>;
-
-    /// Wrapper of `*potri`
-    ///
-    /// **Warning: Only the portion of `a` corresponding to `UPLO` is written.**
-    fn inv_cholesky(l: MatrixLayout, uplo: UPLO, a: &mut [Self]) -> Result<()>;
-
-    /// Wrapper of `*potrs`
-    fn solve_cholesky(l: MatrixLayout, uplo: UPLO, a: &[Self], b: &mut [Self]) -> Result<()>;
 }
 
-macro_rules! impl_cholesky {
-    ($scalar:ty, $trf:path, $tri:path, $trs:path) => {
-        impl Cholesky_ for $scalar {
+macro_rules! impl_cholesky_ {
+    ($s:ty, $trf:path) => {
+        impl CholeskyImpl for $s {
             fn cholesky(l: MatrixLayout, uplo: UPLO, a: &mut [Self]) -> Result<()> {
                 let (n, _) = l.size();
                 if matches!(l, MatrixLayout::C { .. }) {
@@ -29,7 +27,7 @@ macro_rules! impl_cholesky {
                 }
                 let mut info = 0;
                 unsafe {
-                    $trf(uplo as u8, n, a, n, &mut info);
+                    $trf(uplo.as_ptr(), &n, AsPtr::as_mut_ptr(a), &n, &mut info);
                 }
                 info.as_lapack_result()?;
                 if matches!(l, MatrixLayout::C { .. }) {
@@ -37,7 +35,30 @@ macro_rules! impl_cholesky {
                 }
                 Ok(())
             }
+        }
+    };
+}
+impl_cholesky_!(c64, lapack_sys::zpotrf_);
+impl_cholesky_!(c32, lapack_sys::cpotrf_);
+impl_cholesky_!(f64, lapack_sys::dpotrf_);
+impl_cholesky_!(f32, lapack_sys::spotrf_);
 
+/// Compute inverse matrix using Cholesky factroization result
+///
+/// LAPACK correspondance
+/// ----------------------
+///
+/// | f32    | f64    | c32    | c64    |
+/// |:-------|:-------|:-------|:-------|
+/// | spotri | dpotri | cpotri | zpotri |
+///
+pub trait InvCholeskyImpl: Scalar {
+    fn inv_cholesky(l: MatrixLayout, uplo: UPLO, a: &mut [Self]) -> Result<()>;
+}
+
+macro_rules! impl_inv_cholesky {
+    ($s:ty, $tri:path) => {
+        impl InvCholeskyImpl for $s {
             fn inv_cholesky(l: MatrixLayout, uplo: UPLO, a: &mut [Self]) -> Result<()> {
                 let (n, _) = l.size();
                 if matches!(l, MatrixLayout::C { .. }) {
@@ -45,7 +66,7 @@ macro_rules! impl_cholesky {
                 }
                 let mut info = 0;
                 unsafe {
-                    $tri(uplo as u8, n, a, l.lda(), &mut info);
+                    $tri(uplo.as_ptr(), &n, AsPtr::as_mut_ptr(a), &l.lda(), &mut info);
                 }
                 info.as_lapack_result()?;
                 if matches!(l, MatrixLayout::C { .. }) {
@@ -53,7 +74,30 @@ macro_rules! impl_cholesky {
                 }
                 Ok(())
             }
+        }
+    };
+}
+impl_inv_cholesky!(c64, lapack_sys::zpotri_);
+impl_inv_cholesky!(c32, lapack_sys::cpotri_);
+impl_inv_cholesky!(f64, lapack_sys::dpotri_);
+impl_inv_cholesky!(f32, lapack_sys::spotri_);
 
+/// Solve linear equation using Cholesky factroization result
+///
+/// LAPACK correspondance
+/// ----------------------
+///
+/// | f32    | f64    | c32    | c64    |
+/// |:-------|:-------|:-------|:-------|
+/// | spotrs | dpotrs | cpotrs | zpotrs |
+///
+pub trait SolveCholeskyImpl: Scalar {
+    fn solve_cholesky(l: MatrixLayout, uplo: UPLO, a: &[Self], b: &mut [Self]) -> Result<()>;
+}
+
+macro_rules! impl_solve_cholesky {
+    ($s:ty, $trs:path) => {
+        impl SolveCholeskyImpl for $s {
             fn solve_cholesky(
                 l: MatrixLayout,
                 mut uplo: UPLO,
@@ -70,7 +114,16 @@ macro_rules! impl_cholesky {
                     }
                 }
                 unsafe {
-                    $trs(uplo as u8, n, nrhs, a, l.lda(), b, n, &mut info);
+                    $trs(
+                        uplo.as_ptr(),
+                        &n,
+                        &nrhs,
+                        AsPtr::as_ptr(a),
+                        &l.lda(),
+                        AsPtr::as_mut_ptr(b),
+                        &n,
+                        &mut info,
+                    );
                 }
                 info.as_lapack_result()?;
                 if matches!(l, MatrixLayout::C { .. }) {
@@ -82,9 +135,8 @@ macro_rules! impl_cholesky {
             }
         }
     };
-} // end macro_rules
-
-impl_cholesky!(f64, lapack::dpotrf, lapack::dpotri, lapack::dpotrs);
-impl_cholesky!(f32, lapack::spotrf, lapack::spotri, lapack::spotrs);
-impl_cholesky!(c64, lapack::zpotrf, lapack::zpotri, lapack::zpotrs);
-impl_cholesky!(c32, lapack::cpotrf, lapack::cpotri, lapack::cpotrs);
+}
+impl_solve_cholesky!(c64, lapack_sys::zpotrs_);
+impl_solve_cholesky!(c32, lapack_sys::cpotrs_);
+impl_solve_cholesky!(f64, lapack_sys::dpotrs_);
+impl_solve_cholesky!(f32, lapack_sys::spotrs_);

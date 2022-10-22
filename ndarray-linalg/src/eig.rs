@@ -5,6 +5,7 @@ use crate::layout::*;
 use crate::types::*;
 use ndarray::*;
 
+#[cfg_attr(doc, katexit::katexit)]
 /// Eigenvalue decomposition of general matrix reference
 pub trait Eig {
     /// EigVec is the right eivenvector

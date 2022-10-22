@@ -1,6 +1,6 @@
 [package]
 name = "lax"
-version = "0.2.0"
+version = "0.16.0"
 authors = ["Toshiki Teramura <toshiki.teramura@gmail.com>"]
 edition = "2018"
 
@@ -25,17 +25,18 @@ netlib-system = ["netlib-src/system"]
 openblas-static = ["openblas-src/static"]
 openblas-system = ["openblas-src/system"]
 
-intel-mkl-static = ["intel-mkl-src/mkl-static-lp64-seq", "intel-mkl-src/download"]
+intel-mkl-static = ["intel-mkl-src/mkl-static-lp64-seq"]
 intel-mkl-system = ["intel-mkl-src/mkl-dynamic-lp64-seq"]
 
 [dependencies]
 thiserror = "1.0.24"
 cauchy = "0.4.0"
 num-traits = "0.2.14"
-lapack = "0.18.0"
+lapack-sys = "0.14.0"
+katexit = "0.1.2"
 
 [dependencies.intel-mkl-src]
-version = "0.6.0"
+version = "0.8.1"
 default-features = false
 optional = true
 
@@ -50,9 +51,3 @@ version = "0.10.4"
 optional = true
 default-features = false
 features = ["cblas"]
-
-[package.metadata.docs.rs]
-rustdoc-args = ["--html-in-header", "katex-header.html"]
-
-[package.metadata.release]
-no-dev-version = true

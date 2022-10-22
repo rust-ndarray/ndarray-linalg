@@ -136,15 +136,36 @@ fn det() {
             assert_rclose!(result.1, ln_det, rtol);
         }
     }
+    let mut rng = rand_pcg::Mcg128Xsl64::new(0xcafef00dd15ea5e5);
     for rows in 1..5 {
-        det_impl(random_regular::<f64>(rows), 1e-9);
-        det_impl(random_regular::<f32>(rows), 1e-4);
-        det_impl(random_regular::<c64>(rows), 1e-9);
-        det_impl(random_regular::<c32>(rows), 1e-4);
-        det_impl(random_regular::<f64>(rows).t().to_owned(), 1e-9);
-        det_impl(random_regular::<f32>(rows).t().to_owned(), 1e-4);
-        det_impl(random_regular::<c64>(rows).t().to_owned(), 1e-9);
-        det_impl(random_regular::<c32>(rows).t().to_owned(), 1e-4);
+        det_impl(random_regular_using::<f64, _>(rows, &mut rng), 1e-9);
+        det_impl(random_regular_using::<f32, _>(rows, &mut rng), 1e-4);
+        det_impl(random_regular_using::<c64, _>(rows, &mut rng), 1e-9);
+        det_impl(random_regular_using::<c32, _>(rows, &mut rng), 1e-4);
+        det_impl(
+            random_regular_using::<f64, _>(rows, &mut rng)
+                .t()
+                .to_owned(),
+            1e-9,
+        );
+        det_impl(
+            random_regular_using::<f32, _>(rows, &mut rng)
+                .t()
+                .to_owned(),
+            1e-4,
+        );
+        det_impl(
+            random_regular_using::<c64, _>(rows, &mut rng)
+                .t()
+                .to_owned(),
+            1e-9,
+        );
+        det_impl(
+            random_regular_using::<c32, _>(rows, &mut rng)
+                .t()
+                .to_owned(),
+            1e-4,
+        );
     }
 }
 
@@ -152,7 +173,8 @@ fn det() {
 fn det_nonsquare() {
     macro_rules! det_nonsquare {
         ($elem:ty, $shape:expr) => {
-            let a: Array2<$elem> = random($shape);
+            let mut rng = rand_pcg::Mcg128Xsl64::new(0xcafef00dd15ea5e5);
+            let a: Array2<$elem> = random_using($shape, &mut rng);
             assert!(a.factorize().unwrap().det().is_err());
             assert!(a.factorize().unwrap().sln_det().is_err());
             assert!(a.factorize().unwrap().det_into().is_err());

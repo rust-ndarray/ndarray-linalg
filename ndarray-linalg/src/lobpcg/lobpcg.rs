@@ -83,12 +83,11 @@ fn apply_constraints<A: Scalar + Lapack>(
     let u = gram_yv
         .columns()
         .into_iter()
-        .map(|x| {
+        .flat_map(|x| {
             let res = cholesky_yy.solvec(&x).unwrap();
 
             res.to_vec()
         })
-        .flatten()
         .collect::<Vec<A>>();
 
     let rows = gram_yv.len_of(Axis(0));
@@ -461,7 +460,8 @@ mod tests {
     /// Test the `sorted_eigen` function
     #[test]
     fn test_sorted_eigen() {
-        let matrix: Array2<f64> = generate::random((10, 10)) * 10.0;
+        let mut rng = rand_pcg::Mcg128Xsl64::new(0xcafef00dd15ea5e5);
+        let matrix: Array2<f64> = generate::random_using((10, 10), &mut rng) * 10.0;
         let matrix = matrix.t().dot(&matrix);
 
         // return all eigenvectors with largest first
@@ -477,7 +477,8 @@ mod tests {
     /// Test the masking function
     #[test]
     fn test_masking() {
-        let matrix: Array2<f64> = generate::random((10, 5)) * 10.0;
+        let mut rng = rand_pcg::Mcg128Xsl64::new(0xcafef00dd15ea5e5);
+        let matrix: Array2<f64> = generate::random_using((10, 5), &mut rng) * 10.0;
         let masked_matrix = ndarray_mask(matrix.view(), &[true, true, false, true, false]);
         close_l2(
             &masked_matrix.slice(s![.., 2]),
@@ -489,7 +490,8 @@ mod tests {
     /// Test orthonormalization of a random matrix
     #[test]
     fn test_orthonormalize() {
-        let matrix: Array2<f64> = generate::random((10, 10)) * 10.0;
+        let mut rng = rand_pcg::Mcg128Xsl64::new(0xcafef00dd15ea5e5);
+        let matrix: Array2<f64> = generate::random_using((10, 10), &mut rng) * 10.0;
 
         let (n, l) = orthonormalize(matrix.clone()).unwrap();
 
@@ -510,7 +512,8 @@ mod tests {
         assert_symmetric(a);
 
         let n = a.len_of(Axis(0));
-        let x: Array2<f64> = generate::random((n, num));
+        let mut rng = rand_pcg::Mcg128Xsl64::new(0xcafef00dd15ea5e5);
+        let x: Array2<f64> = generate::random_using((n, num), &mut rng);
 
         let result = lobpcg(|y| a.dot(&y), x, |_| {}, None, 1e-5, n * 2, order);
         match result {
@@ -554,7 +557,8 @@ mod tests {
     #[test]
     fn test_eigsolver_constructed() {
         let n = 50;
-        let tmp = generate::random((n, n));
+        let mut rng = rand_pcg::Mcg128Xsl64::new(0xcafef00dd15ea5e5);
+        let tmp = generate::random_using((n, n), &mut rng);
         //let (v, _) = tmp.qr_square().unwrap();
         let (v, _) = orthonormalize(tmp).unwrap();
 
@@ -571,7 +575,8 @@ mod tests {
     fn test_eigsolver_constrained() {
         let diag = arr1(&[1., 2., 3., 4., 5., 6., 7., 8., 9., 10.]);
         let a = Array2::from_diag(&diag);
-        let x: Array2<f64> = generate::random((10, 1));
+        let mut rng = rand_pcg::Mcg128Xsl64::new(0xcafef00dd15ea5e5);
+        let x: Array2<f64> = generate::random_using((10, 1), &mut rng);
         let y: Array2<f64> = arr2(&[
             [1.0, 0., 0., 0., 0., 0., 0., 0., 0., 0.],
             [0., 1.0, 0., 0., 0., 0., 0., 0., 0., 0.],

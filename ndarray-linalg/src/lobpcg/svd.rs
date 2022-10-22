@@ -30,7 +30,7 @@ impl<A: Float + PartialOrd + DivAssign<A> + 'static + MagnitudeCorrection> Trunc
         let mut a = self.eigvals.iter().enumerate().collect::<Vec<_>>();
 
         // sort by magnitude
-        a.sort_by(|(_, x), (_, y)| x.partial_cmp(&y).unwrap().reverse());
+        a.sort_by(|(_, x), (_, y)| x.partial_cmp(y).unwrap().reverse());
 
         // calculate cut-off magnitude (borrowed from scipy)
         let cutoff = A::epsilon() * // float precision
@@ -214,7 +214,8 @@ mod tests {
 
     #[test]
     fn test_truncated_svd_random() {
-        let a: Array2<f64> = generate::random((50, 10));
+        let mut rng = rand_pcg::Mcg128Xsl64::new(0xcafef00dd15ea5e5);
+        let a: Array2<f64> = generate::random_using((50, 10), &mut rng);
 
         let res = TruncatedSvd::new(a.clone(), Order::Largest)
             .precision(1e-5)

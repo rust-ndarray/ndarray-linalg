@@ -1,7 +1,8 @@
 ndarray-linalg
 ===============
-[![crate](https://img.shields.io/badge/crates.io-ndarray--linalg-blue)](https://crates.io/crates/ndarray-linalg)
+[![crate](https://img.shields.io/crates/v/ndarray-linalg.svg)](https://crates.io/crates/ndarray-linalg) 
 [![docs.rs](https://docs.rs/ndarray-linalg/badge.svg)](https://docs.rs/ndarray-linalg)
+[![master](https://img.shields.io/badge/docs-master-blue)](https://rust-ndarray.github.io/ndarray-linalg/ndarray_linalg/index.html)
 
 Linear algebra package for Rust with [ndarray](https://github.com/rust-ndarray/ndarray) based on external LAPACK implementations.
 
@@ -84,25 +85,6 @@ Only x86_64 system is supported currently.
 |OpenBLAS |✔️      |-        |-      |
 |Netlib   |✔️      |-        |-      |
 |Intel MKL|✔️      |✔️        |✔️      |
-
-Generate document with KaTeX
-------------------------------
-
-You need to set `RUSTDOCFLAGS` explicitly:
-
-```shell
-RUSTDOCFLAGS="--html-in-header katex-header.html" cargo doc --no-deps
-```
-
-This **only** works for `--no-deps` build because `katex-header.html` does not exists for dependent crates.
-If you wish to set `RUSTDOCFLAGS` automatically in this crate, you can put [.cargo/config](https://doc.rust-lang.org/cargo/reference/config.html):
-
-```toml
-[build]
-rustdocflags = ["--html-in-header", "katex-header.html"]
-```
-
-But, be sure that this works only for `--no-deps`. `cargo doc` will fail with this `.cargo/config`.
 
 License
 --------

@@ -272,7 +272,7 @@ where
         Sb: DataMut<Elem = A>,
     {
         A::solve_tridiagonal(
-            &self,
+            self,
             rhs.layout()?,
             Transpose::No,
             rhs.as_slice_mut().unwrap(),
@@ -287,7 +287,7 @@ where
         Sb: DataMut<Elem = A>,
     {
         A::solve_tridiagonal(
-            &self,
+            self,
             rhs.layout()?,
             Transpose::Transpose,
             rhs.as_slice_mut().unwrap(),
@@ -302,7 +302,7 @@ where
         Sb: DataMut<Elem = A>,
     {
         A::solve_tridiagonal(
-            &self,
+            self,
             rhs.layout()?,
             Transpose::Hermite,
             rhs.as_slice_mut().unwrap(),
@@ -622,7 +622,7 @@ where
 {
     fn det_tridiagonal(&self) -> Result<A> {
         let n = self.d.len();
-        Ok(rec_rel(&self)[n])
+        Ok(rec_rel(self)[n])
     }
 }
 
@@ -671,7 +671,7 @@ where
     A: Scalar + Lapack,
 {
     fn rcond_tridiagonal(&self) -> Result<A::Real> {
-        Ok(A::rcond_tridiagonal(&self)?)
+        Ok(A::rcond_tridiagonal(self)?)
     }
 }
 

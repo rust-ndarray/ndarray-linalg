@@ -1,16 +1,16 @@
 use ndarray::*;
 use ndarray_linalg::*;
 
-fn test<T: Scalar + Lapack>(a: &Array2<T>, flag: UVTFlag) {
+fn test<T: Scalar + Lapack>(a: &Array2<T>, flag: JobSvd) {
     let (n, m) = a.dim();
     let k = n.min(m);
     let answer = a.clone();
     println!("a = \n{:?}", a);
     let (u, s, vt): (_, Array1<_>, _) = a.svddc(flag).unwrap();
     let mut sm: Array2<T> = match flag {
-        UVTFlag::Full => Array::zeros((n, m)),
-        UVTFlag::Some => Array::zeros((k, k)),
-        UVTFlag::None => {
+        JobSvd::All => Array::zeros((n, m)),
+        JobSvd::Some => Array::zeros((k, k)),
+        JobSvd::None => {
             assert!(u.is_none());
             assert!(vt.is_none());
             return;
@@ -32,38 +32,44 @@ macro_rules! test_svd_impl {
         paste::item! {
             #[test]
             fn [<svddc_ $scalar _full_ $n x $m>]() {
-                let a = random(($n, $m));
-                test::<$scalar>(&a, UVTFlag::Full);
+                let mut rng = rand_pcg::Mcg128Xsl64::new(0xcafef00dd15ea5e5);
+                let a = random_using(($n, $m), &mut rng);
+                test::<$scalar>(&a, JobSvd::All);
             }
 
             #[test]
             fn [<svddc_ $scalar _some_ $n x $m>]() {
-                let a = random(($n, $m));
-                test::<$scalar>(&a, UVTFlag::Some);
+                let mut rng = rand_pcg::Mcg128Xsl64::new(0xcafef00dd15ea5e5);
+                let a = random_using(($n, $m), &mut rng);
+                test::<$scalar>(&a, JobSvd::Some);
             }
 
             #[test]
             fn [<svddc_ $scalar _none_ $n x $m>]() {
-                let a = random(($n, $m));
-                test::<$scalar>(&a, UVTFlag::None);
+                let mut rng = rand_pcg::Mcg128Xsl64::new(0xcafef00dd15ea5e5);
+                let a = random_using(($n, $m), &mut rng);
+                test::<$scalar>(&a, JobSvd::None);
             }
 
             #[test]
             fn [<svddc_ $scalar _full_ $n x $m _t>]() {
-                let a = random(($n, $m).f());
-                test::<$scalar>(&a, UVTFlag::Full);
+                let mut rng = rand_pcg::Mcg128Xsl64::new(0xcafef00dd15ea5e5);
+                let a = random_using(($n, $m).f(), &mut rng);
+                test::<$scalar>(&a, JobSvd::All);
             }
 
             #[test]
             fn [<svddc_ $scalar _some_ $n x $m _t>]() {
-                let a = random(($n, $m).f());
-                test::<$scalar>(&a, UVTFlag::Some);
+                let mut rng = rand_pcg::Mcg128Xsl64::new(0xcafef00dd15ea5e5);
+                let a = random_using(($n, $m).f(), &mut rng);
+                test::<$scalar>(&a, JobSvd::Some);
             }
 
             #[test]
             fn [<svddc_ $scalar _none_ $n x $m _t>]() {
-                let a = random(($n, $m).f());
-                test::<$scalar>(&a, UVTFlag::None);
+                let mut rng = rand_pcg::Mcg128Xsl64::new(0xcafef00dd15ea5e5);
+                let a = random_using(($n, $m).f(), &mut rng);
+                test::<$scalar>(&a, JobSvd::None);
             }
         }
     };

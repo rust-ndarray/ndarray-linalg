@@ -37,7 +37,7 @@
 //! This `S` for a matrix `A` is called "leading dimension of the array A" in LAPACK document, and denoted by `lda`.
 //!
 
-use cauchy::Scalar;
+use super::*;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum MatrixLayout {
@@ -153,7 +153,7 @@ impl MatrixLayout {
 /// ------
 /// - If size of `a` and `layout` size mismatch
 ///
-pub fn square_transpose<T: Scalar>(layout: MatrixLayout, a: &mut [T]) {
+pub fn square_transpose<T: Copy>(layout: MatrixLayout, a: &mut [T]) {
     let (m, n) = layout.size();
     let n = n as usize;
     let m = m as usize;
@@ -162,23 +162,78 @@ pub fn square_transpose<T: Scalar>(layout: MatrixLayout, a: &mut [T]) {
         for j in (i + 1)..n {
             let a_ij = a[i * n + j];
             let a_ji = a[j * m + i];
-            a[i * n + j] = a_ji.conj();
-            a[j * m + i] = a_ij.conj();
+            a[i * n + j] = a_ji;
+            a[j * m + i] = a_ij;
         }
     }
 }
 
 /// Out-place transpose for general matrix
 ///
-/// Inplace transpose of non-square matrices is hard.
-/// See also: https://en.wikipedia.org/wiki/In-place_matrix_transposition
+/// Examples
+/// ---------
+///
+/// ```rust
+/// # use lax::layout::*;
+/// let layout = MatrixLayout::C { row: 2, lda: 3 };
+/// let a = vec![1., 2., 3., 4., 5., 6.];
+/// let (l, b) = transpose(layout, &a);
+/// assert_eq!(l, MatrixLayout::F { col: 3, lda: 2 });
+/// assert_eq!(b, &[1., 4., 2., 5., 3., 6.]);
+/// ```
+///
+/// ```rust
+/// # use lax::layout::*;
+/// let layout = MatrixLayout::F { col: 2, lda: 3 };
+/// let a = vec![1., 2., 3., 4., 5., 6.];
+/// let (l, b) = transpose(layout, &a);
+/// assert_eq!(l, MatrixLayout::C { row: 3, lda: 2 });
+/// assert_eq!(b, &[1., 4., 2., 5., 3., 6.]);
+/// ```
+///
+/// Panics
+/// ------
+/// - If input array size and `layout` size mismatch
+///
+pub fn transpose<T: Copy>(layout: MatrixLayout, input: &[T]) -> (MatrixLayout, Vec<T>) {
+    let (m, n) = layout.size();
+    let transposed = layout.resized(n, m).t();
+    let m = m as usize;
+    let n = n as usize;
+    assert_eq!(input.len(), m * n);
+
+    let mut out: Vec<MaybeUninit<T>> = vec_uninit(m * n);
+
+    match layout {
+        MatrixLayout::C { .. } => {
+            for i in 0..m {
+                for j in 0..n {
+                    out[j * m + i].write(input[i * n + j]);
+                }
+            }
+        }
+        MatrixLayout::F { .. } => {
+            for i in 0..m {
+                for j in 0..n {
+                    out[i * n + j].write(input[j * m + i]);
+                }
+            }
+        }
+    }
+    (transposed, unsafe { out.assume_init() })
+}
+
+/// Out-place transpose for general matrix
+///
+/// Examples
+/// ---------
 ///
 /// ```rust
 /// # use lax::layout::*;
 /// let layout = MatrixLayout::C { row: 2, lda: 3 };
 /// let a = vec![1., 2., 3., 4., 5., 6.];
 /// let mut b = vec![0.0; a.len()];
-/// let l = transpose(layout, &a, &mut b);
+/// let l = transpose_over(layout, &a, &mut b);
 /// assert_eq!(l, MatrixLayout::F { col: 3, lda: 2 });
 /// assert_eq!(b, &[1., 4., 2., 5., 3., 6.]);
 /// ```
@@ -188,16 +243,16 @@ pub fn square_transpose<T: Scalar>(layout: MatrixLayout, a: &mut [T]) {
 /// let layout = MatrixLayout::F { col: 2, lda: 3 };
 /// let a = vec![1., 2., 3., 4., 5., 6.];
 /// let mut b = vec![0.0; a.len()];
-/// let l = transpose(layout, &a, &mut b);
+/// let l = transpose_over(layout, &a, &mut b);
 /// assert_eq!(l, MatrixLayout::C { row: 3, lda: 2 });
 /// assert_eq!(b, &[1., 4., 2., 5., 3., 6.]);
 /// ```
 ///
 /// Panics
 /// ------
-/// - If size of `a` and `layout` size mismatch
+/// - If input array sizes and `layout` size mismatch
 ///
-pub fn transpose<T: Scalar>(layout: MatrixLayout, from: &[T], to: &mut [T]) -> MatrixLayout {
+pub fn transpose_over<T: Copy>(layout: MatrixLayout, from: &[T], to: &mut [T]) -> MatrixLayout {
     let (m, n) = layout.size();
     let transposed = layout.resized(n, m).t();
     let m = m as usize;

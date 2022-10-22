@@ -1,0 +1,26 @@
+changelog:
+  categories:
+    - title: "Breaking changes"
+      labels:
+        - "breaking change"
+    - title: "New features"
+      labels:
+        - "new feature"
+    - title: "Bug fixes"
+      labels:
+        - bug
+    - title: Changes
+      labels:
+        - change
+    - title: Deprecated
+      labels:
+        - deprecate
+    - title: Removed
+      labels:
+        - remove
+    - title: "Update Dependencies"
+      labels:
+        - dependencies
+    - title: Others
+      labels:
+        - "*"

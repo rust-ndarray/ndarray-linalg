@@ -67,9 +67,8 @@ where
     }
 
     fn as_allocated(&self) -> Result<&[A]> {
-        Ok(self
-            .as_slice_memory_order()
-            .ok_or_else(|| LinalgError::MemoryNotCont)?)
+        self.as_slice_memory_order()
+            .ok_or(LinalgError::MemoryNotCont)
     }
 }
 
@@ -78,8 +77,7 @@ where
     S: DataMut<Elem = A>,
 {
     fn as_allocated_mut(&mut self) -> Result<&mut [A]> {
-        Ok(self
-            .as_slice_memory_order_mut()
-            .ok_or_else(|| LinalgError::MemoryNotCont)?)
+        self.as_slice_memory_order_mut()
+            .ok_or(LinalgError::MemoryNotCont)
     }
 }

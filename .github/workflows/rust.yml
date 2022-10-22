@@ -8,7 +8,7 @@ on:
 
 jobs:
   check-format:
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-22.04
     steps:
     - uses: actions/checkout@v1
     - uses: actions-rs/cargo@v1
@@ -16,8 +16,26 @@ jobs:
         command: fmt
         args: -- --check
 
+  check:
+    runs-on: ubuntu-22.04
+    steps:
+    - uses: actions/checkout@v1
+    - uses: actions-rs/cargo@v1
+      with:
+        command: check
+        args: --all-targets
+
+  check-doc:
+    runs-on: ubuntu-22.04
+    steps:
+    - uses: actions/checkout@v1
+    - uses: actions-rs/cargo@v1
+      with:
+        command: doc
+        args: --no-deps
+
   clippy:
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-22.04
     steps:
     - uses: actions/checkout@v1
     - uses: actions-rs/cargo@v1
@@ -25,14 +43,14 @@ jobs:
         command: clippy
 
   coverage:
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-22.04
     container:
-      image: ghcr.io/rust-math/intel-mkl-src/mkl-rust:1.49.0
+      image: ghcr.io/rust-math/rust-mkl:1.63.0-2020.1
       options: --security-opt seccomp=unconfined
     steps:
       - uses: actions/checkout@v2
       - name: Generate code coverage
         run: |
-          cargo tarpaulin --verbose --features=intel-mkl --out Xml --manifest-path=ndarray-linalg/Cargo.toml
+          cargo tarpaulin --features=intel-mkl-system --out Xml
       - name: Upload to codecov.io
         uses: codecov/codecov-action@v1

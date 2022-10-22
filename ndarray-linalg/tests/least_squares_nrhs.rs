@@ -32,29 +32,33 @@ macro_rules! impl_exact {
         paste::item! {
             #[test]
             fn [<least_squares_ $scalar _exact_ac_bc>]() {
-                let a: Array2<$scalar> = random((3, 3));
-                let b: Array2<$scalar> = random((3, 2));
+                let mut rng = rand_pcg::Mcg128Xsl64::new(0xcafef00dd15ea5e5);
+                let a: Array2<$scalar> = random_using((3, 3), &mut rng);
+                let b: Array2<$scalar> = random_using((3, 2), &mut rng);
                 test_exact(a, b)
             }
 
             #[test]
             fn [<least_squares_ $scalar _exact_ac_bf>]() {
-                let a: Array2<$scalar> = random((3, 3));
-                let b: Array2<$scalar> = random((3, 2).f());
+                let mut rng = rand_pcg::Mcg128Xsl64::new(0xcafef00dd15ea5e5);
+                let a: Array2<$scalar> = random_using((3, 3), &mut rng);
+                let b: Array2<$scalar> = random_using((3, 2).f(), &mut rng);
                 test_exact(a, b)
             }
 
             #[test]
             fn [<least_squares_ $scalar _exact_af_bc>]() {
-                let a: Array2<$scalar> = random((3, 3).f());
-                let b: Array2<$scalar> = random((3, 2));
+                let mut rng = rand_pcg::Mcg128Xsl64::new(0xcafef00dd15ea5e5);
+                let a: Array2<$scalar> = random_using((3, 3).f(), &mut rng);
+                let b: Array2<$scalar> = random_using((3, 2), &mut rng);
                 test_exact(a, b)
             }
 
             #[test]
             fn [<least_squares_ $scalar _exact_af_bf>]() {
-                let a: Array2<$scalar> = random((3, 3).f());
-                let b: Array2<$scalar> = random((3, 2).f());
+                let mut rng = rand_pcg::Mcg128Xsl64::new(0xcafef00dd15ea5e5);
+                let a: Array2<$scalar> = random_using((3, 3).f(), &mut rng);
+                let b: Array2<$scalar> = random_using((3, 2).f(), &mut rng);
                 test_exact(a, b)
             }
         }
@@ -100,29 +104,33 @@ macro_rules! impl_overdetermined {
         paste::item! {
             #[test]
             fn [<least_squares_ $scalar _overdetermined_ac_bc>]() {
-                let a: Array2<$scalar> = random((4, 3));
-                let b: Array2<$scalar> = random((4, 2));
+                let mut rng = rand_pcg::Mcg128Xsl64::new(0xcafef00dd15ea5e5);
+                let a: Array2<$scalar> = random_using((4, 3), &mut rng);
+                let b: Array2<$scalar> = random_using((4, 2), &mut rng);
                 test_overdetermined(a, b)
             }
 
             #[test]
             fn [<least_squares_ $scalar _overdetermined_af_bc>]() {
-                let a: Array2<$scalar> = random((4, 3).f());
-                let b: Array2<$scalar> = random((4, 2));
+                let mut rng = rand_pcg::Mcg128Xsl64::new(0xcafef00dd15ea5e5);
+                let a: Array2<$scalar> = random_using((4, 3).f(), &mut rng);
+                let b: Array2<$scalar> = random_using((4, 2), &mut rng);
                 test_overdetermined(a, b)
             }
 
             #[test]
             fn [<least_squares_ $scalar _overdetermined_ac_bf>]() {
-                let a: Array2<$scalar> = random((4, 3));
-                let b: Array2<$scalar> = random((4, 2).f());
+                let mut rng = rand_pcg::Mcg128Xsl64::new(0xcafef00dd15ea5e5);
+                let a: Array2<$scalar> = random_using((4, 3), &mut rng);
+                let b: Array2<$scalar> = random_using((4, 2).f(), &mut rng);
                 test_overdetermined(a, b)
             }
 
             #[test]
             fn [<least_squares_ $scalar _overdetermined_af_bf>]() {
-                let a: Array2<$scalar> = random((4, 3).f());
-                let b: Array2<$scalar> = random((4, 2).f());
+                let mut rng = rand_pcg::Mcg128Xsl64::new(0xcafef00dd15ea5e5);
+                let a: Array2<$scalar> = random_using((4, 3).f(), &mut rng);
+                let b: Array2<$scalar> = random_using((4, 2).f(), &mut rng);
                 test_overdetermined(a, b)
             }
         }
@@ -155,29 +163,33 @@ macro_rules! impl_underdetermined {
         paste::item! {
             #[test]
             fn [<least_squares_ $scalar _underdetermined_ac_bc>]() {
-                let a: Array2<$scalar> = random((3, 4));
-                let b: Array2<$scalar> = random((3, 2));
+                let mut rng = rand_pcg::Mcg128Xsl64::new(0xcafef00dd15ea5e5);
+                let a: Array2<$scalar> = random_using((3, 4), &mut rng);
+                let b: Array2<$scalar> = random_using((3, 2), &mut rng);
                 test_underdetermined(a, b)
             }
 
             #[test]
             fn [<least_squares_ $scalar _underdetermined_af_bc>]() {
-                let a: Array2<$scalar> = random((3, 4).f());
-                let b: Array2<$scalar> = random((3, 2));
+                let mut rng = rand_pcg::Mcg128Xsl64::new(0xcafef00dd15ea5e5);
+                let a: Array2<$scalar> = random_using((3, 4).f(), &mut rng);
+                let b: Array2<$scalar> = random_using((3, 2), &mut rng);
                 test_underdetermined(a, b)
             }
 
             #[test]
             fn [<least_squares_ $scalar _underdetermined_ac_bf>]() {
-                let a: Array2<$scalar> = random((3, 4));
-                let b: Array2<$scalar> = random((3, 2).f());
+                let mut rng = rand_pcg::Mcg128Xsl64::new(0xcafef00dd15ea5e5);
+                let a: Array2<$scalar> = random_using((3, 4), &mut rng);
+                let b: Array2<$scalar> = random_using((3, 2).f(), &mut rng);
                 test_underdetermined(a, b)
             }
 
             #[test]
             fn [<least_squares_ $scalar _underdetermined_af_bf>]() {
-                let a: Array2<$scalar> = random((3, 4).f());
-                let b: Array2<$scalar> = random((3, 2).f());
+                let mut rng = rand_pcg::Mcg128Xsl64::new(0xcafef00dd15ea5e5);
+                let a: Array2<$scalar> = random_using((3, 4).f(), &mut rng);
+                let b: Array2<$scalar> = random_using((3, 2).f(), &mut rng);
                 test_underdetermined(a, b)
             }
         }

@@ -97,18 +97,21 @@ where
 {
     // FIXME
     // https://github.com/bluss/rust-ndarray/issues/325
-    let strides: Vec<isize> = a.strides().to_vec();
-    let new = if a.is_standard_layout() {
-        ArrayBase::from_shape_vec(a.dim(), a.into_raw_vec()).unwrap()
-    } else {
-        ArrayBase::from_shape_vec(a.dim().f(), a.into_raw_vec()).unwrap()
-    };
+    //
+    // copy strides
+    let mut strides = D::zeros(a.ndim());
+    for (index, &s) in a.strides().iter().enumerate() {
+        strides[index] = s as usize;
+    }
+    let a_dim = a.raw_dim();
+    let a_len = a.len();
+    let data = a.into_raw_vec();
     assert_eq!(
-        new.strides(),
-        strides.as_slice(),
-        "Custom stride is not supported"
+        a_len,
+        data.len(),
+        "generalize: non-contig arrays are not supported"
     );
-    new
+    ArrayBase::from_shape_vec(a_dim.strides(strides), data).unwrap()
 }
 
 /// Fills in the remainder of a Hermitian matrix that's represented by only one

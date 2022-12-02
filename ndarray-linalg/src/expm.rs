@@ -180,7 +180,8 @@ fn pade_approximation_9<S: Scalar<Real = f64> + Lapack>(
     inverted.dot(&(odds + evens))
 }
 
-// TODO: scale powers by appropriate value of s.
+// Note: all input matrices should be scaled in the main expm
+// function. 
 fn pade_approximation_13<S: Scalar<Real = f64> + Lapack>(
     a_1: &Array2<S>,
     a_2: &Array2<S>,
@@ -212,9 +213,9 @@ fn pade_approximation_13<S: Scalar<Real = f64> + Lapack>(
     odds_2 = odds_2.dot(a_6);
 
     let mut odds = (&odds_1 + &odds_2).dot(a_1);
-    // odds.mapv_inplace(|x| -x);
-    let inverted: Array2<S> = (&odds - &evens).inv().unwrap();
-    // odds.mapv_inplace(|x| -x);
+    odds.mapv_inplace(|x| -x);
+    let inverted: Array2<S> = (&odds + &evens).inv().unwrap();
+    odds.mapv_inplace(|x| -x);
     inverted.dot(&(odds + evens))
 }
 
@@ -288,16 +289,17 @@ pub fn expm<S: Scalar<Real = f64> + Lapack>(a_matrix: &Array2<S>) -> (Array2<S>,
 
     let mut s = f64::max(0., (eta_5 / THETA_13).log2().ceil()) as i32;
     let mut a_scaled = a_matrix.clone();
-    let mut scaler = S::from_real(cauchy::Scalar::pow(2., -s as f64));
+    let mut scaler = S::from_real(2.).powi(-s);
     a_scaled.mapv_inplace(|x| x * scaler);
     s += ell(&a_scaled, 13);
 
     a_scaled.assign(a_matrix);
-    scaler = S::from_real(cauchy::Scalar::pow(2., -s as f64));
+    scaler = S::from_real(2.).powi(-s);
     a_scaled.mapv_inplace(|x| x * scaler);
-    a_2.mapv_inplace(|x| x * scaler.pow(S::from(2).unwrap()));
-    a_4.mapv_inplace(|x| x * scaler.pow(S::from(4).unwrap()));
-    a_6.mapv_inplace(|x| x * scaler.pow(S::from(6).unwrap()));
+
+    a_2.mapv_inplace(|x| x * scaler.powi(2));
+    a_4.mapv_inplace(|x| x * scaler.powi(4));
+    a_6.mapv_inplace(|x| x * scaler.powi(6));
 
     let mut output = pade_approximation_13(&a_scaled, &a_2, &a_4, &a_6);
     for _ in 0..s {

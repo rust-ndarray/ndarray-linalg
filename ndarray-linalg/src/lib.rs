@@ -83,6 +83,7 @@ pub use crate::convert::*;
 pub use crate::diagonal::*;
 pub use crate::eig::*;
 pub use crate::eigh::*;
+pub use crate::expm::expm;
 pub use crate::generate::*;
 pub use crate::inner::*;
 pub use crate::layout::*;

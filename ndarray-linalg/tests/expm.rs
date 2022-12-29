@@ -20,7 +20,7 @@ fn test_random_sparse_matrix() {
     let pauli_y = array![[zero, c64::new(0., -1.)], [c64::new(0., 1.), zero]];
     let pauli_z = array![[c64::new(1., 0.), zero], [zero, c64::new(-1., 0.)]];
     for n in 0..num_qubits {
-        let pauli_matrix = match rng.gen_range(0..=3) {
+        let pauli_matrix = match rng.gen_range::<i32,_>(0..=3) {
             0 => {
                 Array2::<c64>::eye(2)
             },
@@ -49,7 +49,7 @@ fn test_random_sparse_matrix() {
 
     let theta = 1. * std::f64::consts::PI * rng.gen::<f64>();
     let scaled_matrix = matrix.clone() * c64::new(0., theta);
-    let (expm_computed, deg) = expm(&scaled_matrix);
+    let expm_computed = expm(&scaled_matrix).unwrap();
     let expm_expected = Array2::<c64>::eye(dim) * theta.cos() + c64::new(0., theta.sin()) * matrix;
     let comp_diff = &expm_expected - &expm_computed;
 
@@ -67,8 +67,8 @@ fn test_random_sparse_matrix() {
 #[test]
 fn test_low_dimension_random_dense_matrix() {
     let mut rng = rand::thread_rng();
-    let dimensions = 50;
-    let samps = 1000;
+    let dimensions = 100;
+    let samps = 500;
     let scale = 1.;
     let mut results = Vec::new();
     let mut avg_entry_error = Vec::new();
@@ -95,7 +95,7 @@ fn test_low_dimension_random_dense_matrix() {
         let eigen_expm = vecs.dot(&Array2::from_diag(&eigs)).dot(&adjoint_vecs);
 
         // Compute the expm routine, compute error metrics for this sample
-        let (expm_comp, deg) = expm(&new_matrix);
+        let expm_comp = expm(&new_matrix).unwrap();
         // println!("deg: {:}", deg);
         let diff = &expm_comp - &eigen_expm;
         avg_entry_error.push({
@@ -113,6 +113,6 @@ fn test_low_dimension_random_dense_matrix() {
         0.5,
     );
 
-    println!("This may fail at higher dimensions.");
+    // This may fail at higher dimensions
     assert!(avg_entry_diff / f64::EPSILON <= 1000.)
 }

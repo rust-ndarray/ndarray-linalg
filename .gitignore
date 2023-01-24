@@ -17,3 +17,4 @@ Cargo.lock
 
 # coverage
 *.xml
+ndarray-linalg/build.rs

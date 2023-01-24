@@ -3,16 +3,15 @@ use cauchy::Scalar;
 use lax::Lapack;
 use ndarray::prelude::*;
 extern crate statrs;
-use statrs::{
-    function::factorial::{binomial, factorial},
-};
-use crate::error::{Result, LinalgError};
+use crate::error::{LinalgError, Result};
+use statrs::function::factorial::{binomial, factorial};
 
 // These constants are hard-coded from Al-Mohy & Higham
-const THETA_3: f64 = 1.495585217958292e-2;
-const THETA_5: f64 = 2.539398330063230e-1;
-const THETA_7: f64 = 9.504178996162932e-1;
-const THETA_9: f64 = 2.097847961257068e0;
+const THETA_3: f64 = 1.495_585_217_958_292e-2;
+const THETA_5: f64 = 2.539_398_330_063_23e-1;
+
+const THETA_7: f64 = 9.504_178_996_162_932e-1;
+const THETA_9: f64 = 2.097_847_961_257_068e0;
 const THETA_13: f64 = 4.25; // Alg 5.1
 
 // The Pade Coefficients for the numerator of the diagonal approximation to Exp[x]. Computed via Mathematica/WolframAlpha.
@@ -159,7 +158,7 @@ fn pade_approximation_9<S: Scalar<Real = f64> + Lapack>(
 }
 
 // Note: all input matrices should be scaled in the main expm
-// function. 
+// function.
 fn pade_approximation_13<S: Scalar<Real = f64> + Lapack>(
     a_1: &Array2<S>,
     a_2: &Array2<S>,
@@ -212,10 +211,13 @@ where
         .unwrap()
 }
 
-/// helper function used in Al-Mohy & Higham. Name is unchanged for future reference.
+/// helper function used in Al-Mohy & Higham. Name is unchanged for both literature reference.
 fn ell<S: Scalar<Real = f64>>(a_matrix: &Array2<S>, m: u64) -> Result<i32> {
     if a_matrix.is_square() == false {
-        return Err(LinalgError::NotSquare { rows: a_matrix.nrows() as i32, cols: a_matrix.ncols() as i32 });
+        return Err(LinalgError::NotSquare {
+            rows: a_matrix.nrows() as i32,
+            cols: a_matrix.ncols() as i32,
+        });
     }
     let p = 2 * m + 1;
     let a_one_norm = a_matrix.map(|x| x.abs()).opnorm_one()?;
@@ -234,15 +236,17 @@ fn pade_error_coefficient(m: u64) -> f64 {
 }
 
 /// ## Matrix Exponentiation
-/// Computes matrix exponential based on the scaling-and-squaring algorithm by Al-Mohy and Higham.
-/// Currently restricted to matrices with entries that are either f64 or Complex64. 64 bit precision is required 
-/// due to error calculations in Al-Mohy and Higham. Utilizes Lapack
-/// calls so entries must satisfy LAPACK trait bounds. 
-/// 
+/// Computes matrix exponential based on the scaling-and-squaring algorithm by Al-Mohy and Higham [[1]].
+/// Currently restricted to matrices with entries that are either f64 or Complex64. 64 bit precision is required
+/// due to error calculations in [[1]] Utilizes Lapack calls so entries must satisfy LAPACK trait bounds.
+///
 /// ### Caveats
 /// Currently confirmed accurate to f64 precision up to 1024x1024 sparse matrices. Dense matrices
-/// have been observed with a worse average entry error, up to 100x100 matrices should be close 
+/// have been observed with a worse average entry error, up to 100x100 matrices should be close
 /// enough to f64 precision for vast majority of numeric purposes.
+///
+/// ### References
+/// [[1]] A New Scaling and Squaring Algorithm for the Matrix Exponential. Al-Mohy, Awad H. and Higham, Nicholas J. 2009. Siam J. Matrix Anal. Appl. Vol. 31, No. 3, pp. 970-989.
 pub fn expm<S: Scalar<Real = f64> + Lapack>(a_matrix: &Array2<S>) -> Result<Array2<S>> {
     let mut a_2 = a_matrix.dot(a_matrix);
     let mut a_4 = a_2.dot(&a_2);
@@ -251,21 +255,21 @@ pub fn expm<S: Scalar<Real = f64> + Lapack>(a_matrix: &Array2<S>) -> Result<Arra
     let d6 = a_6.opnorm_one()?.powf(1. / 6.);
     // Note d6 should be an estimate and d4 an estimate
     let eta_1 = f64::max(d4, d6);
-    if eta_1 < THETA_3 && ell(&a_matrix, 3)? == 0 {
+    if eta_1 < THETA_3 && ell(a_matrix, 3)? == 0 {
         return pade_approximation_3(a_matrix, &a_2);
     }
     // d4 should be exact here, d6 an estimate
     let eta_2 = f64::max(d4, d6);
-    if eta_2 < THETA_5 && ell(&a_matrix, 5)? == 0 {
+    if eta_2 < THETA_5 && ell(a_matrix, 5)? == 0 {
         return pade_approximation_5(a_matrix, &a_2, &a_4);
     }
     let a_8 = a_4.dot(&a_4);
     let d8 = a_8.opnorm_one().unwrap().powf(1. / 8.);
     let eta_3 = f64::max(d6, d8);
-    if eta_3 < THETA_7 && ell(&a_matrix, 7)? == 0 {
+    if eta_3 < THETA_7 && ell(a_matrix, 7)? == 0 {
         return pade_approximation_7(a_matrix, &a_2, &a_4, &a_6);
     }
-    if eta_3 < THETA_9 && ell(&a_matrix, 9)? == 0 {
+    if eta_3 < THETA_9 && ell(a_matrix, 9)? == 0 {
         return pade_approximation_9(a_matrix, &a_2, &a_4, &a_6, &a_8);
     }
     let a_10 = a_2.dot(&a_8);

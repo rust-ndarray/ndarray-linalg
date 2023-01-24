@@ -1,5 +1,5 @@
-use ndarray::*;
 use ndarray::linalg::kron;
+use ndarray::*;
 use ndarray_linalg::expm::expm;
 use ndarray_linalg::{Eig, OperationNorm};
 use num_complex::{Complex64 as c64, ComplexFloat};
@@ -20,19 +20,11 @@ fn test_random_sparse_matrix() {
     let pauli_y = array![[zero, c64::new(0., -1.)], [c64::new(0., 1.), zero]];
     let pauli_z = array![[c64::new(1., 0.), zero], [zero, c64::new(-1., 0.)]];
     for n in 0..num_qubits {
-        let pauli_matrix = match rng.gen_range::<i32,_>(0..=3) {
-            0 => {
-                Array2::<c64>::eye(2)
-            },
-            1 => {
-                pauli_x.clone()
-            },
-            2 => {
-                pauli_y.clone()
-            },
-            3 => {
-                pauli_z.clone()
-            },
+        let pauli_matrix = match rng.gen_range::<i32, _>(0..=3) {
+            0 => Array2::<c64>::eye(2),
+            1 => pauli_x.clone(),
+            2 => pauli_y.clone(),
+            3 => pauli_z.clone(),
             _ => unreachable!(),
         };
         if n == 0 {
@@ -96,7 +88,6 @@ fn test_low_dimension_random_dense_matrix() {
 
         // Compute the expm routine, compute error metrics for this sample
         let expm_comp = expm(&new_matrix).unwrap();
-        // println!("deg: {:}", deg);
         let diff = &expm_comp - &eigen_expm;
         avg_entry_error.push({
             let tot = diff.map(|x| x.abs()).into_iter().sum::<f64>();
@@ -108,7 +99,7 @@ fn test_low_dimension_random_dense_matrix() {
     // compute averages
     let avg: f64 = results.iter().sum::<f64>() / results.len() as f64;
     let avg_entry_diff = avg_entry_error.iter().sum::<f64>() / avg_entry_error.len() as f64;
-    let std: f64 = f64::powf(
+    let _std: f64 = f64::powf(
         results.iter().map(|x| f64::powi(x - avg, 2)).sum::<f64>() / (results.len() - 1) as f64,
         0.5,
     );

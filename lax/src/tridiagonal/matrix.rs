@@ -5,11 +5,11 @@ use std::ops::{Index, IndexMut};
 /// Represents a tridiagonal matrix as 3 one-dimensional vectors.
 ///
 /// ```text
-/// [d0, u1,  0,   ...,       0,
-///  l1, d1, u2,            ...,
-///   0, l2, d2,
-///  ...           ...,  u{n-1},
-///   0,  ...,  l{n-1},  d{n-1},]
+/// [ d[0], du[0],   0  ,   ...,       0,
+///  dl[0],  d[1], du[1],            ...,
+///    0  , dl[1],  d[2],
+///   ...                   ..., du[n-2],
+///    0  ,   ..., ..., dl[n-2],  d[n-1]]
 /// ```
 #[derive(Clone, PartialEq, Eq)]
 pub struct Tridiagonal<A: Scalar> {

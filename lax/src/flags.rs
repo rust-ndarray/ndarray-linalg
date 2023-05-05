@@ -17,8 +17,8 @@ impl UPLO {
     }
 
     /// To use Fortran LAPACK API in lapack-sys crate
-    pub fn as_ptr(&self) -> *const i8 {
-        self as *const UPLO as *const i8
+    pub fn as_ptr(&self) -> *const libc::c_char {
+        self as *const UPLO as *const libc::c_char
     }
 }
 
@@ -32,8 +32,8 @@ pub enum Transpose {
 
 impl Transpose {
     /// To use Fortran LAPACK API in lapack-sys crate
-    pub fn as_ptr(&self) -> *const i8 {
-        self as *const Transpose as *const i8
+    pub fn as_ptr(&self) -> *const libc::c_char {
+        self as *const Transpose as *const libc::c_char
     }
 }
 
@@ -55,8 +55,8 @@ impl NormType {
     }
 
     /// To use Fortran LAPACK API in lapack-sys crate
-    pub fn as_ptr(&self) -> *const i8 {
-        self as *const NormType as *const i8
+    pub fn as_ptr(&self) -> *const libc::c_char {
+        self as *const NormType as *const libc::c_char
     }
 }
 
@@ -87,8 +87,8 @@ impl JobEv {
     }
 
     /// To use Fortran LAPACK API in lapack-sys crate
-    pub fn as_ptr(&self) -> *const i8 {
-        self as *const JobEv as *const i8
+    pub fn as_ptr(&self) -> *const libc::c_char {
+        self as *const JobEv as *const libc::c_char
     }
 }
 
@@ -117,8 +117,8 @@ impl JobSvd {
         }
     }
 
-    pub fn as_ptr(&self) -> *const i8 {
-        self as *const JobSvd as *const i8
+    pub fn as_ptr(&self) -> *const libc::c_char {
+        self as *const JobSvd as *const libc::c_char
     }
 }
 
@@ -133,7 +133,7 @@ pub enum Diag {
 }
 
 impl Diag {
-    pub fn as_ptr(&self) -> *const i8 {
-        self as *const Diag as *const i8
+    pub fn as_ptr(&self) -> *const libc::c_char {
+        self as *const Diag as *const libc::c_char
     }
 }

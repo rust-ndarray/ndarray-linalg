@@ -34,6 +34,7 @@ cauchy = "0.4.0"
 num-traits = "0.2.14"
 lapack-sys = "0.14.0"
 katexit = "0.1.2"
+libc = "0.2.142"
 
 [dependencies.intel-mkl-src]
 version = "0.8.1"

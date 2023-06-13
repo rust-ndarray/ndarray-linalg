@@ -25,8 +25,16 @@ netlib-system = ["netlib-src/system"]
 openblas-static = ["openblas-src/static"]
 openblas-system = ["openblas-src/system"]
 
-intel-mkl-static = ["intel-mkl-src/mkl-static-lp64-seq"]
-intel-mkl-system = ["intel-mkl-src/mkl-dynamic-lp64-seq"]
+intel-mkl-static-lp64-seq = ["intel-mkl-src/mkl-static-lp64-seq"]
+intel-mkl-dynamic-lp64-seq = ["intel-mkl-src/mkl-dynamic-lp64-seq"]
+intel-mkl-dynamic-lp64-iomp = ["intel-mkl-src/mkl-dynamic-lp64-iomp"]
+intel-mkl-dynamic-lp64-seq = ["intel-mkl-src/mkl-dynamic-lp64-seq"]
+intel-mkl-static-ilp64-iomp = ["intel-mkl-src/mkl-static-ilp64-iomp"]
+intel-mkl-dynamic-ilp64-seq = ["intel-mkl-src/mkl-dynamic-ilp64-seq"]
+intel-mkl-static-lp64-iomp = ["intel-mkl-src/mkl-static-lp64-iomp"]
+intel-mkl-dynamic-ilp64-iomp = ["intel-mkl-src/mkl-dynamic-ilp64-iomp"]
+intel-mkl-static-ilp64-seq = ["intel-mkl-src/mkl-static-ilp64-seq"]
+intel-mkl-static-lp64-seq = ["intel-mkl-src/mkl-static-lp64-seq"]
 
 [dependencies]
 thiserror = "1.0.24"

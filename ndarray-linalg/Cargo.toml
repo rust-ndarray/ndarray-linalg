@@ -28,6 +28,18 @@ openblas-system = ["lax/openblas-system"]
 intel-mkl-static = ["lax/intel-mkl-static"]
 intel-mkl-system = ["lax/intel-mkl-system"]
 
+intel-mkl-static-lp64-seq = ["lax/mkl-static-lp64-seq"]
+intel-mkl-dynamic-lp64-seq = ["lax/mkl-dynamic-lp64-seq"]
+intel-mkl-dynamic-lp64-iomp = ["lax/mkl-dynamic-lp64-iomp"]
+intel-mkl-dynamic-lp64-seq = ["lax/mkl-dynamic-lp64-seq"]
+intel-mkl-static-ilp64-iomp = ["lax/mkl-static-ilp64-iomp"]
+intel-mkl-dynamic-ilp64-seq = ["lax/mkl-dynamic-ilp64-seq"]
+intel-mkl-static-lp64-iomp = ["lax/mkl-static-lp64-iomp"]
+intel-mkl-dynamic-ilp64-iomp = ["lax/mkl-dynamic-ilp64-iomp"]
+intel-mkl-static-ilp64-seq = ["lax/mkl-static-ilp64-seq"]
+intel-mkl-static-lp64-seq = ["lax/mkl-static-lp64-seq"]
+
+
 [dependencies]
 cauchy = "0.4.0"
 katexit = "0.1.2"

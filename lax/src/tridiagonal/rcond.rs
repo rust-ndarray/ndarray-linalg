@@ -37,13 +37,13 @@ macro_rules! impl_rcond_tridiagonal_work_c {
                 let mut info = 0;
                 unsafe {
                     $gtcon(
-                        NormType::One.as_ptr(),
+                        NormType::One.as_ptr().cast(),
                         &n,
                         AsPtr::as_ptr(&lu.a.dl),
                         AsPtr::as_ptr(&lu.a.d),
                         AsPtr::as_ptr(&lu.a.du),
                         AsPtr::as_ptr(&lu.du2),
-                        ipiv.as_ptr(),
+                        ipiv.as_ptr().cast(),
                         &lu.a_opnorm_one,
                         &mut rcond,
                         AsPtr::as_mut_ptr(&mut self.work),
@@ -84,7 +84,7 @@ macro_rules! impl_rcond_tridiagonal_work_r {
                 let mut info = 0;
                 unsafe {
                     $gtcon(
-                        NormType::One.as_ptr(),
+                        NormType::One.as_ptr().cast(),
                         &n,
                         AsPtr::as_ptr(&lu.a.dl),
                         AsPtr::as_ptr(&lu.a.d),

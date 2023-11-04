@@ -52,7 +52,7 @@ macro_rules! impl_rcond_work_c {
                 };
                 unsafe {
                     $con(
-                        norm_type.as_ptr(),
+                        norm_type.as_ptr().cast(),
                         &n,
                         AsPtr::as_ptr(a),
                         &self.layout.lda(),
@@ -103,7 +103,7 @@ macro_rules! impl_rcond_work_r {
                 };
                 unsafe {
                     $con(
-                        norm_type.as_ptr(),
+                        norm_type.as_ptr().cast(),
                         &n,
                         AsPtr::as_ptr(a),
                         &self.layout.lda(),

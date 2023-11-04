@@ -41,7 +41,7 @@ macro_rules! impl_bk_work {
                 let mut work_size = [Self::Elem::zero()];
                 unsafe {
                     $trf(
-                        UPLO::Upper.as_ptr(),
+                        UPLO::Upper.as_ptr().cast(),
                         &n,
                         std::ptr::null_mut(),
                         &layout.lda(),
@@ -66,7 +66,7 @@ macro_rules! impl_bk_work {
                 let mut info = 0;
                 unsafe {
                     $trf(
-                        uplo.as_ptr(),
+                        uplo.as_ptr().cast(),
                         &n,
                         AsPtr::as_mut_ptr(a),
                         &self.layout.lda(),
@@ -128,11 +128,11 @@ macro_rules! impl_invh_work {
                 let mut info = 0;
                 unsafe {
                     $tri(
-                        uplo.as_ptr(),
+                        uplo.as_ptr().cast(),
                         &n,
                         AsPtr::as_mut_ptr(a),
                         &self.layout.lda(),
-                        ipiv.as_ptr(),
+                        ipiv.as_ptr().cast(),
                         AsPtr::as_mut_ptr(&mut self.work),
                         &mut info,
                     )
@@ -175,12 +175,12 @@ macro_rules! impl_solveh_ {
                 let mut info = 0;
                 unsafe {
                     $trs(
-                        uplo.as_ptr(),
+                        uplo.as_ptr().cast(),
                         &n,
                         &1,
                         AsPtr::as_ptr(a),
                         &l.lda(),
-                        ipiv.as_ptr(),
+                        ipiv.as_ptr().cast(),
                         AsPtr::as_mut_ptr(b),
                         &n,
                         &mut info,

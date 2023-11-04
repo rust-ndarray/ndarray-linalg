@@ -40,7 +40,7 @@ macro_rules! impl_operator_norm {
                 };
                 unsafe {
                     $lange(
-                        t.as_ptr(),
+                        t.as_ptr().cast(),
                         &m,
                         &n,
                         AsPtr::as_ptr(a),

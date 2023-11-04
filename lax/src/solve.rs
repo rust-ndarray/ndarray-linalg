@@ -119,12 +119,12 @@ macro_rules! impl_solve {
                 }
                 unsafe {
                     $getrs(
-                        t.as_ptr(),
+                        t.as_ptr().cast(),
                         &n,
                         &nrhs,
                         AsPtr::as_ptr(a),
                         &l.lda(),
-                        ipiv.as_ptr(),
+                        ipiv.as_ptr().cast(),
                         AsPtr::as_mut_ptr(b),
                         &ldb,
                         &mut info,
@@ -205,7 +205,7 @@ macro_rules! impl_inv_work {
                         &self.layout.len(),
                         AsPtr::as_mut_ptr(a),
                         &self.layout.lda(),
-                        ipiv.as_ptr(),
+                        ipiv.as_ptr().cast(),
                         AsPtr::as_mut_ptr(&mut self.work),
                         &lwork,
                         &mut info,

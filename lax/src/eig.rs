@@ -156,8 +156,8 @@ macro_rules! impl_eig_work_c {
                 let mut work_size = [<$c>::zero()];
                 unsafe {
                     $ev(
-                        jobvl.as_ptr(),
-                        jobvr.as_ptr(),
+                        jobvl.as_ptr().cast(),
+                        jobvr.as_ptr().cast(),
                         &n,
                         std::ptr::null_mut(),
                         &n,
@@ -200,8 +200,8 @@ macro_rules! impl_eig_work_c {
                 let mut info = 0;
                 unsafe {
                     $ev(
-                        self.jobvl.as_ptr(),
-                        self.jobvr.as_ptr(),
+                        self.jobvl.as_ptr().cast(),
+                        self.jobvr.as_ptr().cast(),
                         &self.n,
                         AsPtr::as_mut_ptr(a),
                         &self.n,
@@ -279,8 +279,8 @@ macro_rules! impl_eig_work_r {
                 let mut work_size: [$f; 1] = [0.0];
                 unsafe {
                     $ev(
-                        jobvl.as_ptr(),
-                        jobvr.as_ptr(),
+                        jobvl.as_ptr().cast(),
+                        jobvr.as_ptr().cast(),
                         &n,
                         std::ptr::null_mut(),
                         &n,
@@ -325,8 +325,8 @@ macro_rules! impl_eig_work_r {
                 let mut info = 0;
                 unsafe {
                     $ev(
-                        self.jobvl.as_ptr(),
-                        self.jobvr.as_ptr(),
+                        self.jobvl.as_ptr().cast(),
+                        self.jobvr.as_ptr().cast(),
                         &self.n,
                         AsPtr::as_mut_ptr(a),
                         &self.n,

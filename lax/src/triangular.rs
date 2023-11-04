@@ -63,9 +63,9 @@ macro_rules! impl_triangular {
                 let mut info = 0;
                 unsafe {
                     $trtrs(
-                        uplo.as_ptr(),
-                        Transpose::No.as_ptr(),
-                        diag.as_ptr(),
+                        uplo.as_ptr().cast(),
+                        Transpose::No.as_ptr().cast(),
+                        diag.as_ptr().cast(),
                         &m,
                         &nrhs,
                         AsPtr::as_ptr(a_t.as_ref().map(|v| v.as_slice()).unwrap_or(a)),

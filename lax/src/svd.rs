@@ -82,8 +82,8 @@ macro_rules! impl_svd_work_c {
                 let mut work_size = [Self::Elem::zero()];
                 unsafe {
                     $svd(
-                        ju.as_ptr(),
-                        jvt.as_ptr(),
+                        ju.as_ptr().cast(),
+                        jvt.as_ptr().cast(),
                         &m,
                         &n,
                         std::ptr::null_mut(),
@@ -122,8 +122,8 @@ macro_rules! impl_svd_work_c {
                 let mut info = 0;
                 unsafe {
                     $svd(
-                        self.ju.as_ptr(),
-                        self.jvt.as_ptr(),
+                        self.ju.as_ptr().cast(),
+                        self.jvt.as_ptr().cast(),
                         &m,
                         &n,
                         AsPtr::as_mut_ptr(a),
@@ -217,8 +217,8 @@ macro_rules! impl_svd_work_r {
                 let mut work_size = [Self::Elem::zero()];
                 unsafe {
                     $svd(
-                        ju.as_ptr(),
-                        jvt.as_ptr(),
+                        ju.as_ptr().cast(),
+                        jvt.as_ptr().cast(),
                         &m,
                         &n,
                         std::ptr::null_mut(),
@@ -256,8 +256,8 @@ macro_rules! impl_svd_work_r {
                 let mut info = 0;
                 unsafe {
                     $svd(
-                        self.ju.as_ptr(),
-                        self.jvt.as_ptr(),
+                        self.ju.as_ptr().cast(),
+                        self.jvt.as_ptr().cast(),
                         &m,
                         &n,
                         AsPtr::as_mut_ptr(a),

@@ -70,7 +70,7 @@ macro_rules! impl_svd_dc_work_c {
                 let mut work_size = [Self::Elem::zero()];
                 unsafe {
                     $sdd(
-                        jobz.as_ptr(),
+                        jobz.as_ptr().cast(),
                         &m,
                         &n,
                         std::ptr::null_mut(),
@@ -115,7 +115,7 @@ macro_rules! impl_svd_dc_work_c {
                 let mut info = 0;
                 unsafe {
                     $sdd(
-                        self.jobz.as_ptr(),
+                        self.jobz.as_ptr().cast(),
                         &m,
                         &n,
                         AsPtr::as_mut_ptr(a),
@@ -205,7 +205,7 @@ macro_rules! impl_svd_dc_work_r {
                 let mut work_size = [Self::Elem::zero()];
                 unsafe {
                     $sdd(
-                        jobz.as_ptr(),
+                        jobz.as_ptr().cast(),
                         &m,
                         &n,
                         std::ptr::null_mut(),
@@ -249,7 +249,7 @@ macro_rules! impl_svd_dc_work_r {
                 let mut info = 0;
                 unsafe {
                     $sdd(
-                        self.jobz.as_ptr(),
+                        self.jobz.as_ptr().cast(),
                         &m,
                         &n,
                         AsPtr::as_mut_ptr(a),

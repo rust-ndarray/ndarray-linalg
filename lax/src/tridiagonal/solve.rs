@@ -35,14 +35,14 @@ macro_rules! impl_solve_tridiagonal {
                 let mut info = 0;
                 unsafe {
                     $trs(
-                        t.as_ptr(),
+                        t.as_ptr().cast(),
                         &n,
                         &nrhs,
                         AsPtr::as_ptr(&lu.a.dl),
                         AsPtr::as_ptr(&lu.a.d),
                         AsPtr::as_ptr(&lu.a.du),
                         AsPtr::as_ptr(&lu.du2),
-                        ipiv.as_ptr(),
+                        ipiv.as_ptr().cast(),
                         AsPtr::as_mut_ptr(b_t.as_mut().map(|v| v.as_mut_slice()).unwrap_or(b)),
                         &ldb,
                         &mut info,

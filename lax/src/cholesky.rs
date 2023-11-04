@@ -27,7 +27,7 @@ macro_rules! impl_cholesky_ {
                 }
                 let mut info = 0;
                 unsafe {
-                    $trf(uplo.as_ptr(), &n, AsPtr::as_mut_ptr(a), &n, &mut info);
+                    $trf(uplo.as_ptr().cast(), &n, AsPtr::as_mut_ptr(a), &n, &mut info);
                 }
                 info.as_lapack_result()?;
                 if matches!(l, MatrixLayout::C { .. }) {
@@ -66,7 +66,7 @@ macro_rules! impl_inv_cholesky {
                 }
                 let mut info = 0;
                 unsafe {
-                    $tri(uplo.as_ptr(), &n, AsPtr::as_mut_ptr(a), &l.lda(), &mut info);
+                    $tri(uplo.as_ptr().cast(), &n, AsPtr::as_mut_ptr(a), &l.lda(), &mut info);
                 }
                 info.as_lapack_result()?;
                 if matches!(l, MatrixLayout::C { .. }) {
@@ -115,7 +115,7 @@ macro_rules! impl_solve_cholesky {
                 }
                 unsafe {
                     $trs(
-                        uplo.as_ptr(),
+                        uplo.as_ptr().cast(),
                         &n,
                         &nrhs,
                         AsPtr::as_ptr(a),

@@ -58,8 +58,8 @@ macro_rules! impl_eigh_generalized_work_c {
                 unsafe {
                     $gv(
                         &1, // ITYPE A*x = (lambda)*B*x
-                        jobz.as_ptr(),
-                        UPLO::Upper.as_ptr(), // dummy, working memory is not affected by UPLO
+                        jobz.as_ptr().cast(),
+                        UPLO::Upper.as_ptr().cast(), // dummy, working memory is not affected by UPLO
                         &n,
                         std::ptr::null_mut(),
                         &n,
@@ -95,8 +95,8 @@ macro_rules! impl_eigh_generalized_work_c {
                 unsafe {
                     $gv(
                         &1, // ITYPE A*x = (lambda)*B*x
-                        self.jobz.as_ptr(),
-                        uplo.as_ptr(),
+                        self.jobz.as_ptr().cast(),
+                        uplo.as_ptr().cast(),
                         &self.n,
                         AsPtr::as_mut_ptr(a),
                         &self.n,
@@ -147,8 +147,8 @@ macro_rules! impl_eigh_generalized_work_r {
                 unsafe {
                     $gv(
                         &1, // ITYPE A*x = (lambda)*B*x
-                        jobz.as_ptr(),
-                        UPLO::Upper.as_ptr(), // dummy, working memory is not affected by UPLO
+                        jobz.as_ptr().cast(),
+                        UPLO::Upper.as_ptr().cast(), // dummy, working memory is not affected by UPLO
                         &n,
                         std::ptr::null_mut(),
                         &n,
@@ -183,8 +183,8 @@ macro_rules! impl_eigh_generalized_work_r {
                 unsafe {
                     $gv(
                         &1, // ITYPE A*x = (lambda)*B*x
-                        self.jobz.as_ptr(),
-                        uplo.as_ptr(),
+                        self.jobz.as_ptr().cast(),
+                        uplo.as_ptr().cast(),
                         &self.n,
                         AsPtr::as_mut_ptr(a),
                         &self.n,

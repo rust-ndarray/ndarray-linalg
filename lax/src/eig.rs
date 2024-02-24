@@ -8,7 +8,7 @@
 //! | sgeev | dgeev | cgeev | zgeev |
 //!
 
-use crate::{error::*, layout::MatrixLayout, *};
+use crate::{error::*, *};
 use cauchy::*;
 use num_traits::{ToPrimitive, Zero};
 

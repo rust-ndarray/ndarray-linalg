@@ -1,7 +1,6 @@
 //! Operator norm
 
-use super::{AsPtr, NormType};
-use crate::{layout::MatrixLayout, *};
+use crate::*;
 use cauchy::*;
 
 pub struct OperatorNormWork<T: Scalar> {

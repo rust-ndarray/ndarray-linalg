@@ -1,4 +1,5 @@
 //! Charactor flags, e.g. `'T'`, used in LAPACK API
+use std::ffi::c_char;
 
 /// Upper/Lower specification for seveal usages
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
@@ -17,8 +18,8 @@ impl UPLO {
     }
 
     /// To use Fortran LAPACK API in lapack-sys crate
-    pub fn as_ptr(&self) -> *const libc::c_char {
-        self as *const UPLO as *const libc::c_char
+    pub fn as_ptr(&self) -> *const c_char {
+        self as *const UPLO as *const c_char
     }
 }
 
@@ -32,8 +33,8 @@ pub enum Transpose {
 
 impl Transpose {
     /// To use Fortran LAPACK API in lapack-sys crate
-    pub fn as_ptr(&self) -> *const libc::c_char {
-        self as *const Transpose as *const libc::c_char
+    pub fn as_ptr(&self) -> *const c_char {
+        self as *const Transpose as *const c_char
     }
 }
 
@@ -55,8 +56,8 @@ impl NormType {
     }
 
     /// To use Fortran LAPACK API in lapack-sys crate
-    pub fn as_ptr(&self) -> *const libc::c_char {
-        self as *const NormType as *const libc::c_char
+    pub fn as_ptr(&self) -> *const c_char {
+        self as *const NormType as *const c_char
     }
 }
 
@@ -87,8 +88,8 @@ impl JobEv {
     }
 
     /// To use Fortran LAPACK API in lapack-sys crate
-    pub fn as_ptr(&self) -> *const libc::c_char {
-        self as *const JobEv as *const libc::c_char
+    pub fn as_ptr(&self) -> *const c_char {
+        self as *const JobEv as *const c_char
     }
 }
 
@@ -117,8 +118,8 @@ impl JobSvd {
         }
     }
 
-    pub fn as_ptr(&self) -> *const libc::c_char {
-        self as *const JobSvd as *const libc::c_char
+    pub fn as_ptr(&self) -> *const c_char {
+        self as *const JobSvd as *const c_char
     }
 }
 
@@ -133,7 +134,7 @@ pub enum Diag {
 }
 
 impl Diag {
-    pub fn as_ptr(&self) -> *const libc::c_char {
-        self as *const Diag as *const libc::c_char
+    pub fn as_ptr(&self) -> *const c_char {
+        self as *const Diag as *const c_char
     }
 }

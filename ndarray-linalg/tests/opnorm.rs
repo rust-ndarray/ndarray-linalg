@@ -14,11 +14,11 @@ fn gen(i: usize, j: usize, rev: bool) -> Array2<f64> {
     let n = (i * j + 1) as f64;
     if rev {
         Array::range(1., n, 1.)
-            .into_shape((j, i))
+            .into_shape_with_order((j, i))
             .unwrap()
             .reversed_axes()
     } else {
-        Array::range(1., n, 1.).into_shape((i, j)).unwrap()
+        Array::range(1., n, 1.).into_shape_with_order((i, j)).unwrap()
     }
 }
 

@@ -12,7 +12,7 @@ where
     S: Data,
 {
     let n = a.len();
-    a.into_shape((n, 1)).unwrap()
+    a.into_shape_with_order((n, 1)).unwrap()
 }
 
 pub fn into_row<S>(a: ArrayBase<S, Ix1>) -> ArrayBase<S, Ix2>
@@ -20,7 +20,7 @@ where
     S: Data,
 {
     let n = a.len();
-    a.into_shape((1, n)).unwrap()
+    a.into_shape_with_order((1, n)).unwrap()
 }
 
 pub fn flatten<S>(a: ArrayBase<S, Ix2>) -> ArrayBase<S, Ix1>
@@ -28,7 +28,7 @@ where
     S: Data,
 {
     let n = a.len();
-    a.into_shape(n).unwrap()
+    a.into_shape_with_order(n).unwrap()
 }
 
 pub fn into_matrix<A, S>(l: MatrixLayout, a: Vec<A>) -> Result<ArrayBase<S, Ix2>>
@@ -99,9 +99,9 @@ where
     // https://github.com/bluss/rust-ndarray/issues/325
     let strides: Vec<isize> = a.strides().to_vec();
     let new = if a.is_standard_layout() {
-        ArrayBase::from_shape_vec(a.dim(), a.into_raw_vec()).unwrap()
+        ArrayBase::from_shape_vec(a.dim(), a.into_raw_vec_and_offset().0).unwrap()
     } else {
-        ArrayBase::from_shape_vec(a.dim().f(), a.into_raw_vec()).unwrap()
+        ArrayBase::from_shape_vec(a.dim().f(), a.into_raw_vec_and_offset().0).unwrap()
     };
     assert_eq!(
         new.strides(),

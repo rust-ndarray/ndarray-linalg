@@ -37,7 +37,7 @@ rand = "0.8.3"
 thiserror = "1.0.24"
 
 [dependencies.ndarray]
-version = "0.15.2"
+version = "0.16.1"
 features = ["blas", "approx", "std"]
 default-features = false
 
@@ -50,7 +50,7 @@ default-features = false
 paste = "1.0.5"
 criterion = "0.3.4"
 # Keep the same version as ndarray's dependency!
-approx = { version = "0.4.0", features = ["num-complex"] }
+approx = { version = "0.5.0", features = ["num-complex"] }
 rand_pcg = "0.3.1"
 
 [[bench]]

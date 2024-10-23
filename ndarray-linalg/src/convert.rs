@@ -97,14 +97,14 @@ where
 {
     // FIXME
     // https://github.com/bluss/rust-ndarray/issues/325
-    let strides: Vec<isize> = a.strides().to_vec();
+    let strides: Vec<isize> = ArrayBase::strides(&a).to_vec();
     let new = if a.is_standard_layout() {
-        ArrayBase::from_shape_vec(a.dim(), a.into_raw_vec()).unwrap()
+        ArrayBase::from_shape_vec(a.dim(), a.into_raw_vec_and_offset().0).unwrap()
     } else {
-        ArrayBase::from_shape_vec(a.dim().f(), a.into_raw_vec()).unwrap()
+        ArrayBase::from_shape_vec(a.dim().f(), a.into_raw_vec_and_offset().0).unwrap()
     };
     assert_eq!(
-        new.strides(),
+        ArrayBase::strides(&new),
         strides.as_slice(),
         "Custom stride is not supported"
     );

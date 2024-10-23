@@ -37,7 +37,7 @@ rand = "0.8.3"
 thiserror = "1.0.24"
 
 [dependencies.ndarray]
-version = "0.15.2"
+version = "0.16.1"
 features = ["blas", "approx", "std"]
 default-features = false
 

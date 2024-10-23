@@ -106,7 +106,7 @@ fn inv_into_random_complex() {
 #[should_panic]
 fn inv_error() {
     // do not have inverse
-    let a = Array::<f64, _>::zeros(9).into_shape((3, 3)).unwrap();
+    let a = Array::<f64, _>::zeros((3, 3));
     let a_inv = a.inv().unwrap();
     println!("{:?}", a_inv);
 }

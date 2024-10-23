@@ -256,7 +256,6 @@ fn rcond_hilbert() {
             let a = Array2::<$elem>::from_shape_fn(($rows, $rows), |(i, j)| {
                 1. / (i as $elem + j as $elem - 1.)
             });
-            println!("{:?}", a);
             assert_aclose!(a.rcond().unwrap(), 0., $atol);
             assert_aclose!(a.rcond_into().unwrap(), 0., $atol);
         };

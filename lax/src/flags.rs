@@ -1,5 +1,5 @@
 //! Charactor flags, e.g. `'T'`, used in LAPACK API
-use std::ffi::c_char;
+use core::ffi::c_char;
 
 /// Upper/Lower specification for seveal usages
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]

@@ -18,7 +18,9 @@ fn gen(i: usize, j: usize, rev: bool) -> Array2<f64> {
             .unwrap()
             .reversed_axes()
     } else {
-        Array::range(1., n, 1.).into_shape_with_order((i, j)).unwrap()
+        Array::range(1., n, 1.)
+            .into_shape_with_order((i, j))
+            .unwrap()
     }
 }
 

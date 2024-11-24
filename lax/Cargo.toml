@@ -47,7 +47,7 @@ features = ["cblas"]
 default-features = false
 
 [dependencies.openblas-src]
-version = "0.10.4"
+version = "0.10.9"
 optional = true
 default-features = false
 features = ["cblas"]

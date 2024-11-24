@@ -3,7 +3,7 @@
 //! [BK]: https://doi.org/10.2307/2005787
 //!
 
-use crate::{error::*, layout::MatrixLayout, *};
+use crate::{error::*, *};
 use cauchy::*;
 use num_traits::{ToPrimitive, Zero};
 

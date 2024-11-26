@@ -13,7 +13,7 @@ macro_rules! impl_as_ptr {
         impl AsPtr for $target {
             type Elem = $elem;
             fn as_ptr(vec: &[Self]) -> *const Self::Elem {
-                vec.as_ptr() as *const _
+                vec.as_ptr().cast() as *const _
             }
             fn as_mut_ptr(vec: &mut [Self]) -> *mut Self::Elem {
                 vec.as_mut_ptr() as *mut _
@@ -55,7 +55,7 @@ impl<T> VecAssumeInit for Vec<MaybeUninit<T>> {
     }
 
     unsafe fn slice_assume_init_ref(&self) -> &[T] {
-        std::slice::from_raw_parts(self.as_ptr() as *const T, self.len())
+        std::slice::from_raw_parts(self.as_ptr().cast() as *const T, self.len())
     }
 
     unsafe fn slice_assume_init_mut(&mut self) -> &mut [T] {

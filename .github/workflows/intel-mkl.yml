@@ -35,7 +35,7 @@ jobs:
   linux-container:
     runs-on: ubuntu-22.04
     container:
-      image: ghcr.io/rust-math/rust-mkl:1.63.0-2020.1
+      image: ghcr.io/rust-math/rust-mkl:1.67.0-2020.1
     steps:
       - uses: actions/checkout@v1
       - uses: actions-rs/cargo@v1

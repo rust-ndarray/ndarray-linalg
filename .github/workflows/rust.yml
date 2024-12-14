@@ -45,7 +45,7 @@ jobs:
   coverage:
     runs-on: ubuntu-22.04
     container:
-      image: ghcr.io/rust-math/rust-mkl:1.63.0-2020.1
+      image: ghcr.io/rust-math/rust-mkl:1.65.0-2020.1
       options: --security-opt seccomp=unconfined
     steps:
       - uses: actions/checkout@v2

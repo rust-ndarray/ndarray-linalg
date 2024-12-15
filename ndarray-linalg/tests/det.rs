@@ -94,7 +94,7 @@ fn det_zero_nonsquare() {
             assert!(a.sln_det_into().is_err());
         };
     }
-    for &shape in &[(1, 2).into_shape(), (1, 2).f()] {
+    for &shape in &[(1, 2).into_shape_with_order(), (1, 2).f()] {
         det_zero_nonsquare!(f64, shape);
         det_zero_nonsquare!(f32, shape);
         det_zero_nonsquare!(c64, shape);
@@ -186,7 +186,7 @@ fn det_nonsquare() {
         };
     }
     for &dims in &[(1, 0), (1, 2), (2, 1), (2, 3)] {
-        for &shape in &[dims.into_shape(), dims.f()] {
+        for &shape in &[dims.into_shape_with_order(), dims.f()] {
             det_nonsquare!(f64, shape);
             det_nonsquare!(f32, shape);
             det_nonsquare!(c64, shape);

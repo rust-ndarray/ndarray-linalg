@@ -5,44 +5,16 @@ on:
     branches:
       - master
   pull_request: {}
+  workflow_dispatch:
 
 jobs:
-  windows:
-    runs-on: windows-2019
+  intel-mkl:
+    strategy:
+      fail-fast: false
+      matrix:
+        system: [ubuntu-22.04, windows-latest]
+    runs-on: ${{ matrix.system }}
     steps:
-      - uses: actions/checkout@v1
-      - uses: actions-rs/cargo@v1
-        with:
-          command: test
-          args: >
-            --manifest-path=ndarray-linalg/Cargo.toml
-            --no-default-features
-            --features=intel-mkl-static
-
-  linux:
-    runs-on: ubuntu-22.04
-    steps:
-      - uses: actions/checkout@v1
-      - uses: actions-rs/cargo@v1
-        name: cargo test
-        with:
-          command: test
-          args: >
-            --manifest-path=ndarray-linalg/Cargo.toml
-            --no-default-features
-            --features=intel-mkl-static
-
-  linux-container:
-    runs-on: ubuntu-22.04
-    container:
-      image: ghcr.io/rust-math/rust-mkl:1.63.0-2020.1
-    steps:
-      - uses: actions/checkout@v1
-      - uses: actions-rs/cargo@v1
-        name: cargo test
-        with:
-          command: test
-          args: >
-            --manifest-path=ndarray-linalg/Cargo.toml
-            --no-default-features
-            --features=intel-mkl-system
+      - uses: actions/checkout@v4
+      - name: cargo test
+        run: cargo test --manifest-path=ndarray-linalg/Cargo.toml --no-default-features --features=intel-mkl-static  --verbose

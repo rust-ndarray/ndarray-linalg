@@ -38,20 +38,20 @@ rand = "0.8.3"
 thiserror = "1.0.24"
 
 [dependencies.ndarray]
-version = "0.15.2"
+version = "0.16.0"
 features = ["approx", "std"]
 default-features = false
 
 [dependencies.lax]
-version = "0.16.0-rc.0"
+version = "0.16.0"
 path = "../lax"
 default-features = false
 
 [dev-dependencies]
 paste = "1.0.5"
-criterion = "0.3.4"
+criterion = "0.5.1"
 # Keep the same version as ndarray's dependency!
-approx = { version = "0.4.0", features = ["num-complex"] }
+approx = { version = "0.5", features = ["num-complex"] }
 rand_pcg = "0.3.1"
 
 [[bench]]

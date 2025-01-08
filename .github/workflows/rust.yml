@@ -5,52 +5,50 @@ on:
     branches:
       - master
   pull_request: {}
+  workflow_dispatch:
 
 jobs:
   check-format:
     runs-on: ubuntu-22.04
     steps:
-    - uses: actions/checkout@v1
-    - uses: actions-rs/cargo@v1
-      with:
-        command: fmt
-        args: -- --check
+    - uses: actions/checkout@v4
+    - name: fmt
+      run: cargo fmt -- --check
 
   check:
     runs-on: ubuntu-22.04
     steps:
-    - uses: actions/checkout@v1
-    - uses: actions-rs/cargo@v1
-      with:
-        command: check
-        args: --all-targets
+    - uses: actions/checkout@v4
+    - name: cargo check
+      run: cargo check --all-targets
 
   check-doc:
     runs-on: ubuntu-22.04
     steps:
-    - uses: actions/checkout@v1
-    - uses: actions-rs/cargo@v1
-      with:
-        command: doc
-        args: --no-deps
+    - uses: actions/checkout@v4
+    - name: cargo doc
+      run: cargo doc --no-deps
 
   clippy:
     runs-on: ubuntu-22.04
     steps:
-    - uses: actions/checkout@v1
-    - uses: actions-rs/cargo@v1
-      with:
-        command: clippy
+    - uses: actions/checkout@v4
+    - name: cargo clippy
+      run: cargo clippy
 
   coverage:
     runs-on: ubuntu-22.04
     container:
-      image: ghcr.io/rust-math/rust-mkl:1.63.0-2020.1
+      image: xd009642/tarpaulin:develop-nightly
       options: --security-opt seccomp=unconfined
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@nightly
+      - name: Install Cross
+        uses: taiki-e/install-action@v2
+        with:
+          tool: cargo-tarpaulin
       - name: Generate code coverage
-        run: |
-          cargo tarpaulin --features=intel-mkl-system --out Xml
+        run: cargo +nightly tarpaulin --features=intel-mkl-static --out xml
       - name: Upload to codecov.io
-        uses: codecov/codecov-action@v1
+        uses: codecov/codecov-action@v5

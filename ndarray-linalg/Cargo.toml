@@ -13,7 +13,8 @@ readme        = "../README.md"
 categories    = ["algorithms", "science"]
 
 [features]
-default   = []
+default   = ["blas"]
+blas      = ["ndarray/blas"]
 
 netlib    = ["lax/netlib"]
 openblas  = ["lax/openblas"]
@@ -38,7 +39,7 @@ thiserror = "1.0.24"
 
 [dependencies.ndarray]
 version = "0.16.0"
-features = ["blas", "approx", "std"]
+features = ["approx", "std"]
 default-features = false
 
 [dependencies.lax]

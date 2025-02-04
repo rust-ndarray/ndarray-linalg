@@ -1,5 +1,4 @@
 use ndarray::*;
-use ndarray_linalg::layout::MatrixLayout;
 use ndarray_linalg::*;
 
 #[test]

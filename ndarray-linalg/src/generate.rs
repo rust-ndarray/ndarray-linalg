@@ -1,7 +1,7 @@
 //! Generator functions for matrices
 
 use ndarray::*;
-use rand::prelude::*;
+use rand::Rng;
 
 use super::convert::*;
 use super::error::*;
@@ -24,7 +24,7 @@ where
 
 /// Generate random array with given shape
 ///
-/// - This function uses [rand::thread_rng].
+/// - This function uses [rand::rng].
 ///   See [random_using] for using another RNG
 pub fn random<A, S, Sh, D>(sh: Sh) -> ArrayBase<S, D>
 where
@@ -33,7 +33,7 @@ where
     D: Dimension,
     Sh: ShapeBuilder<Dim = D>,
 {
-    let mut rng = thread_rng();
+    let mut rng = rand::rng();
     random_using(sh, &mut rng)
 }
 
@@ -55,13 +55,13 @@ where
 ///
 /// - Be sure that this it **NOT** a uniform distribution.
 ///   Use it only for test purpose.
-/// - This function uses [rand::thread_rng].
+/// - This function uses [rand::rng].
 ///   See [random_unitary_using] for using another RNG.
 pub fn random_unitary<A>(n: usize) -> Array2<A>
 where
     A: Scalar + Lapack,
 {
-    let mut rng = thread_rng();
+    let mut rng = rand::rng();
     random_unitary_using(n, &mut rng)
 }
 
@@ -84,13 +84,13 @@ where
 ///
 /// - Be sure that this it **NOT** a uniform distribution.
 ///   Use it only for test purpose.
-/// - This function uses [rand::thread_rng].
+/// - This function uses [rand::rng].
 ///   See [random_regular_using] for using another RNG.
 pub fn random_regular<A>(n: usize) -> Array2<A>
 where
     A: Scalar + Lapack,
 {
-    let mut rng = rand::thread_rng();
+    let mut rng = rand::rng();
     random_regular_using(n, &mut rng)
 }
 
@@ -114,14 +114,14 @@ where
 
 /// Random Hermite matrix
 ///
-/// - This function uses [rand::thread_rng].
+/// - This function uses [rand::rng].
 ///   See [random_hermite_using] for using another RNG.
 pub fn random_hermite<A, S>(n: usize) -> ArrayBase<S, Ix2>
 where
     A: Scalar,
     S: DataOwned<Elem = A> + DataMut,
 {
-    let mut rng = rand::thread_rng();
+    let mut rng = rand::rng();
     random_hermite_using(n, &mut rng)
 }
 
@@ -147,7 +147,7 @@ where
 /// Random Hermite Positive-definite matrix
 ///
 /// - Eigenvalue of matrix must be larger than 1 (thus non-singular)
-/// - This function uses [rand::thread_rng].
+/// - This function uses [rand::rng].
 ///   See [random_hpd_using] for using another RNG.
 ///
 pub fn random_hpd<A, S>(n: usize) -> ArrayBase<S, Ix2>
@@ -155,7 +155,7 @@ where
     A: Scalar,
     S: DataOwned<Elem = A> + DataMut,
 {
-    let mut rng = rand::thread_rng();
+    let mut rng = rand::rng();
     random_hpd_using(n, &mut rng)
 }
 

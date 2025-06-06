@@ -86,7 +86,7 @@ where
 }
 
 macro_rules! generate_assert {
-    ($assert:ident, $close:path) => {
+    ($assert:ident, $close:tt) => {
         #[macro_export]
         macro_rules! $assert {
             ($test: expr,$truth: expr,$tol: expr) => {

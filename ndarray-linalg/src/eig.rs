@@ -119,6 +119,12 @@ pub trait EigGeneralized {
     ///     }
     /// }
     /// ```
+    ///
+    /// # Arguments
+    ///
+    /// * `thresh_opt` - An optional threshold for determining approximate zero |β| values when
+    /// computing the eigenvalues as α/β. If `None`, no approximate comparisons to zero will be
+    /// made.
     fn eig_generalized(
         &self,
         thresh_opt: Option<Self::Real>,

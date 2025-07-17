@@ -404,7 +404,7 @@ impl_eig_work_r!(f64, lapack_sys::dgeev_);
 ///
 /// In the C-layout case, we need the conjugates of the left
 /// eigenvectors, so the signs should be reversed.
-fn reconstruct_eigenvectors<T: Scalar>(
+pub(crate) fn reconstruct_eigenvectors<T: Scalar>(
     take_hermite_conjugate: bool,
     eig_im: &[T],
     vr: &[T],

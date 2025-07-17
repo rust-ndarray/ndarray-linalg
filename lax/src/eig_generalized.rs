@@ -10,6 +10,7 @@
 use std::mem::MaybeUninit;
 
 use crate::{error::*, layout::MatrixLayout, *};
+use crate::eig::reconstruct_eigenvectors;
 use cauchy::*;
 use num_traits::{ToPrimitive, Zero};
 
@@ -22,16 +23,17 @@ pub struct EigGeneralizedWork<T: Scalar> {
     /// Compute left eigenvectors or not
     pub jobvl: JobEv,
 
-    /// Eigenvalues
+    /// Eigenvalues: alpha (numerators)
     pub alpha: Vec<MaybeUninit<T::Complex>>,
+    /// Eigenvalues: beta (denominators)
     pub beta: Vec<MaybeUninit<T::Complex>>,
-    /// Real part of eigenvalues used in real routines
+    /// Real part of alpha (eigenvalue numerators) used in real routines
     pub alpha_re: Option<Vec<MaybeUninit<T::Real>>>,
-    /// Imaginary part of eigenvalues used in real routines
+    /// Imaginary part of alpha (eigenvalue numerators) used in real routines
     pub alpha_im: Option<Vec<MaybeUninit<T::Real>>>,
-    /// Real part of eigenvalues used in real routines
+    /// Real part of beta (eigenvalue denominators) used in real routines
     pub beta_re: Option<Vec<MaybeUninit<T::Real>>>,
-    /// Imaginary part of eigenvalues used in real routines
+    /// Imaginary part of beta (eigenvalue denominators) used in real routines
     pub beta_im: Option<Vec<MaybeUninit<T::Real>>>,
 
     /// Left eigenvectors
@@ -397,8 +399,8 @@ macro_rules! impl_eig_generalized_work_r {
                     .as_ref()
                     .map(|e| unsafe { e.slice_assume_init_ref() })
                     .unwrap();
-                reconstruct_eigs(alpha_re, Some(alpha_im), &mut self.alpha);
-                reconstruct_eigs(beta_re, None, &mut self.beta);
+                reconstruct_eigs_optional_im(alpha_re, Some(alpha_im), &mut self.alpha);
+                reconstruct_eigs_optional_im(beta_re, None, &mut self.beta);
 
                 if let Some(v) = self.vr_l.as_ref() {
                     let v = unsafe { v.slice_assume_init_ref() };
@@ -466,8 +468,8 @@ macro_rules! impl_eig_generalized_work_r {
 impl_eig_generalized_work_r!(f32, c32, lapack_sys::sggev_);
 impl_eig_generalized_work_r!(f64, c64, lapack_sys::dggev_);
 
-/// Create complex eigenvalues from real and imaginary parts.
-fn reconstruct_eigs<T: Scalar>(
+/// Create complex eigenvalues from real and optional imaginary parts.
+fn reconstruct_eigs_optional_im<T: Scalar>(
     re: &[T],
     im_opt: Option<&[T]>,
     eigs: &mut [MaybeUninit<T::Complex>],
@@ -483,55 +485,6 @@ fn reconstruct_eigs<T: Scalar>(
     } else {
         for i in 0..n {
             eigs[i].write(T::complex(re[i], T::zero()));
-        }
-    }
-}
-
-/// Reconstruct eigenvectors into complex-array
-///
-/// From LAPACK API https://software.intel.com/en-us/node/469230
-///
-/// - If the j-th eigenvalue is real,
-///   - v(j) = VR(:,j), the j-th column of VR.
-///
-/// - If the j-th and (j+1)-st eigenvalues form a complex conjugate pair,
-///   - v(j)   = VR(:,j) + i*VR(:,j+1)
-///   - v(j+1) = VR(:,j) - i*VR(:,j+1).
-///
-/// In the C-layout case, we need the conjugates of the left
-/// eigenvectors, so the signs should be reversed.
-fn reconstruct_eigenvectors<T: Scalar>(
-    take_hermite_conjugate: bool,
-    eig_im: &[T],
-    vr: &[T],
-    vc: &mut [MaybeUninit<T::Complex>],
-) {
-    let n = eig_im.len();
-    assert_eq!(vr.len(), n * n);
-    assert_eq!(vc.len(), n * n);
-
-    let mut col = 0;
-    while col < n {
-        if eig_im[col].is_zero() {
-            // The corresponding eigenvalue is real.
-            for row in 0..n {
-                let re = vr[row + col * n];
-                vc[row + col * n].write(T::complex(re, T::zero()));
-            }
-            col += 1;
-        } else {
-            // This is a complex conjugate pair.
-            assert!(col + 1 < n);
-            for row in 0..n {
-                let re = vr[row + col * n];
-                let mut im = vr[row + (col + 1) * n];
-                if take_hermite_conjugate {
-                    im = -im;
-                }
-                vc[row + col * n].write(T::complex(re, im));
-                vc[row + (col + 1) * n].write(T::complex(re, -im));
-            }
-            col += 2;
         }
     }
 }

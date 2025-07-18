@@ -14,12 +14,22 @@ use crate::{error::*, layout::MatrixLayout, *};
 use cauchy::*;
 use num_traits::{ToPrimitive, Zero};
 
+#[derive(Clone, PartialEq, Eq)]
 pub enum GeneralizedEigenvalue<T: Scalar> {
     /// Finite generalized eigenvalue: `Finite(α/β, (α, β))`
     Finite(T, (T, T)),
 
     /// Indeterminate generalized eigenvalue: `Indeterminate((α, β))`
     Indeterminate((T, T)),
+}
+
+impl<T: Scalar> std::fmt::Display for GeneralizedEigenvalue<T> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::Finite(e, (a, b)) => write!(f, "{e:.3e} ({a:.3e}/{b:.3e})"),
+            Self::Indeterminate((a, b)) => write!(f, "∞ ({a:.3e}/{b:.3e})"),
+        }
+    }
 }
 
 #[non_exhaustive]
@@ -464,13 +474,19 @@ macro_rules! impl_eig_generalized_work_r {
                             if beta.abs() < thresh {
                                 GeneralizedEigenvalue::Indeterminate((alpha.clone(), beta.clone()))
                             } else {
-                                GeneralizedEigenvalue::Finite(alpha / beta, (alpha.clone(), beta.clone()))
+                                GeneralizedEigenvalue::Finite(
+                                    alpha / beta,
+                                    (alpha.clone(), beta.clone()),
+                                )
                             }
                         } else {
                             if beta.is_zero() {
                                 GeneralizedEigenvalue::Indeterminate((alpha.clone(), beta.clone()))
                             } else {
-                                GeneralizedEigenvalue::Finite(alpha / beta, (alpha.clone(), beta.clone()))
+                                GeneralizedEigenvalue::Finite(
+                                    alpha / beta,
+                                    (alpha.clone(), beta.clone()),
+                                )
                             }
                         }
                     })

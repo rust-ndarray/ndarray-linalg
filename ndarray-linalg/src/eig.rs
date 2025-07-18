@@ -3,6 +3,7 @@
 use crate::error::*;
 use crate::layout::*;
 use crate::types::*;
+pub use lax::GeneralizedEigenvalue;
 use ndarray::*;
 
 #[cfg_attr(doc, katexit::katexit)]
@@ -107,12 +108,12 @@ pub trait EigGeneralized {
     ///     [ 4.44, -7.77,  0.00,  1.11,  5.55],
     ///     [-8.88,  6.66, -3.33,  2.22, -9.99],
     /// ];
-    /// let (eigs, vecs) = (a.clone(), b.clone()).eig_generalized(None).unwrap();
+    /// let (geneigs, vecs) = (a.clone(), b.clone()).eig_generalized(None).unwrap();
     ///
     /// let a = a.map(|v| v.as_c());
     /// let b = b.map(|v| v.as_c());
-    /// for (e_opt, vec) in eigs.iter().zip(vecs.axis_iter(Axis(1))) {
-    ///     if let Some(e) = e_opt.as_ref() {
+    /// for (ge, vec) in geneigs.iter().zip(vecs.axis_iter(Axis(1))) {
+    ///     if let GeneralizedEigenvalue::Finite(e, _) = ge {
     ///         let ebv = b.dot(&vec).map(|v| v * e);
     ///         let av = a.dot(&vec);
     ///         assert_close_l2!(&av, &ebv, 1e-5);
@@ -136,7 +137,7 @@ where
     A: Scalar + Lapack,
     S: Data<Elem = A>,
 {
-    type EigVal = Array1<Option<A::Complex>>;
+    type EigVal = Array1<GeneralizedEigenvalue<A::Complex>>;
     type EigVec = Array2<A::Complex>;
     type Real = A::Real;
 

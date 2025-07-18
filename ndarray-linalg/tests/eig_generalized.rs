@@ -15,21 +15,24 @@ fn real_a_real_b_3x3_full_rank() {
         [-3.0,  1.0,  6.0],
         [ 4.0, -5.0,  1.0],
     ];
-    let (eigvals_opt, eigvecs) = (a.clone(), b.clone()).eig_generalized(None).unwrap();
+    let (geneigvals, eigvecs) = (a.clone(), b.clone()).eig_generalized(None).unwrap();
 
     let a = a.map(|v| v.as_c());
     let b = b.map(|v| v.as_c());
-    for (e_opt, vec) in eigvals_opt.iter().zip(eigvecs.columns()) {
-        if let Some(e) = e_opt.as_ref() {
+    for (ge, vec) in geneigvals.iter().zip(eigvecs.columns()) {
+        if let GeneralizedEigenvalue::Finite(e, _) = ge {
             let ebv = b.dot(&vec).map(|v| v * e);
             let av = a.dot(&vec);
             assert_close_l2!(&av, &ebv, 1e-7);
         }
     }
 
-    let mut eigvals = eigvals_opt
+    let mut eigvals = geneigvals
         .iter()
-        .filter_map(|&e_opt: &Option<c64>| e_opt)
+        .filter_map(|ge: &GeneralizedEigenvalue<c64>| match ge {
+            GeneralizedEigenvalue::Finite(e, _) => Some(e.clone()),
+            GeneralizedEigenvalue::Indeterminate(_) => None,
+        })
         .collect::<Vec<_>>();
     eigvals.sort_by(|a, b| a.re().partial_cmp(&b.re()).unwrap());
     let eigvals = Array1::from_vec(eigvals);
@@ -55,21 +58,24 @@ fn real_a_real_b_3x3_nullity_1() {
         [0.0,  1.0, 1.0],
         [1.0, -1.0, 0.0],
     ];
-    let (eigvals_opt, eigvecs) = (a.clone(), b.clone()).eig_generalized(Some(1e-4)).unwrap();
+    let (geneigvals, eigvecs) = (a.clone(), b.clone()).eig_generalized(Some(1e-4)).unwrap();
 
     let a = a.map(|v| v.as_c());
     let b = b.map(|v| v.as_c());
-    for (e_opt, vec) in eigvals_opt.iter().zip(eigvecs.columns()) {
-        if let Some(e) = e_opt.as_ref() {
+    for (ge, vec) in geneigvals.iter().zip(eigvecs.columns()) {
+        if let GeneralizedEigenvalue::Finite(e, _) = ge {
             let ebv = b.dot(&vec).map(|v| v * e);
             let av = a.dot(&vec);
             assert_close_l2!(&av, &ebv, 1e-7);
         }
     }
 
-    let mut eigvals = eigvals_opt
+    let mut eigvals = geneigvals
         .iter()
-        .filter_map(|&e_opt: &Option<c64>| e_opt)
+        .filter_map(|ge: &GeneralizedEigenvalue<c64>| match ge {
+            GeneralizedEigenvalue::Finite(e, _) => Some(e.clone()),
+            GeneralizedEigenvalue::Indeterminate(_) => None,
+        })
         .collect::<Vec<_>>();
     eigvals.sort_by(|a, b| a.re().partial_cmp(&b.re()).unwrap());
     let eigvals = Array1::from_vec(eigvals);
@@ -95,21 +101,24 @@ fn complex_a_complex_b_3x3_full_rank() {
         [c64::new( 0.0, -3.0), c64::new( 2.0,  2.0), c64::new(-4.0,  0.0)],
         [c64::new( 5.0,  5.0), c64::new(-1.5,  1.5), c64::new( 0.0, -2.0)],
     ];
-    let (eigvals_opt, eigvecs) = (a.clone(), b.clone()).eig_generalized(None).unwrap();
+    let (geneigvals, eigvecs) = (a.clone(), b.clone()).eig_generalized(None).unwrap();
 
     let a = a.map(|v| v.as_c());
     let b = b.map(|v| v.as_c());
-    for (e_opt, vec) in eigvals_opt.iter().zip(eigvecs.columns()) {
-        if let Some(e) = e_opt.as_ref() {
+    for (ge, vec) in geneigvals.iter().zip(eigvecs.columns()) {
+        if let GeneralizedEigenvalue::Finite(e, _) = ge {
             let ebv = b.dot(&vec).map(|v| v * e);
             let av = a.dot(&vec);
             assert_close_l2!(&av, &ebv, 1e-7);
         }
     }
 
-    let mut eigvals = eigvals_opt
+    let mut eigvals = geneigvals
         .iter()
-        .filter_map(|&e_opt: &Option<c64>| e_opt)
+        .filter_map(|ge: &GeneralizedEigenvalue<c64>| match ge {
+            GeneralizedEigenvalue::Finite(e, _) => Some(e.clone()),
+            GeneralizedEigenvalue::Indeterminate(_) => None,
+        })
         .collect::<Vec<_>>();
     eigvals.sort_by(|a, b| a.re().partial_cmp(&b.re()).unwrap());
     let eigvals = Array1::from_vec(eigvals);
@@ -139,21 +148,24 @@ fn complex_a_complex_b_3x3_nullity_1() {
         [c64::new( 7.85029,  7.02144), c64::new(9.23225, -0.479451), c64::new(13.9507, -16.5402)],
         [c64::new(-4.47803,  3.98981), c64::new(9.44434, -4.519970), c64::new(40.9006, -23.5060)],
     ];
-    let (eigvals_opt, eigvecs) = (a.clone(), b.clone()).eig_generalized(Some(1e-4)).unwrap();
+    let (geneigvals, eigvecs) = (a.clone(), b.clone()).eig_generalized(Some(1e-4)).unwrap();
 
     let a = a.map(|v| v.as_c());
     let b = b.map(|v| v.as_c());
-    for (e_opt, vec) in eigvals_opt.iter().zip(eigvecs.columns()) {
-        if let Some(e) = e_opt.as_ref() {
+    for (ge, vec) in geneigvals.iter().zip(eigvecs.columns()) {
+        if let GeneralizedEigenvalue::Finite(e, _) = ge {
             let ebv = b.dot(&vec).map(|v| v * e);
             let av = a.dot(&vec);
             assert_close_l2!(&av, &ebv, 1e-7);
         }
     }
 
-    let mut eigvals = eigvals_opt
+    let mut eigvals = geneigvals
         .iter()
-        .filter_map(|&e_opt: &Option<c64>| e_opt)
+        .filter_map(|ge: &GeneralizedEigenvalue<c64>| match ge {
+            GeneralizedEigenvalue::Finite(e, _) => Some(e.clone()),
+            GeneralizedEigenvalue::Indeterminate(_) => None,
+        })
         .collect::<Vec<_>>();
     eigvals.sort_by(|a, b| a.re().partial_cmp(&b.re()).unwrap());
     let eigvals = Array1::from_vec(eigvals);

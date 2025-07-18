@@ -9,10 +9,18 @@
 //!
 use std::mem::MaybeUninit;
 
-use crate::{error::*, layout::MatrixLayout, *};
 use crate::eig::reconstruct_eigenvectors;
+use crate::{error::*, layout::MatrixLayout, *};
 use cauchy::*;
 use num_traits::{ToPrimitive, Zero};
+
+pub enum GeneralizedEigenvalue<T: Scalar> {
+    /// Finite generalized eigenvalue: `Finite(α/β, (α, β))`
+    Finite(T, (T, T)),
+
+    /// Indeterminate generalized eigenvalue: `Indeterminate((α, β))`
+    Indeterminate((T, T)),
+}
 
 #[non_exhaustive]
 pub struct EigGeneralizedWork<T: Scalar> {
@@ -254,22 +262,28 @@ macro_rules! impl_eig_generalized_work_c {
         }
 
         impl EigGeneralizedOwned<$c> {
-            pub fn calc_eigs(&self, thresh_opt: Option<$f>) -> Vec<Option<$c>> {
+            pub fn calc_eigs(&self, thresh_opt: Option<$f>) -> Vec<GeneralizedEigenvalue<$c>> {
                 self.alpha
                     .iter()
                     .zip(self.beta.iter())
                     .map(|(alpha, beta)| {
                         if let Some(thresh) = thresh_opt {
                             if beta.abs() < thresh {
-                            None
+                                GeneralizedEigenvalue::Indeterminate((alpha.clone(), beta.clone()))
                             } else {
-                            Some(alpha / beta)
+                                GeneralizedEigenvalue::Finite(
+                                    alpha / beta,
+                                    (alpha.clone(), beta.clone()),
+                                )
                             }
                         } else {
                             if beta.is_zero() {
-                                None
+                                GeneralizedEigenvalue::Indeterminate((alpha.clone(), beta.clone()))
                             } else {
-                                Some(alpha / beta)
+                                GeneralizedEigenvalue::Finite(
+                                    alpha / beta,
+                                    (alpha.clone(), beta.clone()),
+                                )
                             }
                         }
                     })
@@ -441,22 +455,22 @@ macro_rules! impl_eig_generalized_work_r {
         }
 
         impl EigGeneralizedOwned<$f> {
-            pub fn calc_eigs(&self, thresh_opt: Option<$f>) -> Vec<Option<$c>> {
+            pub fn calc_eigs(&self, thresh_opt: Option<$f>) -> Vec<GeneralizedEigenvalue<$c>> {
                 self.alpha
                     .iter()
                     .zip(self.beta.iter())
                     .map(|(alpha, beta)| {
                         if let Some(thresh) = thresh_opt {
                             if beta.abs() < thresh {
-                            None
+                                GeneralizedEigenvalue::Indeterminate((alpha.clone(), beta.clone()))
                             } else {
-                            Some(alpha / beta)
+                                GeneralizedEigenvalue::Finite(alpha / beta, (alpha.clone(), beta.clone()))
                             }
                         } else {
                             if beta.is_zero() {
-                                None
+                                GeneralizedEigenvalue::Indeterminate((alpha.clone(), beta.clone()))
                             } else {
-                                Some(alpha / beta)
+                                GeneralizedEigenvalue::Finite(alpha / beta, (alpha.clone(), beta.clone()))
                             }
                         }
                     })

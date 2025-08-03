@@ -147,8 +147,13 @@ where
     ) -> Result<(Self::EigVal, Self::EigVec)> {
         let (mut a, mut b) = (self.0.to_owned(), self.1.to_owned());
         let layout = a.square_layout()?;
-        let (s, t) =
-            A::eig_generalized(true, layout, a.as_allocated_mut()?, b.as_allocated_mut()?, thresh_opt)?;
+        let (s, t) = A::eig_generalized(
+            true,
+            layout,
+            a.as_allocated_mut()?,
+            b.as_allocated_mut()?,
+            thresh_opt,
+        )?;
         let n = layout.len() as usize;
         Ok((
             ArrayBase::from(s),

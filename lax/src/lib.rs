@@ -135,7 +135,10 @@ pub trait Lapack: Scalar {
         a: &mut [Self],
         b: &mut [Self],
         thresh_opt: Option<Self::Real>,
-    ) -> Result<(Vec<GeneralizedEigenvalue<Self::Complex>>, Vec<Self::Complex>)>;
+    ) -> Result<(
+        Vec<GeneralizedEigenvalue<Self::Complex>>,
+        Vec<Self::Complex>,
+    )>;
 
     /// Compute right eigenvalue and eigenvectors for a symmetric or Hermitian matrix
     fn eigh(
@@ -350,7 +353,10 @@ macro_rules! impl_lapack {
                 a: &mut [Self],
                 b: &mut [Self],
                 thresh_opt: Option<Self::Real>,
-            ) -> Result<(Vec<GeneralizedEigenvalue<Self::Complex>>, Vec<Self::Complex>)> {
+            ) -> Result<(
+                Vec<GeneralizedEigenvalue<Self::Complex>>,
+                Vec<Self::Complex>,
+            )> {
                 use eig_generalized::*;
                 let work = EigGeneralizedWork::<$s>::new(calc_v, l)?;
                 let eig_generalized_owned = work.eval(a, b)?;

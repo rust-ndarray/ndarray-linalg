@@ -2,6 +2,15 @@ use ndarray::*;
 use ndarray_linalg::*;
 
 #[test]
+fn generalized_eigenvalue_fmt() {
+    let ge0 = GeneralizedEigenvalue::Finite(0.1, (1.0, 10.0));
+    assert_eq!(ge0.to_string(), "1.000e-1 (1.000e0/1.000e1)".to_string());
+
+    let ge1 = GeneralizedEigenvalue::Indeterminate((1.0, 0.0));
+    assert_eq!(ge1.to_string(), "∞ (1.000e0/0.000e0)".to_string());
+}
+
+#[test]
 fn real_a_real_b_3x3_full_rank() {
     #[rustfmt::skip]
     let a = array![

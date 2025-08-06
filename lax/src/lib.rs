@@ -62,6 +62,7 @@
 //! there are several types of eigenvalue problem API
 //!
 //! - [eig] module for eigenvalue problem for general matrix.
+//! - [eig_generalized] module for generalized eigenvalue problem for general matrix.
 //! - [eigh] module for eigenvalue problem for symmetric/Hermitian matrix.
 //! - [eigh_generalized] module for generalized eigenvalue problem for symmetric/Hermitian matrix.
 //!
@@ -87,6 +88,7 @@ extern crate netlib_src as _src;
 pub mod alloc;
 pub mod cholesky;
 pub mod eig;
+pub mod eig_generalized;
 pub mod eigh;
 pub mod eigh_generalized;
 pub mod error;
@@ -102,6 +104,8 @@ pub mod svd;
 pub mod svddc;
 pub mod triangular;
 pub mod tridiagonal;
+
+pub use crate::eig_generalized::GeneralizedEigenvalue;
 
 pub use self::flags::*;
 pub use self::least_squares::LeastSquaresOwned;
@@ -123,6 +127,18 @@ pub trait Lapack: Scalar {
         l: MatrixLayout,
         a: &mut [Self],
     ) -> Result<(Vec<Self::Complex>, Vec<Self::Complex>)>;
+
+    /// Compute right eigenvalue and eigenvectors for a general matrix
+    fn eig_generalized(
+        calc_v: bool,
+        l: MatrixLayout,
+        a: &mut [Self],
+        b: &mut [Self],
+        thresh_opt: Option<Self::Real>,
+    ) -> Result<(
+        Vec<GeneralizedEigenvalue<Self::Complex>>,
+        Vec<Self::Complex>,
+    )>;
 
     /// Compute right eigenvalue and eigenvectors for a symmetric or Hermitian matrix
     fn eigh(
@@ -328,6 +344,25 @@ macro_rules! impl_lapack {
                 use eig::*;
                 let work = EigWork::<$s>::new(calc_v, l)?;
                 let EigOwned { eigs, vr, vl } = work.eval(a)?;
+                Ok((eigs, vr.or(vl).unwrap_or_default()))
+            }
+
+            fn eig_generalized(
+                calc_v: bool,
+                l: MatrixLayout,
+                a: &mut [Self],
+                b: &mut [Self],
+                thresh_opt: Option<Self::Real>,
+            ) -> Result<(
+                Vec<GeneralizedEigenvalue<Self::Complex>>,
+                Vec<Self::Complex>,
+            )> {
+                use eig_generalized::*;
+                let work = EigGeneralizedWork::<$s>::new(calc_v, l)?;
+                let eig_generalized_owned = work.eval(a, b)?;
+                let eigs = eig_generalized_owned.calc_eigs(thresh_opt);
+                let vr = eig_generalized_owned.vr;
+                let vl = eig_generalized_owned.vl;
                 Ok((eigs, vr.or(vl).unwrap_or_default()))
             }
 

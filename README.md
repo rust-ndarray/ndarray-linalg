@@ -62,7 +62,7 @@ Supported features are following:
 
 ### For library developer
 
-If you creating a library depending on this crate, we encourage you not to link any backend:
+If you are creating a library depending on this crate, we encourage you not to link any backend:
 
 ```toml
 [dependencies]

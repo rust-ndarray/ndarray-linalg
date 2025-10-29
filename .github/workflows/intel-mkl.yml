@@ -17,4 +17,4 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: cargo test
-        run: cargo test --manifest-path=ndarray-linalg/Cargo.toml --no-default-features --features=intel-mkl-static  --verbose
+        run: cargo test --manifest-path=ndarray-linalg/Cargo.toml --no-default-features --features=intel-mkl-static-lp64-seq  --verbose

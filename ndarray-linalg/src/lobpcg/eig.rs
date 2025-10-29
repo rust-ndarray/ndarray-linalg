@@ -69,7 +69,10 @@ impl<A: Float + Scalar + ScalarOperand + Lapack + PartialOrd + Default> Truncate
             lobpcg(
                 |y| self.problem.dot(&y),
                 x,
-                |mut y| y.assign(&preconditioner.dot(&y)),
+                |mut y| {
+                    let p = preconditioner.dot(&y);
+                    y.assign(&p);
+                },
                 self.constraints.clone(),
                 self.precision,
                 self.maxiter,

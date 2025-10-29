@@ -2,7 +2,7 @@
 name = "lax"
 version = "0.17.0"
 authors = ["Toshiki Teramura <toshiki.teramura@gmail.com>"]
-edition = "2018"
+edition = "2021"
 
 description   = "LAPACK wrapper without ndarray"
 documentation = "https://docs.rs/lax/"

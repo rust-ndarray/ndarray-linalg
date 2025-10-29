@@ -18,7 +18,7 @@ blas      = ["ndarray/blas"]
 
 netlib    = ["lax/netlib"]
 openblas  = ["lax/openblas"]
-intel-mkl = ["lax/intel-mkl-static-lp64-seq"]
+intel-mkl = ["lax/intel-mkl"]
 
 netlib-static   = ["lax/netlib-static"]
 netlib-system   = ["lax/netlib-system"]
@@ -26,15 +26,8 @@ netlib-system   = ["lax/netlib-system"]
 openblas-static = ["lax/openblas-static"]
 openblas-system = ["lax/openblas-system"]
 
-intel-mkl-dynamic-lp64-iomp = ["lax/intel-mkl-dynamic-lp64-iomp"]
-intel-mkl-dynamic-lp64-seq = ["lax/intel-mkl-dynamic-lp64-seq"]
-intel-mkl-static-ilp64-iomp = ["lax/intel-mkl-static-ilp64-iomp"]
-intel-mkl-dynamic-ilp64-seq = ["lax/intel-mkl-dynamic-ilp64-seq"]
-intel-mkl-static-lp64-iomp = ["lax/intel-mkl-static-lp64-iomp"]
-intel-mkl-dynamic-ilp64-iomp = ["lax/intel-mkl-dynamic-ilp64-iomp"]
-intel-mkl-static-ilp64-seq = ["lax/intel-mkl-static-ilp64-seq"]
-intel-mkl-static-lp64-seq = ["lax/intel-mkl-static-lp64-seq"]
-
+intel-mkl-static = ["lax/intel-mkl-static"]
+intel-mkl-system = ["lax/intel-mkl-system"]
 
 [dependencies]
 cauchy = "0.4.0"

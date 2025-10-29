@@ -76,7 +76,7 @@
 
 #![deny(rustdoc::broken_intra_doc_links, rustdoc::private_intra_doc_links)]
 
-#[cfg(any(feature = "intel-mkl-dynamic-lp64-iomp", feature = "intel-mkl-dynamic-lp64-seq", feature = "intel-mkl-static-ilp64-iomp", feature = "intel-mkl-static-lp64-iomp", feature = "intel-mkl-dynamic-ilp64-iomp", feature = "intel-mkl-static-ilp64-seq", feature = "intel-mkl-static-lp64-seq"))]
+#[cfg(any(feature = "intel-mkl-system", feature = "intel-mkl-static"))]
 extern crate intel_mkl_src as _src;
 
 #[cfg(any(feature = "openblas-system", feature = "openblas-static"))]

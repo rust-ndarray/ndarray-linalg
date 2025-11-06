@@ -39,11 +39,11 @@ intel-mkl-static-lp64-iomp = ["lax/intel-mkl-static-lp64-iomp"]
 intel-mkl-static-lp64-seq = ["lax/intel-mkl-static-lp64-seq"]
 
 [dependencies]
-cauchy = "0.4.0"
+cauchy = {git="https://github.com/Dirreke/cauchy.git", branch="bump-rand"}
 katexit = "0.1.2"
-num-complex = "0.4.0"
+num-complex = {git="https://github.com/Dirreke/num-complex.git", branch="bump-rand"}
 num-traits  = "0.2.14"
-rand = "0.8.3"
+rand = "0.9"
 thiserror = "2.0.0"
 
 [dependencies.ndarray]
@@ -61,7 +61,7 @@ paste = "1.0.5"
 criterion = "0.5.1"
 # Keep the same version as ndarray's dependency!
 approx = { version = "0.5", features = ["num-complex"] }
-rand_pcg = "0.3.1"
+rand_pcg = "0.9"
 
 [[bench]]
 name = "truncated_eig"

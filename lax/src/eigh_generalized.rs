@@ -9,7 +9,7 @@
 //!
 
 use super::*;
-use crate::{error::*, layout::MatrixLayout};
+use crate::error::*;
 use cauchy::*;
 use num_traits::{ToPrimitive, Zero};
 

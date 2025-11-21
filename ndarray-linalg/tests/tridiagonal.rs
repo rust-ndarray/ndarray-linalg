@@ -43,6 +43,35 @@ fn opnorm_tridiagonal() {
 }
 
 #[test]
+fn solve_tridiagonal_Ix2_Ix1_f64() {
+    let a: Array2<f64> = arr2(&[
+        [3.0, 2.1, 0.0, 0.0, 0.0],
+        [3.4, 2.3, -1.0, 0.0, 0.0],
+        [0.0, 3.6, -5.0, 1.9, 0.0],
+        [0.0, 0.0, 7.0, -0.9, 8.0],
+        [0.0, 0.0, 0.0, -6.0, 7.1],
+    ]);
+    let mut b: Array1<f64> = arr1(&[ 2.7, -0.5, 2.6,  0.6,  2.7 ]);
+    let x: Array1<f64> = arr1(&[-4.0,  7.0, 3.0, -4.0, -3.0 ]);
+    a.solve_tridiagonal_inplace(&mut b).unwrap();
+    assert_close_l2!(&x, &b, 1e-7);
+}
+
+#[test]
+fn solve_tridiagonal_Ix1_f64() {
+    let a: Tridiagonal<f64> = Tridiagonal {
+        l: MatrixLayout::C { row: 5, lda: 5 },
+        du: vec![ 2.1, -1.0,  1.9,  8.0 ],
+        d:  vec![ 3.0,  2.3, -5.0, -0.9, 7.1 ],
+        dl: vec![ 3.4,  3.6,  7.0, -6.0 ],
+    };
+    let mut b: Array1<f64> = arr1(&[ 2.7, -0.5, 2.6,  0.6,  2.7 ]);
+    let x: Array1<f64> = arr1(&[-4.0,  7.0, 3.0, -4.0, -3.0 ]);
+    a.solve_tridiagonal_inplace(&mut b).unwrap();
+    assert_close_l2!(&x, &b, 1e-7);
+}
+
+#[test]
 fn solve_tridiagonal_f64() {
     // https://www.nag-j.co.jp/lapack/dgttrs.htm
     let a: Array2<f64> = arr2(&[
